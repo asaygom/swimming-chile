@@ -2,7 +2,7 @@
 
 ## 1. Propósito del documento
 
-Este documento define el esquema lógico inicial `v0.1` para la plataforma de datos de natación en Chile.
+Este documento define el esquema lógico `v0.1` actualmente operativo para la plataforma de datos de natación en Chile.
 
 El objetivo de esta versión es dejar una base clara, simple y extensible para:
 
@@ -12,41 +12,35 @@ El objetivo de esta versión es dejar una base clara, simple y extensible para:
 - registrar competencias
 - registrar pruebas dentro de cada competencia
 - registrar nadadores
-- registrar resultados
+- registrar resultados individuales
+- registrar resultados de relevos y sus integrantes
 - registrar récords
-
-Este esquema está pensado para soportar el MVP del proyecto y servir como base para la futura implementación en PostgreSQL.
+- soportar cargas staging desde Excel, CSV y parser PDF
 
 ---
 
-## 2. Objetivo del MVP
+## 2. Estado actual del proyecto
 
-La primera versión del proyecto debe permitir:
+A la fecha, el proyecto ya tiene funcionando:
 
-- mostrar competencias nacionales y máster
-- mostrar pruebas por competencia
-- mostrar resultados
-- mostrar récords
-- mostrar clubes o equipos
-- mostrar piscinas o recintos
+- parser PDF estable para resultados individuales y relevos
+- carga a `core` estable para clubes, eventos, atletas y resultados individuales
+- separación de relevos en entidades propias
+- staging tables para cargas controladas antes de insertar en tablas core
 
-Todavía no se considera en esta versión:
+Actualmente:
 
-- sistema de usuarios
-- login
-- entrenadores
-- asociaciones como entidad separada
-- afiliación histórica atleta-club
-- splits o parciales por prueba
-- disponibilidad horaria en tiempo real de piscinas
-- rankings materializados avanzados
+- `event` puede contener pruebas individuales y relevos
+- `result` contiene resultados individuales
+- `relay_result` contiene resultados de equipos de relevo
+- `relay_result_member` contiene los integrantes de cada relevo
 
 ---
 
 ## 3. Principios del diseño
 
 ### 3.1 No sobrediseñar
-El modelo inicial debe resolver el MVP, no todos los posibles casos futuros del deporte.
+El modelo debe resolver el flujo actual sin bloquear extensiones futuras.
 
 ### 3.2 Mantener trazabilidad
 Cada dato importante debe poder asociarse a una fuente.
@@ -57,29 +51,78 @@ Ejemplo: guardar tiempos como texto y también como valor numérico en milisegun
 ### 3.4 Permitir incompletitud
 La base debe tolerar datos faltantes, porque muchas fuentes públicas no estarán completas.
 
-### 3.5 Diseñar para crecer
-El modelo debe permitir extenderse a futuro sin obligar a rehacer todo desde cero.
+### 3.5 Separar staging de core
+Las cargas pasan primero por tablas staging para facilitar validación, normalización y deduplicación.
 
 ---
 
 ## 4. Alcance del esquema v0.1
 
-Las tablas definidas para esta versión son:
+Las tablas core definidas para esta versión son:
 
-- `sources`
-- `clubs`
-- `pools`
-- `competitions`
-- `events`
-- `athletes`
-- `results`
-- `records`
+- `source`
+- `club`
+- `pool`
+- `competition`
+- `event`
+- `athlete`
+- `result`
+- `relay_result`
+- `relay_result_member`
+- `record`
+
+Las tablas staging definidas para esta versión son:
+
+- `stg_club`
+- `stg_event`
+- `stg_athlete`
+- `stg_result`
+- `stg_relay_result`
+- `stg_relay_result_member`
 
 ---
 
-## 5. Descripción general de entidades
+## 5. Catálogos canónicos actuales
 
-### 5.1 sources
+### 5.1 `event.gender`
+Valores esperados:
+
+- `women`
+- `men`
+- `mixed`
+
+### 5.2 `athlete.gender`
+Valores esperados:
+
+- `female`
+- `male`
+
+### 5.3 `event.stroke` y `record.stroke`
+Valores esperados:
+
+- `freestyle`
+- `backstroke`
+- `breaststroke`
+- `butterfly`
+- `individual_medley`
+- `medley_relay`
+- `freestyle_relay`
+
+### 5.4 `result.status` y `relay_result.status`
+Valores esperados:
+
+- `valid`
+- `dns`
+- `dnf`
+- `dsq`
+- `scratch`
+- `unknown`
+
+---
+
+## 6. Descripción general de entidades
+
+### 6.1 `source`
 Registra de dónde proviene la información.
 
 Ejemplos:
@@ -89,37 +132,39 @@ Ejemplos:
 - carga manual
 - sitio web municipal
 
-### 5.2 clubs
+### 6.2 `club`
 Registra clubes, equipos o instituciones vinculadas a la natación.
 
-### 5.3 pools
+### 6.3 `pool`
 Registra piscinas o recintos disponibles para entrenar o competir.
 
-### 5.4 competitions
+### 6.4 `competition`
 Registra competencias, campeonatos, torneos o controles.
 
-### 5.5 events
-Registra cada prueba o evento dentro de una competencia.
+### 6.5 `event`
+Registra cada prueba o evento dentro de una competencia, incluyendo individuales y relevos.
 
-### 5.6 athletes
+### 6.6 `athlete`
 Registra nadadores.
 
-### 5.7 results
-Registra resultados por prueba y atleta.
+### 6.7 `result`
+Registra resultados individuales por prueba y atleta.
 
-### 5.8 records
+### 6.8 `relay_result`
+Registra resultados por equipo en pruebas de relevo.
+
+### 6.9 `relay_result_member`
+Registra los integrantes de cada relevo y su orden de posta.
+
+### 6.10 `record`
 Registra récords nacionales, máster u otros tipos que se definan.
 
 ---
 
-## 6. Definición de tablas
+## 7. Definición resumida de tablas core
 
-## 6.1 Tabla `source`
-
-### Propósito
-Registrar la procedencia de la información.
-
-### Campos
+### 7.1 `source`
+Campos principales:
 - `id`
 - `name`
 - `source_type`
@@ -128,21 +173,8 @@ Registrar la procedencia de la información.
 - `last_checked_at`
 - `created_at`
 
-### Campos obligatorios
-- `name`
-- `source_type`
-
-### Observaciones
-Esta tabla es clave para mantener trazabilidad y validar la confianza de la información.
-
----
-
-## 6.2 Tabla `club`
-
-### Propósito
-Registrar clubes, equipos o instituciones.
-
-### Campos
+### 7.2 `club`
+Campos principales:
 - `id`
 - `name`
 - `short_name`
@@ -156,22 +188,8 @@ Registrar clubes, equipos o instituciones.
 - `created_at`
 - `updated_at`
 
-### Campos obligatorios
-- `name`
-
-### Observaciones
-- `association_name` se almacena como texto en esta versión.
-- Más adelante podría existir una tabla separada de asociaciones si realmente aporta valor.
-- `source_id` permite identificar la fuente del club.
-
----
-
-## 6.3 Tabla `pool`
-
-### Propósito
-Registrar piscinas o recintos.
-
-### Campos
+### 7.3 `pool`
+Campos principales:
 - `id`
 - `name`
 - `city`
@@ -192,23 +210,8 @@ Registrar piscinas o recintos.
 - `created_at`
 - `updated_at`
 
-### Campos obligatorios
-- `name`
-
-### Observaciones
-- `pool_length_m` es clave para distinguir 25m y 50m.
-- `latitude` y `longitude` permitirán construir el mapa.
-- Esta tabla debe tolerar carga manual e información incompleta.
-- `public_access_type` permite indicar si la piscina es pública, municipal, privada, de club, escolar, universitaria u otra.
-
----
-
-## 6.4 Tabla `competition`
-
-### Propósito
-Registrar competencias, torneos o campeonatos.
-
-### Campos
+### 7.4 `competition`
+Campos principales:
 - `id`
 - `name`
 - `season_year`
@@ -227,25 +230,8 @@ Registrar competencias, torneos o campeonatos.
 - `created_at`
 - `updated_at`
 
-### Campos obligatorios
-- `name`
-
-### Observaciones
-- `season_year` ayuda a filtrar por temporada.
-- `venue_name` se guarda aunque no exista una relación consolidada con `pools`.
-- `pool_id` será opcional.
-- `competition_type` servirá para distinguir competencias nacionales, regionales, máster, open u otras.
-- `course_type` debe distinguir entre 25m, 50m u otro tipo no determinado.
-- `status` permitirá registrar si la competencia está planificada, finalizada, cancelada o postergada.
-
----
-
-## 6.5 Tabla `event`
-
-### Propósito
-Registrar pruebas o eventos dentro de una competencia.
-
-### Campos
+### 7.5 `event`
+Campos principales:
 - `id`
 - `competition_id`
 - `event_name`
@@ -259,23 +245,11 @@ Registrar pruebas o eventos dentro de una competencia.
 - `source_id`
 - `created_at`
 
-### Campos obligatorios
-- `competition_id`
-- `event_name`
+Observación:
+- `event` almacena tanto pruebas individuales como relevos.
 
-### Observaciones
-- `event_name` debe conservar el nombre lo más cercano posible a la fuente original.
-- `stroke`, `distance_m`, `gender`, `age_group` y `round_type` representan una versión parcialmente normalizada del nombre del evento.
-- `age_group` se deja como texto en esta versión para no sobrediseñar categorías.
-
----
-
-## 6.6 Tabla `athlete`
-
-### Propósito
-Registrar nadadores.
-
-### Campos
+### 7.6 `athlete`
+Campos principales:
 - `id`
 - `full_name`
 - `gender`
@@ -286,22 +260,8 @@ Registrar nadadores.
 - `created_at`
 - `updated_at`
 
-### Campos obligatorios
-- `full_name`
-
-### Observaciones
-- Puede haber duplicados iniciales por diferencias en escritura del nombre.
-- `club_id` se deja opcional para tolerar fuentes incompletas.
-- La deduplicación y afiliación histórica atleta-club se resolverán en versiones futuras.
-
----
-
-## 6.7 Tabla `result`
-
-### Propósito
-Registrar resultados de atletas en pruebas específicas.
-
-### Campos
+### 7.7 `result`
+Campos principales:
 - `id`
 - `event_id`
 - `athlete_id`
@@ -319,25 +279,44 @@ Registrar resultados de atletas en pruebas específicas.
 - `source_url`
 - `created_at`
 
-### Campos obligatorios
+Observación:
+- `result` se usa solo para resultados individuales.
+
+### 7.8 `relay_result`
+Campos principales:
+- `id`
 - `event_id`
+- `club_id`
+- `relay_team_name`
+- `lane`
+- `heat_number`
+- `rank_position`
+- `result_time_text`
+- `result_time_ms`
+- `points`
+- `reaction_time`
+- `record_flag`
+- `status`
+- `source_id`
+- `source_url`
+- `created_at`
+
+### 7.9 `relay_result_member`
+Campos principales:
+- `id`
+- `relay_result_id`
 - `athlete_id`
+- `leg_order`
+- `athlete_name_raw`
+- `gender`
+- `age`
+- `created_at`
 
-### Observaciones
-- `club_id` también se guarda aquí, aunque exista en `athletes`, para congelar el club histórico asociado a ese resultado.
-- `result_time_text` debe guardar el valor original tal como aparece en la fuente.
-- `result_time_ms` permitirá análisis, comparación y ordenamiento.
-- `status` permitirá registrar casos como DNS, DNF, DSQ o válido.
-- `record_flag` podrá almacenar marcas como NR, CR, MR u otras equivalentes.
+Observación:
+- `relay_result_member` usa `UNIQUE (relay_result_id, leg_order)` para impedir duplicidad de integrantes en la misma posta.
 
----
-
-## 6.8 Tabla `record`
-
-### Propósito
-Registrar récords vigentes o históricos.
-
-### Campos
+### 7.10 `record`
+Campos principales:
 - `id`
 - `record_type`
 - `stroke`
@@ -358,212 +337,142 @@ Registrar récords vigentes o históricos.
 - `created_at`
 - `updated_at`
 
-### Campos obligatorios
-- `record_type`
-- `distance_m`
-- `gender`
-- `course_type`
-- `result_time_text`
-
-### Observaciones
-- En esta versión se privilegia flexibilidad.
-- `athlete_name` y `club_name` se guardan como texto para tolerar fuentes no totalmente consolidadas.
-- Más adelante esta tabla podrá vincularse más estrictamente con `athletes`, `clubs` y `events`.
-
 ---
 
-## 7. Relaciones principales
+## 8. Definición resumida de tablas staging
 
-Las relaciones principales del modelo son:
+### 8.1 `stg_club`
+Propósito:
+- carga preliminar de clubes antes de normalizar e insertar en `club`
 
-- un `source` puede estar asociado a múltiples registros en distintas tablas
-- un `competition` tiene muchos `events`
-- un `event` tiene muchos `results`
-- un `athlete` puede tener muchos `results`
-- un `club` puede estar asociado a muchos `athletes`
-- un `club` puede aparecer en muchos `results`
-- un `pool` puede estar asociado a muchas `competitions`
-
-### Vista conceptual
-
-```text
-source
- ├── club
- ├── pool
- ├── competition
- ├── event
- ├── athlete
- ├── result
- └── record
-
-competition
- └── event
-      └── result
-           ├── athlete
-           └── club
-
-pool
- └── competition
-```
-
----
-
-## 8. Campos obligatorios por tabla
-
-### `source`
+Campos:
 - `name`
-- `source_type`
+- `short_name`
+- `city`
+- `region`
+- `source_id`
 
-### `club`
-- `name`
+### 8.2 `stg_event`
+Propósito:
+- carga preliminar de eventos antes de normalizar e insertar en `event`
 
-### `pool`
-- `name`
-
-### `competition`
-- `name`
-
-### `event`
+Campos:
 - `competition_id`
 - `event_name`
-
-### `athlete`
-- `full_name`
-
-### `result`
-- `event_id`
-- `athlete_id`
-
-### `record`
-- `record_type`
+- `stroke`
 - `distance_m`
 - `gender`
-- `course_type`
+- `age_group`
+- `round_type`
+- `source_id`
+
+### 8.3 `stg_athlete`
+Propósito:
+- carga preliminar de atletas antes de normalizar e insertar en `athlete`
+
+Campos:
+- `full_name`
+- `gender`
+- `club_name`
+- `source_id`
+
+### 8.4 `stg_result`
+Propósito:
+- carga preliminar de resultados individuales antes de insertar en `result`
+
+Campos:
+- `event_name`
+- `athlete_name`
+- `club_name`
+- `rank_position`
 - `result_time_text`
+- `result_time_ms`
+- `status`
+- `source_id`
+
+### 8.5 `stg_relay_result`
+Propósito:
+- carga preliminar de resultados de relevo antes de insertar en `relay_result`
+
+Campos:
+- `event_name`
+- `club_name`
+- `relay_team_name`
+- `lane`
+- `heat_number`
+- `rank_position`
+- `result_time_text`
+- `result_time_ms`
+- `points`
+- `reaction_time`
+- `record_flag`
+- `status`
+- `source_id`
+- `source_url`
+
+### 8.6 `stg_relay_result_member`
+Propósito:
+- carga preliminar de integrantes de relevo antes de insertar en `relay_result_member`
+
+Campos:
+- `event_name`
+- `club_name`
+- `relay_team_name`
+- `leg_order`
+- `athlete_name`
+- `gender`
+- `age`
 
 ---
 
-## 9. Valores controlados sugeridos
+## 9. Flujo actual de carga
 
-En esta versión no se crearán tablas catálogo separadas. Se utilizarán valores controlados mediante la aplicación o mediante restricciones simples en PostgreSQL.
+### 9.1 Resultados individuales
+Flujo operativo actual:
 
-### 9.1 `competition_type`
-Valores sugeridos:
-- `national`
-- `regional`
-- `master`
-- `open`
-- `school`
-- `other`
+1. parser PDF o carga manual genera CSV/Excel
+2. datos pasan por `stg_club`, `stg_event`, `stg_athlete`, `stg_result`
+3. pipeline normaliza y deduplica
+4. inserción en `club`, `event`, `athlete`, `result`
 
-### 9.2 `course_type`
-Valores sugeridos:
-- `scm`
-- `lcm`
-- `unknown`
+### 9.2 Relevos
+Flujo parcialmente implementado:
 
-### 9.3 `status` en `competition`
-Valores sugeridos:
-- `planned`
-- `finished`
-- `cancelled`
-- `postponed`
-
-### 9.4 `gender`
-Valores sugeridos:
-- `male`
-- `female`
-- `mixed`
-- `unknown`
-
-### 9.5 `stroke`
-Valores sugeridos:
-- `freestyle`
-- `backstroke`
-- `breaststroke`
-- `butterfly`
-- `medley`
-- `relay`
-- `mixed`
-- `unknown`
-
-### 9.6 `round_type`
-Valores sugeridos:
-- `heats`
-- `final`
-- `timed_final`
-- `semifinal`
-- `unknown`
-
-### 9.7 `indoor_outdoor`
-Valores sugeridos:
-- `indoor`
-- `outdoor`
-- `mixed`
-- `unknown`
-
-### 9.8 `public_access_type`
-Valores sugeridos:
-- `public`
-- `municipal`
-- `club`
-- `private`
-- `school`
-- `university`
-- `unknown`
-
-### 9.9 `status` en `result`
-Valores sugeridos:
-- `valid`
-- `dns`
-- `dnf`
-- `dsq`
-- `scratch`
-- `unknown`
+1. parser PDF ya genera `relay_team.csv` y `relay_swimmer.csv`
+2. el esquema ya tiene `stg_relay_result`, `stg_relay_result_member`, `relay_result` y `relay_result_member`
+3. falta completar el pipeline para la carga end-to-end de relevos a `core`
 
 ---
 
-## 10. Validaciones mínimas sugeridas
+## 10. Decisiones de modelado relevantes
 
-Cuando este esquema se traduzca a SQL, se recomienda considerar al menos las siguientes validaciones:
+### 10.1 Relevos separados de resultados individuales
+No se modelan relevos dentro de `result`.
 
-- `pool_length_m > 0`
-- `lanes_count > 0`
-- `distance_m > 0`
-- `result_time_ms >= 0`
-- `season_year >= 1900`
-- `birth_year >= 1900`
-- `latitude` entre -90 y 90
-- `longitude` entre -180 y 180
+Razón:
+- un relevo es un resultado de equipo, no un resultado individual repetido cuatro veces
+- además requiere integrantes y orden de posta
 
----
+### 10.2 Tiempo textual y tiempo numérico
+Se conserva:
+- `result_time_text` para trazabilidad y presentación
+- `result_time_ms` para orden, ranking y análisis
 
-## 11. Decisiones intencionales de esta versión
+### 10.3 Diferencia entre género de evento y género de atleta
+Se mantiene separada:
+- `event.gender`: `women | men | mixed`
+- `athlete.gender`: `female | male`
 
-### Incluido
-- trazabilidad por fuente
-- flexibilidad para datos incompletos
-- separación entre dato bruto y dato normalizado
-- soporte para calendario, resultados, récords, clubes y piscinas
-
-### Excluido
-- asociaciones como tabla propia
-- entrenadores
-- usuarios
-- rankings materializados
-- splits por prueba
-- disponibilidad detallada por horario en piscinas
-- historial formal atleta-club
-- lógica avanzada de deduplicación
+Esto evita mezclar la denominación competitiva del evento con el sexo/género del atleta dentro del modelo.
 
 ---
 
-## 12. Riesgos y observaciones
+## 11. Próximos pasos esperables
 
-- La tabla `athlete` probablemente requerirá deduplicación futura.
-- La tabla `record` está pensada para flexibilidad, no para máxima pureza relacional.
-- Piscinas y clubes probablemente necesitarán una mezcla de automatización y carga manual.
-- Un exceso de restricciones en SQL podría dificultar la carga inicial de datos reales.
-- Un exceso de texto libre podría generar inconsistencias si no se controlan los valores.
+Los siguientes pasos razonables del proyecto son:
 
----
+- completar la carga a core de `relay_result` y `relay_result_member`
+- probar deduplicación de relevos en cargas repetidas
+- definir si se agregará unicidad adicional en resultados individuales y relevos
+- documentar scripts estables y comandos operativos del proceso
+
