@@ -28,14 +28,14 @@ EXPECTED_COLUMNS = {
     "club": ["name", "short_name", "city", "region", "source_id"],
     "event": ["competition_id", "event_name", "stroke", "distance_m", "gender", "age_group", "round_type", "source_id"],
     "athlete": ["full_name", "gender", "club_name", "source_id"],
-    "result": ["event_name", "athlete_name", "club_name", "rank_position", "result_time_text", "result_time_ms", "status", "source_id"],
-    "relay_result": ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"],
-    "relay_result_member": ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age"],
+    "result": ["event_name", "athlete_name", "club_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "age_at_event", "birth_year_estimated", "status", "source_id"],
+    "relay_result": ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"],
+    "relay_result_member": ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"],
 }
 
 PARSER_RELAY_INPUT_COLUMNS = {
-    "relay_team": ["event_name", "relay_team_name", "rank_position", "seed_time_text", "result_time_text", "result_time_ms", "status", "source_id", "page_number", "line_number"],
-    "relay_swimmer": ["event_name", "relay_team_name", "leg_order", "swimmer_name", "gender", "age", "page_number", "line_number"],
+    "relay_team": ["event_name", "relay_team_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "status", "source_id", "page_number", "line_number"],
+    "relay_swimmer": ["event_name", "relay_team_name", "leg_order", "swimmer_name", "gender", "age_at_event", "birth_year_estimated", "page_number", "line_number"],
 }
 
 STAGING_TABLES = {
@@ -325,17 +325,33 @@ def normalize_dataframe(df: pd.DataFrame, expected_columns: List[str], table_key
         df["gender"] = df["gender"].map(normalize_athlete_gender)
 
     if table_key in {"result", "relay_result"}:
+        df["seed_time_text"] = df["seed_time_text"].map(normalize_swim_time_text)
         df["result_time_text"] = df["result_time_text"].map(normalize_swim_time_text)
-        normalized_ms = []
+        normalized_seed_ms = []
+        normalized_result_ms = []
         normalized_rank = []
         normalized_status = []
-        for tt, ms, rk, st in zip(df["result_time_text"], df["result_time_ms"], df["rank_position"], df["status"]):
+        for stt, sms, tt, ms, rk, st in zip(
+            df["seed_time_text"],
+            df["seed_time_ms"],
+            df["result_time_text"],
+            df["result_time_ms"],
+            df["rank_position"],
+            df["status"],
+        ):
+            sms_norm = normalize_string(sms)
+            if sms_norm is None:
+                derived_seed = derive_result_time_ms(stt)
+                normalized_seed_ms.append(str(derived_seed) if derived_seed is not None else None)
+            else:
+                normalized_seed_ms.append(sms_norm)
+
             ms_norm = normalize_string(ms)
             if ms_norm is None:
-                derived = derive_result_time_ms(tt)
-                normalized_ms.append(str(derived) if derived is not None else None)
+                derived_result = derive_result_time_ms(tt)
+                normalized_result_ms.append(str(derived_result) if derived_result is not None else None)
             else:
-                normalized_ms.append(ms_norm)
+                normalized_result_ms.append(ms_norm)
 
             if isinstance(tt, str) and tt.upper().startswith("X"):
                 normalized_rank.append(None)
@@ -344,13 +360,20 @@ def normalize_dataframe(df: pd.DataFrame, expected_columns: List[str], table_key
                 normalized_rank.append(normalize_string(rk))
                 normalized_status.append(normalize_result_status(st, tt))
 
-        df["result_time_ms"] = normalized_ms
+        df["seed_time_ms"] = normalized_seed_ms
+        df["result_time_ms"] = normalized_result_ms
         df["rank_position"] = normalized_rank
         df["status"] = normalized_status
+
+    if table_key == "result":
+        df["age_at_event"] = df["age_at_event"].map(normalize_string)
+        df["birth_year_estimated"] = df["birth_year_estimated"].map(normalize_string)
 
     if table_key == "relay_result_member":
         df["gender"] = df["gender"].map(normalize_athlete_gender)
         df["leg_order"] = df["leg_order"].map(normalize_string)
+        df["age_at_event"] = df["age_at_event"].map(normalize_string)
+        df["birth_year_estimated"] = df["birth_year_estimated"].map(normalize_string)
     return df
 
 
@@ -380,13 +403,13 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
     relay_team_df["source_url"] = None
     relay_team_df["source_id"] = relay_team_df["source_id"].fillna(str(default_source_id))
     relay_result_df = relay_team_df[
-        ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"]
+        ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"]
     ]
 
     relay_swimmer_df["club_name"] = relay_swimmer_df["relay_team_name"].map(lambda x: infer_relay_club_name(x, club_names))
     relay_swimmer_df["athlete_name"] = relay_swimmer_df["swimmer_name"]
     relay_member_df = relay_swimmer_df[
-        ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age"]
+        ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"]
     ]
 
     return {
@@ -597,9 +620,22 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
 
 def insert_core_result(cur, schema: str, competition_id: int, default_source_id: int) -> None:
     cur.execute(f"""
-        INSERT INTO {fqtn(schema, 'result')} (event_id, athlete_id, club_id, rank_position, result_time_text, result_time_ms, status, source_id)
-        SELECT e.id, a.id, c.id, NULLIF(TRIM(r.rank_position), '')::INTEGER, NULLIF(TRIM(r.result_time_text), ''),
-               NULLIF(TRIM(r.result_time_ms), '')::BIGINT, LOWER(NULLIF(TRIM(r.status), '')),
+        INSERT INTO {fqtn(schema, 'result')} (
+            event_id, athlete_id, club_id, rank_position,
+            seed_time_text, seed_time_ms,
+            result_time_text, result_time_ms,
+            age_at_event, birth_year_estimated,
+            status, source_id
+        )
+        SELECT e.id, a.id, c.id,
+               NULLIF(TRIM(r.rank_position), '')::INTEGER,
+               NULLIF(TRIM(r.seed_time_text), ''),
+               NULLIF(TRIM(r.seed_time_ms), '')::BIGINT,
+               NULLIF(TRIM(r.result_time_text), ''),
+               NULLIF(TRIM(r.result_time_ms), '')::BIGINT,
+               NULLIF(TRIM(r.age_at_event), '')::INTEGER,
+               NULLIF(TRIM(r.birth_year_estimated), '')::INTEGER,
+               LOWER(NULLIF(TRIM(r.status), '')),
                COALESCE(NULLIF(TRIM(r.source_id), '')::BIGINT, %s)
         FROM {fqtn(schema, 'stg_result')} r
         LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
@@ -624,11 +660,18 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
 
 def insert_core_relay_result(cur, schema: str, competition_id: int, default_source_id: int) -> None:
     cur.execute(f"""
-        INSERT INTO {fqtn(schema, 'relay_result')} (event_id, club_id, relay_team_name, lane, heat_number, rank_position, result_time_text, result_time_ms, points, reaction_time, record_flag, status, source_id, source_url)
+        INSERT INTO {fqtn(schema, 'relay_result')} (
+            event_id, club_id, relay_team_name, lane, heat_number, rank_position,
+            seed_time_text, seed_time_ms,
+            result_time_text, result_time_ms,
+            points, reaction_time, record_flag, status, source_id, source_url
+        )
         SELECT e.id, c.id, TRIM(r.relay_team_name),
                NULLIF(TRIM(r.lane), '')::INTEGER,
                NULLIF(TRIM(r.heat_number), '')::INTEGER,
                NULLIF(TRIM(r.rank_position), '')::INTEGER,
+               NULLIF(TRIM(r.seed_time_text), ''),
+               NULLIF(TRIM(r.seed_time_ms), '')::BIGINT,
                NULLIF(TRIM(r.result_time_text), ''),
                NULLIF(TRIM(r.result_time_ms), '')::BIGINT,
                NULLIF(TRIM(r.points), '')::NUMERIC(10,2),
@@ -658,13 +701,16 @@ def insert_core_relay_result(cur, schema: str, competition_id: int, default_sour
 
 def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> None:
     cur.execute(f"""
-        INSERT INTO {fqtn(schema, 'relay_result_member')} (relay_result_id, athlete_id, leg_order, athlete_name_raw, gender, age)
+        INSERT INTO {fqtn(schema, 'relay_result_member')} (
+            relay_result_id, athlete_id, leg_order, athlete_name_raw, gender, age_at_event, birth_year_estimated
+        )
         SELECT rr.id,
                a.id,
                NULLIF(TRIM(m.leg_order), '')::INTEGER,
                NULLIF(TRIM(m.athlete_name), ''),
                LOWER(NULLIF(TRIM(m.gender), '')),
-               NULLIF(TRIM(m.age), '')::INTEGER
+               NULLIF(TRIM(m.age_at_event), '')::INTEGER,
+               NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER
         FROM {fqtn(schema, 'stg_relay_result_member')} m
         LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(m.club_name)) = LOWER(TRIM(c.name))
         LEFT JOIN {fqtn(schema, 'event')} e ON LOWER(TRIM(m.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = %s
@@ -804,7 +850,7 @@ def main() -> None:
         load_core(conn, config)
         print_counts(conn, config, data)
         print_validations(conn, config)
-        print("\n[OK] Pipeline v0.3.4 completado.")
+        print("\n[OK] Pipeline v0.3.5 completado.")
     except Exception as exc:
         conn.rollback()
         fail(f"El pipeline falló: {exc}")

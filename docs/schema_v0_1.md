@@ -272,7 +272,8 @@ Campos principales:
 - `result_time_text`
 - `result_time_ms`
 - `points`
-- `reaction_time`
+- `age`
+- `birth_year_estimated`
 - `record_flag`
 - `status`
 - `source_id`
@@ -309,7 +310,8 @@ Campos principales:
 - `leg_order`
 - `athlete_name_raw`
 - `gender`
-- `age`
+- `age_at_event`
+- `birth_year_estimated`
 - `created_at`
 
 Observación:
@@ -387,6 +389,8 @@ Campos:
 - `rank_position`
 - `result_time_text`
 - `result_time_ms`
+- `age_at_event`
+- `birth_year_estimated`
 - `status`
 - `source_id`
 
@@ -421,7 +425,8 @@ Campos:
 - `leg_order`
 - `athlete_name`
 - `gender`
-- `age`
+- `age_at_event`
+- `birth_year_estimated`
 
 ---
 

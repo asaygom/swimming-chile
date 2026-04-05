@@ -171,8 +171,11 @@ CREATE TABLE result (
     rank_position INTEGER CHECK (rank_position IS NULL OR rank_position > 0),
     result_time_text TEXT,
     result_time_ms BIGINT CHECK (result_time_ms IS NULL OR result_time_ms >= 0),
+    seed_time_text TEXT,
+    seed_time_ms BIGINT CHECK (seed_time_ms IS NULL OR seed_time_ms >= 0),
     points NUMERIC(10,2),
-    reaction_time NUMERIC(6,3) CHECK (reaction_time IS NULL OR reaction_time >= 0),
+    age_at_event INTEGER CHECK (age_at_event IS NULL OR age_at_event > 0),
+    birth_year_estimated INTEGER CHECK (birth_year_estimated IS NULL OR birth_year_estimated >= 1900),
     record_flag TEXT,
     status TEXT CHECK (
         status IN ('valid', 'dns', 'dnf', 'dsq', 'scratch', 'unknown')
@@ -196,6 +199,8 @@ CREATE TABLE relay_result (
     rank_position INTEGER CHECK (rank_position IS NULL OR rank_position > 0),
     result_time_text TEXT,
     result_time_ms BIGINT CHECK (result_time_ms IS NULL OR result_time_ms >= 0),
+    seed_time_text TEXT,
+    seed_time_ms BIGINT CHECK (seed_time_ms IS NULL OR seed_time_ms >= 0),
     points NUMERIC(10,2),
     reaction_time NUMERIC(6,3) CHECK (reaction_time IS NULL OR reaction_time >= 0),
     record_flag TEXT,
@@ -218,7 +223,8 @@ CREATE TABLE relay_result_member (
     leg_order INTEGER NOT NULL CHECK (leg_order BETWEEN 1 AND 4),
     athlete_name_raw TEXT,
     gender TEXT CHECK (gender IN ('male', 'female')),
-    age INTEGER CHECK (age IS NULL OR age > 0),
+    age_at_event INTEGER CHECK (age_at_event IS NULL OR age_at_event > 0),
+    birth_year_estimated INTEGER CHECK (birth_year_estimated IS NULL OR birth_year_estimated >= 1900),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (relay_result_id, leg_order)
 );
@@ -300,8 +306,12 @@ CREATE TABLE stg_result (
     rank_position TEXT,
     result_time_text TEXT,
     result_time_ms TEXT,
+    age_at_event TEXT,
+    birth_year_estimated TEXT,
+    seed_time_text TEXT,
+    seed_time_ms TEXT,
     status TEXT,
-    source_id TEXT,
+    source_id TEXT
 );
 
 CREATE TABLE stg_relay_result (
@@ -318,7 +328,9 @@ CREATE TABLE stg_relay_result (
     record_flag TEXT,
     status TEXT,
     source_id TEXT,
-    source_url TEXT
+    source_url TEXT,
+    seed_time_text TEXT,
+    seed_time_ms TEXT
 );
 
 CREATE TABLE stg_relay_result_member (
@@ -328,7 +340,8 @@ CREATE TABLE stg_relay_result_member (
     leg_order TEXT,
     athlete_name TEXT,
     gender TEXT,
-    age TEXT
+    age_at_event TEXT,
+    birth_year_estimated TEXT
 );
 
 -- =====================================================
