@@ -1,0 +1,321 @@
+﻿event_name,relay_team_name,leg_order,swimmer_name,gender,age_at_event,birth_year_estimated,page_number,line_number
+mixed 100-119 200 LC Meter medley_relay,Stadio Italiano A,1,"Collingwood, Camila",female,25,2001,16,34
+mixed 100-119 200 LC Meter medley_relay,Stadio Italiano A,2,"Osorio, Benjamin",male,28,1998,16,34
+mixed 100-119 200 LC Meter medley_relay,Stadio Italiano A,3,"Contador, Juan Ignacio",male,35,1991,16,34
+mixed 100-119 200 LC Meter medley_relay,Stadio Italiano A,4,"Munñoz, Isidora",female,28,1998,16,34
+mixed 100-119 200 LC Meter medley_relay,Estadio Espanñol A,1,"Spuhr, Marianne",female,32,1994,16,36
+mixed 100-119 200 LC Meter medley_relay,Estadio Espanñol A,2,"De Andraca, Roberto",male,28,1998,16,36
+mixed 100-119 200 LC Meter medley_relay,Estadio Espanñol A,3,"Barros, Sergio",male,28,1998,16,36
+mixed 100-119 200 LC Meter medley_relay,Estadio Espanñol A,4,"Munizaga, Javiera",female,30,1996,16,36
+mixed 100-119 200 LC Meter medley_relay,Goura Swim Team A,1,"Zamora, Icaro",male,28,1998,16,38
+mixed 100-119 200 LC Meter medley_relay,Goura Swim Team A,2,"Perez, Felipe",male,30,1996,16,38
+mixed 100-119 200 LC Meter medley_relay,Goura Swim Team A,3,"Quispe, Nicole",female,28,1998,16,38
+mixed 100-119 200 LC Meter medley_relay,Goura Swim Team A,4,"Aliste, Camila",female,28,1998,16,38
+mixed 100-119 200 LC Meter medley_relay,Lozada Swim Team A,1,"Torres, Sergio",male,32,1994,16,40
+mixed 100-119 200 LC Meter medley_relay,Lozada Swim Team A,2,"Mendoza, Nestor",male,29,1997,16,40
+mixed 100-119 200 LC Meter medley_relay,Lozada Swim Team A,3,"Albornoz, Javiera",female,29,1997,16,40
+mixed 100-119 200 LC Meter medley_relay,Lozada Swim Team A,4,"Rangel, Gabriela",female,26,2000,16,40
+mixed 100-119 200 LC Meter medley_relay,Nunoa Master A,1,"Nava, Jose",male,35,1991,16,42
+mixed 100-119 200 LC Meter medley_relay,Nunoa Master A,2,"Bustos, Laura",female,28,1998,16,42
+mixed 100-119 200 LC Meter medley_relay,Nunoa Master A,3,"Nava, Juan",male,30,1996,16,42
+mixed 100-119 200 LC Meter medley_relay,Nunoa Master A,4,"Cardenas, Ambar",female,26,2000,16,42
+mixed 120-159 200 LC Meter medley_relay,Lozada Swim Team A,1,"Garcia, Jose",male,33,1993,16,45
+mixed 120-159 200 LC Meter medley_relay,Lozada Swim Team A,2,"Campos, Alfredo",male,38,1988,16,45
+mixed 120-159 200 LC Meter medley_relay,Lozada Swim Team A,3,"Revilla, Elvismar",female,35,1991,16,45
+mixed 120-159 200 LC Meter medley_relay,Lozada Swim Team A,4,"Calderon, Xiana",female,35,1991,16,45
+mixed 120-159 200 LC Meter medley_relay,Stadio Italiano A,1,"Consigliere, Chiara",female,29,1997,16,47
+mixed 120-159 200 LC Meter medley_relay,Stadio Italiano A,2,"Flores, Jaime",male,33,1993,16,47
+mixed 120-159 200 LC Meter medley_relay,Stadio Italiano A,3,"Pinto, Matias",male,29,1997,16,47
+mixed 120-159 200 LC Meter medley_relay,Stadio Italiano A,4,"Munñoz, Valentina",female,37,1989,16,47
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master A,1,"Hernandez, Carlos",male,30,1996,16,49
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master A,2,"Perez, Romulo",male,34,1992,16,49
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master A,3,"Correa, Carolina",female,34,1992,16,49
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master A,4,"Godoy, Ana",female,37,1989,16,49
+mixed 120-159 200 LC Meter medley_relay,Goura Swim Team A,1,"Solans, Ines",female,34,1992,16,51
+mixed 120-159 200 LC Meter medley_relay,Goura Swim Team A,2,"Torres, Giovanni",male,30,1996,16,51
+mixed 120-159 200 LC Meter medley_relay,Goura Swim Team A,3,"Fuentes, Marcelo",male,27,1999,16,51
+mixed 120-159 200 LC Meter medley_relay,Goura Swim Team A,4,"Covarrubias, Paula",female,33,1993,16,51
+mixed 120-159 200 LC Meter medley_relay,Ironswim Master A,1,"Trewhela, Nicole",female,38,1988,16,53
+mixed 120-159 200 LC Meter medley_relay,Ironswim Master A,2,"Curletti, Nahuel",male,39,1987,16,53
+mixed 120-159 200 LC Meter medley_relay,Ironswim Master A,3,"Hernandez, Williams",male,41,1985,16,53
+mixed 120-159 200 LC Meter medley_relay,Ironswim Master A,4,"Santana, Consuelo",female,36,1990,16,53
+mixed 120-159 200 LC Meter medley_relay,Copiapo Swim A,1,"Perea, Rocio",female,26,2000,17,6
+mixed 120-159 200 LC Meter medley_relay,Copiapo Swim A,2,"Ordenes, Alejandro",male,26,2000,17,6
+mixed 120-159 200 LC Meter medley_relay,Copiapo Swim A,3,"Alfaro, Mauricio",male,36,1990,17,6
+mixed 120-159 200 LC Meter medley_relay,Copiapo Swim A,4,"Espoz, Vaneza",female,37,1989,17,6
+mixed 120-159 200 LC Meter medley_relay,Cien por Ciento Swim A,1,"Bricenño, Daniel",male,36,1990,17,8
+mixed 120-159 200 LC Meter medley_relay,Cien por Ciento Swim A,2,"Araya, Sofia",female,27,1999,17,8
+mixed 120-159 200 LC Meter medley_relay,Cien por Ciento Swim A,3,"Bricenño, Carlos",male,41,1985,17,8
+mixed 120-159 200 LC Meter medley_relay,Cien por Ciento Swim A,4,"Montero, Maria Antonieta",female,41,1985,17,8
+mixed 120-159 200 LC Meter medley_relay,Condrictios Team A,1,"Torres, Sergio",male,32,1994,17,10
+mixed 120-159 200 LC Meter medley_relay,Condrictios Team A,2,"Castro, Valentina",female,34,1992,17,10
+mixed 120-159 200 LC Meter medley_relay,Condrictios Team A,3,"Garcia, Felipe",male,36,1990,17,10
+mixed 120-159 200 LC Meter medley_relay,Condrictios Team A,4,"Contreras, Natalia",female,38,1988,17,10
+mixed 120-159 200 LC Meter medley_relay,Aguila Natacion A,1,"Regaldis, Andrea",female,30,1996,17,12
+mixed 120-159 200 LC Meter medley_relay,Aguila Natacion A,2,"Zhang, Jinyi",female,30,1996,17,12
+mixed 120-159 200 LC Meter medley_relay,Aguila Natacion A,3,"Zambrano, Henry",male,34,1992,17,12
+mixed 120-159 200 LC Meter medley_relay,Aguila Natacion A,4,"Parra, Eliseo",male,35,1991,17,12
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master B,1,"Gonzalez, Tracy",female,34,1992,17,14
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master B,2,"Montecinos, Sandra",female,28,1998,17,14
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master B,3,"Sayago, Alexis",male,33,1993,17,14
+mixed 120-159 200 LC Meter medley_relay,Nunoa Master B,4,"Salah, Yamil",male,41,1985,17,14
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim B,1,"Iriarte, Rocio",female,27,1999,17,16
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim B,2,"Godoy, Ignacio",male,32,1994,17,16
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim B,3,"Castanñeda, Alejandro",male,34,1992,17,16
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim B,4,"Mellado, Constanza",female,47,1979,17,16
+mixed 120-159 200 LC Meter medley_relay,CS Maipu A,1,"Vasquez, Isaias",male,38,1988,17,18
+mixed 120-159 200 LC Meter medley_relay,CS Maipu A,2,"Torres, Magdalena",female,27,1999,17,18
+mixed 120-159 200 LC Meter medley_relay,CS Maipu A,3,"Von Borries, Gert",male,31,1995,17,18
+mixed 120-159 200 LC Meter medley_relay,CS Maipu A,4,"Diaz, Victoria",female,31,1995,17,18
+mixed 120-159 200 LC Meter medley_relay,Orinoco Swim Team A,1,"Le Cerf, Patricio",male,36,1990,17,20
+mixed 120-159 200 LC Meter medley_relay,Orinoco Swim Team A,2,"Largi, Stephanie",female,34,1992,17,20
+mixed 120-159 200 LC Meter medley_relay,Orinoco Swim Team A,3,"Penña, Daniela",female,40,1986,17,20
+mixed 120-159 200 LC Meter medley_relay,Orinoco Swim Team A,4,"Pineda, Miguel",male,30,1996,17,20
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim A,1,"Salavery, Matias",male,29,1997,17,22
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim A,2,"Portilla, Manuel",male,29,1997,17,22
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim A,3,"Saavedra, Victoria",female,27,1999,17,22
+mixed 120-159 200 LC Meter medley_relay,Squadra Proswim A,4,"Miralles, Gabriela",female,35,1991,17,22
+mixed 160-199 200 LC Meter medley_relay,Lozada Swim Team A,1,"Parra, Luis",male,43,1983,17,25
+mixed 160-199 200 LC Meter medley_relay,Lozada Swim Team A,2,"Perez, Daniela",female,36,1990,17,25
+mixed 160-199 200 LC Meter medley_relay,Lozada Swim Team A,3,"Contreras, Freddy",male,38,1988,17,25
+mixed 160-199 200 LC Meter medley_relay,Lozada Swim Team A,4,"Lozada, Evani",female,45,1981,17,25
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,1,"Acosta, Andres",male,39,1987,17,27
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,2,"Gomez, Carlos",male,43,1983,17,27
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,3,"Godoy, Marbelys",female,38,1988,17,27
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,4,"Stuven, Rocio",female,45,1981,17,27
+mixed 160-199 200 LC Meter medley_relay,Stadio Italiano A,1,"Stefanelli, Magdalena",female,33,1993,17,29
+mixed 160-199 200 LC Meter medley_relay,Stadio Italiano A,2,"Psijas, Antonio",male,54,1972,17,29
+mixed 160-199 200 LC Meter medley_relay,Stadio Italiano A,3,"Soto, Rodrigo",male,40,1986,17,29
+mixed 160-199 200 LC Meter medley_relay,Stadio Italiano A,4,"Lois, Pamela",female,56,1970,17,29
+mixed 160-199 200 LC Meter medley_relay,Ironswim Master A,1,"Pestan, Maria Jose",female,45,1981,17,31
+mixed 160-199 200 LC Meter medley_relay,Ironswim Master A,2,"Valenzuela, Patricio",male,48,1978,17,31
+mixed 160-199 200 LC Meter medley_relay,Ironswim Master A,3,"Matulic, Juan Pablo",male,45,1981,17,31
+mixed 160-199 200 LC Meter medley_relay,Ironswim Master A,4,"Gonzalez, Alejandra",female,45,1981,17,31
+mixed 160-199 200 LC Meter medley_relay,Delfines de las Condes A,1,"Santa Maria, Debora",female,44,1982,17,33
+mixed 160-199 200 LC Meter medley_relay,Delfines de las Condes A,2,"Baeza, Matias",male,40,1986,17,33
+mixed 160-199 200 LC Meter medley_relay,Delfines de las Condes A,3,"Ballestero, David",male,36,1990,17,33
+mixed 160-199 200 LC Meter medley_relay,Delfines de las Condes A,4,"Boobier, Ginette",female,42,1984,17,33
+mixed 160-199 200 LC Meter medley_relay,Lo Que Boto La Ola A,1,"Quezada, Alvaro",male,52,1974,17,35
+mixed 160-199 200 LC Meter medley_relay,Lo Que Boto La Ola A,2,"Sepulveda, Pilar",female,43,1983,17,35
+mixed 160-199 200 LC Meter medley_relay,Lo Que Boto La Ola A,3,"Gonzalez, Rodrigo",male,40,1986,17,35
+mixed 160-199 200 LC Meter medley_relay,Lo Que Boto La Ola A,4,"Flores, Gloria",female,45,1981,17,35
+mixed 160-199 200 LC Meter medley_relay,Squadra Proswim A,1,"Portus, Monica",female,42,1984,17,37
+mixed 160-199 200 LC Meter medley_relay,Squadra Proswim A,2,"Calvo, Cristobal",male,40,1986,17,37
+mixed 160-199 200 LC Meter medley_relay,Squadra Proswim A,3,"Fabres, Nicolas",male,42,1984,17,37
+mixed 160-199 200 LC Meter medley_relay,Squadra Proswim A,4,"Meneses, Maria Jose",female,46,1980,17,37
+mixed 160-199 200 LC Meter medley_relay,Cien por Ciento Swim A,1,"Paredes, Michelle",female,37,1989,17,39
+mixed 160-199 200 LC Meter medley_relay,Cien por Ciento Swim A,2,"Rojas, Freddy",male,47,1979,17,39
+mixed 160-199 200 LC Meter medley_relay,Cien por Ciento Swim A,3,"Gonzalez, Ciro",male,48,1978,17,39
+mixed 160-199 200 LC Meter medley_relay,Cien por Ciento Swim A,4,"Nahuepan, Nicole",female,36,1990,17,39
+mixed 160-199 200 LC Meter medley_relay,Natacion Master Recoleta A,1,"Alarcon, Silvia",female,68,1958,17,41
+mixed 160-199 200 LC Meter medley_relay,Natacion Master Recoleta A,2,"Gutierrez, Enzo",male,31,1995,17,41
+mixed 160-199 200 LC Meter medley_relay,Natacion Master Recoleta A,3,"Monsalve, Nicolas",male,27,1999,17,41
+mixed 160-199 200 LC Meter medley_relay,Natacion Master Recoleta A,4,"Canñete, Soledad",female,63,1963,17,41
+mixed 200-239 200 LC Meter medley_relay,Estadio Espanñol A,1,"Ruiz, Macarena",female,54,1972,17,44
+mixed 200-239 200 LC Meter medley_relay,Estadio Espanñol A,2,"Casassus, Matias",male,54,1972,17,44
+mixed 200-239 200 LC Meter medley_relay,Estadio Espanñol A,3,"Montero, Francisco",male,40,1986,17,44
+mixed 200-239 200 LC Meter medley_relay,Estadio Espanñol A,4,"Dekock, Ariane",female,52,1974,17,44
+mixed 200-239 200 LC Meter medley_relay,Stadio Italiano A,1,"Paris, Claudia",female,58,1968,17,46
+mixed 200-239 200 LC Meter medley_relay,Stadio Italiano A,2,"Diaz, Cristobal",male,45,1981,17,46
+mixed 200-239 200 LC Meter medley_relay,Stadio Italiano A,3,"Traverso, Lorenzo",male,67,1959,17,46
+mixed 200-239 200 LC Meter medley_relay,Stadio Italiano A,4,"Zamorano, Natalia",female,36,1990,17,46
+mixed 200-239 200 LC Meter medley_relay,H2o A,1,"Perez, Daniela",female,44,1982,17,48
+mixed 200-239 200 LC Meter medley_relay,H2o A,2,"Castilla, Carlo",male,59,1967,17,48
+mixed 200-239 200 LC Meter medley_relay,H2o A,3,"Betancur, Roselin",female,45,1981,17,48
+mixed 200-239 200 LC Meter medley_relay,H2o A,4,"Lagos, Miguel",male,54,1972,17,48
+mixed 200-239 200 LC Meter medley_relay,Squadra Proswim A,1,"Trewhela, Juan Carlos",male,66,1960,17,50
+mixed 200-239 200 LC Meter medley_relay,Squadra Proswim A,2,"Carrenño, Paulina",female,39,1987,17,50
+mixed 200-239 200 LC Meter medley_relay,Squadra Proswim A,3,"Trewhela, Carolina",female,38,1988,17,50
+mixed 200-239 200 LC Meter medley_relay,Squadra Proswim A,4,"Portilla, Sergio",male,58,1968,17,50
+mixed 200-239 200 LC Meter medley_relay,Delfines de las Condes A,1,"Turcotte, Isabelle",female,41,1985,17,52
+mixed 200-239 200 LC Meter medley_relay,Delfines de las Condes A,2,"Lecaros, Pablo",male,57,1969,17,52
+mixed 200-239 200 LC Meter medley_relay,Delfines de las Condes A,3,"Zoppi, Giorgio",male,54,1972,17,52
+mixed 200-239 200 LC Meter medley_relay,Delfines de las Condes A,4,"Arias, Tatiana",female,58,1968,17,52
+mixed 200-239 200 LC Meter medley_relay,Nunoa Master A,1,"Lucena, Larry",male,51,1975,17,54
+mixed 200-239 200 LC Meter medley_relay,Nunoa Master A,2,"Lucena, Marggi",female,50,1976,17,54
+mixed 200-239 200 LC Meter medley_relay,Nunoa Master A,3,"De Elejalde, Ramiro",male,49,1977,17,54
+mixed 200-239 200 LC Meter medley_relay,Nunoa Master A,4,"Gonzalez, Elena",female,52,1974,17,54
+mixed 200-239 200 LC Meter medley_relay,Lozada Swim Team A,1,"Garcia, Eloy",male,59,1967,17,56
+mixed 200-239 200 LC Meter medley_relay,Lozada Swim Team A,2,"Perez, Paula",female,53,1973,17,56
+mixed 200-239 200 LC Meter medley_relay,Lozada Swim Team A,3,"Polo, David",male,37,1989,17,56
+mixed 200-239 200 LC Meter medley_relay,Lozada Swim Team A,4,"Castillo, Maylett",female,61,1965,17,56
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,1,"Vasquez, Carola",female,49,1977,18,6
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,2,"Cerrada, Yorggyn",male,47,1979,18,6
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,3,"Toledo, Fredi",male,67,1959,18,6
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,4,"Perez, Paulina",female,56,1970,18,6
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,1,"Neira, Octavio",male,32,1994,18,8
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,2,"Defosse, Carla",female,45,1981,18,8
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,3,"Fonturbel, Alberto",male,60,1966,18,8
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,4,"Toro, Soledad",female,72,1954,18,8
+mixed 200-239 200 LC Meter medley_relay,Lo Que Boto La Ola A,1,"Gojanovic, Jure",male,75,1951,18,10
+mixed 200-239 200 LC Meter medley_relay,Lo Que Boto La Ola A,2,"Araneda, Andres",male,36,1990,18,10
+mixed 200-239 200 LC Meter medley_relay,Lo Que Boto La Ola A,3,"Espinoza, Roxana",female,59,1967,18,10
+mixed 200-239 200 LC Meter medley_relay,Lo Que Boto La Ola A,4,"Castillo, Iza",female,50,1976,18,10
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master B,1,"Reveco, Mauricio",male,52,1974,18,13
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master B,2,"Ferrando, Nestor",male,84,1942,18,13
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master B,3,"Rojas, Ivonne",female,64,1962,18,13
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master B,4,"Escudero, Oriele",female,85,1941,18,13
+mixed 240-279 200 LC Meter medley_relay,Delfines de las Condes A,1,"Neiva, Moema",female,48,1978,18,15
+mixed 240-279 200 LC Meter medley_relay,Delfines de las Condes A,2,"Montero, Antonio",male,72,1954,18,15
+mixed 240-279 200 LC Meter medley_relay,Delfines de las Condes A,3,"Hormazabal, Rita",female,70,1956,18,15
+mixed 240-279 200 LC Meter medley_relay,Delfines de las Condes A,4,"Arrigorriaga, Jaime",male,58,1968,18,15
+mixed 240-279 200 LC Meter medley_relay,Ironswim Master A,1,"Johnson, Cristian",male,68,1958,18,17
+mixed 240-279 200 LC Meter medley_relay,Ironswim Master A,2,"Chacon, Yojan",male,61,1965,18,17
+mixed 240-279 200 LC Meter medley_relay,Ironswim Master A,3,"Bruzzone, Wanda",female,67,1959,18,17
+mixed 240-279 200 LC Meter medley_relay,Ironswim Master A,4,"Cera, Mireya",female,59,1967,18,17
+mixed 240-279 200 LC Meter medley_relay,Estadio Espanñol A,1,"Martinez, Estela",female,86,1940,18,19
+mixed 240-279 200 LC Meter medley_relay,Estadio Espanñol A,2,"Fuster, Maria Isabel",female,79,1947,18,19
+mixed 240-279 200 LC Meter medley_relay,Estadio Espanñol A,3,"Battle, Juan Pablo",male,56,1970,18,19
+mixed 240-279 200 LC Meter medley_relay,Estadio Espanñol A,4,"Bennewitz, Rodolfo",male,59,1967,18,19
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,1,"Reyes, Cristian",male,72,1954,18,21
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,2,"Soto, Eslavia",female,61,1965,18,21
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,3,"Uribe, Daniel",male,55,1971,18,21
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,4,"Munñoz, Maria",female,70,1956,18,21
+mixed 100-119 200 LC Meter freestyle_relay,Lozada Swim Team A,1,"Segovia, Pedro",male,32,1994,33,21
+mixed 100-119 200 LC Meter freestyle_relay,Lozada Swim Team A,2,"Albornoz, Javiera",female,29,1997,33,21
+mixed 100-119 200 LC Meter freestyle_relay,Lozada Swim Team A,3,"Rangel, Gabriela",female,26,2000,33,21
+mixed 100-119 200 LC Meter freestyle_relay,Lozada Swim Team A,4,"Torres, Sergio",male,32,1994,33,21
+mixed 100-119 200 LC Meter freestyle_relay,Stadio Italiano A,1,"Consigliere, Chiara",female,29,1997,33,23
+mixed 100-119 200 LC Meter freestyle_relay,Stadio Italiano A,2,"Munñoz, Isidora",female,28,1998,33,23
+mixed 100-119 200 LC Meter freestyle_relay,Stadio Italiano A,3,"Osorio, Benjamin",male,28,1998,33,23
+mixed 100-119 200 LC Meter freestyle_relay,Stadio Italiano A,4,"Flores, Jaime",male,33,1993,33,23
+mixed 100-119 200 LC Meter freestyle_relay,Goura Swim Team A,1,"Machado, Vicente",male,29,1997,33,25
+mixed 100-119 200 LC Meter freestyle_relay,Goura Swim Team A,2,"Figueroa, Simon",male,29,1997,33,25
+mixed 100-119 200 LC Meter freestyle_relay,Goura Swim Team A,3,"Quispe, Nicole",female,28,1998,33,25
+mixed 100-119 200 LC Meter freestyle_relay,Goura Swim Team A,4,"Aliste, Camila",female,28,1998,33,25
+mixed 100-119 200 LC Meter freestyle_relay,Nunoa Master A,1,"Sayago, Alexis",male,33,1993,33,27
+mixed 100-119 200 LC Meter freestyle_relay,Nunoa Master A,2,"Montecinos, Sandra",female,28,1998,33,27
+mixed 100-119 200 LC Meter freestyle_relay,Nunoa Master A,3,"Nava, Juan",male,30,1996,33,27
+mixed 100-119 200 LC Meter freestyle_relay,Nunoa Master A,4,"Cardenas, Ambar",female,26,2000,33,27
+mixed 120-159 200 LC Meter freestyle_relay,Lozada Swim Team A,1,"Contreras, Freddy",male,38,1988,33,30
+mixed 120-159 200 LC Meter freestyle_relay,Lozada Swim Team A,2,"Revilla, Elvismar",female,35,1991,33,30
+mixed 120-159 200 LC Meter freestyle_relay,Lozada Swim Team A,3,"Garcia, Jose",male,33,1993,33,30
+mixed 120-159 200 LC Meter freestyle_relay,Lozada Swim Team A,4,"Calderon, Xiana",female,35,1991,33,30
+mixed 120-159 200 LC Meter freestyle_relay,Stadio Italiano A,1,"Contador, Juan Ignacio",male,35,1991,33,32
+mixed 120-159 200 LC Meter freestyle_relay,Stadio Italiano A,2,"Munñoz, Valentina",female,37,1989,33,32
+mixed 120-159 200 LC Meter freestyle_relay,Stadio Italiano A,3,"Banchieri, Macarena",female,30,1996,33,32
+mixed 120-159 200 LC Meter freestyle_relay,Stadio Italiano A,4,"Pinto, Matias",male,29,1997,33,32
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim A,1,"Godoy, Ignacio",male,32,1994,33,34
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim A,2,"Saavedra, Victoria",female,27,1999,33,34
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim A,3,"Donoso, Ignacio",male,40,1986,33,34
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim A,4,"Carrenño, Paulina",female,39,1987,33,34
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,1,"Perez, Romulo",male,34,1992,33,36
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,2,"Correa, Carolina",female,34,1992,33,36
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,3,"Godoy, Ana",female,37,1989,33,36
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,4,"Hernandez, Carlos",male,30,1996,33,36
+mixed 120-159 200 LC Meter freestyle_relay,Estadio Espanñol A,1,"Dekock, Ariane",female,52,1974,33,38
+mixed 120-159 200 LC Meter freestyle_relay,Estadio Espanñol A,2,"Munizaga, Javiera",female,30,1996,33,38
+mixed 120-159 200 LC Meter freestyle_relay,Estadio Espanñol A,3,"Montero, Francisco",male,40,1986,33,38
+mixed 120-159 200 LC Meter freestyle_relay,Estadio Espanñol A,4,"De Andraca, Roberto",male,28,1998,33,38
+mixed 120-159 200 LC Meter freestyle_relay,Copiapo Swim A,1,"Alfaro, Mauricio",male,36,1990,33,40
+mixed 120-159 200 LC Meter freestyle_relay,Copiapo Swim A,2,"Espoz, Vaneza",female,37,1989,33,40
+mixed 120-159 200 LC Meter freestyle_relay,Copiapo Swim A,3,"Perea, Rocio",female,26,2000,33,40
+mixed 120-159 200 LC Meter freestyle_relay,Copiapo Swim A,4,"Ordenes, Alejandro",male,26,2000,33,40
+mixed 120-159 200 LC Meter freestyle_relay,Goura Swim Team A,1,"Lobos, Martin",male,31,1995,33,42
+mixed 120-159 200 LC Meter freestyle_relay,Goura Swim Team A,2,"Solans, Ines",female,34,1992,33,42
+mixed 120-159 200 LC Meter freestyle_relay,Goura Swim Team A,3,"Caro, Stefany",female,35,1991,33,42
+mixed 120-159 200 LC Meter freestyle_relay,Goura Swim Team A,4,"Torres, Giovanni",male,30,1996,33,42
+mixed 120-159 200 LC Meter freestyle_relay,Ironswim Master A,1,"Trewhela, Nicole",female,38,1988,33,44
+mixed 120-159 200 LC Meter freestyle_relay,Ironswim Master A,2,"Curletti, Nahuel",male,39,1987,33,44
+mixed 120-159 200 LC Meter freestyle_relay,Ironswim Master A,3,"Hernandez, Williams",male,41,1985,33,44
+mixed 120-159 200 LC Meter freestyle_relay,Ironswim Master A,4,"Santana, Consuelo",female,36,1990,33,44
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim A,1,"Bricenño, Carlos",male,41,1985,33,46
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim A,2,"Araya, Sofia",female,27,1999,33,46
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim A,3,"Montero, Maria Antonieta",female,41,1985,33,46
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim A,4,"Bricenño, Daniel",male,36,1990,33,46
+mixed 120-159 200 LC Meter freestyle_relay,CS Maipu A,1,"Vasquez, Isaias",male,38,1988,33,48
+mixed 120-159 200 LC Meter freestyle_relay,CS Maipu A,2,"Torres, Magdalena",female,27,1999,33,48
+mixed 120-159 200 LC Meter freestyle_relay,CS Maipu A,3,"Silva, Cristian",male,34,1992,33,48
+mixed 120-159 200 LC Meter freestyle_relay,CS Maipu A,4,"Bustos, Constanza",female,34,1992,33,48
+mixed 120-159 200 LC Meter freestyle_relay,Condrictios Team A,1,"Toro, Javier",male,30,1996,33,50
+mixed 120-159 200 LC Meter freestyle_relay,Condrictios Team A,2,"Ortega, Katerine",female,34,1992,33,50
+mixed 120-159 200 LC Meter freestyle_relay,Condrictios Team A,3,"Gonzalez, Alvaro",male,39,1987,33,50
+mixed 120-159 200 LC Meter freestyle_relay,Condrictios Team A,4,"Castanñeda, Belen",female,31,1995,33,50
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim B,1,"Iriarte, Rocio",female,27,1999,33,52
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim B,2,"Pedrero, Esteban",male,32,1994,33,52
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim B,3,"Mellado, Constanza",female,47,1979,33,52
+mixed 120-159 200 LC Meter freestyle_relay,Squadra Proswim B,4,"Castanñeda, Alejandro",male,34,1992,33,52
+mixed 120-159 200 LC Meter freestyle_relay,Aguila Natacion A,1,"Salvo, Jorge",male,28,1998,34,6
+mixed 120-159 200 LC Meter freestyle_relay,Aguila Natacion A,2,"Arias, Daniela",female,42,1984,34,6
+mixed 120-159 200 LC Meter freestyle_relay,Aguila Natacion A,3,"Zapater, Maximiliano",male,35,1991,34,6
+mixed 120-159 200 LC Meter freestyle_relay,Aguila Natacion A,4,"Ostos, Yamaly",female,37,1989,34,6
+mixed 120-159 200 LC Meter freestyle_relay,Orinoco Swim Team A,1,"Pineda, Miguel",male,30,1996,34,8
+mixed 120-159 200 LC Meter freestyle_relay,Orinoco Swim Team A,2,"Penña, Daniela",female,40,1986,34,8
+mixed 120-159 200 LC Meter freestyle_relay,Orinoco Swim Team A,3,"Le Cerf, Patricio",male,36,1990,34,8
+mixed 120-159 200 LC Meter freestyle_relay,Orinoco Swim Team A,4,"Largi, Stephanie",female,34,1992,34,8
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim B,1,"Paredes, Michelle",female,37,1989,34,10
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim B,2,"Walter, Raul",male,26,2000,34,10
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim B,3,"Nahuepan, Nicole",female,36,1990,34,10
+mixed 120-159 200 LC Meter freestyle_relay,Cien por Ciento Swim B,4,"Serrano, Hector",male,44,1982,34,10
+mixed 160-199 200 LC Meter freestyle_relay,Stadio Italiano A,1,"Cipriano, Italo",male,40,1986,34,13
+mixed 160-199 200 LC Meter freestyle_relay,Stadio Italiano A,2,"Zamorano, Natalia",female,36,1990,34,13
+mixed 160-199 200 LC Meter freestyle_relay,Stadio Italiano A,3,"Lois, Pamela",female,56,1970,34,13
+mixed 160-199 200 LC Meter freestyle_relay,Stadio Italiano A,4,"Soto, Rodrigo",male,40,1986,34,13
+mixed 160-199 200 LC Meter freestyle_relay,Lozada Swim Team A,1,"Perez, Daniela",female,36,1990,34,15
+mixed 160-199 200 LC Meter freestyle_relay,Lozada Swim Team A,2,"Parra, Luis",male,43,1983,34,15
+mixed 160-199 200 LC Meter freestyle_relay,Lozada Swim Team A,3,"Lozada, Evani",female,45,1981,34,15
+mixed 160-199 200 LC Meter freestyle_relay,Lozada Swim Team A,4,"Dominguez, Jose",male,42,1984,34,15
+mixed 160-199 200 LC Meter freestyle_relay,Nunoa Master A,1,"Acosta, Andres",male,39,1987,34,17
+mixed 160-199 200 LC Meter freestyle_relay,Nunoa Master A,2,"Godoy, Marbelys",female,38,1988,34,17
+mixed 160-199 200 LC Meter freestyle_relay,Nunoa Master A,3,"Lucena, Marggi",female,50,1976,34,17
+mixed 160-199 200 LC Meter freestyle_relay,Nunoa Master A,4,"Nava, Jose",male,35,1991,34,17
+mixed 160-199 200 LC Meter freestyle_relay,Ironswim Master A,1,"Pestan, Maria Jose",female,45,1981,34,19
+mixed 160-199 200 LC Meter freestyle_relay,Ironswim Master A,2,"Valenzuela, Patricio",male,48,1978,34,19
+mixed 160-199 200 LC Meter freestyle_relay,Ironswim Master A,3,"Matulic, Juan Pablo",male,45,1981,34,19
+mixed 160-199 200 LC Meter freestyle_relay,Ironswim Master A,4,"Gonzalez, Alejandra",female,45,1981,34,19
+mixed 160-199 200 LC Meter freestyle_relay,H2o A,1,"Perez, Daniela",female,44,1982,34,21
+mixed 160-199 200 LC Meter freestyle_relay,H2o A,2,"Lagos, Miguel",male,54,1972,34,21
+mixed 160-199 200 LC Meter freestyle_relay,H2o A,3,"Cabezas, Camila",female,41,1985,34,21
+mixed 160-199 200 LC Meter freestyle_relay,H2o A,4,"Avendanño, Javier",male,40,1986,34,21
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano A,1,"Sillano, Mauricio",male,49,1977,34,24
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano A,2,"Von Borries, Cecilia",female,38,1988,34,24
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano A,3,"Paris, Claudia",female,58,1968,34,24
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano A,4,"Tapia, Miguel",male,57,1969,34,24
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano B,1,"Stefanelli, Magdalena",female,33,1993,34,26
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano B,2,"Huber, Harald",male,67,1959,34,26
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano B,3,"Anania, Tatiana",female,47,1979,34,26
+mixed 200-239 200 LC Meter freestyle_relay,Stadio Italiano B,4,"De La Rivera, Marcelo",male,55,1971,34,26
+mixed 200-239 200 LC Meter freestyle_relay,Squadra Proswim A,1,"Trewhela, Juan Carlos",male,66,1960,34,28
+mixed 200-239 200 LC Meter freestyle_relay,Squadra Proswim A,2,"Meneses, Maria Jose",female,46,1980,34,28
+mixed 200-239 200 LC Meter freestyle_relay,Squadra Proswim A,3,"Portilla, Sergio",male,58,1968,34,28
+mixed 200-239 200 LC Meter freestyle_relay,Squadra Proswim A,4,"Trewhela, Carolina",female,38,1988,34,28
+mixed 200-239 200 LC Meter freestyle_relay,Nunoa Master A,1,"Mindiola, Magdiri",female,43,1983,34,30
+mixed 200-239 200 LC Meter freestyle_relay,Nunoa Master A,2,"Stuven, Rocio",female,45,1981,34,30
+mixed 200-239 200 LC Meter freestyle_relay,Nunoa Master A,3,"Reyes, Cristian",male,72,1954,34,30
+mixed 200-239 200 LC Meter freestyle_relay,Nunoa Master A,4,"Gomez, Carlos",male,43,1983,34,30
+mixed 200-239 200 LC Meter freestyle_relay,Delfines de las Condes A,1,"Lecaros, Pablo",male,57,1969,34,32
+mixed 200-239 200 LC Meter freestyle_relay,Delfines de las Condes A,2,"Santa Maria, Debora",female,44,1982,34,32
+mixed 200-239 200 LC Meter freestyle_relay,Delfines de las Condes A,3,"Astudillo, Cristian",male,62,1964,34,32
+mixed 200-239 200 LC Meter freestyle_relay,Delfines de las Condes A,4,"Boobier, Ginette",female,42,1984,34,32
+mixed 200-239 200 LC Meter freestyle_relay,Africa Natacion A,1,"Sepulveda, Matias C",male,47,1979,34,34
+mixed 200-239 200 LC Meter freestyle_relay,Africa Natacion A,2,"Tapia, Marcela G",female,58,1968,34,34
+mixed 200-239 200 LC Meter freestyle_relay,Africa Natacion A,3,"Machuca, Claudia C",female,60,1966,34,34
+mixed 200-239 200 LC Meter freestyle_relay,Africa Natacion A,4,"Bertoni, Mario S",male,51,1975,34,34
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,1,"Vasquez, Carola",female,49,1977,34,36
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,2,"Cerrada, Yorggyn",male,47,1979,34,36
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,3,"Toledo, Fredi",male,67,1959,34,36
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,4,"Perez, Paulina",female,56,1970,34,36
+mixed 200-239 200 LC Meter freestyle_relay,Lozada Swim Team A,1,"Garcia, Eloy",male,59,1967,34,38
+mixed 200-239 200 LC Meter freestyle_relay,Lozada Swim Team A,2,"Perez, Paula",female,53,1973,34,38
+mixed 200-239 200 LC Meter freestyle_relay,Lozada Swim Team A,3,"Peraza, Jaiker",male,42,1984,34,38
+mixed 200-239 200 LC Meter freestyle_relay,Lozada Swim Team A,4,"Castillo, Maylett",female,61,1965,34,38
+mixed 240-279 200 LC Meter freestyle_relay,Stadio Italiano A,1,"Bustos, Jose Maria",male,72,1954,34,41
+mixed 240-279 200 LC Meter freestyle_relay,Stadio Italiano A,2,"Campazzo, Claudia",female,55,1971,34,41
+mixed 240-279 200 LC Meter freestyle_relay,Stadio Italiano A,3,"Chamberlain, Mary Ann",female,66,1960,34,41
+mixed 240-279 200 LC Meter freestyle_relay,Stadio Italiano A,4,"Traverso, Lorenzo",male,67,1959,34,41
+mixed 240-279 200 LC Meter freestyle_relay,Delfines de las Condes A,1,"Montero, Antonio",male,72,1954,34,43
+mixed 240-279 200 LC Meter freestyle_relay,Delfines de las Condes A,2,"Arias, Tatiana",female,58,1968,34,43
+mixed 240-279 200 LC Meter freestyle_relay,Delfines de las Condes A,3,"Tapia, Angelica",female,68,1958,34,43
+mixed 240-279 200 LC Meter freestyle_relay,Delfines de las Condes A,4,"Arrigorriaga, Jaime",male,58,1968,34,43
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,1,"Uribe, Daniel",male,55,1971,34,45
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,2,"Gonzalez, Elena",female,52,1974,34,45
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,3,"Escudero, Oriele",female,85,1941,34,45
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,4,"Lucena, Larry",male,51,1975,34,45
+mixed 240-279 200 LC Meter freestyle_relay,Ironswim Master A,1,"Johnson, Cristian",male,68,1958,34,47
+mixed 240-279 200 LC Meter freestyle_relay,Ironswim Master A,2,"Chacon, Yojan",male,61,1965,34,47
+mixed 240-279 200 LC Meter freestyle_relay,Ironswim Master A,3,"Bruzzone, Wanda",female,67,1959,34,47
+mixed 240-279 200 LC Meter freestyle_relay,Ironswim Master A,4,"Cera, Mireya",female,59,1967,34,47
+mixed 240-279 200 LC Meter freestyle_relay,Estadio Espanñol A,1,"Munñoz, Alejandra",female,48,1978,34,49
+mixed 240-279 200 LC Meter freestyle_relay,Estadio Espanñol A,2,"Martinez, Estela",female,86,1940,34,49
+mixed 240-279 200 LC Meter freestyle_relay,Estadio Espanñol A,3,"Bate, Alexander",male,55,1971,34,49
+mixed 240-279 200 LC Meter freestyle_relay,Estadio Espanñol A,4,"Bennewitz, Rodolfo",male,59,1967,34,49

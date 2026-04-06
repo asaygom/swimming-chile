@@ -1,0 +1,35 @@
+﻿page_number,line_number,event_number,event_name,relay_team_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,status,raw_line
+14,10,11,women 80-99 4x50 SC Meter medley_relay,Club Sparta A.C. A,1,NT,,"3:01,39",181390,valid,1 Club Sparta A.C. A NT 3:01.39 18
+14,13,11,women 100-119 4x50 SC Meter medley_relay,Andes Talleres A,1,NT,,"2:26,30",146300,valid,1 Andes Talleres A NT 2:26.30 18
+14,15,11,women 100-119 4x50 SC Meter medley_relay,Club Sparta A.C. A,2,NT,,"2:26,74",146740,valid,2 Club Sparta A.C. A NT 2:26.74 14
+14,17,11,women 100-119 4x50 SC Meter medley_relay,Pedro Aguirre Cerda A,3,NT,,"2:57,54",177540,valid,3 Pedro Aguirre Cerda A NT 2:57.54 12
+14,20,11,women 120-159 4x50 SC Meter medley_relay,Club Sparta A.C. A,1,NT,,"2:49,01",169010,valid,1 Club Sparta A.C. A NT 2:49.01 18
+14,22,11,women 120-159 4x50 SC Meter medley_relay,Agua Plena San Rafael A,2,NT,,"3:17,42",197420,valid,2 Agua Plena San Rafael A NT 3:17.42 14
+14,24,11,women 120-159 4x50 SC Meter medley_relay,Club DE Natacion Atlantis A,3,NT,,"3:18,24",198240,valid,3 Club DE Natacion Atlantis A NT 3:18.24 12
+14,27,11,women 160-199 4x50 SC Meter medley_relay,Club Sparta A.C. A,1,NT,,"3:21,16",201160,valid,1 Club Sparta A.C. A NT 3:21.16 18
+14,30,11,women 200-239 4x50 SC Meter medley_relay,Master Providencia Chile A,1,NT,,"2:58,66",178660,valid,1 Master Providencia Chile A NT 2:58.66 18
+14,33,12,men 80-99 4x50 SC Meter medley_relay,Club Sparta A.C. A,1,NT,,"2:06,05",126050,valid,1 Club Sparta A.C. A NT 2:06.05 18
+14,35,12,men 80-99 4x50 SC Meter medley_relay,Andes Talleres A,2,NT,,"2:08,30",128300,valid,2 Andes Talleres A NT 2:08.30 14
+14,38,12,men 100-119 4x50 SC Meter medley_relay,Pedro Aguirre Cerda A,1,NT,,"2:13,85",133850,valid,1 Pedro Aguirre Cerda A NT 2:13.85 18
+14,40,12,men 100-119 4x50 SC Meter medley_relay,Club Sparta A.C. A,2,NT,,"2:46,43",166430,valid,2 Club Sparta A.C. A NT 2:46.43 14
+14,43,12,men 120-159 4x50 SC Meter medley_relay,Andes Talleres A,1,NT,,"2:12,47",132470,valid,1 Andes Talleres A NT 2:12.47 18
+14,45,12,men 120-159 4x50 SC Meter medley_relay,Club Sparta A.C. A,2,NT,,"2:18,57",138570,valid,2 Club Sparta A.C. A NT 2:18.57 14
+14,47,12,men 120-159 4x50 SC Meter medley_relay,Agua Plena San Rafael A,3,NT,,"2:42,24",162240,valid,3 Agua Plena San Rafael A NT 2:42.24 12
+14,50,12,men 160-199 4x50 SC Meter medley_relay,Andes Talleres A,1,NT,,"2:24,78",144780,valid,1 Andes Talleres A NT 2:24.78 18
+15,5,12,men 160-199 4x50 SC Meter medley_relay,Club Sparta A.C. A,2,NT,,"2:33,35",153350,valid,2 Club Sparta A.C. A NT 2:33.35 14
+15,8,12,men 200-239 4x50 SC Meter medley_relay,Master Providencia Chile A,1,NT,,"2:43,14",163140,valid,1 Master Providencia Chile A NT 2:43.14 18
+15,10,12,men 200-239 4x50 SC Meter medley_relay,Club Sparta A.C. A,2,NT,,"2:50,30",170300,valid,2 Club Sparta A.C. A NT 2:50.30 14
+15,12,12,men 200-239 4x50 SC Meter medley_relay,NÑ unñoa Master A,3,NT,,"4:19,61",259610,valid,3 NÑ unñoa Master A NT 4:19.61 12
+15,15,12,men 280-319 4x50 SC Meter medley_relay,Penñalolen Master A,,NT,,DQ,,dsq,--- Penñalolen Master A NT DQ
+15,18,13,women 100-119 4x50 SC Meter freestyle_relay,Aquaclub Maipu A,1,NT,,"2:12,04",132040,valid,1 Aquaclub Maipu A NT 2:12.04 18
+15,20,13,women 100-119 4x50 SC Meter freestyle_relay,Club Sparta A.C. A,2,NT,,"2:51,73",171730,valid,2 Club Sparta A.C. A NT 2:51.73 14
+15,23,13,women 160-199 4x50 SC Meter freestyle_relay,Club Sparta A.C. A,1,NT,,"3:15,65",195650,valid,1 Club Sparta A.C. A NT 3:15.65 18
+15,26,13,women 240-279 4x50 SC Meter freestyle_relay,Andes Talleres A,1,NT,,"4:33,25",273250,valid,1 Andes Talleres A NT 4:33.25 18
+15,29,14,men 100-119 4x50 SC Meter freestyle_relay,Aquaclub Maipu A,1,NT,,"2:09,81",129810,valid,1 Aquaclub Maipu A NT 2:09.81 18
+15,31,14,men 100-119 4x50 SC Meter freestyle_relay,Pedro Aguirre Cerda A,2,NT,,"2:13,07",133070,valid,2 Pedro Aguirre Cerda A NT 2:13.07 14
+15,33,14,men 100-119 4x50 SC Meter freestyle_relay,Club Azul Natacion Mendoza A,,NT,,DNF,,dnf,--- Club Azul Natacion Mendoza A NT DNF
+15,36,14,men 120-159 4x50 SC Meter freestyle_relay,Aquaclub Maipu A,1,NT,,"1:56,06",116060,valid,1 Aquaclub Maipu A NT 1:56.06 18
+15,38,14,men 120-159 4x50 SC Meter freestyle_relay,Club Sparta A.C. A,2,NT,,"2:10,60",130600,valid,2 Club Sparta A.C. A NT 2:10.60 14
+15,41,14,men 160-199 4x50 SC Meter freestyle_relay,Club Sparta A.C. A,1,NT,,"2:37,61",157610,valid,1 Club Sparta A.C. A NT 2:37.61 18
+15,43,14,men 160-199 4x50 SC Meter freestyle_relay,Aquaclub Maipu C,2,NT,,"2:40,24",160240,valid,2 Aquaclub Maipu C NT 2:40.24 14
+15,45,14,men 160-199 4x50 SC Meter freestyle_relay,Club Azul Natacion Mendoza A,,NT,,DNF,,dnf,--- Club Azul Natacion Mendoza A NT DNF

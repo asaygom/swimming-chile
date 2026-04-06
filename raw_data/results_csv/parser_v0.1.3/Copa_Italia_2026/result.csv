@@ -1,0 +1,1239 @@
+﻿event_name,athlete_name,club_name,rank_position,age_at_event,birth_year_estimated,seed_time_text,seed_time_ms,result_time_text,result_time_ms,status,source_id
+women 20-24 400 LC Meter freestyle,"Zunñiga, Catalina",Santiago Deportes,1,21,2005,"6:50,00",410000,"6:39,75",399750,valid,2
+women 20-24 400 LC Meter freestyle,"Gonzalez, Constanza",Nunoa Master,2,24,2002,"7:00,60",420600,"6:40,14",400140,valid,2
+women 25-29 400 LC Meter freestyle,"Quispe, Nicole",Goura Swim Team,1,28,1998,"6:10,00",370000,"6:22,06",382060,valid,2
+women 25-29 400 LC Meter freestyle,"Aliste, Camila",Goura Swim Team,2,28,1998,"6:00,00",360000,"6:30,52",390520,valid,2
+women 25-29 400 LC Meter freestyle,"Torres, Magdalena",CS Maipu,3,27,1999,"6:39,54",399540,"6:52,69",412690,valid,2
+women 25-29 400 LC Meter freestyle,"Rangel, Gabriela",Lozada Swim Team,4,26,2000,"6:00,50",360500,"7:06,19",426190,valid,2
+women 25-29 400 LC Meter freestyle,"Bravo, Alejandra",Lozada Swim Team,5,25,2001,"8:00,00",480000,"8:02,18",482180,valid,2
+women 30-34 400 LC Meter freestyle,"Banchieri, Macarena",Stadio Italiano,1,30,1996,"6:00,00",360000,"5:47,62",347620,valid,2
+women 30-34 400 LC Meter freestyle,"Stefanelli, Magdalena",Stadio Italiano,2,33,1993,"6:20,00",380000,"6:10,48",370480,valid,2
+women 30-34 400 LC Meter freestyle,"Badilla, Estefania",Aquamaster Chillan,3,30,1996,"5:46,00",346000,"6:12,13",372130,valid,2
+women 30-34 400 LC Meter freestyle,"Zamora, Barbara",Master Vitacura,4,30,1996,"6:30,00",390000,"6:16,38",376380,valid,2
+women 30-34 400 LC Meter freestyle,"Covarrubias, Paula",Goura Swim Team,5,33,1993,"6:00,00",360000,"6:35,57",395570,valid,2
+women 30-34 400 LC Meter freestyle,"Escudero, Francesca",Lozada Swim Team,6,31,1995,"6:20,00",380000,"7:00,49",420490,valid,2
+women 30-34 400 LC Meter freestyle,"Barria, Jazmin",Manateam Swim,7,33,1993,"8:00,00",480000,"7:46,46",466460,valid,2
+women 30-34 400 LC Meter freestyle,"Castro, Valentina",Condrictios Team,8,34,1992,"7:40,00",460000,"8:07,23",487230,valid,2
+women 30-34 400 LC Meter freestyle,"Largi, Stephanie",Orinoco Swim Team,9,34,1992,"7:00,00",420000,"8:12,44",492440,valid,2
+women 30-34 400 LC Meter freestyle,"Zhang, Jinyi",Aguila Natacion,10,30,1996,"10:00,00",600000,"8:16,91",496910,valid,2
+women 35-39 400 LC Meter freestyle,"Trewhela, Carolina",Squadra Proswim,1,38,1988,"5:20,00",320000,"5:19,25",319250,valid,2
+women 35-39 400 LC Meter freestyle,"Vacher, Francisca",Golden,2,35,1991,"6:00,00",360000,"5:46,98",346980,valid,2
+women 35-39 400 LC Meter freestyle,"Revilla, Elvismar",Lozada Swim Team,3,35,1991,"5:15,40",315400,"5:47,99",347990,valid,2
+women 35-39 400 LC Meter freestyle,"Miralles, Gabriela",Squadra Proswim,4,35,1991,"5:50,00",350000,"5:49,41",349410,valid,2
+women 35-39 400 LC Meter freestyle,"Munñoz, Camila",H2o,5,39,1987,"6:12,00",372000,"5:51,49",351490,valid,2
+women 35-39 400 LC Meter freestyle,"Ostos, Yamaly",Aguila Natacion,6,37,1989,"6:50,00",410000,"6:25,06",385060,valid,2
+women 35-39 400 LC Meter freestyle,"Raposo, Leslie",Santiago Deportes,7,39,1987,"6:30,00",390000,"6:52,43",412430,valid,2
+women 35-39 400 LC Meter freestyle,"Aguilon, Anila",H2o,8,39,1987,"7:53,00",473000,"7:41,98",461980,valid,2
+women 35-39 400 LC Meter freestyle,"Laplechade, Catalina",Condrictios Team,9,35,1991,"8:40,00",520000,"8:07,44",487440,valid,2
+women 40-44 400 LC Meter freestyle,"Salazar, Diana",Goura Swim Team,1,41,1985,"6:18,00",378000,"6:20,32",380320,valid,2
+women 40-44 400 LC Meter freestyle,"Turcotte, Isabelle",Delfines de las Condes,2,41,1985,"6:30,00",390000,"6:34,39",394390,valid,2
+women 40-44 400 LC Meter freestyle,"Penña, Daniela",Orinoco Swim Team,3,40,1986,"7:00,00",420000,"6:42,52",402520,valid,2
+women 40-44 400 LC Meter freestyle,"Sepulveda, Pilar",Lo Que Boto La Ola,4,43,1983,"7:00,00",420000,"6:55,51",415510,valid,2
+women 40-44 400 LC Meter freestyle,"Mindiola, Magdiri",Nunoa Master,5,43,1983,"6:50,00",410000,"6:56,47",416470,valid,2
+women 40-44 400 LC Meter freestyle,"Boobier, Ginette",Delfines de las Condes,6,42,1984,"6:52,00",412000,"7:24,89",444890,valid,2
+women 40-44 400 LC Meter freestyle,"Portus, Monica",Squadra Proswim,7,42,1984,"7:30,00",450000,"7:41,55",461550,valid,2
+women 40-44 400 LC Meter freestyle,"Soto, Magdalena",Squadra Proswim,8,41,1985,"7:50,00",470000,"8:56,31",536310,valid,2
+women 45-49 400 LC Meter freestyle,"Betancur, Roselin",H2o,1,45,1981,"5:18,00",318000,"5:30,93",330930,valid,2
+women 45-49 400 LC Meter freestyle,"Flores, Gloria",Lo Que Boto La Ola,2,45,1981,"6:15,00",375000,"6:04,00",364000,valid,2
+women 45-49 400 LC Meter freestyle,"Meneses, Maria Jose",Squadra Proswim,3,46,1980,"6:50,00",410000,"6:48,04",408040,valid,2
+women 45-49 400 LC Meter freestyle,"Sepulveda, Cecilia",Estadio Istaerlita,4,46,1980,"7:13,00",433000,"7:12,39",432390,valid,2
+women 45-49 400 LC Meter freestyle,"Correa, Marianne",Stadio Italiano,5,49,1977,"7:45,00",465000,"7:24,20",444200,valid,2
+women 45-49 400 LC Meter freestyle,"Nunñez, Amparo",Youtopia,6,48,1978,"7:45,00",465000,"7:44,00",464000,valid,2
+women 45-49 400 LC Meter freestyle,"Mellado, Constanza",Squadra Proswim,7,47,1979,"7:50,00",470000,"8:04,39",484390,valid,2
+women 45-49 400 LC Meter freestyle,"Gonzalez, Alejandra",Ironswim Master,8,45,1981,"8:00,00",480000,"8:13,94",493940,valid,2
+women 45-49 400 LC Meter freestyle,"Neiva, Moema",Delfines de las Condes,9,48,1978,"7:30,00",450000,"8:19,03",499030,valid,2
+women 45-49 400 LC Meter freestyle,"Rivas, Carolina",Delfines de las Condes,10,49,1977,"9:30,00",570000,"9:22,08",562080,valid,2
+women 50-54 400 LC Meter freestyle,"Neira, Veronica",Master U de Chile,1,51,1975,"8:35,00",515000,"7:25,78",445780,valid,2
+women 50-54 400 LC Meter freestyle,"Lucena, Marggi",Nunoa Master,2,50,1976,"7:24,80",444800,"7:31,65",451650,valid,2
+women 50-54 400 LC Meter freestyle,"Jara, Carolina",Natacion Buin,3,52,1974,"9:15,00",555000,"8:04,03",484030,valid,2
+women 50-54 400 LC Meter freestyle,"Gonzalez, Elena",Nunoa Master,4,52,1974,"8:00,00",480000,"8:17,02",497020,valid,2
+women 50-54 400 LC Meter freestyle,"Martinez, Natalia",Stadio Italiano,5,52,1974,"7:45,00",465000,"8:43,45",523450,valid,2
+women 55-59 400 LC Meter freestyle,"Espinoza, Roxana",Lo Que Boto La Ola,1,59,1967,"7:30,00",450000,"6:47,30",407300,valid,2
+women 55-59 400 LC Meter freestyle,"Campazzo, Claudia",Stadio Italiano,2,55,1971,"6:45,00",405000,"6:52,15",412150,valid,2
+women 55-59 400 LC Meter freestyle,"Pino, Marcela",Santiago Deportes,3,55,1971,"7:10,00",430000,"7:15,00",435000,valid,2
+women 55-59 400 LC Meter freestyle,"Olivari, Patricia",Youtopia,4,58,1968,"9:40,00",580000,"8:06,08",486080,valid,2
+women 55-59 400 LC Meter freestyle,"Levys, Patricia",Estadio Istaerlita,5,57,1969,"9:05,00",545000,"9:00,30",540300,valid,2
+women 55-59 400 LC Meter freestyle,"Aros, Paola",Master Providencia,6,55,1971,"9:20,00",560000,"9:12,82",552820,valid,2
+women 55-59 400 LC Meter freestyle,"Perez, Paulina",Natacion Master Recoleta,7,56,1970,"9:10,00",550000,"9:17,30",557300,valid,2
+women 60-64 400 LC Meter freestyle,"Ormazabal, Claudia",Delfines de las Condes,1,62,1964,"8:30,00",510000,"8:59,01",539010,valid,2
+women 60-64 400 LC Meter freestyle,"Canñete, Soledad",Natacion Master Recoleta,2,63,1963,"10:19,00",619000,"9:34,16",574160,valid,2
+women 60-64 400 LC Meter freestyle,"Castillo, Maylett",Lozada Swim Team,3,61,1965,"10:57,90",657900,"11:35,68",695680,valid,2
+women 65-69 400 LC Meter freestyle,"Chamberlain, Mary Ann",Stadio Italiano,1,66,1960,"7:05,00",425000,"7:02,91",422910,valid,2
+women 65-69 400 LC Meter freestyle,"Munñoz, Ilse",Aquateam,2,67,1959,"7:45,00",465000,"7:53,32",473320,valid,2
+women 65-69 400 LC Meter freestyle,"Alarcon, Silvia",Natacion Master Recoleta,3,68,1958,"10:12,00",612000,"9:51,25",591250,valid,2
+women 65-69 400 LC Meter freestyle,"Quezada, Cristina",Aquamaster Chillan,4,66,1960,"9:22,00",562000,"10:09,09",609090,valid,2
+women 70-74 400 LC Meter freestyle,"Bonta, Maureen",Stadio Italiano,1,72,1954,"7:20,00",440000,"7:22,10",442100,valid,2
+women 70-74 400 LC Meter freestyle,"Adaros, Gladys",Delfines de las Condes,2,72,1954,"10:05,00",605000,"10:36,84",636840,valid,2
+women 70-74 400 LC Meter freestyle,"Lastra, Carmen",Ironswim Master,,70,1956,"10:00,00",600000,DQ,,dsq,2
+women 75-79 400 LC Meter freestyle,"Fernandez, Gladys",Master San Bernardo,1,78,1948,"10:00,00",600000,"9:44,44",584440,valid,2
+men 20-24 400 LC Meter freestyle,"Henriquez, Cristian",Ironswim Master,1,23,2003,"5:30,00",330000,"5:36,99",336990,valid,2
+men 25-29 400 LC Meter freestyle,"Pinto, Matias",Stadio Italiano,1,29,1997,"4:05,00",245000,"4:30,24",270240,valid,2
+men 25-29 400 LC Meter freestyle,"Barros, Sergio",Estadio Espanñol,2,28,1998,"5:20,00",320000,"5:02,00",302000,valid,2
+men 25-29 400 LC Meter freestyle,"Machado, Vicente",Goura Swim Team,3,29,1997,"5:00,00",300000,"5:07,94",307940,valid,2
+men 25-29 400 LC Meter freestyle,"Fuentes, Marcelo",Goura Swim Team,4,27,1999,"4:53,00",293000,"5:15,82",315820,valid,2
+men 25-29 400 LC Meter freestyle,"Zamora, Icaro",Goura Swim Team,5,28,1998,"5:20,00",320000,"5:22,23",322230,valid,2
+men 25-29 400 LC Meter freestyle,"Abarca, Pablo",Goura Swim Team,6,27,1999,"6:08,00",368000,"6:07,22",367220,valid,2
+men 25-29 400 LC Meter freestyle,"Salvo, Jorge",Aguila Natacion,7,28,1998,"8:00,00",480000,"6:32,43",392430,valid,2
+men 25-29 400 LC Meter freestyle,"Monsalve, Nicolas",Natacion Master Recoleta,8,27,1999,"7:03,00",423000,"6:54,70",414700,valid,2
+men 25-29 400 LC Meter freestyle,"Walter, Raul",Cien por Ciento Swim,9,26,2000,"8:00,00",480000,"8:12,00",492000,valid,2
+men 25-29 400 LC Meter freestyle,"Gonzalez, Jose",Master U de Chile,10,29,1997,"7:50,00",470000,"8:54,45",534450,valid,2
+men 25-29 400 LC Meter freestyle,"Bulnes, Martin",Golden,,27,1999,"7:30,00",450000,DQ,,dsq,2
+men 30-34 400 LC Meter freestyle,"Torres, Sergio",Lozada Swim Team,1,32,1994,"4:50,00",290000,"4:59,49",299490,valid,2
+men 30-34 400 LC Meter freestyle,"Torres, Giovanni",Goura Swim Team,2,30,1996,"4:58,00",298000,"4:59,62",299620,valid,2
+men 30-34 400 LC Meter freestyle,"Segovia, Pedro",Lozada Swim Team,3,32,1994,"5:10,00",310000,"5:08,00",308000,valid,2
+men 30-34 400 LC Meter freestyle,"Godoy, Ignacio",Squadra Proswim,4,32,1994,"5:45,00",345000,"5:09,02",309020,valid,2
+men 30-34 400 LC Meter freestyle,"Pavez, Cristian",Stadio Italiano,5,30,1996,"5:30,00",330000,"5:19,77",319770,valid,2
+men 30-34 400 LC Meter freestyle,"Lobos, Martin",Goura Swim Team,6,31,1995,"5:00,00",300000,"5:25,15",325150,valid,2
+men 30-34 400 LC Meter freestyle,"Barrientos, Damian",Stadio Italiano,7,30,1996,"5:45,00",345000,"5:43,75",343750,valid,2
+men 30-34 400 LC Meter freestyle,"Nava, Juan",Nunoa Master,8,30,1996,"5:25,00",325000,"5:49,99",349990,valid,2
+men 30-34 400 LC Meter freestyle,"Morales, Nicolas",Goura Swim Team,9,33,1993,"5:00,00",300000,"6:00,01",360010,valid,2
+men 30-34 400 LC Meter freestyle,"Illanes, Cristopher",Lozada Swim Team,10,33,1993,"5:25,00",325000,"6:02,85",362850,valid,2
+men 30-34 400 LC Meter freestyle,"Swysen, Thibault",Lozada Swim Team,11,31,1995,"5:26,00",326000,"6:07,08",367080,valid,2
+men 30-34 400 LC Meter freestyle,"Torres, Sergio",Condrictios Team,12,32,1994,"6:00,00",360000,"6:10,50",370500,valid,2
+men 30-34 400 LC Meter freestyle,"Perez, Jonathan",Lozada Swim Team,13,34,1992,"6:20,00",380000,"6:17,67",377670,valid,2
+men 30-34 400 LC Meter freestyle,"Rabi, Isaac",Goura Swim Team,14,34,1992,"6:00,00",360000,"6:18,74",378740,valid,2
+men 30-34 400 LC Meter freestyle,"Gomez, Pablo",Goura Swim Team,15,34,1992,"6:00,00",360000,"6:27,16",387160,valid,2
+men 30-34 400 LC Meter freestyle,"Bone, Cristobal",Golden,16,31,1995,"7:00,00",420000,"6:40,81",400810,valid,2
+men 30-34 400 LC Meter freestyle,"Sayago, Alexis",Nunoa Master,17,33,1993,"7:20,10",440100,"6:48,71",408710,valid,2
+men 30-34 400 LC Meter freestyle,"Zambrano, Henry",Aguila Natacion,18,34,1992,"8:00,00",480000,"6:50,02",410020,valid,2
+men 30-34 400 LC Meter freestyle,"Poncelion, Erickson",Lozada Swim Team,19,33,1993,"7:00,90",420900,"7:48,38",468380,valid,2
+men 30-34 400 LC Meter freestyle,"Pineda, Miguel",Orinoco Swim Team,20,30,1996,"6:41,00",401000,"8:01,95",481950,valid,2
+men 30-34 400 LC Meter freestyle,"Salvador, Camilo",Stadio Italiano,21,31,1995,"6:00,00",360000,"8:49,58",529580,valid,2
+men 35-39 400 LC Meter freestyle,"Contreras, Freddy",Lozada Swim Team,1,38,1988,"4:49,00",289000,"4:46,15",286150,valid,2
+men 35-39 400 LC Meter freestyle,"Huerta, Francisco",Estadio Espanñol,2,39,1987,"4:47,00",287000,"4:50,14",290140,valid,2
+men 35-39 400 LC Meter freestyle,"Polo, David",Lozada Swim Team,3,37,1989,"5:55,00",355000,"5:48,88",348880,valid,2
+men 35-39 400 LC Meter freestyle,"Camiroaga, Jose",Master U de Chile,4,35,1991,"6:10,00",370000,"5:59,41",359410,valid,2
+men 35-39 400 LC Meter freestyle,"Rivera, Camilo",Goura Swim Team,5,36,1990,"6:00,00",360000,"6:32,03",392030,valid,2
+men 35-39 400 LC Meter freestyle,"Burgos, Cristian",Goura Swim Team,6,36,1990,"7:00,00",420000,"6:35,88",395880,valid,2
+men 35-39 400 LC Meter freestyle,"Pinña, Manuel",Stadio Italiano,7,36,1990,"6:30,00",390000,"6:41,97",401970,valid,2
+men 35-39 400 LC Meter freestyle,"Faundez, Cristobal",Ironswim Master,8,35,1991,"6:30,00",390000,"6:49,77",409770,valid,2
+men 35-39 400 LC Meter freestyle,"Le Cerf, Patricio",Orinoco Swim Team,9,36,1990,"7:33,29",453290,"7:48,43",468430,valid,2
+men 40-44 400 LC Meter freestyle,"Montero, Francisco",Estadio Espanñol,1,40,1986,"4:55,90",295900,"5:02,47",302470,valid,2
+men 40-44 400 LC Meter freestyle,"Parra, Luis",Lozada Swim Team,2,43,1983,"5:15,00",315000,"5:22,07",322070,valid,2
+men 40-44 400 LC Meter freestyle,"Donoso, Ignacio",Squadra Proswim,3,40,1986,"6:30,00",390000,"5:30,32",330320,valid,2
+men 40-44 400 LC Meter freestyle,"Calvo, Cristobal",Squadra Proswim,4,40,1986,"5:45,00",345000,"6:03,33",363330,valid,2
+men 40-44 400 LC Meter freestyle,"Cardenas, Dario",Goura Swim Team,5,41,1985,"5:57,67",357670,"6:12,68",372680,valid,2
+men 40-44 400 LC Meter freestyle,"Fabres, Nicolas",Squadra Proswim,6,42,1984,"6:10,00",370000,"6:13,32",373320,valid,2
+men 40-44 400 LC Meter freestyle,"Velasco, Alejandro",Lozada Swim Team,7,44,1982,"6:40,00",400000,"6:28,96",388960,valid,2
+men 40-44 400 LC Meter freestyle,"Baeza, Matias",Delfines de las Condes,8,40,1986,"6:38,26",398260,"6:55,44",415440,valid,2
+men 40-44 400 LC Meter freestyle,"Bevensee, Gunther",Stadio Italiano,9,43,1983,"6:45,00",405000,"7:04,14",424140,valid,2
+men 40-44 400 LC Meter freestyle,"Pincheira, Nathan",Squadra Proswim,10,42,1984,"6:50,00",410000,"7:14,81",434810,valid,2
+men 40-44 400 LC Meter freestyle,"Salah, Yamil",Nunoa Master,11,41,1985,"8:49,50",529500,"8:58,82",538820,valid,2
+men 40-44 400 LC Meter freestyle,"Santibanñez, Roberto",Natacion Master Recoleta,12,42,1984,"7:38,00",458000,"9:22,26",562260,valid,2
+men 45-49 400 LC Meter freestyle,"Gonzalez, Ciro",Cien por Ciento Swim,1,48,1978,"5:55,00",355000,"5:33,31",333310,valid,2
+men 45-49 400 LC Meter freestyle,"Reggio, Franklyn",Master U de Chile,2,49,1977,"6:10,00",370000,"6:11,74",371740,valid,2
+men 45-49 400 LC Meter freestyle,"De Elejalde, Ramiro",Nunoa Master,3,49,1977,"5:56,00",356000,"6:26,59",386590,valid,2
+men 45-49 400 LC Meter freestyle,"Martinez, Rodrigo",Stadio Italiano,4,45,1981,"6:28,00",388000,"6:27,04",387040,valid,2
+men 45-49 400 LC Meter freestyle,"Casana, Jorge",Lozada Swim Team,5,47,1979,"5:45,90",345900,"6:48,31",408310,valid,2
+men 45-49 400 LC Meter freestyle,"Ibanñez, Claudio",Condrictios Team,6,45,1981,"8:30,00",510000,"9:21,20",561200,valid,2
+men 50-54 400 LC Meter freestyle,"Casassus, Matias",Estadio Espanñol,1,54,1972,"5:25,00",325000,"5:33,42",333420,valid,2
+men 50-54 400 LC Meter freestyle,"Gutierrez Oliveros, Luis",Club Deportivo UC,2,52,1974,"5:47,27",347270,"5:51,22",351220,valid,2
+men 50-54 400 LC Meter freestyle,"Matulic L, Wladimir",Club Deportivo UC,3,53,1973,"6:06,32",366320,"6:07,51",367510,valid,2
+men 50-54 400 LC Meter freestyle,"Zoppi, Giorgio",Delfines de las Condes,4,54,1972,"6:00,00",360000,"6:07,91",367910,valid,2
+men 50-54 400 LC Meter freestyle,"Bastidas, Marcelo",Fullmar,5,52,1974,"6:50,00",410000,"6:44,57",404570,valid,2
+men 50-54 400 LC Meter freestyle,"Delgado, Julio",Stadio Italiano,6,52,1974,"6:40,00",400000,"7:41,32",461320,valid,2
+men 50-54 400 LC Meter freestyle,"Cabaret, Sebastian",Tiburones de Curico,7,51,1975,"7:45,00",465000,"7:51,60",471600,valid,2
+men 50-54 400 LC Meter freestyle,"Leiva, Alejandro T",Africa Natacion,8,51,1975,"7:15,00",435000,"8:06,57",486570,valid,2
+men 50-54 400 LC Meter freestyle,"Lastra, Enrique",Tiburones de Curico,9,52,1974,"7:45,00",465000,"8:12,59",492590,valid,2
+men 55-59 400 LC Meter freestyle,"Tapia, Miguel",Stadio Italiano,1,57,1969,"4:48,00",288000,"4:55,13",295130,valid,2
+men 55-59 400 LC Meter freestyle,"Moenne, Gonzalo",H2o,2,57,1969,"5:30,00",330000,"5:17,14",317140,valid,2
+men 55-59 400 LC Meter freestyle,"Leguizamon, Bernardino",Youtopia,3,55,1971,"5:40,00",340000,"6:00,26",360260,valid,2
+men 55-59 400 LC Meter freestyle,"Lecaros, Pablo",Delfines de las Condes,4,57,1969,"6:13,00",373000,"6:26,13",386130,valid,2
+men 55-59 400 LC Meter freestyle,"Cruzat, Alvaro",Stadio Italiano,5,59,1967,"6:28,62",388620,"6:37,50",397500,valid,2
+men 55-59 400 LC Meter freestyle,"Arrigorriaga, Jaime",Delfines de las Condes,6,58,1968,"6:33,00",393000,"6:41,62",401620,valid,2
+men 55-59 400 LC Meter freestyle,"Garcia, Eloy",Lozada Swim Team,7,59,1967,"6:45,00",405000,"6:55,79",415790,valid,2
+men 55-59 400 LC Meter freestyle,"Panetti, Mario",Golden,8,59,1967,"7:06,00",426000,"7:04,45",424450,valid,2
+men 55-59 400 LC Meter freestyle,"Godoy, Eduardo",Master U de Chile,9,55,1971,"6:50,00",410000,"7:07,84",427840,valid,2
+men 55-59 400 LC Meter freestyle,"Uribe, Daniel",Nunoa Master,10,55,1971,"7:40,00",460000,"7:11,63",431630,valid,2
+men 55-59 400 LC Meter freestyle,"Portilla, Sergio",Squadra Proswim,11,58,1968,"6:30,00",390000,"7:23,81",443810,valid,2
+men 60-64 400 LC Meter freestyle,"Bernales, Pablo",Estadio Espanñol,1,63,1963,"5:49,50",349500,"5:48,59",348590,valid,2
+men 60-64 400 LC Meter freestyle,"Fonturbel, Alberto",Master Providencia,2,60,1966,"6:13,00",373000,"6:21,34",381340,valid,2
+men 65-69 400 LC Meter freestyle,"Trewhela, Juan Carlos",Squadra Proswim,1,66,1960,"5:40,00",340000,"5:43,61",343610,valid,2
+men 65-69 400 LC Meter freestyle,"Aybar, Miguel",Master U de Chile,2,67,1959,"7:50,00",470000,"7:40,06",460060,valid,2
+men 65-69 400 LC Meter freestyle,"Toledo, Fredi",Natacion Master Recoleta,3,67,1959,"7:38,00",458000,"8:10,58",490580,valid,2
+men 70-74 400 LC Meter freestyle,"Cruz, Manuel",Stadio Italiano,1,70,1956,"6:17,00",377000,"6:40,26",400260,valid,2
+men 70-74 400 LC Meter freestyle,"Donoso, Juan",Master San Bernardo,2,71,1955,"6:30,00",390000,"6:44,62",404620,valid,2
+men 70-74 400 LC Meter freestyle,"Bustos, Jose Maria",Stadio Italiano,3,72,1954,"7:30,00",450000,"7:51,75",471750,valid,2
+men 70-74 400 LC Meter freestyle,"Guerrero, Roberto",Master San Bernardo,4,70,1956,"8:00,00",480000,"9:29,33",569330,valid,2
+men 70-74 400 LC Meter freestyle,"Vasquez, Oscar",Aquamaster Chillan,5,71,1955,"8:42,00",522000,"10:05,56",605560,valid,2
+men 75-79 400 LC Meter freestyle,"Guerra B, Manfredo",Calambre Swim Team,1,75,1951,"6:45,00",405000,"6:43,70",403700,valid,2
+men 75-79 400 LC Meter freestyle,"Gojanovic, Jure",Lo Que Boto La Ola,2,75,1951,"9:09,55",549550,"9:22,29",562290,valid,2
+men 75-79 400 LC Meter freestyle,"Canepa, Angel",Stadio Italiano,3,79,1947,"14:00,00",840000,"11:26,86",686860,valid,2
+men 75-79 400 LC Meter freestyle,"Torrejon, Raul",Natacion Buin,4,76,1950,"12:50,00",770000,"11:44,99",704990,valid,2
+women 20-24 50 LC Meter backstroke,"Rauch, Emma",Stadio Italiano,1,22,2004,"34,00",34000,"37,06",37060,valid,2
+women 25-29 50 LC Meter backstroke,"Saavedra, Victoria",Squadra Proswim,1,27,1999,"34,00",34000,"34,84",34840,valid,2
+women 25-29 50 LC Meter backstroke,"Albornoz, Javiera",Lozada Swim Team,2,29,1997,"32,80",32800,"35,03",35030,valid,2
+women 25-29 50 LC Meter backstroke,"Collingwood, Camila",Stadio Italiano,3,25,2001,"34,00",34000,"35,43",35430,valid,2
+women 25-29 50 LC Meter backstroke,"Consigliere, Chiara",Stadio Italiano,4,29,1997,"38,09",38090,"37,52",37520,valid,2
+women 25-29 50 LC Meter backstroke,"Badilla, Claudia",Aquamaster Chillan,5,27,1999,"36,27",36270,"38,38",38380,valid,2
+women 25-29 50 LC Meter backstroke,"Perea, Rocio",Copiapo Swim,6,26,2000,"36,00",36000,"38,91",38910,valid,2
+women 25-29 50 LC Meter backstroke,"Cardenas, Ambar",Nunoa Master,7,26,2000,"39,80",39800,"42,62",42620,valid,2
+women 25-29 50 LC Meter backstroke,"Carcamo, Maria Paz",Goura Swim Team,8,27,1999,"47,00",47000,"45,32",45320,valid,2
+women 25-29 50 LC Meter backstroke,"Bravo, Alejandra",Lozada Swim Team,9,25,2001,"58,90",58900,"48,98",48980,valid,2
+women 30-34 50 LC Meter backstroke,"Spuhr, Marianne",Estadio Espanñol,1,32,1994,"33,90",33900,"35,09",35090,valid,2
+women 30-34 50 LC Meter backstroke,"Rojas, Ana",Lozada Swim Team,2,33,1993,"38,70",38700,"38,84",38840,valid,2
+women 30-34 50 LC Meter backstroke,"Covarrubias, Paula",Goura Swim Team,3,33,1993,"38,00",38000,"40,41",40410,valid,2
+women 30-34 50 LC Meter backstroke,"Guzman, Maria",Lozada Swim Team,4,32,1994,"37,00",37000,"40,55",40550,valid,2
+women 30-34 50 LC Meter backstroke,"Olguin, Daniela",Stadio Italiano,5,31,1995,"45,00",45000,"41,15",41150,valid,2
+women 30-34 50 LC Meter backstroke,"Zamora, Barbara",Master Vitacura,6,30,1996,"41,00",41000,"43,66",43660,valid,2
+women 30-34 50 LC Meter backstroke,"Solans, Ines",Goura Swim Team,7,34,1992,"41,00",41000,"43,72",43720,valid,2
+women 30-34 50 LC Meter backstroke,"Rubio, Emilia",Goura Swim Team,8,31,1995,"43,00",43000,"44,93",44930,valid,2
+women 30-34 50 LC Meter backstroke,"Escudero, Francesca",Lozada Swim Team,9,31,1995,"50,00",50000,"45,88",45880,valid,2
+women 30-34 50 LC Meter backstroke,"Regaldis, Andrea",Aguila Natacion,10,30,1996,"50,00",50000,"46,94",46940,valid,2
+women 30-34 50 LC Meter backstroke,"Munizaga, Javiera",Estadio Espanñol,11,30,1996,"42,50",42500,"47,69",47690,valid,2
+women 30-34 50 LC Meter backstroke,"Gonzalez, Tracy",Nunoa Master,12,34,1992,"50,10",50100,"49,20",49200,valid,2
+women 30-34 50 LC Meter backstroke,"Quintanilla, Francisca",Orinoco Swim Team,13,33,1993,"1:11,27",71270,"1:14,50",74500,valid,2
+women 35-39 50 LC Meter backstroke,"Trewhela, Carolina",Squadra Proswim,1,38,1988,"37,00",37000,"37,34",37340,valid,2
+women 35-39 50 LC Meter backstroke,"Trewhela, Nicole",Ironswim Master,2,38,1988,"39,00",39000,"42,26",42260,valid,2
+women 35-39 50 LC Meter backstroke,"Von Borries, Cecilia",Stadio Italiano,3,38,1988,"40,00",40000,"42,52",42520,valid,2
+women 35-39 50 LC Meter backstroke,"Munñoz, Camila",H2o,4,39,1987,"43,00",43000,"42,93",42930,valid,2
+women 35-39 50 LC Meter backstroke,"Godoy, Ana",Nunoa Master,5,37,1989,"45,70",45700,"44,55",44550,valid,2
+women 35-39 50 LC Meter backstroke,"Espoz, Vaneza",Copiapo Swim,6,37,1989,"45,00",45000,"47,27",47270,valid,2
+women 35-39 50 LC Meter backstroke,"Nunñez, Sabine",Aquateam,7,38,1988,"44,00",44000,"47,72",47720,valid,2
+women 35-39 50 LC Meter backstroke,"Rodriguez, Dayana",Lozada Swim Team,8,37,1989,"43,59",43590,"50,17",50170,valid,2
+women 35-39 50 LC Meter backstroke,"Rodriguez, Vanessa",Lozada Swim Team,9,37,1989,"40,50",40500,"51,47",51470,valid,2
+women 35-39 50 LC Meter backstroke,"Cuesta, Carolina",Nunoa Master,10,39,1987,"1:05,00",65000,"1:02,72",62720,valid,2
+women 35-39 50 LC Meter backstroke,"Aguilon, Anila",H2o,,39,1987,"50,00",50000,DQ,,dsq,2
+women 40-44 50 LC Meter backstroke,"Turcotte, Isabelle",Delfines de las Condes,1,41,1985,"42,18",42180,"43,25",43250,valid,2
+women 40-44 50 LC Meter backstroke,"Santa Maria, Debora",Delfines de las Condes,2,44,1982,"43,00",43000,"43,53",43530,valid,2
+women 40-44 50 LC Meter backstroke,"Perez, Daniela",H2o,3,44,1982,"45,00",45000,"43,89",43890,valid,2
+women 40-44 50 LC Meter backstroke,"Meirovich, Sigal",Estadio Istaerlita,4,44,1982,"48,00",48000,"46,27",46270,valid,2
+women 40-44 50 LC Meter backstroke,"Montero, Maria Antonieta",Cien por Ciento Swim,5,41,1985,"52,00",52000,"52,80",52800,valid,2
+women 40-44 50 LC Meter backstroke,"Soto, Magdalena",Squadra Proswim,6,41,1985,"50,00",50000,"1:08,23",68230,valid,2
+women 40-44 50 LC Meter backstroke,"Velasquez, Nohelis",Lozada Swim Team,7,42,1984,"1:15,90",75900,"1:10,40",70400,valid,2
+women 45-49 50 LC Meter backstroke,"Lozada, Evani",Lozada Swim Team,1,45,1981,"44,00",44000,"42,21",42210,valid,2
+women 45-49 50 LC Meter backstroke,"Vasquez, Carola",Natacion Master Recoleta,2,49,1977,"49,57",49570,"47,10",47100,valid,2
+women 45-49 50 LC Meter backstroke,"Sepulveda, Cecilia",Estadio Istaerlita,3,46,1980,"45,00",45000,"47,93",47930,valid,2
+women 45-49 50 LC Meter backstroke,"Gonzalez, Alejandra",Ironswim Master,4,45,1981,"55,00",55000,"1:04,34",64340,valid,2
+women 50-54 50 LC Meter backstroke,"Klein, Marcela",Estadio Istaerlita,1,53,1973,"39,00",39000,"40,14",40140,valid,2
+women 50-54 50 LC Meter backstroke,"Ruiz, Macarena",Estadio Espanñol,2,54,1972,"42,00",42000,"44,36",44360,valid,2
+women 50-54 50 LC Meter backstroke,"Dekock, Ariane",Estadio Espanñol,3,52,1974,"45,00",45000,"45,26",45260,valid,2
+women 50-54 50 LC Meter backstroke,"Jara, Carolina",Natacion Buin,4,52,1974,"50,00",50000,"53,26",53260,valid,2
+women 50-54 50 LC Meter backstroke,"Gonzalez, Elena",Nunoa Master,5,52,1974,"1:02,40",62400,"1:00,63",60630,valid,2
+women 50-54 50 LC Meter backstroke,"Martinez, Natalia",Stadio Italiano,,52,1974,"50,00",50000,DQ,,dsq,2
+women 55-59 50 LC Meter backstroke,"Lois, Pamela",Stadio Italiano,1,56,1970,"35,00",35000,"38,18",38180,valid,2
+women 55-59 50 LC Meter backstroke,"Paris, Claudia",Stadio Italiano,2,58,1968,"42,00",42000,"40,33",40330,valid,2
+women 55-59 50 LC Meter backstroke,"Chapanos, Mary",Stadio Italiano,3,58,1968,"43,00",43000,"43,22",43220,valid,2
+women 55-59 50 LC Meter backstroke,"Espinoza, Roxana",Lo Que Boto La Ola,4,59,1967,"48,00",48000,"49,90",49900,valid,2
+women 55-59 50 LC Meter backstroke,"Arias, Tatiana",Delfines de las Condes,5,58,1968,"58,50",58500,"52,17",52170,valid,2
+women 55-59 50 LC Meter backstroke,"Tapia, Marcela G",Africa Natacion,6,58,1968,"1:03,00",63000,"59,28",59280,valid,2
+women 55-59 50 LC Meter backstroke,"Hidalgo, Mariela",Stadio Italiano,7,56,1970,"1:05,00",65000,"1:01,92",61920,valid,2
+women 55-59 50 LC Meter backstroke,"Holz, Daniela",Stadio Italiano,,55,1971,"1:00,00",60000,DQ,,dsq,2
+women 60-64 50 LC Meter backstroke,"Medina, Pamela",Stadio Italiano,1,61,1965,"1:00,00",60000,"54,00",54000,valid,2
+women 60-64 50 LC Meter backstroke,"Machuca, Claudia C",Africa Natacion,2,60,1966,"1:00,00",60000,"57,06",57060,valid,2
+women 60-64 50 LC Meter backstroke,"Rojas, Ivonne",Nunoa Master,3,64,1962,"1:14,60",74600,"1:11,03",71030,valid,2
+women 60-64 50 LC Meter backstroke,"Preminger, Geraldine",Estadio Istaerlita,4,62,1964,"1:15,00",75000,"1:17,34",77340,valid,2
+women 60-64 50 LC Meter backstroke,"Ormazabal, Claudia",Delfines de las Condes,5,62,1964,"1:05,00",65000,"1:17,94",77940,valid,2
+women 60-64 50 LC Meter backstroke,"Castillo, Maylett",Lozada Swim Team,6,61,1965,"1:19,70",79700,"1:24,04",84040,valid,2
+women 65-69 50 LC Meter backstroke,"Chamberlain, Mary Ann",Stadio Italiano,1,66,1960,"53,00",53000,"55,01",55010,valid,2
+women 65-69 50 LC Meter backstroke,"Tapia, Angelica",Delfines de las Condes,2,68,1958,"1:08,00",68000,"57,27",57270,valid,2
+women 65-69 50 LC Meter backstroke,"Bruzzone, Wanda",Ironswim Master,3,67,1959,"1:04,00",64000,"1:10,88",70880,valid,2
+women 65-69 50 LC Meter backstroke,"Alarcon, Silvia",Natacion Master Recoleta,4,68,1958,"1:10,00",70000,"1:10,96",70960,valid,2
+women 65-69 50 LC Meter backstroke,"Rojo, Yiakelin",Youtopia,5,65,1961,"55,00",55000,"1:12,07",72070,valid,2
+women 65-69 50 LC Meter backstroke,"Quezada, Cristina",Aquamaster Chillan,6,66,1960,"1:09,00",69000,"1:14,85",74850,valid,2
+women 70-74 50 LC Meter backstroke,"Bonta, Maureen",Stadio Italiano,1,72,1954,"57,00",57000,"53,01",53010,valid,2
+women 70-74 50 LC Meter backstroke,"Lorca, Maria Luisa",Stadio Italiano,2,71,1955,"1:00,00",60000,"1:03,69",63690,valid,2
+women 70-74 50 LC Meter backstroke,"Adaros, Gladys",Delfines de las Condes,3,72,1954,"1:10,00",70000,"1:16,55",76550,valid,2
+women 70-74 50 LC Meter backstroke,"Munñoz, Maria",Nunoa Master,4,70,1956,"1:08,40",68400,"1:16,75",76750,valid,2
+women 70-74 50 LC Meter backstroke,"Toro, Soledad",Master Providencia,5,72,1954,"1:30,00",90000,"1:29,54",89540,valid,2
+women 75-79 50 LC Meter backstroke,"Ilic, Patricia",Stadio Italiano,1,79,1947,"1:00,00",60000,"53,47",53470,valid,2
+women 85-89 50 LC Meter backstroke,"Kosche, Ingrid",Delfines de las Condes,1,87,1939,"1:18,00",78000,"1:15,45",75450,valid,2
+women 85-89 50 LC Meter backstroke,"Escudero, Oriele",Nunoa Master,2,85,1941,"1:13,00",73000,"1:23,22",83220,valid,2
+men 20-24 50 LC Meter backstroke,"Gonzalez, Cristopher",Nunoa Master,1,23,2003,"40,00",40000,"38,22",38220,valid,2
+men 25-29 50 LC Meter backstroke,"Salavery, Matias",Squadra Proswim,1,29,1997,"31,00",31000,"31,96",31960,valid,2
+men 25-29 50 LC Meter backstroke,"Figueroa, Simon",Goura Swim Team,2,29,1997,"31,90",31900,"32,60",32600,valid,2
+men 25-29 50 LC Meter backstroke,"Zamora, Icaro",Goura Swim Team,3,28,1998,"31,50",31500,"32,65",32650,valid,2
+men 25-29 50 LC Meter backstroke,"Gomez, Cristobal",Condrictios Team,4,25,2001,"43,57",43570,"43,57",43570,valid,2
+men 30-34 50 LC Meter backstroke,"Torres, Sergio",Lozada Swim Team,1,32,1994,"29,30",29300,"31,36",31360,valid,2
+men 30-34 50 LC Meter backstroke,"Garcia, Jose",Lozada Swim Team,2,33,1993,"32,00",32000,"31,84",31840,valid,2
+men 30-34 50 LC Meter backstroke,"Castanñeda, Alejandro",Squadra Proswim,3,34,1992,"33,00",33000,"34,92",34920,valid,2
+men 30-34 50 LC Meter backstroke,"Neira, Octavio",Master Providencia,4,32,1994,"35,00",35000,"35,05",35050,valid,2
+men 30-34 50 LC Meter backstroke,"Jorquera, Cristian",Master U de Chile,5,31,1995,"43,00",43000,"42,43",42430,valid,2
+men 30-34 50 LC Meter backstroke,"Gomez, Pablo",Goura Swim Team,6,34,1992,"40,00",40000,"42,69",42690,valid,2
+men 30-34 50 LC Meter backstroke,"Garcia, Nelvis",Condrictios Team,7,32,1994,"48,00",48000,"52,37",52370,valid,2
+men 30-34 50 LC Meter backstroke,"Pineda, Miguel",Orinoco Swim Team,8,30,1996,"53,57",53570,"54,04",54040,valid,2
+men 30-34 50 LC Meter backstroke,"Illanes, Cristopher",Lozada Swim Team,,33,1993,"35,70",35700,DQ,,dsq,2
+men 35-39 50 LC Meter backstroke,"Bricenño, Daniel",Cien por Ciento Swim,1,36,1990,"30,00",30000,"31,64",31640,valid,2
+men 35-39 50 LC Meter backstroke,"Garcia, Humberto",Goura Swim Team,2,36,1990,"33,00",33000,"32,81",32810,valid,2
+men 35-39 50 LC Meter backstroke,"Acosta, Andres",Nunoa Master,3,39,1987,"35,00",35000,"34,86",34860,valid,2
+men 35-39 50 LC Meter backstroke,"Contador, Juan Ignacio",Stadio Italiano,4,35,1991,"35,00",35000,"35,38",35380,valid,2
+men 35-39 50 LC Meter backstroke,"Asuaje, Leminyer",Lozada Swim Team,5,35,1991,"34,90",34900,"35,41",35410,valid,2
+men 35-39 50 LC Meter backstroke,"Nava, Jose",Nunoa Master,6,35,1991,"35,80",35800,"36,55",36550,valid,2
+men 35-39 50 LC Meter backstroke,"Godoy, Yoser",Goura Swim Team,7,35,1991,"40,00",40000,"41,35",41350,valid,2
+men 35-39 50 LC Meter backstroke,"Cisterna, Marcelo",Goura Swim Team,8,38,1988,"40,00",40000,"42,38",42380,valid,2
+men 35-39 50 LC Meter backstroke,"Gangas, Pablo",CS Maipu,9,36,1990,"48,13",48130,"44,42",44420,valid,2
+men 35-39 50 LC Meter backstroke,"Figueroa, Carlos",Copiapo Swim,10,39,1987,"46,00",46000,"44,49",44490,valid,2
+men 35-39 50 LC Meter backstroke,"Curihuinca, Camilo",Natacion Master Recoleta,11,35,1991,"1:02,00",62000,"53,49",53490,valid,2
+men 35-39 50 LC Meter backstroke,"Zegers, Pablo",H2o,12,36,1990,"54,00",54000,"57,33",57330,valid,2
+men 40-44 50 LC Meter backstroke,"Parra, Luis",Lozada Swim Team,1,43,1983,"32,90",32900,"33,89",33890,valid,2
+men 40-44 50 LC Meter backstroke,"Peraza, Jaiker",Lozada Swim Team,2,42,1984,"37,00",37000,"35,30",35300,valid,2
+men 40-44 50 LC Meter backstroke,"Bricenño, Carlos",Cien por Ciento Swim,3,41,1985,"40,00",40000,"35,46",35460,valid,2
+men 40-44 50 LC Meter backstroke,"Avendanño, Javier",H2o,4,40,1986,"39,20",39200,"36,56",36560,valid,2
+men 40-44 50 LC Meter backstroke,"Torres, Renzo",Natacion Master Recoleta,5,42,1984,"42,00",42000,"37,22",37220,valid,2
+men 40-44 50 LC Meter backstroke,"Velasco, Alejandro",Lozada Swim Team,6,44,1982,"48,90",48900,"42,79",42790,valid,2
+men 40-44 50 LC Meter backstroke,"Serrano, Hector",Cien por Ciento Swim,7,44,1982,"43,00",43000,"44,68",44680,valid,2
+men 40-44 50 LC Meter backstroke,"Vasquez, Claudio",Tiburones de Curico,8,41,1985,"55,00",55000,"49,59",49590,valid,2
+men 45-49 50 LC Meter backstroke,"Sillano, Mauricio",Stadio Italiano,1,49,1977,"35,00",35000,"36,14",36140,valid,2
+men 45-49 50 LC Meter backstroke,"Gonzalez, Ciro",Cien por Ciento Swim,2,48,1978,"39,00",39000,"37,62",37620,valid,2
+men 45-49 50 LC Meter backstroke,"Diaz, Cristobal",Stadio Italiano,3,45,1981,"36,00",36000,"37,72",37720,valid,2
+men 45-49 50 LC Meter backstroke,"Martinez, Rodrigo",Stadio Italiano,4,45,1981,"45,00",45000,"43,77",43770,valid,2
+men 45-49 50 LC Meter backstroke,"Rojas, Freddy",Cien por Ciento Swim,5,47,1979,"40,00",40000,"44,17",44170,valid,2
+men 45-49 50 LC Meter backstroke,"Escobillana, Leonardo",Mantarrayas Arica,6,49,1977,"46,00",46000,"44,75",44750,valid,2
+men 45-49 50 LC Meter backstroke,"Reggio, Franklyn",Master U de Chile,7,49,1977,"42,00",42000,"49,15",49150,valid,2
+men 50-54 50 LC Meter backstroke,"Maldavsky, Mijael",Estadio Istaerlita,1,50,1976,"40,00",40000,"40,30",40300,valid,2
+men 50-54 50 LC Meter backstroke,"Quezada, Alvaro",Lo Que Boto La Ola,2,52,1974,"39,00",39000,"41,81",41810,valid,2
+men 50-54 50 LC Meter backstroke,"Lucena, Larry",Nunoa Master,3,51,1975,"38,10",38100,"41,83",41830,valid,2
+men 50-54 50 LC Meter backstroke,"Reveco, Mauricio",Nunoa Master,4,52,1974,"53,50",53500,"1:00,40",60400,valid,2
+men 50-54 50 LC Meter backstroke,"Lastra, Enrique",Tiburones de Curico,5,52,1974,"55,00",55000,"1:04,74",64740,valid,2
+men 55-59 50 LC Meter backstroke,"Moenne, Gonzalo",H2o,1,57,1969,"38,00",38000,"35,54",35540,valid,2
+men 55-59 50 LC Meter backstroke,"Battle, Juan Pablo",Estadio Espanñol,2,56,1970,"36,00",36000,"36,19",36190,valid,2
+men 55-59 50 LC Meter backstroke,"Bate, Alexander",Estadio Espanñol,3,55,1971,"38,50",38500,"38,12",38120,valid,2
+men 55-59 50 LC Meter backstroke,"Bennewitz, Rodolfo",Estadio Espanñol,4,59,1967,"59,54",59540,"42,37",42370,valid,2
+men 55-59 50 LC Meter backstroke,"Garcia, Eloy",Lozada Swim Team,5,59,1967,"38,50",38500,"44,16",44160,valid,2
+men 55-59 50 LC Meter backstroke,"Portilla, Sergio",Squadra Proswim,6,58,1968,"50,00",50000,"57,83",57830,valid,2
+men 55-59 50 LC Meter backstroke,"Munñoz, Carlos",Master NÑ uble,7,55,1971,"50,00",50000,"1:01,66",61660,valid,2
+men 55-59 50 LC Meter backstroke,"Acevedo, Luis",Natacion Master Recoleta,8,57,1969,"1:02,00",62000,"1:07,51",67510,valid,2
+men 60-64 50 LC Meter backstroke,"Mora, Luis",Stadio Italiano,1,62,1964,"43,00",43000,"44,98",44980,valid,2
+men 60-64 50 LC Meter backstroke,"Jimenez, Andres",Natacion Buin,2,61,1965,"45,00",45000,"46,35",46350,valid,2
+men 60-64 50 LC Meter backstroke,"Leal, Rene",Fullmar,3,62,1964,"54,00",54000,"55,19",55190,valid,2
+men 65-69 50 LC Meter backstroke,"Traverso, Lorenzo",Stadio Italiano,1,67,1959,"42,00",42000,"41,24",41240,valid,2
+men 65-69 50 LC Meter backstroke,"Mimica, Axel",Delfines de las Condes,2,67,1959,"48,00",48000,"48,74",48740,valid,2
+men 65-69 50 LC Meter backstroke,"Johnson, Cristian",Ironswim Master,3,68,1958,"49,00",49000,"52,69",52690,valid,2
+men 65-69 50 LC Meter backstroke,"Vega, Patricio",Natacion Buin,4,69,1957,"1:10,00",70000,"58,07",58070,valid,2
+men 65-69 50 LC Meter backstroke,"Aybar, Miguel",Master U de Chile,5,67,1959,"1:00,00",60000,"59,56",59560,valid,2
+men 65-69 50 LC Meter backstroke,"Sagredo, Sergio",Nunoa Master,6,65,1961,"59,30",59300,"1:29,64",89640,valid,2
+men 70-74 50 LC Meter backstroke,"Trewhela, Heriberto",Tiburones de Curico,1,72,1954,"50,00",50000,"47,12",47120,valid,2
+men 70-74 50 LC Meter backstroke,"Donoso, Juan",Master San Bernardo,2,71,1955,"55,00",55000,"52,27",52270,valid,2
+men 70-74 50 LC Meter backstroke,"Reyes, Cristian",Nunoa Master,3,72,1954,"58,40",58400,"55,86",55860,valid,2
+men 70-74 50 LC Meter backstroke,"Bosshardt, Rolf",Master San Bernardo,4,70,1956,"1:00,00",60000,"57,09",57090,valid,2
+men 70-74 50 LC Meter backstroke,"Cudworth, Bruce",Delfines de las Condes,5,72,1954,NT,,"1:14,94",74940,valid,2
+men 75-79 50 LC Meter backstroke,"Zepeda, Ricardo",Penalolen Master,1,76,1950,"1:12,00",72000,"1:03,98",63980,valid,2
+men 75-79 50 LC Meter backstroke,"Gojanovic, Jure",Lo Que Boto La Ola,2,75,1951,"1:05,00",65000,"1:04,89",64890,valid,2
+men 75-79 50 LC Meter backstroke,"Torrejon, Raul",Natacion Buin,3,76,1950,"1:50,00",110000,"1:23,12",83120,valid,2
+men 80-84 50 LC Meter backstroke,"Machuca, Egidio R",Africa Natacion,1,83,1943,"1:10,00",70000,"1:11,62",71620,valid,2
+men 85-89 50 LC Meter backstroke,"Bennewitz, Rolando",Stadio Italiano,1,85,1941,"1:03,00",63000,"1:06,53",66530,valid,2
+women 20-24 50 LC Meter breaststroke,"Gonzalez, Constanza",Nunoa Master,,24,2002,"46,72",46720,"X47,90",47900,unknown,2
+women 20-24 50 LC Meter breaststroke,"Zunñiga, Catalina",Santiago Deportes,,21,2005,"51,00",51000,"X51,28",51280,unknown,2
+women 20-24 50 LC Meter breaststroke,"Vega, Maria Jose",Santiago Deportes,,24,2002,"48,00",48000,"X53,31",53310,unknown,2
+women 25-29 50 LC Meter breaststroke,"Bustos, Laura",Nunoa Master,1,28,1998,"46,00",46000,"45,60",45600,valid,2
+women 25-29 50 LC Meter breaststroke,"Nunñez, Claudia",Aquateam,2,25,2001,"49,17",49170,"48,04",48040,valid,2
+women 25-29 50 LC Meter breaststroke,"Montecinos, Sandra",Nunoa Master,3,28,1998,"48,00",48000,"48,52",48520,valid,2
+women 25-29 50 LC Meter breaststroke,"Araya, Sofia",Cien por Ciento Swim,4,27,1999,"47,00",47000,"49,07",49070,valid,2
+women 25-29 50 LC Meter breaststroke,"Torres, Magdalena",CS Maipu,5,27,1999,"54,99",54990,"54,31",54310,valid,2
+women 30-34 50 LC Meter breaststroke,"Gomez, Maria Jose",Santiago Deportes,1,30,1996,"45,00",45000,"44,71",44710,valid,2
+women 30-34 50 LC Meter breaststroke,"Olguin, Daniela",Stadio Italiano,2,31,1995,"49,00",49000,"45,70",45700,valid,2
+women 30-34 50 LC Meter breaststroke,"Solans, Ines",Goura Swim Team,3,34,1992,"45,00",45000,"47,90",47900,valid,2
+women 30-34 50 LC Meter breaststroke,"Munizaga, Javiera",Estadio Espanñol,4,30,1996,"50,50",50500,"50,16",50160,valid,2
+women 30-34 50 LC Meter breaststroke,"Salinas, Consuelo",Santiago Deportes,5,30,1996,"1:00,00",60000,"58,83",58830,valid,2
+women 30-34 50 LC Meter breaststroke,"Largi, Stephanie",Orinoco Swim Team,6,34,1992,"1:00,19",60190,"59,80",59800,valid,2
+women 30-34 50 LC Meter breaststroke,"Zhang, Jinyi",Aguila Natacion,7,30,1996,"1:20,00",80000,"1:01,55",61550,valid,2
+women 30-34 50 LC Meter breaststroke,"Diaz, Victoria",CS Maipu,8,31,1995,"57,98",57980,"1:04,01",64010,valid,2
+women 35-39 50 LC Meter breaststroke,"Carrenño, Paulina",Squadra Proswim,1,39,1987,"40,00",40000,"40,00",40000,valid,2
+women 35-39 50 LC Meter breaststroke,"Calderon, Xiana",Lozada Swim Team,2,35,1991,"41,00",41000,"40,76",40760,valid,2
+women 35-39 50 LC Meter breaststroke,"Perez, Daniela",Lozada Swim Team,3,36,1990,"41,00",41000,"42,82",42820,valid,2
+women 35-39 50 LC Meter breaststroke,"Godoy, Marbelys",Nunoa Master,4,38,1988,"45,00",45000,"44,58",44580,valid,2
+women 35-39 50 LC Meter breaststroke,"Venegas, Javiera",Goura Swim Team,5,35,1991,"50,00",50000,"48,36",48360,valid,2
+women 35-39 50 LC Meter breaststroke,"Reyes, Maria Jose",Goura Swim Team,6,37,1989,"50,00",50000,"48,75",48750,valid,2
+women 35-39 50 LC Meter breaststroke,"Godoy, Ana",Nunoa Master,7,37,1989,"49,50",49500,"49,47",49470,valid,2
+women 35-39 50 LC Meter breaststroke,"Laplechade, Catalina",Condrictios Team,8,35,1991,"1:00,00",60000,"1:02,56",62560,valid,2
+women 35-39 50 LC Meter breaststroke,"Contreras, Natalia",Condrictios Team,9,38,1988,"1:02,00",62000,"1:03,99",63990,valid,2
+women 35-39 50 LC Meter breaststroke,"Nahuepan, Nicole",Cien por Ciento Swim,10,36,1990,"1:10,00",70000,"1:29,94",89940,valid,2
+women 40-44 50 LC Meter breaststroke,"Sepulveda, Pilar",Lo Que Boto La Ola,1,43,1983,"45,00",45000,"47,00",47000,valid,2
+women 40-44 50 LC Meter breaststroke,"Ortega, Paula",Stadio Italiano,2,40,1986,"47,00",47000,"48,87",48870,valid,2
+women 40-44 50 LC Meter breaststroke,"Mindiola, Magdiri",Nunoa Master,3,43,1983,"49,00",49000,"49,68",49680,valid,2
+women 40-44 50 LC Meter breaststroke,"Meirovich, Sigal",Estadio Istaerlita,4,44,1982,"53,00",53000,"50,14",50140,valid,2
+women 40-44 50 LC Meter breaststroke,"Portus, Monica",Squadra Proswim,5,42,1984,"55,00",55000,"52,94",52940,valid,2
+women 40-44 50 LC Meter breaststroke,"Santa Maria, Debora",Delfines de las Condes,6,44,1982,"54,00",54000,"53,62",53620,valid,2
+women 40-44 50 LC Meter breaststroke,"Aparicio, Adriana",Nunoa Master,7,40,1986,"1:01,60",61600,"1:00,85",60850,valid,2
+women 40-44 50 LC Meter breaststroke,"Arias, Daniela",Aguila Natacion,8,42,1984,"1:15,00",75000,"1:01,81",61810,valid,2
+women 40-44 50 LC Meter breaststroke,"Velasquez, Nohelis",Lozada Swim Team,9,42,1984,"1:20,00",80000,"1:03,92",63920,valid,2
+women 45-49 50 LC Meter breaststroke,"Betancur, Roselin",H2o,1,45,1981,"1:43,00",103000,"44,47",44470,valid,2
+women 45-49 50 LC Meter breaststroke,"Stuven, Rocio",Nunoa Master,2,45,1981,"47,00",47000,"47,02",47020,valid,2
+women 45-49 50 LC Meter breaststroke,"Anania, Tatiana",Stadio Italiano,3,47,1979,"50,17",50170,"47,29",47290,valid,2
+women 45-49 50 LC Meter breaststroke,"Lozada, Evani",Lozada Swim Team,4,45,1981,"50,00",50000,"50,89",50890,valid,2
+women 45-49 50 LC Meter breaststroke,"Defosse, Carla",Master Providencia,5,45,1981,"50,00",50000,"51,03",51030,valid,2
+women 45-49 50 LC Meter breaststroke,"Pestan, Maria Jose",Ironswim Master,6,45,1981,"55,00",55000,"56,43",56430,valid,2
+women 45-49 50 LC Meter breaststroke,"Neiva, Moema",Delfines de las Condes,7,48,1978,"58,00",58000,"56,55",56550,valid,2
+women 45-49 50 LC Meter breaststroke,"Mellado, Constanza",Squadra Proswim,8,47,1979,"1:20,00",80000,"1:06,23",66230,valid,2
+women 45-49 50 LC Meter breaststroke,"Munñoz, Alejandra",Estadio Espanñol,9,48,1978,"1:00,20",60200,"1:07,82",67820,valid,2
+women 45-49 50 LC Meter breaststroke,"Monrroy, Natalia",Orinoco Swim Team,,47,1979,"1:14,61",74610,DQ,,dsq,2
+women 50-54 50 LC Meter breaststroke,"Klein, Marcela",Estadio Istaerlita,1,53,1973,"45,00",45000,"45,64",45640,valid,2
+women 50-54 50 LC Meter breaststroke,"Perez, Paula",Lozada Swim Team,2,53,1973,"55,00",55000,"47,89",47890,valid,2
+women 50-54 50 LC Meter breaststroke,"Valencia, Paola",Stadio Italiano,3,53,1973,"48,00",48000,"48,63",48630,valid,2
+women 50-54 50 LC Meter breaststroke,"Lucena, Marggi",Nunoa Master,4,50,1976,"51,00",51000,"51,33",51330,valid,2
+women 50-54 50 LC Meter breaststroke,"Ruiz, Macarena",Estadio Espanñol,5,54,1972,"48,00",48000,"51,51",51510,valid,2
+women 50-54 50 LC Meter breaststroke,"Brodske, Karen",Estadio Istaerlita,6,54,1972,"52,00",52000,"53,28",53280,valid,2
+women 50-54 50 LC Meter breaststroke,"Castillo, Iza",Lo Que Boto La Ola,7,50,1976,"51,60",51600,"53,61",53610,valid,2
+women 55-59 50 LC Meter breaststroke,"Lois, Pamela",Stadio Italiano,1,56,1970,"42,00",42000,"47,07",47070,valid,2
+women 55-59 50 LC Meter breaststroke,"Altman, Pamela",Estadio Istaerlita,2,57,1969,"55,00",55000,"53,24",53240,valid,2
+women 55-59 50 LC Meter breaststroke,"Tapia, Marcela G",Africa Natacion,3,58,1968,"55,00",55000,"53,97",53970,valid,2
+women 55-59 50 LC Meter breaststroke,"Pino, Marcela",Santiago Deportes,4,55,1971,"52,00",52000,"54,11",54110,valid,2
+women 55-59 50 LC Meter breaststroke,"Arias, Tatiana",Delfines de las Condes,5,58,1968,"55,00",55000,"55,29",55290,valid,2
+women 55-59 50 LC Meter breaststroke,"Levys, Patricia",Estadio Istaerlita,6,57,1969,"1:00,00",60000,"1:02,53",62530,valid,2
+women 55-59 50 LC Meter breaststroke,"Aros, Paola",Master Providencia,7,55,1971,"1:12,50",72500,"1:12,25",72250,valid,2
+women 60-64 50 LC Meter breaststroke,"Mora, Sonia",Stadio Italiano,1,60,1966,"53,00",53000,"52,01",52010,valid,2
+women 60-64 50 LC Meter breaststroke,"Preminger, Geraldine",Estadio Istaerlita,2,62,1964,"1:12,00",72000,"1:05,14",65140,valid,2
+women 60-64 50 LC Meter breaststroke,"Soto, Eslavia",Nunoa Master,3,61,1965,"1:10,20",70200,"1:07,44",67440,valid,2
+women 60-64 50 LC Meter breaststroke,"Canñete, Soledad",Natacion Master Recoleta,4,63,1963,"1:20,00",80000,"1:40,32",100320,valid,2
+women 65-69 50 LC Meter breaststroke,"Ojeda, Soledad",Stadio Italiano,1,67,1959,"50,00",50000,"52,17",52170,valid,2
+women 65-69 50 LC Meter breaststroke,"Munñoz, Ilse",Aquateam,2,67,1959,"59,00",59000,"1:02,63",62630,valid,2
+women 70-74 50 LC Meter breaststroke,"Hormazabal, Rita",Delfines de las Condes,1,70,1956,"48,00",48000,"49,17",49170,valid,2
+women 70-74 50 LC Meter breaststroke,"Toro, Soledad",Master Providencia,2,72,1954,"1:25,00",85000,"1:19,00",79000,valid,2
+women 70-74 50 LC Meter breaststroke,"Munñoz, Maria",Nunoa Master,3,70,1956,"1:20,10",80100,"1:48,46",108460,valid,2
+women 75-79 50 LC Meter breaststroke,"Ilic, Patricia",Stadio Italiano,1,79,1947,"1:00,00",60000,"57,61",57610,valid,2
+women 75-79 50 LC Meter breaststroke,"Fuster, Maria Isabel",Estadio Espanñol,2,79,1947,"1:32,50",92500,"1:33,27",93270,valid,2
+women 85-89 50 LC Meter breaststroke,"Martinez, Estela",Estadio Espanñol,1,86,1940,"1:23,50",83500,"1:31,48",91480,valid,2
+men 20-24 50 LC Meter breaststroke,"Navarrete, Luis",Aquamaster Chillan,,24,2002,"33,02",33020,"X34,73",34730,unknown,2
+men 25-29 50 LC Meter breaststroke,"Ortego, Ignacio",Estadio Espanñol,1,26,2000,"32,00",32000,"32,65",32650,valid,2
+men 25-29 50 LC Meter breaststroke,"Portilla, Manuel",Squadra Proswim,2,29,1997,"31,00",31000,"32,66",32660,valid,2
+men 25-29 50 LC Meter breaststroke,"Ordenes, Alejandro",Copiapo Swim,3,26,2000,"47,00",47000,"35,76",35760,valid,2
+men 25-29 50 LC Meter breaststroke,"Osorio, Benjamin",Stadio Italiano,4,28,1998,"34,89",34890,"35,80",35800,valid,2
+men 25-29 50 LC Meter breaststroke,"Mendoza, Nestor",Lozada Swim Team,5,29,1997,"38,90",38900,"36,12",36120,valid,2
+men 25-29 50 LC Meter breaststroke,"Machado, Vicente",Goura Swim Team,6,29,1997,"38,00",38000,"37,99",37990,valid,2
+men 25-29 50 LC Meter breaststroke,"Guirriman, Alexis",Lozada Swim Team,7,29,1997,"35,80",35800,"38,40",38400,valid,2
+men 25-29 50 LC Meter breaststroke,"Bennewitz, Martin",Estadio Espanñol,8,29,1997,"1:05,44",65440,"1:03,13",63130,valid,2
+men 30-34 50 LC Meter breaststroke,"Perez, Romulo",Nunoa Master,1,34,1992,"34,50",34500,"36,11",36110,valid,2
+men 30-34 50 LC Meter breaststroke,"Flores, Jaime",Stadio Italiano,2,33,1993,"35,00",35000,"36,22",36220,valid,2
+men 30-34 50 LC Meter breaststroke,"Ibarra, Gustavo",Goura Swim Team,3,34,1992,"35,00",35000,"37,19",37190,valid,2
+men 30-34 50 LC Meter breaststroke,"Neira, Octavio",Master Providencia,4,32,1994,"38,00",38000,"37,69",37690,valid,2
+men 30-34 50 LC Meter breaststroke,"Bone, Cristobal",Golden,5,31,1995,"38,00",38000,"39,09",39090,valid,2
+men 30-34 50 LC Meter breaststroke,"Toro, Javier",Condrictios Team,6,30,1996,"45,00",45000,"40,22",40220,valid,2
+men 30-34 50 LC Meter breaststroke,"Sayago, Alexis",Nunoa Master,7,33,1993,"43,00",43000,"41,80",41800,valid,2
+men 30-34 50 LC Meter breaststroke,"Carrasco, Eduardo",Goura Swim Team,8,34,1992,"42,00",42000,"43,00",43000,valid,2
+men 30-34 50 LC Meter breaststroke,"Canñete, Rafael",Lozada Swim Team,9,33,1993,"50,90",50900,"46,05",46050,valid,2
+men 30-34 50 LC Meter breaststroke,"Gutierrez, Enzo",Natacion Master Recoleta,10,31,1995,"47,45",47450,"46,18",46180,valid,2
+men 30-34 50 LC Meter breaststroke,"Poncelion, Erickson",Lozada Swim Team,11,33,1993,"53,90",53900,"49,13",49130,valid,2
+men 30-34 50 LC Meter breaststroke,"Rivera, Ignacio",Natacion Buin,12,30,1996,"50,00",50000,"49,34",49340,valid,2
+men 30-34 50 LC Meter breaststroke,"Salvador, Camilo",Stadio Italiano,,31,1995,"42,00",42000,DQ,,dsq,2
+men 35-39 50 LC Meter breaststroke,"Curletti, Nahuel",Ironswim Master,1,39,1987,"33,46",33460,"35,30",35300,valid,2
+men 35-39 50 LC Meter breaststroke,"Ballestero, David",Delfines de las Condes,2,36,1990,"37,00",37000,"36,10",36100,valid,2
+men 35-39 50 LC Meter breaststroke,"Campos, Alfredo",Lozada Swim Team,3,38,1988,"35,00",35000,"36,17",36170,valid,2
+men 35-39 50 LC Meter breaststroke,"Faundez, Cristobal",Ironswim Master,4,35,1991,"42,00",42000,"39,85",39850,valid,2
+men 35-39 50 LC Meter breaststroke,"Garcia, Felipe",Condrictios Team,5,36,1990,"48,00",48000,"42,40",42400,valid,2
+men 35-39 50 LC Meter breaststroke,"Rojas, Deninson",Goura Swim Team,6,39,1987,"41,00",41000,"43,14",43140,valid,2
+men 35-39 50 LC Meter breaststroke,"Ames, Javier",Copiapo Swim,7,35,1991,"40,00",40000,"43,25",43250,valid,2
+men 35-39 50 LC Meter breaststroke,"Alfaro, Mauricio",Copiapo Swim,8,36,1990,"50,00",50000,"43,42",43420,valid,2
+men 35-39 50 LC Meter breaststroke,"Pinña, Manuel",Stadio Italiano,9,36,1990,"55,00",55000,"47,83",47830,valid,2
+men 35-39 50 LC Meter breaststroke,"Gangas, Pablo",CS Maipu,10,36,1990,"54,87",54870,"50,44",50440,valid,2
+men 35-39 50 LC Meter breaststroke,"Araneda, Andres",Lo Que Boto La Ola,11,36,1990,"51,57",51570,"51,77",51770,valid,2
+men 40-44 50 LC Meter breaststroke,"Daga Leppe, Alberto",Club Deportivo UC,1,40,1986,"35,00",35000,"32,04",32040,valid,2
+men 40-44 50 LC Meter breaststroke,"Montero, Francisco",Estadio Espanñol,2,40,1986,"34,20",34200,"34,47",34470,valid,2
+men 40-44 50 LC Meter breaststroke,"Hernandez, Williams",Ironswim Master,3,41,1985,"38,00",38000,"35,17",35170,valid,2
+men 40-44 50 LC Meter breaststroke,"Soto, Alejandro",Master U de Chile,4,40,1986,"36,24",36240,"37,44",37440,valid,2
+men 40-44 50 LC Meter breaststroke,"Gomez, Carlos",Nunoa Master,5,43,1983,"38,10",38100,"37,60",37600,valid,2
+men 40-44 50 LC Meter breaststroke,"Peraza, Jaiker",Lozada Swim Team,6,42,1984,"44,00",44000,"39,38",39380,valid,2
+men 40-44 50 LC Meter breaststroke,"Baeza, Matias",Delfines de las Condes,7,40,1986,"41,47",41470,"42,57",42570,valid,2
+men 40-44 50 LC Meter breaststroke,"Molina, Diego",Natacion Master Recoleta,8,40,1986,"47,45",47450,"52,97",52970,valid,2
+men 40-44 50 LC Meter breaststroke,"Aranguiz, Jose",Natacion Master Recoleta,9,44,1982,"1:00,00",60000,"54,50",54500,valid,2
+men 40-44 50 LC Meter breaststroke,"Medina, Christopher",CS Maipu,10,43,1983,"58,30",58300,"58,49",58490,valid,2
+men 45-49 50 LC Meter breaststroke,"Matulic, Juan Pablo",Ironswim Master,1,45,1981,"35,00",35000,"36,16",36160,valid,2
+men 45-49 50 LC Meter breaststroke,"Valenzuela, Patricio",Ironswim Master,2,48,1978,"35,00",35000,"36,58",36580,valid,2
+men 45-49 50 LC Meter breaststroke,"Winter, Juan Enrique",Club Deportivo UC,3,46,1980,"40,00",40000,"41,02",41020,valid,2
+men 45-49 50 LC Meter breaststroke,"Cerrada, Yorggyn",Natacion Master Recoleta,4,47,1979,"40,00",40000,"41,83",41830,valid,2
+men 45-49 50 LC Meter breaststroke,"Rojas, Freddy",Cien por Ciento Swim,5,47,1979,"44,00",44000,"42,48",42480,valid,2
+men 45-49 50 LC Meter breaststroke,"Sepulveda, Matias C",Africa Natacion,6,47,1979,"40,00",40000,"43,67",43670,valid,2
+men 45-49 50 LC Meter breaststroke,"Escobillana, Leonardo",Mantarrayas Arica,7,49,1977,"44,00",44000,"43,99",43990,valid,2
+men 50-54 50 LC Meter breaststroke,"Casassus, Matias",Estadio Espanñol,1,54,1972,"38,00",38000,"38,83",38830,valid,2
+men 50-54 50 LC Meter breaststroke,"Duran R, Fernando Andres",Club Deportivo UC,2,52,1974,"39,35",39350,"39,37",39370,valid,2
+men 50-54 50 LC Meter breaststroke,"Zoppi, Giorgio",Delfines de las Condes,3,54,1972,"41,00",41000,"40,79",40790,valid,2
+men 50-54 50 LC Meter breaststroke,"Ferrada, Boris",H2o,4,52,1974,"40,00",40000,"41,11",41110,valid,2
+men 50-54 50 LC Meter breaststroke,"Navarro, Cesar",Master U de Chile,5,50,1976,"43,00",43000,"41,16",41160,valid,2
+men 50-54 50 LC Meter breaststroke,"Lagos, Miguel",H2o,6,54,1972,"43,00",43000,"41,60",41600,valid,2
+men 50-54 50 LC Meter breaststroke,"Psijas, Antonio",Stadio Italiano,7,54,1972,"38,00",38000,"41,65",41650,valid,2
+men 50-54 50 LC Meter breaststroke,"Cabaret, Sebastian",Tiburones de Curico,8,51,1975,"49,00",49000,"50,21",50210,valid,2
+men 50-54 50 LC Meter breaststroke,"Olea, Andres",Condrictios Team,9,54,1972,"53,00",53000,"53,26",53260,valid,2
+men 50-54 50 LC Meter breaststroke,"Reveco, Mauricio",Nunoa Master,10,52,1974,"1:09,00",69000,"59,41",59410,valid,2
+men 55-59 50 LC Meter breaststroke,"Lecaros, Pablo",Delfines de las Condes,1,57,1969,"39,00",39000,"40,01",40010,valid,2
+men 55-59 50 LC Meter breaststroke,"Castilla, Carlo",H2o,2,59,1967,"43,00",43000,"42,06",42060,valid,2
+men 55-59 50 LC Meter breaststroke,"Godoy, Eduardo",Master U de Chile,3,55,1971,"43,00",43000,"43,44",43440,valid,2
+men 55-59 50 LC Meter breaststroke,"Bennewitz, Rodolfo",Estadio Espanñol,4,59,1967,"43,42",43420,"43,90",43900,valid,2
+men 55-59 50 LC Meter breaststroke,"Caraballo, Jairo",Lozada Swim Team,5,57,1969,"46,40",46400,"45,43",45430,valid,2
+men 55-59 50 LC Meter breaststroke,"Arrigorriaga, Jaime",Delfines de las Condes,6,58,1968,"42,00",42000,"45,75",45750,valid,2
+men 55-59 50 LC Meter breaststroke,"Acevedo, Luis",Natacion Master Recoleta,7,57,1969,"59,01",59010,"1:01,68",61680,valid,2
+men 55-59 50 LC Meter breaststroke,"Huenchiun, Pedro",CS Maipu,8,59,1967,"1:06,65",66650,"1:02,88",62880,valid,2
+men 60-64 50 LC Meter breaststroke,"Chacon, Yojan",Ironswim Master,1,61,1965,"50,00",50000,"43,26",43260,valid,2
+men 60-64 50 LC Meter breaststroke,"Goddard, Felipe",Master NÑ uble,2,62,1964,"1:45,00",105000,"46,69",46690,valid,2
+men 60-64 50 LC Meter breaststroke,"Astudillo, Cristian",Delfines de las Condes,3,62,1964,"54,00",54000,"51,69",51690,valid,2
+men 60-64 50 LC Meter breaststroke,"Perez, Victor Manuel",Club Deportivo UC,4,63,1963,"50,00",50000,"52,45",52450,valid,2
+men 60-64 50 LC Meter breaststroke,"Munñoz, Felipe",CS Maipu,5,63,1963,"58,59",58590,"56,23",56230,valid,2
+men 65-69 50 LC Meter breaststroke,"Huber, Harald",Stadio Italiano,1,67,1959,"42,00",42000,"40,79",40790,valid,2
+men 65-69 50 LC Meter breaststroke,"Molina, Luis",Master NÑ uble,2,67,1959,"1:52,00",112000,"53,39",53390,valid,2
+men 65-69 50 LC Meter breaststroke,"Johnson, Cristian",Ironswim Master,3,68,1958,"50,00",50000,"56,14",56140,valid,2
+men 65-69 50 LC Meter breaststroke,"Choppelo, Fernando",Nunoa Master,4,67,1959,"1:10,00",70000,"1:03,98",63980,valid,2
+men 65-69 50 LC Meter breaststroke,"Vega, Patricio",Natacion Buin,5,69,1957,"1:10,00",70000,"1:10,77",70770,valid,2
+men 65-69 50 LC Meter breaststroke,"Sagredo, Sergio",Nunoa Master,6,65,1961,"58,40",58400,"1:18,13",78130,valid,2
+men 70-74 50 LC Meter breaststroke,"Montero, Antonio",Delfines de las Condes,1,72,1954,"46,42",46420,"47,69",47690,valid,2
+men 70-74 50 LC Meter breaststroke,"Cruz, Manuel",Stadio Italiano,2,70,1956,"50,00",50000,"51,97",51970,valid,2
+men 70-74 50 LC Meter breaststroke,"Bustos, Jose Maria",Stadio Italiano,3,72,1954,"51,00",51000,"52,30",52300,valid,2
+men 70-74 50 LC Meter breaststroke,"Trewhela, Heriberto",Tiburones de Curico,4,72,1954,"57,00",57000,"54,58",54580,valid,2
+men 70-74 50 LC Meter breaststroke,"Guerrero, Roberto",Master San Bernardo,5,70,1956,"1:10,00",70000,"1:04,03",64030,valid,2
+men 70-74 50 LC Meter breaststroke,"Cudworth, Bruce",Delfines de las Condes,6,72,1954,NT,,"1:12,81",72810,valid,2
+men 75-79 50 LC Meter breaststroke,"Zepeda, Ricardo",Penalolen Master,1,76,1950,"1:10,00",70000,"1:03,91",63910,valid,2
+men 75-79 50 LC Meter breaststroke,"Canepa, Angel",Stadio Italiano,2,79,1947,"1:48,00",108000,"1:42,96",102960,valid,2
+men 80-84 50 LC Meter breaststroke,"Ferrando, Nestor",Nunoa Master,1,84,1942,"1:22,30",82300,"1:23,29",83290,valid,2
+men 80-84 50 LC Meter breaststroke,"Machuca, Egidio R",Africa Natacion,2,83,1943,"1:40,00",100000,"1:25,05",85050,valid,2
+men 85-89 50 LC Meter breaststroke,"Bennewitz, Rolando",Stadio Italiano,1,85,1941,"1:10,00",70000,"1:21,96",81960,valid,2
+women 20-24 50 LC Meter butterfly,"Rauch, Emma",Stadio Italiano,1,22,2004,"34,00",34000,"35,41",35410,valid,2
+women 20-24 50 LC Meter butterfly,"Vega, Maria Jose",Santiago Deportes,2,24,2002,"40,00",40000,"42,07",42070,valid,2
+women 20-24 50 LC Meter butterfly,"Hidalgo, Catalina",Goura Swim Team,3,24,2002,"42,00",42000,"42,98",42980,valid,2
+women 25-29 50 LC Meter butterfly,"Saavedra, Victoria",Squadra Proswim,1,27,1999,"33,00",33000,"33,25",33250,valid,2
+women 25-29 50 LC Meter butterfly,"Albornoz, Javiera",Lozada Swim Team,2,29,1997,"31,79",31790,"33,74",33740,valid,2
+women 25-29 50 LC Meter butterfly,"Collingwood, Camila",Stadio Italiano,3,25,2001,"33,00",33000,"34,01",34010,valid,2
+women 25-29 50 LC Meter butterfly,"Badilla, Claudia",Aquamaster Chillan,4,27,1999,"34,00",34000,"34,05",34050,valid,2
+women 25-29 50 LC Meter butterfly,"Perea, Rocio",Copiapo Swim,5,26,2000,"33,00",33000,"34,10",34100,valid,2
+women 25-29 50 LC Meter butterfly,"Consigliere, Chiara",Stadio Italiano,6,29,1997,"35,87",35870,"35,06",35060,valid,2
+women 25-29 50 LC Meter butterfly,"Quispe, Nicole",Goura Swim Team,7,28,1998,"39,00",39000,"37,35",37350,valid,2
+women 25-29 50 LC Meter butterfly,"Cardenas, Ambar",Nunoa Master,8,26,2000,"38,20",38200,"37,89",37890,valid,2
+women 25-29 50 LC Meter butterfly,"Bustos, Laura",Nunoa Master,9,28,1998,"40,30",40300,"38,49",38490,valid,2
+women 25-29 50 LC Meter butterfly,"Aliste, Camila",Goura Swim Team,10,28,1998,"38,00",38000,"39,60",39600,valid,2
+women 25-29 50 LC Meter butterfly,"Nunñez, Claudia",Aquateam,11,25,2001,"44,16",44160,"40,84",40840,valid,2
+women 25-29 50 LC Meter butterfly,"Rangel, Gabriela",Lozada Swim Team,12,26,2000,"41,99",41990,"42,43",42430,valid,2
+women 25-29 50 LC Meter butterfly,"Araya, Sofia",Cien por Ciento Swim,13,27,1999,"44,00",44000,"44,33",44330,valid,2
+women 25-29 50 LC Meter butterfly,"Montecinos, Sandra",Nunoa Master,14,28,1998,"47,00",47000,"45,70",45700,valid,2
+women 25-29 50 LC Meter butterfly,"Carcamo, Maria Paz",Goura Swim Team,15,27,1999,"52,00",52000,"48,33",48330,valid,2
+women 30-34 50 LC Meter butterfly,"Correa, Carolina",Nunoa Master,1,34,1992,"33,30",33300,"34,93",34930,valid,2
+women 30-34 50 LC Meter butterfly,"Guzman, Maria",Lozada Swim Team,2,32,1994,"35,50",35500,"35,56",35560,valid,2
+women 30-34 50 LC Meter butterfly,"Rojas, Ana",Lozada Swim Team,3,33,1993,"37,90",37900,"35,80",35800,valid,2
+women 30-34 50 LC Meter butterfly,"Gomez, Maria Jose",Santiago Deportes,4,30,1996,"40,00",40000,"37,35",37350,valid,2
+women 30-34 50 LC Meter butterfly,"Badilla, Estefania",Aquamaster Chillan,5,30,1996,"44,00",44000,"40,83",40830,valid,2
+women 30-34 50 LC Meter butterfly,"Rubio, Emilia",Goura Swim Team,6,31,1995,"45,00",45000,"44,83",44830,valid,2
+women 30-34 50 LC Meter butterfly,"Gonzalez, Tracy",Nunoa Master,7,34,1992,"55,50",55500,"45,02",45020,valid,2
+women 30-34 50 LC Meter butterfly,"Castro, Valentina",Condrictios Team,8,34,1992,"54,50",54500,"48,27",48270,valid,2
+women 30-34 50 LC Meter butterfly,"Barria, Jazmin",Manateam Swim,9,33,1993,"49,00",49000,"48,91",48910,valid,2
+women 30-34 50 LC Meter butterfly,"Salinas, Consuelo",Santiago Deportes,10,30,1996,"55,00",55000,"52,16",52160,valid,2
+women 35-39 50 LC Meter butterfly,"Munñoz, Valentina",Stadio Italiano,1,37,1989,"31,80",31800,"32,83",32830,valid,2
+women 35-39 50 LC Meter butterfly,"Calderon, Xiana",Lozada Swim Team,2,35,1991,"33,00",33000,"32,91",32910,valid,2
+women 35-39 50 LC Meter butterfly,"Carrenño, Paulina",Squadra Proswim,3,39,1987,"33,00",33000,"33,01",33010,valid,2
+women 35-39 50 LC Meter butterfly,"Revilla, Elvismar",Lozada Swim Team,4,35,1991,"33,30",33300,"34,09",34090,valid,2
+women 35-39 50 LC Meter butterfly,"Godoy, Marbelys",Nunoa Master,5,38,1988,"34,80",34800,"35,80",35800,valid,2
+women 35-39 50 LC Meter butterfly,"Zamorano, Natalia",Stadio Italiano,6,36,1990,"38,00",38000,"37,31",37310,valid,2
+women 35-39 50 LC Meter butterfly,"Vacher, Francisca",Golden,7,35,1991,"37,00",37000,"38,33",38330,valid,2
+women 35-39 50 LC Meter butterfly,"Ostos, Yamaly",Aguila Natacion,8,37,1989,"39,50",39500,"40,51",40510,valid,2
+women 35-39 50 LC Meter butterfly,"Reyes, Maria Jose",Goura Swim Team,9,37,1989,"40,00",40000,"41,34",41340,valid,2
+women 35-39 50 LC Meter butterfly,"Raposo, Leslie",Santiago Deportes,10,39,1987,"50,00",50000,"43,57",43570,valid,2
+women 35-39 50 LC Meter butterfly,"Espoz, Vaneza",Copiapo Swim,11,37,1989,"45,00",45000,"44,17",44170,valid,2
+women 35-39 50 LC Meter butterfly,"Rodriguez, Vanessa",Lozada Swim Team,12,37,1989,"42,00",42000,"45,13",45130,valid,2
+women 35-39 50 LC Meter butterfly,"Nunñez, Sabine",Aquateam,13,38,1988,"45,00",45000,"46,04",46040,valid,2
+women 35-39 50 LC Meter butterfly,"Puebla, Tania",Aguila Natacion,14,35,1991,"50,00",50000,"52,20",52200,valid,2
+women 35-39 50 LC Meter butterfly,"Contreras, Natalia",Condrictios Team,15,38,1988,"54,50",54500,"52,35",52350,valid,2
+women 35-39 50 LC Meter butterfly,"Cuesta, Carolina",Nunoa Master,16,39,1987,"50,00",50000,"57,60",57600,valid,2
+women 40-44 50 LC Meter butterfly,"Penña, Daniela",Orinoco Swim Team,1,40,1986,"40,06",40060,"39,06",39060,valid,2
+women 40-44 50 LC Meter butterfly,"Perez, Daniela",H2o,2,44,1982,"38,00",38000,"40,03",40030,valid,2
+women 40-44 50 LC Meter butterfly,"Ortega, Paula",Stadio Italiano,3,40,1986,"39,00",39000,"40,56",40560,valid,2
+women 40-44 50 LC Meter butterfly,"Boobier, Ginette",Delfines de las Condes,4,42,1984,"47,00",47000,"49,56",49560,valid,2
+women 40-44 50 LC Meter butterfly,"Montero, Maria Antonieta",Cien por Ciento Swim,5,41,1985,"52,00",52000,"53,19",53190,valid,2
+women 45-49 50 LC Meter butterfly,"Grinspun, Daphne",Youtopia,1,46,1980,"37,00",37000,"35,76",35760,valid,2
+women 45-49 50 LC Meter butterfly,"Flores, Gloria",Lo Que Boto La Ola,2,45,1981,"42,00",42000,"39,15",39150,valid,2
+women 45-49 50 LC Meter butterfly,"Meneses, Maria Jose",Squadra Proswim,3,46,1980,"41,00",41000,"39,55",39550,valid,2
+women 45-49 50 LC Meter butterfly,"Stuven, Rocio",Nunoa Master,4,45,1981,"42,30",42300,"42,34",42340,valid,2
+women 45-49 50 LC Meter butterfly,"Defosse, Carla",Master Providencia,5,45,1981,"44,00",44000,"46,09",46090,valid,2
+women 45-49 50 LC Meter butterfly,"Vasquez, Carola",Natacion Master Recoleta,6,49,1977,"51,33",51330,"52,31",52310,valid,2
+women 45-49 50 LC Meter butterfly,"Munñoz, Alejandra",Estadio Espanñol,7,48,1978,"52,50",52500,"55,79",55790,valid,2
+women 45-49 50 LC Meter butterfly,"Rivas, Carolina",Delfines de las Condes,8,49,1977,"1:10,00",70000,"1:05,15",65150,valid,2
+women 50-54 50 LC Meter butterfly,"Dekock, Ariane",Estadio Espanñol,1,52,1974,"42,00",42000,"38,93",38930,valid,2
+women 50-54 50 LC Meter butterfly,"Perez, Paula",Lozada Swim Team,2,53,1973,"45,00",45000,"41,84",41840,valid,2
+women 50-54 50 LC Meter butterfly,"Castillo, Iza",Lo Que Boto La Ola,3,50,1976,"52,00",52000,"51,62",51620,valid,2
+women 50-54 50 LC Meter butterfly,"Cabeza, Marisel",Nunoa Master,4,52,1974,"1:04,00",64000,"1:05,71",65710,valid,2
+women 55-59 50 LC Meter butterfly,"Altman, Pamela",Estadio Istaerlita,1,57,1969,"54,00",54000,"53,96",53960,valid,2
+women 55-59 50 LC Meter butterfly,"Perez, Paulina",Natacion Master Recoleta,2,56,1970,"58,90",58900,"58,53",58530,valid,2
+women 60-64 50 LC Meter butterfly,"Mora, Sonia",Stadio Italiano,1,60,1966,"50,00",50000,"47,20",47200,valid,2
+women 60-64 50 LC Meter butterfly,"Soto, Eslavia",Nunoa Master,2,61,1965,"1:38,60",98600,"1:22,51",82510,valid,2
+women 60-64 50 LC Meter butterfly,"Rojas, Ivonne",Nunoa Master,3,64,1962,"2:08,00",128000,"1:49,92",109920,valid,2
+women 65-69 50 LC Meter butterfly,"Bruzzone, Wanda",Ironswim Master,1,67,1959,NT,,"1:03,89",63890,valid,2
+women 70-74 50 LC Meter butterfly,"Hormazabal, Rita",Delfines de las Condes,1,70,1956,"50,00",50000,"48,51",48510,valid,2
+women 75-79 50 LC Meter butterfly,"Fernandez, Gladys",Master San Bernardo,1,78,1948,"1:24,00",84000,"1:17,81",77810,valid,2
+men 20-24 50 LC Meter butterfly,"Henriquez, Cristian",Ironswim Master,1,23,2003,"27,00",27000,"28,00",28000,valid,2
+men 20-24 50 LC Meter butterfly,"Navarrete, Luis",Aquamaster Chillan,2,24,2002,"32,00",32000,"30,51",30510,valid,2
+men 20-24 50 LC Meter butterfly,"Gonzalez, Cristopher",Nunoa Master,3,23,2003,"38,00",38000,"36,48",36480,valid,2
+men 25-29 50 LC Meter butterfly,"Pinto, Matias",Stadio Italiano,1,29,1997,"27,00",27000,"27,67",27670,valid,2
+men 25-29 50 LC Meter butterfly,"Ordenes, Alejandro",Copiapo Swim,2,26,2000,"35,00",35000,"28,97",28970,valid,2
+men 25-29 50 LC Meter butterfly,"Fuentes, Marcelo",Goura Swim Team,3,27,1999,"27,00",27000,"29,02",29020,valid,2
+men 25-29 50 LC Meter butterfly,"Ortego, Ignacio",Estadio Espanñol,4,26,2000,"27,00",27000,"29,38",29380,valid,2
+men 25-29 50 LC Meter butterfly,"Salavery, Matias",Squadra Proswim,5,29,1997,"29,00",29000,"29,45",29450,valid,2
+men 25-29 50 LC Meter butterfly,"Mendoza, Nestor",Lozada Swim Team,6,29,1997,"35,40",35400,"29,57",29570,valid,2
+men 25-29 50 LC Meter butterfly,"Figueroa, Simon",Goura Swim Team,7,29,1997,"29,80",29800,"30,54",30540,valid,2
+men 25-29 50 LC Meter butterfly,"Bulnes, Martin",Golden,8,27,1999,"32,00",32000,"30,72",30720,valid,2
+men 25-29 50 LC Meter butterfly,"Barros, Sergio",Estadio Espanñol,9,28,1998,"30,50",30500,"30,85",30850,valid,2
+men 25-29 50 LC Meter butterfly,"Espina, Bruno",Estadio Espanñol,10,29,1997,"29,90",29900,"31,47",31470,valid,2
+men 25-29 50 LC Meter butterfly,"Guirriman, Alexis",Lozada Swim Team,11,29,1997,"31,50",31500,"31,79",31790,valid,2
+men 25-29 50 LC Meter butterfly,"Monsalve, Nicolas",Natacion Master Recoleta,12,27,1999,"39,17",39170,"37,54",37540,valid,2
+men 25-29 50 LC Meter butterfly,"Gomez, Cristobal",Condrictios Team,13,25,2001,"45,00",45000,"38,10",38100,valid,2
+men 25-29 50 LC Meter butterfly,"Walter, Raul",Cien por Ciento Swim,14,26,2000,"1:00,00",60000,"46,55",46550,valid,2
+men 25-29 50 LC Meter butterfly,"Bennewitz, Martin",Estadio Espanñol,15,29,1997,"58,55",58550,"59,75",59750,valid,2
+men 30-34 50 LC Meter butterfly,"Torres, Giovanni",Goura Swim Team,1,30,1996,"28,50",28500,"28,96",28960,valid,2
+men 30-34 50 LC Meter butterfly,"Hernandez, Carlos",Nunoa Master,2,30,1996,"28,00",28000,"29,41",29410,valid,2
+men 30-34 50 LC Meter butterfly,"Diaz, Camilo",Goura Swim Team,3,32,1994,"30,00",30000,"29,43",29430,valid,2
+men 30-34 50 LC Meter butterfly,"Garcia, Jose",Lozada Swim Team,4,33,1993,"32,00",32000,"29,81",29810,valid,2
+men 30-34 50 LC Meter butterfly,"Ibarra, Gustavo",Goura Swim Team,5,34,1992,"30,00",30000,"30,50",30500,valid,2
+men 30-34 50 LC Meter butterfly,"Segovia, Pedro",Lozada Swim Team,6,32,1994,"29,00",29000,"30,68",30680,valid,2
+men 30-34 50 LC Meter butterfly,"Nava, Juan",Nunoa Master,7,30,1996,"30,47",30470,"30,80",30800,valid,2
+men 30-34 50 LC Meter butterfly,"Swysen, Thibault",Lozada Swim Team,8,31,1995,"30,30",30300,"31,07",31070,valid,2
+men 30-34 50 LC Meter butterfly,"Perez, Felipe",Goura Swim Team,9,30,1996,"30,00",30000,"31,43",31430,valid,2
+men 30-34 50 LC Meter butterfly,"Lobos, Martin",Goura Swim Team,10,31,1995,"31,80",31800,"32,56",32560,valid,2
+men 30-34 50 LC Meter butterfly,"Toro, Javier",Condrictios Team,11,30,1996,"42,00",42000,"32,79",32790,valid,2
+men 30-34 50 LC Meter butterfly,"Von Borries, Gert",CS Maipu,12,31,1995,"41,21",41210,"34,61",34610,valid,2
+men 30-34 50 LC Meter butterfly,"Zambrano, Henry",Aguila Natacion,13,34,1992,"50,00",50000,"35,57",35570,valid,2
+men 30-34 50 LC Meter butterfly,"Perez, Jonathan",Lozada Swim Team,14,34,1992,"39,00",39000,"35,98",35980,valid,2
+men 30-34 50 LC Meter butterfly,"Torres, Sergio",Condrictios Team,15,32,1994,"39,00",39000,"36,17",36170,valid,2
+men 30-34 50 LC Meter butterfly,"Jorquera, Cristian",Master U de Chile,16,31,1995,"35,00",35000,"37,17",37170,valid,2
+men 30-34 50 LC Meter butterfly,"Rivera, Ignacio",Natacion Buin,17,30,1996,"40,00",40000,"38,58",38580,valid,2
+men 30-34 50 LC Meter butterfly,"Rabi, Isaac",Goura Swim Team,18,34,1992,"40,00",40000,"38,82",38820,valid,2
+men 30-34 50 LC Meter butterfly,"Gutierrez, Enzo",Natacion Master Recoleta,19,31,1995,"37,59",37590,"38,84",38840,valid,2
+men 30-34 50 LC Meter butterfly,"Canñete, Rafael",Lozada Swim Team,20,33,1993,"43,50",43500,"41,22",41220,valid,2
+men 30-34 50 LC Meter butterfly,"Garcia, Nelvis",Condrictios Team,21,32,1994,"1:20,00",80000,"59,25",59250,valid,2
+men 35-39 50 LC Meter butterfly,"Contreras, Freddy",Lozada Swim Team,1,38,1988,"26,50",26500,"27,89",27890,valid,2
+men 35-39 50 LC Meter butterfly,"Garcia, Humberto",Goura Swim Team,2,36,1990,"30,00",30000,"28,84",28840,valid,2
+men 35-39 50 LC Meter butterfly,"Polo, David",Lozada Swim Team,3,37,1989,"29,80",29800,"29,98",29980,valid,2
+men 35-39 50 LC Meter butterfly,"Acosta, Andres",Nunoa Master,4,39,1987,"31,00",31000,"30,15",30150,valid,2
+men 35-39 50 LC Meter butterfly,"Garcia, Isai",Lozada Swim Team,5,37,1989,"37,00",37000,"30,18",30180,valid,2
+men 35-39 50 LC Meter butterfly,"Contador, Juan Ignacio",Stadio Italiano,6,35,1991,"29,00",29000,"30,24",30240,valid,2
+men 35-39 50 LC Meter butterfly,"Navarrete, Walter",Estadio Espanñol,7,36,1990,"34,20",34200,"30,39",30390,valid,2
+men 35-39 50 LC Meter butterfly,"Bricenño, Daniel",Cien por Ciento Swim,8,36,1990,"30,00",30000,"30,59",30590,valid,2
+men 35-39 50 LC Meter butterfly,"Huerta, Francisco",Estadio Espanñol,9,39,1987,"30,00",30000,"30,81",30810,valid,2
+men 35-39 50 LC Meter butterfly,"Ballestero, David",Delfines de las Condes,10,36,1990,"30,00",30000,"30,99",30990,valid,2
+men 35-39 50 LC Meter butterfly,"Herrera, Felipe",Master Vitacura,11,36,1990,"30,00",30000,"31,03",31030,valid,2
+men 35-39 50 LC Meter butterfly,"Nava, Jose",Nunoa Master,12,35,1991,"30,90",30900,"31,47",31470,valid,2
+men 35-39 50 LC Meter butterfly,"Garcia, Felipe",Condrictios Team,13,36,1990,"31,00",31000,"32,14",32140,valid,2
+men 35-39 50 LC Meter butterfly,"Campos, Alfredo",Lozada Swim Team,14,38,1988,"34,00",34000,"32,26",32260,valid,2
+men 35-39 50 LC Meter butterfly,"Curletti, Nahuel",Ironswim Master,15,39,1987,"32,56",32560,"33,16",33160,valid,2
+men 35-39 50 LC Meter butterfly,"Asuaje, Leminyer",Lozada Swim Team,16,35,1991,"31,90",31900,"33,74",33740,valid,2
+men 35-39 50 LC Meter butterfly,"Rivera, Camilo",Goura Swim Team,17,36,1990,"34,50",34500,"34,30",34300,valid,2
+men 35-39 50 LC Meter butterfly,"Ames, Javier",Copiapo Swim,18,35,1991,"33,00",33000,"34,64",34640,valid,2
+men 35-39 50 LC Meter butterfly,"Godoy, Yoser",Goura Swim Team,19,35,1991,"34,00",34000,"34,79",34790,valid,2
+men 35-39 50 LC Meter butterfly,"Camiroaga, Jose",Master U de Chile,20,35,1991,"35,00",35000,"34,89",34890,valid,2
+men 35-39 50 LC Meter butterfly,"Alfaro, Mauricio",Copiapo Swim,21,36,1990,"35,00",35000,"35,32",35320,valid,2
+men 35-39 50 LC Meter butterfly,"Parra, Eliseo",Aguila Natacion,22,35,1991,"37,79",37790,"35,49",35490,valid,2
+men 35-39 50 LC Meter butterfly,"Figueroa, Carlos",Copiapo Swim,23,39,1987,"43,00",43000,"36,07",36070,valid,2
+men 35-39 50 LC Meter butterfly,"Cisterna, Marcelo",Goura Swim Team,24,38,1988,"33,00",33000,"36,76",36760,valid,2
+men 35-39 50 LC Meter butterfly,"Vasquez, Isaias",CS Maipu,25,38,1988,"42,76",42760,"38,57",38570,valid,2
+men 35-39 50 LC Meter butterfly,"Le Cerf, Patricio",Orinoco Swim Team,26,36,1990,"41,25",41250,"43,11",43110,valid,2
+men 35-39 50 LC Meter butterfly,"Araneda, Andres",Lo Que Boto La Ola,27,36,1990,"49,79",49790,"47,95",47950,valid,2
+men 40-44 50 LC Meter butterfly,"Daga Leppe, Alberto",Club Deportivo UC,1,40,1986,"30,45",30450,"28,89",28890,valid,2
+men 40-44 50 LC Meter butterfly,"Hernandez, Williams",Ironswim Master,2,41,1985,"32,00",32000,"29,56",29560,valid,2
+men 40-44 50 LC Meter butterfly,"Avendanño, Javier",H2o,3,40,1986,"31,00",31000,"30,45",30450,valid,2
+men 40-44 50 LC Meter butterfly,"Bricenño, Carlos",Cien por Ciento Swim,4,41,1985,"31,00",31000,"31,03",31030,valid,2
+men 40-44 50 LC Meter butterfly,"Soto, Rodrigo",Stadio Italiano,5,40,1986,"30,80",30800,"31,42",31420,valid,2
+men 40-44 50 LC Meter butterfly,"Gomez, Carlos",Nunoa Master,6,43,1983,"33,10",33100,"32,69",32690,valid,2
+men 40-44 50 LC Meter butterfly,"Soto, Alejandro",Master U de Chile,7,40,1986,"33,00",33000,"33,91",33910,valid,2
+men 40-44 50 LC Meter butterfly,"Torres, Renzo",Natacion Master Recoleta,8,42,1984,"41,00",41000,"34,61",34610,valid,2
+men 40-44 50 LC Meter butterfly,"Serrano, Hector",Cien por Ciento Swim,9,44,1982,"40,00",40000,"40,44",40440,valid,2
+men 40-44 50 LC Meter butterfly,"Vasquez, Claudio",Tiburones de Curico,10,41,1985,"43,00",43000,"40,78",40780,valid,2
+men 40-44 50 LC Meter butterfly,"Aranguiz, Jose",Natacion Master Recoleta,11,44,1982,"50,55",50550,"46,91",46910,valid,2
+men 40-44 50 LC Meter butterfly,"Molina, Diego",Natacion Master Recoleta,12,40,1986,"48,89",48890,"49,25",49250,valid,2
+men 40-44 50 LC Meter butterfly,"Santibanñez, Roberto",Natacion Master Recoleta,13,42,1984,"48,89",48890,"49,70",49700,valid,2
+men 40-44 50 LC Meter butterfly,"Medina, Christopher",CS Maipu,14,43,1983,"56,39",56390,"53,45",53450,valid,2
+men 40-44 50 LC Meter butterfly,"Salah, Yamil",Nunoa Master,15,41,1985,"1:00,10",60100,"58,39",58390,valid,2
+men 40-44 50 LC Meter butterfly,"Carmona, Roberto",Aguila Natacion,,44,1982,"1:00,00",60000,DQ,,dsq,2
+men 45-49 50 LC Meter butterfly,"Matulic, Juan Pablo",Ironswim Master,1,45,1981,"32,00",32000,"32,10",32100,valid,2
+men 45-49 50 LC Meter butterfly,"Diaz, Cristobal",Stadio Italiano,2,45,1981,"32,00",32000,"32,48",32480,valid,2
+men 45-49 50 LC Meter butterfly,"Cerrada, Yorggyn",Natacion Master Recoleta,3,47,1979,"36,05",36050,"35,32",35320,valid,2
+men 45-49 50 LC Meter butterfly,"De Elejalde, Ramiro",Nunoa Master,4,49,1977,"34,70",34700,"35,96",35960,valid,2
+men 45-49 50 LC Meter butterfly,"Winter, Juan Enrique",Club Deportivo UC,5,46,1980,"39,00",39000,"38,02",38020,valid,2
+men 45-49 50 LC Meter butterfly,"Casana, Jorge",Lozada Swim Team,6,47,1979,"40,90",40900,"43,50",43500,valid,2
+men 45-49 50 LC Meter butterfly,"Ibanñez, Claudio",Condrictios Team,7,45,1981,"1:00,00",60000,"1:05,92",65920,valid,2
+men 50-54 50 LC Meter butterfly,"Lucena, Larry",Nunoa Master,1,51,1975,"33,00",33000,"33,74",33740,valid,2
+men 50-54 50 LC Meter butterfly,"Gutierrez Oliveros, Luis",Club Deportivo UC,2,52,1974,"34,68",34680,"34,36",34360,valid,2
+men 50-54 50 LC Meter butterfly,"Maldavsky, Mijael",Estadio Istaerlita,3,50,1976,"35,00",35000,"34,85",34850,valid,2
+men 50-54 50 LC Meter butterfly,"Matulic L, Wladimir",Club Deportivo UC,4,53,1973,"36,86",36860,"35,29",35290,valid,2
+men 50-54 50 LC Meter butterfly,"Quezada, Alvaro",Lo Que Boto La Ola,5,52,1974,"36,80",36800,"36,84",36840,valid,2
+men 55-59 50 LC Meter butterfly,"Tapia, Miguel",Stadio Italiano,1,57,1969,"31,00",31000,"31,49",31490,valid,2
+men 55-59 50 LC Meter butterfly,"Battle, Juan Pablo",Estadio Espanñol,2,56,1970,"33,00",33000,"34,01",34010,valid,2
+men 55-59 50 LC Meter butterfly,"Uribe, Daniel",Nunoa Master,3,55,1971,"50,00",50000,"49,04",49040,valid,2
+men 55-59 50 LC Meter butterfly,"Panetti, Mario",Golden,4,59,1967,"53,00",53000,"55,48",55480,valid,2
+men 60-64 50 LC Meter butterfly,"Bernales, Pablo",Estadio Espanñol,1,63,1963,"34,10",34100,"34,13",34130,valid,2
+men 60-64 50 LC Meter butterfly,"Jimenez, Andres",Natacion Buin,2,61,1965,"43,00",43000,"41,40",41400,valid,2
+men 60-64 50 LC Meter butterfly,"Fonturbel, Alberto",Master Providencia,3,60,1966,"41,00",41000,"41,41",41410,valid,2
+men 60-64 50 LC Meter butterfly,"Leal, Rene",Fullmar,4,62,1964,"45,00",45000,"44,46",44460,valid,2
+men 60-64 50 LC Meter butterfly,"Astudillo, Cristian",Delfines de las Condes,5,62,1964,"49,00",49000,"46,92",46920,valid,2
+men 60-64 50 LC Meter butterfly,"Munñoz, Felipe",CS Maipu,6,63,1963,"56,89",56890,"50,43",50430,valid,2
+men 65-69 50 LC Meter butterfly,"Huber, Harald",Stadio Italiano,1,67,1959,"39,80",39800,"37,47",37470,valid,2
+men 65-69 50 LC Meter butterfly,"Mimica, Axel",Delfines de las Condes,2,67,1959,"41,00",41000,"43,55",43550,valid,2
+men 65-69 50 LC Meter butterfly,"Toledo, Fredi",Natacion Master Recoleta,3,67,1959,"48,89",48890,"48,71",48710,valid,2
+men 70-74 50 LC Meter butterfly,"Bosshardt, Rolf",Master San Bernardo,1,70,1956,"50,00",50000,"50,87",50870,valid,2
+men 70-74 50 LC Meter butterfly,"Vasquez, Oscar",Aquamaster Chillan,2,71,1955,"1:10,00",70000,"1:12,07",72070,valid,2
+men 70-74 50 LC Meter butterfly,"Reyes, Cristian",Nunoa Master,,72,1954,"1:10,10",70100,DQ,,dsq,2
+men 75-79 50 LC Meter butterfly,"Guerra B, Manfredo",Calambre Swim Team,,75,1951,"44,00",44000,DQ,,dsq,2
+women 20-24 200 LC Meter individual_medley,"Zunñiga, Catalina",Santiago Deportes,,21,2005,"3:40,00",220000,"X3:35,56",215560,unknown,2
+women 25-29 200 LC Meter individual_medley,"Badilla, Claudia",Aquamaster Chillan,1,27,1999,"3:08,40",188400,"3:00,08",180080,valid,2
+women 25-29 200 LC Meter individual_medley,"Albornoz, Javiera",Lozada Swim Team,2,29,1997,"2:58,00",178000,"3:01,12",181120,valid,2
+women 25-29 200 LC Meter individual_medley,"Consigliere, Chiara",Stadio Italiano,3,29,1997,"2:55,28",175280,"3:04,52",184520,valid,2
+women 25-29 200 LC Meter individual_medley,"Munñoz, Isidora",Stadio Italiano,4,28,1998,"3:15,00",195000,"3:11,46",191460,valid,2
+women 25-29 200 LC Meter individual_medley,"Aliste, Camila",Goura Swim Team,5,28,1998,"3:00,00",180000,"3:27,57",207570,valid,2
+women 25-29 200 LC Meter individual_medley,"Rangel, Gabriela",Lozada Swim Team,6,26,2000,"3:32,00",212000,"3:36,08",216080,valid,2
+women 30-34 200 LC Meter individual_medley,"Badilla, Estefania",Aquamaster Chillan,1,30,1996,"3:14,00",194000,"3:24,32",204320,valid,2
+women 30-34 200 LC Meter individual_medley,"Gomez, Maria Jose",Santiago Deportes,2,30,1996,"3:30,00",210000,"3:28,75",208750,valid,2
+women 30-34 200 LC Meter individual_medley,"Castro, Valentina",Condrictios Team,3,34,1992,"4:00,00",240000,"3:57,09",237090,valid,2
+women 30-34 200 LC Meter individual_medley,"Barria, Jazmin",Manateam Swim,4,33,1993,"4:25,00",265000,"4:23,07",263070,valid,2
+women 35-39 200 LC Meter individual_medley,"Munñoz, Valentina",Stadio Italiano,1,37,1989,"2:50,30",170300,"2:51,85",171850,valid,2
+women 35-39 200 LC Meter individual_medley,"Revilla, Elvismar",Lozada Swim Team,2,35,1991,"2:50,30",170300,"2:54,57",174570,valid,2
+women 35-39 200 LC Meter individual_medley,"Vacher, Francisca",Golden,3,35,1991,"3:10,00",190000,"3:09,07",189070,valid,2
+women 35-39 200 LC Meter individual_medley,"Ostos, Yamaly",Aguila Natacion,4,37,1989,"3:32,21",212210,"3:29,33",209330,valid,2
+women 35-39 200 LC Meter individual_medley,"Herrera, Cinthia",Goura Swim Team,5,38,1988,"3:45,00",225000,"3:37,42",217420,valid,2
+women 35-39 200 LC Meter individual_medley,"Nunñez, Sabine",Aquateam,6,38,1988,"3:35,00",215000,"3:43,35",223350,valid,2
+women 35-39 200 LC Meter individual_medley,"Puebla, Tania",Aguila Natacion,7,35,1991,"5:00,00",300000,"4:17,73",257730,valid,2
+women 40-44 200 LC Meter individual_medley,"Santa Maria, Debora",Delfines de las Condes,1,44,1982,"3:33,00",213000,"3:35,27",215270,valid,2
+women 40-44 200 LC Meter individual_medley,"Mindiola, Magdiri",Nunoa Master,2,43,1983,"3:40,00",220000,"3:38,11",218110,valid,2
+women 40-44 200 LC Meter individual_medley,"Aparicio, Adriana",Nunoa Master,3,40,1986,"4:02,30",242300,"4:06,23",246230,valid,2
+women 40-44 200 LC Meter individual_medley,"Montero, Maria Antonieta",Cien por Ciento Swim,4,41,1985,"4:30,00",270000,"4:08,28",248280,valid,2
+women 40-44 200 LC Meter individual_medley,"Aravena, Fabiola",Condrictios Team,5,41,1985,"4:40,00",280000,"4:38,52",278520,valid,2
+women 45-49 200 LC Meter individual_medley,"Anania, Tatiana",Stadio Italiano,1,47,1979,"3:19,72",199720,"3:21,70",201700,valid,2
+women 45-49 200 LC Meter individual_medley,"Stuven, Rocio",Nunoa Master,2,45,1981,"3:42,80",222800,"3:27,26",207260,valid,2
+women 45-49 200 LC Meter individual_medley,"Vasquez, Carola",Natacion Master Recoleta,3,49,1977,"4:10,00",250000,"4:01,48",241480,valid,2
+women 45-49 200 LC Meter individual_medley,"Rivas, Carolina",Delfines de las Condes,4,49,1977,"5:10,00",310000,"4:54,03",294030,valid,2
+women 50-54 200 LC Meter individual_medley,"Klein, Marcela",Estadio Istaerlita,1,53,1973,"3:10,00",190000,"3:10,82",190820,valid,2
+women 50-54 200 LC Meter individual_medley,"Perez, Paula",Lozada Swim Team,2,53,1973,"4:00,00",240000,"3:35,56",215560,valid,2
+women 50-54 200 LC Meter individual_medley,"Neira, Veronica",Master U de Chile,3,51,1975,"3:50,00",230000,"3:47,27",227270,valid,2
+women 50-54 200 LC Meter individual_medley,"Castillo, Iza",Lo Que Boto La Ola,4,50,1976,"3:54,07",234070,"3:55,50",235500,valid,2
+women 55-59 200 LC Meter individual_medley,"Lizana, Loreto",Stadio Italiano,1,55,1971,"3:35,00",215000,"3:34,67",214670,valid,2
+women 55-59 200 LC Meter individual_medley,"Altman, Pamela",Estadio Istaerlita,2,57,1969,"4:10,00",250000,"3:53,67",233670,valid,2
+women 55-59 200 LC Meter individual_medley,"Tapia, Marcela G",Africa Natacion,3,58,1968,"4:38,00",278000,"4:29,80",269800,valid,2
+women 55-59 200 LC Meter individual_medley,"Perez, Paulina",Natacion Master Recoleta,4,56,1970,"4:43,00",283000,"4:41,28",281280,valid,2
+women 60-64 200 LC Meter individual_medley,"Mora, Sonia",Stadio Italiano,1,60,1966,"4:00,00",240000,"3:47,26",227260,valid,2
+women 65-69 200 LC Meter individual_medley,"Bruzzone, Wanda",Ironswim Master,,67,1959,"5:50,00",350000,DQ,,dsq,2
+women 70-74 200 LC Meter individual_medley,"Hormazabal, Rita",Delfines de las Condes,1,70,1956,"3:55,00",235000,"4:00,32",240320,valid,2
+women 75-79 200 LC Meter individual_medley,"Fernandez, Gladys",Master San Bernardo,1,78,1948,"7:00,00",420000,"6:44,42",404420,valid,2
+men 25-29 200 LC Meter individual_medley,"Barros, Sergio",Estadio Espanñol,1,28,1998,"2:46,00",166000,"2:44,49",164490,valid,2
+men 25-29 200 LC Meter individual_medley,"Machado, Vicente",Goura Swim Team,2,29,1997,"2:46,00",166000,"2:46,97",166970,valid,2
+men 25-29 200 LC Meter individual_medley,"Zamora, Icaro",Goura Swim Team,3,28,1998,"2:40,00",160000,"2:50,48",170480,valid,2
+men 25-29 200 LC Meter individual_medley,"Ordenes, Alejandro",Copiapo Swim,4,26,2000,"3:50,00",230000,"2:53,92",173920,valid,2
+men 25-29 200 LC Meter individual_medley,"Guirriman, Alexis",Lozada Swim Team,5,29,1997,"3:02,00",182000,"3:00,75",180750,valid,2
+men 25-29 200 LC Meter individual_medley,"Abarca, Pablo",Goura Swim Team,6,27,1999,"3:19,00",199000,"3:22,81",202810,valid,2
+men 25-29 200 LC Meter individual_medley,"Walter, Raul",Cien por Ciento Swim,7,26,2000,"4:30,00",270000,"4:16,61",256610,valid,2
+men 30-34 200 LC Meter individual_medley,"Torres, Giovanni",Goura Swim Team,1,30,1996,"2:25,00",145000,"2:29,08",149080,valid,2
+men 30-34 200 LC Meter individual_medley,"Torres, Sergio",Lozada Swim Team,2,32,1994,"2:09,90",129900,"2:40,23",160230,valid,2
+men 30-34 200 LC Meter individual_medley,"Ibarra, Gustavo",Goura Swim Team,3,34,1992,"2:42,00",162000,"2:43,40",163400,valid,2
+men 30-34 200 LC Meter individual_medley,"Flores, Jaime",Stadio Italiano,4,33,1993,"2:45,00",165000,"2:46,32",166320,valid,2
+men 30-34 200 LC Meter individual_medley,"Perez, Romulo",Nunoa Master,5,34,1992,"2:45,50",165500,"2:48,80",168800,valid,2
+men 30-34 200 LC Meter individual_medley,"Morales, Nicolas",Goura Swim Team,6,33,1993,"3:30,00",210000,"2:51,32",171320,valid,2
+men 30-34 200 LC Meter individual_medley,"Nava, Juan",Nunoa Master,7,30,1996,"2:49,00",169000,"2:51,37",171370,valid,2
+men 30-34 200 LC Meter individual_medley,"Castanñeda, Alejandro",Squadra Proswim,8,34,1992,"2:52,00",172000,"2:58,58",178580,valid,2
+men 30-34 200 LC Meter individual_medley,"Swysen, Thibault",Lozada Swim Team,9,31,1995,"3:30,00",210000,"3:05,69",185690,valid,2
+men 30-34 200 LC Meter individual_medley,"Toro, Javier",Condrictios Team,10,30,1996,"4:30,00",270000,"3:10,59",190590,valid,2
+men 30-34 200 LC Meter individual_medley,"Torres, Sergio",Condrictios Team,11,32,1994,"3:10,00",190000,"3:12,05",192050,valid,2
+men 30-34 200 LC Meter individual_medley,"Carrasco, Eduardo",Goura Swim Team,12,34,1992,"3:25,00",205000,"3:17,22",197220,valid,2
+men 30-34 200 LC Meter individual_medley,"Sayago, Alexis",Nunoa Master,13,33,1993,"3:20,20",200200,"3:22,87",202870,valid,2
+men 30-34 200 LC Meter individual_medley,"Jorquera, Cristian",Master U de Chile,14,31,1995,"4:00,00",240000,"3:23,96",203960,valid,2
+men 30-34 200 LC Meter individual_medley,"Gutierrez, Enzo",Natacion Master Recoleta,15,31,1995,"3:42,00",222000,"3:32,89",212890,valid,2
+men 30-34 200 LC Meter individual_medley,"Canñete, Rafael",Lozada Swim Team,16,33,1993,"4:37,00",277000,"3:47,09",227090,valid,2
+men 35-39 200 LC Meter individual_medley,"Contreras, Freddy",Lozada Swim Team,1,38,1988,"2:27,00",147000,"2:27,84",147840,valid,2
+men 35-39 200 LC Meter individual_medley,"Huerta, Francisco",Estadio Espanñol,2,39,1987,"2:40,00",160000,"2:46,53",166530,valid,2
+men 35-39 200 LC Meter individual_medley,"Curletti, Nahuel",Ironswim Master,3,39,1987,"2:36,00",156000,"2:47,68",167680,valid,2
+men 35-39 200 LC Meter individual_medley,"Contador, Juan Ignacio",Stadio Italiano,4,35,1991,"2:45,00",165000,"2:48,12",168120,valid,2
+men 35-39 200 LC Meter individual_medley,"Bricenño, Daniel",Cien por Ciento Swim,5,36,1990,"2:45,00",165000,"2:48,50",168500,valid,2
+men 35-39 200 LC Meter individual_medley,"Polo, David",Lozada Swim Team,6,37,1989,"2:55,00",175000,"2:51,24",171240,valid,2
+men 35-39 200 LC Meter individual_medley,"Nava, Jose",Nunoa Master,7,35,1991,"2:57,40",177400,"2:56,65",176650,valid,2
+men 35-39 200 LC Meter individual_medley,"Rivera, Camilo",Goura Swim Team,8,36,1990,"3:00,00",180000,"3:11,33",191330,valid,2
+men 35-39 200 LC Meter individual_medley,"Parra, Eliseo",Aguila Natacion,9,35,1991,"3:45,37",225370,"3:41,27",221270,valid,2
+men 35-39 200 LC Meter individual_medley,"Zapater, Maximiliano",Aguila Natacion,10,35,1991,"3:40,00",220000,"3:41,88",221880,valid,2
+men 40-44 200 LC Meter individual_medley,"Montero, Francisco",Estadio Espanñol,1,40,1986,"2:28,50",148500,"2:30,01",150010,valid,2
+men 40-44 200 LC Meter individual_medley,"Soto, Rodrigo",Stadio Italiano,2,40,1986,"2:43,00",163000,"2:43,73",163730,valid,2
+men 40-44 200 LC Meter individual_medley,"Dominguez, Jose",Lozada Swim Team,3,42,1984,"2:50,00",170000,"2:52,23",172230,valid,2
+men 40-44 200 LC Meter individual_medley,"Gomez, Carlos",Nunoa Master,4,43,1983,"2:56,10",176100,"2:53,62",173620,valid,2
+men 40-44 200 LC Meter individual_medley,"Soto, Alejandro",Master U de Chile,5,40,1986,"2:49,50",169500,"2:54,14",174140,valid,2
+men 40-44 200 LC Meter individual_medley,"Gonzalez, Rodrigo",Lo Que Boto La Ola,6,40,1986,"3:14,24",194240,"3:19,67",199670,valid,2
+men 40-44 200 LC Meter individual_medley,"Velasco, Alejandro",Lozada Swim Team,7,44,1982,"4:40,00",280000,"3:25,92",205920,valid,2
+men 40-44 200 LC Meter individual_medley,"Salah, Yamil",Nunoa Master,8,41,1985,"4:00,00",240000,"4:36,94",276940,valid,2
+men 45-49 200 LC Meter individual_medley,"Gonzalez, Ciro",Cien por Ciento Swim,1,48,1978,"3:15,00",195000,"3:02,42",182420,valid,2
+men 45-49 200 LC Meter individual_medley,"De Elejalde, Ramiro",Nunoa Master,2,49,1977,"3:08,00",188000,"3:14,45",194450,valid,2
+men 45-49 200 LC Meter individual_medley,"Sepulveda, Matias C",Africa Natacion,3,47,1979,"3:00,00",180000,"3:14,67",194670,valid,2
+men 45-49 200 LC Meter individual_medley,"Martinez, Rodrigo",Stadio Italiano,4,45,1981,"4:00,00",240000,"3:23,24",203240,valid,2
+men 45-49 200 LC Meter individual_medley,"Cerrada, Yorggyn",Natacion Master Recoleta,5,47,1979,"3:29,00",209000,"3:29,23",209230,valid,2
+men 45-49 200 LC Meter individual_medley,"Reggio, Franklyn",Master U de Chile,6,49,1977,"3:30,00",210000,"3:32,00",212000,valid,2
+men 45-49 200 LC Meter individual_medley,"Escobillana, Leonardo",Mantarrayas Arica,7,49,1977,"4:00,00",240000,"3:44,82",224820,valid,2
+men 45-49 200 LC Meter individual_medley,"Casana, Jorge",Lozada Swim Team,8,47,1979,"4:20,70",260700,"3:55,78",235780,valid,2
+men 50-54 200 LC Meter individual_medley,"Casassus, Matias",Estadio Espanñol,1,54,1972,"2:50,00",170000,"2:55,94",175940,valid,2
+men 50-54 200 LC Meter individual_medley,"Psijas, Antonio",Stadio Italiano,2,54,1972,"3:04,00",184000,"3:07,47",187470,valid,2
+men 50-54 200 LC Meter individual_medley,"Gutierrez Oliveros, Luis",Club Deportivo UC,3,52,1974,"3:10,43",190430,"3:09,69",189690,valid,2
+men 50-54 200 LC Meter individual_medley,"Matulic L, Wladimir",Club Deportivo UC,4,53,1973,"3:20,56",200560,"3:19,78",199780,valid,2
+men 50-54 200 LC Meter individual_medley,"Bastidas, Marcelo",Fullmar,5,52,1974,"3:50,00",230000,"3:46,51",226510,valid,2
+men 50-54 200 LC Meter individual_medley,"Cabaret, Sebastian",Tiburones de Curico,6,51,1975,"4:00,00",240000,"3:54,99",234990,valid,2
+men 55-59 200 LC Meter individual_medley,"Tapia, Miguel",Stadio Italiano,1,57,1969,"2:43,00",163000,"2:37,93",157930,valid,2
+men 55-59 200 LC Meter individual_medley,"Lecaros, Pablo",Delfines de las Condes,2,57,1969,"3:12,00",192000,"3:18,13",198130,valid,2
+men 55-59 200 LC Meter individual_medley,"Uribe, Daniel",Nunoa Master,3,55,1971,"4:20,00",260000,"4:24,22",264220,valid,2
+men 65-69 200 LC Meter individual_medley,"Molina, Luis",Master NÑ uble,1,67,1959,"4:35,00",275000,"5:38,91",338910,valid,2
+men 70-74 200 LC Meter individual_medley,"Donoso, Juan",Master San Bernardo,1,71,1955,"4:10,00",250000,"3:55,67",235670,valid,2
+men 70-74 200 LC Meter individual_medley,"Bosshardt, Rolf",Master San Bernardo,2,70,1956,"5:00,00",300000,"4:45,05",285050,valid,2
+men 70-74 200 LC Meter individual_medley,"Vasquez, Oscar",Aquamaster Chillan,3,71,1955,"5:11,00",311000,"5:35,14",335140,valid,2
+men 75-79 200 LC Meter individual_medley,"Guerra B, Manfredo",Calambre Swim Team,1,75,1951,"3:50,00",230000,"3:35,58",215580,valid,2
+women 20-24 100 LC Meter backstroke,"Rauch, Emma",Stadio Italiano,,22,2004,"1:14,00",74000,"X1:20,93",80930,unknown,2
+women 20-24 100 LC Meter backstroke,"Zunñiga, Catalina",Santiago Deportes,,21,2005,"1:50,00",110000,"X1:43,31",103310,unknown,2
+women 25-29 100 LC Meter backstroke,"Collingwood, Camila",Stadio Italiano,1,25,2001,"1:13,00",73000,"1:18,14",78140,valid,2
+women 25-29 100 LC Meter backstroke,"Saavedra, Victoria",Squadra Proswim,2,27,1999,"1:14,00",74000,"1:18,86",78860,valid,2
+women 25-29 100 LC Meter backstroke,"Albornoz, Javiera",Lozada Swim Team,3,29,1997,"1:15,75",75750,"1:21,67",81670,valid,2
+women 25-29 100 LC Meter backstroke,"Consigliere, Chiara",Stadio Italiano,4,29,1997,"1:22,00",82000,"1:26,56",86560,valid,2
+women 25-29 100 LC Meter backstroke,"Cardenas, Ambar",Nunoa Master,5,26,2000,"1:33,60",93600,"1:35,03",95030,valid,2
+women 25-29 100 LC Meter backstroke,"Bravo, Alejandra",Lozada Swim Team,6,25,2001,"1:50,00",110000,"1:48,87",108870,valid,2
+women 30-34 100 LC Meter backstroke,"Spuhr, Marianne",Estadio Espanñol,1,32,1994,"1:14,00",74000,"1:16,27",76270,valid,2
+women 30-34 100 LC Meter backstroke,"Stefanelli, Magdalena",Stadio Italiano,2,33,1993,"1:40,00",100000,"1:25,44",85440,valid,2
+women 30-34 100 LC Meter backstroke,"Rojas, Ana",Lozada Swim Team,3,33,1993,"1:34,00",94000,"1:27,51",87510,valid,2
+women 30-34 100 LC Meter backstroke,"Guzman, Maria",Lozada Swim Team,4,32,1994,"1:24,00",84000,"1:29,89",89890,valid,2
+women 30-34 100 LC Meter backstroke,"Zamora, Barbara",Master Vitacura,5,30,1996,"1:30,00",90000,"1:36,71",96710,valid,2
+women 30-34 100 LC Meter backstroke,"Escudero, Francesca",Lozada Swim Team,6,31,1995,"1:43,77",103770,"1:37,86",97860,valid,2
+women 30-34 100 LC Meter backstroke,"Gonzalez, Tracy",Nunoa Master,7,34,1992,"3:50,00",230000,"1:48,68",108680,valid,2
+women 30-34 100 LC Meter backstroke,"Bustos, Constanza",CS Maipu,8,34,1992,"1:44,73",104730,"1:50,29",110290,valid,2
+women 30-34 100 LC Meter backstroke,"Munizaga, Javiera",Estadio Espanñol,9,30,1996,"1:35,50",95500,"1:55,03",115030,valid,2
+women 30-34 100 LC Meter backstroke,"Rubio, Emilia",Goura Swim Team,,31,1995,"1:30,00",90000,DQ,,dsq,2
+women 30-34 100 LC Meter backstroke,"Salinas, Consuelo",Santiago Deportes,,30,1996,"2:00,00",120000,DQ,,dsq,2
+women 35-39 100 LC Meter backstroke,"Trewhela, Carolina",Squadra Proswim,1,38,1988,"1:18,00",78000,"1:21,12",81120,valid,2
+women 35-39 100 LC Meter backstroke,"Trewhela, Nicole",Ironswim Master,2,38,1988,"1:29,00",89000,"1:34,54",94540,valid,2
+women 35-39 100 LC Meter backstroke,"Godoy, Ana",Nunoa Master,3,37,1989,"1:37,30",97300,"1:34,74",94740,valid,2
+women 35-39 100 LC Meter backstroke,"Santana, Consuelo",Ironswim Master,4,36,1990,"1:50,00",110000,"1:40,34",100340,valid,2
+women 35-39 100 LC Meter backstroke,"Rodriguez, Vanessa",Lozada Swim Team,5,37,1989,"1:45,00",105000,"1:53,12",113120,valid,2
+women 35-39 100 LC Meter backstroke,"Aguilon, Anila",H2o,6,39,1987,"1:50,00",110000,"2:03,43",123430,valid,2
+women 35-39 100 LC Meter backstroke,"Cuesta, Carolina",Nunoa Master,7,39,1987,"2:00,00",120000,"2:19,24",139240,valid,2
+women 40-44 100 LC Meter backstroke,"Santa Maria, Debora",Delfines de las Condes,1,44,1982,"1:36,00",96000,"1:39,22",99220,valid,2
+women 40-44 100 LC Meter backstroke,"Salazar, Diana",Goura Swim Team,2,41,1985,"2:00,00",120000,"1:46,38",106380,valid,2
+women 45-49 100 LC Meter backstroke,"Lozada, Evani",Lozada Swim Team,1,45,1981,"1:45,00",105000,"1:36,17",96170,valid,2
+women 45-49 100 LC Meter backstroke,"Sepulveda, Cecilia",Estadio Istaerlita,2,46,1980,"1:42,00",102000,"1:46,18",106180,valid,2
+women 45-49 100 LC Meter backstroke,"Vasquez, Carola",Natacion Master Recoleta,3,49,1977,"1:45,00",105000,"1:48,93",108930,valid,2
+women 50-54 100 LC Meter backstroke,"Ruiz, Macarena",Estadio Espanñol,1,54,1972,"1:31,00",91000,"1:33,89",93890,valid,2
+women 50-54 100 LC Meter backstroke,"Gonzalez, Elena",Nunoa Master,2,52,1974,"2:18,10",138100,"2:22,15",142150,valid,2
+women 55-59 100 LC Meter backstroke,"Chapanos, Mary",Stadio Italiano,1,58,1968,"1:32,00",92000,"1:32,22",92220,valid,2
+women 55-59 100 LC Meter backstroke,"Espinoza, Roxana",Lo Que Boto La Ola,2,59,1967,"1:50,00",110000,"1:53,33",113330,valid,2
+women 55-59 100 LC Meter backstroke,"Lois, Pamela",Stadio Italiano,,56,1970,"1:22,00",82000,DQ,,dsq,2
+women 60-64 100 LC Meter backstroke,"Mora, Sonia",Stadio Italiano,1,60,1966,"1:55,00",115000,"1:51,60",111600,valid,2
+women 60-64 100 LC Meter backstroke,"Medina, Pamela",Stadio Italiano,2,61,1965,"2:00,00",120000,"2:01,13",121130,valid,2
+women 60-64 100 LC Meter backstroke,"Rojas, Ivonne",Nunoa Master,3,64,1962,"2:28,00",148000,"2:50,00",170000,valid,2
+women 60-64 100 LC Meter backstroke,"Canñete, Soledad",Natacion Master Recoleta,4,63,1963,"2:35,00",155000,"2:51,41",171410,valid,2
+women 60-64 100 LC Meter backstroke,"Castillo, Maylett",Lozada Swim Team,5,61,1965,"2:50,55",170550,"3:10,79",190790,valid,2
+women 65-69 100 LC Meter backstroke,"Chamberlain, Mary Ann",Stadio Italiano,1,66,1960,"1:53,00",113000,"1:57,54",117540,valid,2
+women 65-69 100 LC Meter backstroke,"Bruzzone, Wanda",Ironswim Master,2,67,1959,"2:27,00",147000,"2:28,50",148500,valid,2
+women 65-69 100 LC Meter backstroke,"Rojo, Yiakelin",Youtopia,3,65,1961,"2:20,00",140000,"2:32,12",152120,valid,2
+women 65-69 100 LC Meter backstroke,"Quezada, Cristina",Aquamaster Chillan,4,66,1960,"2:32,00",152000,"2:36,73",156730,valid,2
+women 70-74 100 LC Meter backstroke,"Bonta, Maureen",Stadio Italiano,1,72,1954,"1:58,00",118000,"1:58,69",118690,valid,2
+women 70-74 100 LC Meter backstroke,"Lorca, Maria Luisa",Stadio Italiano,2,71,1955,"2:10,00",130000,"2:22,99",142990,valid,2
+women 70-74 100 LC Meter backstroke,"Adaros, Gladys",Delfines de las Condes,3,72,1954,"2:30,00",150000,"2:38,53",158530,valid,2
+women 70-74 100 LC Meter backstroke,"Munñoz, Maria",Nunoa Master,4,70,1956,"2:37,60",157600,"2:49,75",169750,valid,2
+women 85-89 100 LC Meter backstroke,"Kosche, Ingrid",Delfines de las Condes,1,87,1939,"2:47,66",167660,"2:56,33",176330,valid,2
+women 85-89 100 LC Meter backstroke,"Escudero, Oriele",Nunoa Master,2,85,1941,"2:48,80",168800,"3:05,88",185880,valid,2
+men 20-24 100 LC Meter backstroke,"Gonzalez, Cristopher",Nunoa Master,,23,2003,"1:25,00",85000,"X1:26,68",86680,unknown,2
+men 25-29 100 LC Meter backstroke,"Salavery, Matias",Squadra Proswim,1,29,1997,"1:08,00",68000,"1:09,84",69840,valid,2
+men 25-29 100 LC Meter backstroke,"Zamora, Icaro",Goura Swim Team,2,28,1998,"1:08,00",68000,"1:13,12",73120,valid,2
+men 25-29 100 LC Meter backstroke,"Figueroa, Simon",Goura Swim Team,3,29,1997,"1:12,00",72000,"1:13,89",73890,valid,2
+men 25-29 100 LC Meter backstroke,"Gomez, Cristobal",Condrictios Team,4,25,2001,"1:49,00",109000,"1:44,93",104930,valid,2
+men 30-34 100 LC Meter backstroke,"Torres, Sergio",Lozada Swim Team,1,32,1994,"1:02,00",62000,"1:09,29",69290,valid,2
+men 30-34 100 LC Meter backstroke,"Hernandez, Carlos",Nunoa Master,2,30,1996,"1:10,00",70000,"1:11,19",71190,valid,2
+men 30-34 100 LC Meter backstroke,"Illanes, Cristopher",Lozada Swim Team,3,33,1993,"1:20,00",80000,"1:21,25",81250,valid,2
+men 30-34 100 LC Meter backstroke,"Diaz, Camilo",Goura Swim Team,4,32,1994,"1:19,00",79000,"1:23,98",83980,valid,2
+men 30-34 100 LC Meter backstroke,"Gomez, Pablo",Goura Swim Team,5,34,1992,"1:25,00",85000,"1:35,11",95110,valid,2
+men 30-34 100 LC Meter backstroke,"Jorquera, Cristian",Master U de Chile,6,31,1995,"1:40,00",100000,"1:36,34",96340,valid,2
+men 35-39 100 LC Meter backstroke,"Bricenño, Daniel",Cien por Ciento Swim,1,36,1990,"1:09,00",69000,"1:15,41",75410,valid,2
+men 35-39 100 LC Meter backstroke,"Nava, Jose",Nunoa Master,2,35,1991,"1:18,80",78800,"1:20,43",80430,valid,2
+men 35-39 100 LC Meter backstroke,"Asuaje, Leminyer",Lozada Swim Team,3,35,1991,"1:19,00",79000,"1:21,74",81740,valid,2
+men 35-39 100 LC Meter backstroke,"Gamez, Eliezer",Condrictios Team,4,37,1989,"1:40,00",100000,"1:31,28",91280,valid,2
+men 35-39 100 LC Meter backstroke,"Vasquez, Isaias",CS Maipu,5,38,1988,"1:44,89",104890,"1:38,28",98280,valid,2
+men 35-39 100 LC Meter backstroke,"Figueroa, Carlos",Copiapo Swim,6,39,1987,"1:46,00",106000,"1:43,51",103510,valid,2
+men 35-39 100 LC Meter backstroke,"Gangas, Pablo",CS Maipu,7,36,1990,"1:52,99",112990,"1:43,89",103890,valid,2
+men 35-39 100 LC Meter backstroke,"Burgos, Cristian",Goura Swim Team,8,36,1990,"2:15,00",135000,"1:50,27",110270,valid,2
+men 40-44 100 LC Meter backstroke,"Parra, Luis",Lozada Swim Team,1,43,1983,"1:17,00",77000,"1:13,22",73220,valid,2
+men 40-44 100 LC Meter backstroke,"Bricenño, Carlos",Cien por Ciento Swim,2,41,1985,"1:45,00",105000,"1:17,97",77970,valid,2
+men 40-44 100 LC Meter backstroke,"Peraza, Jaiker",Lozada Swim Team,3,42,1984,"1:20,11",80110,"1:18,01",78010,valid,2
+men 40-44 100 LC Meter backstroke,"Serrano, Hector",Cien por Ciento Swim,4,44,1982,"1:34,00",94000,"1:34,45",94450,valid,2
+men 40-44 100 LC Meter backstroke,"Vasquez, Gabriel",Condrictios Team,5,40,1986,"2:00,00",120000,"1:54,72",114720,valid,2
+men 45-49 100 LC Meter backstroke,"Sillano, Mauricio",Stadio Italiano,1,49,1977,"1:18,00",78000,"1:19,87",79870,valid,2
+men 45-49 100 LC Meter backstroke,"Escobillana, Leonardo",Mantarrayas Arica,2,49,1977,"1:40,00",100000,"1:50,22",110220,valid,2
+men 45-49 100 LC Meter backstroke,"Casana, Jorge",Lozada Swim Team,3,47,1979,"1:45,00",105000,"1:51,40",111400,valid,2
+men 50-54 100 LC Meter backstroke,"Duran R, Fernando Andres",Club Deportivo UC,1,52,1974,"1:19,35",79350,"1:22,24",82240,valid,2
+men 50-54 100 LC Meter backstroke,"Quezada, Alvaro",Lo Que Boto La Ola,2,52,1974,"1:29,00",89000,"1:32,12",92120,valid,2
+men 50-54 100 LC Meter backstroke,"Lucena, Larry",Nunoa Master,3,51,1975,"1:29,30",89300,"1:37,80",97800,valid,2
+men 50-54 100 LC Meter backstroke,"Lastra, Enrique",Tiburones de Curico,4,52,1974,"2:20,00",140000,"2:56,47",176470,valid,2
+men 55-59 100 LC Meter backstroke,"Bate, Alexander",Estadio Espanñol,1,55,1971,"1:21,50",81500,"1:26,24",86240,valid,2
+men 55-59 100 LC Meter backstroke,"Bennewitz, Rodolfo",Estadio Espanñol,2,59,1967,"1:34,45",94450,"1:31,27",91270,valid,2
+men 55-59 100 LC Meter backstroke,"Caraballo, Jairo",Lozada Swim Team,3,57,1969,"2:01,00",121000,"2:04,98",124980,valid,2
+men 55-59 100 LC Meter backstroke,"Portilla, Sergio",Squadra Proswim,4,58,1968,"2:00,00",120000,"2:17,74",137740,valid,2
+men 60-64 100 LC Meter backstroke,"Mora, Luis",Stadio Italiano,1,62,1964,"1:40,00",100000,"1:41,47",101470,valid,2
+men 60-64 100 LC Meter backstroke,"Jimenez, Andres",Natacion Buin,2,61,1965,"1:42,00",102000,"1:43,88",103880,valid,2
+men 60-64 100 LC Meter backstroke,"Leal, Rene",Fullmar,3,62,1964,"2:01,00",121000,"2:11,71",131710,valid,2
+men 65-69 100 LC Meter backstroke,"Trewhela, Juan Carlos",Squadra Proswim,1,66,1960,"1:40,00",100000,"1:34,05",94050,valid,2
+men 65-69 100 LC Meter backstroke,"Johnson, Cristian",Ironswim Master,2,68,1958,"1:45,00",105000,"1:59,35",119350,valid,2
+men 65-69 100 LC Meter backstroke,"Aybar, Miguel",Master U de Chile,3,67,1959,"2:00,00",120000,"2:26,20",146200,valid,2
+men 65-69 100 LC Meter backstroke,"Vega, Patricio",Natacion Buin,4,69,1957,"2:30,00",150000,"2:37,42",157420,valid,2
+men 70-74 100 LC Meter backstroke,"Trewhela, Heriberto",Tiburones de Curico,1,72,1954,"2:00,00",120000,"1:49,02",109020,valid,2
+men 70-74 100 LC Meter backstroke,"Donoso, Juan",Master San Bernardo,2,71,1955,"1:56,00",116000,"2:00,69",120690,valid,2
+men 75-79 100 LC Meter backstroke,"Zepeda, Ricardo",Penalolen Master,1,76,1950,"2:30,00",150000,"2:23,70",143700,valid,2
+men 75-79 100 LC Meter backstroke,"Gojanovic, Jure",Lo Que Boto La Ola,2,75,1951,"2:23,12",143120,"2:36,07",156070,valid,2
+men 75-79 100 LC Meter backstroke,"Torrejon, Raul",Natacion Buin,3,76,1950,"3:30,00",210000,"3:22,40",202400,valid,2
+men 80-84 100 LC Meter backstroke,"Machuca, Egidio R",Africa Natacion,1,83,1943,"2:47,00",167000,"2:59,28",179280,valid,2
+men 85-89 100 LC Meter backstroke,"Bennewitz, Rolando",Stadio Italiano,1,85,1941,"2:20,00",140000,"2:30,08",150080,valid,2
+women 20-24 100 LC Meter breaststroke,"Gonzalez, Constanza",Nunoa Master,,24,2002,"1:46,52",106520,"X1:45,61",105610,unknown,2
+women 20-24 100 LC Meter breaststroke,"Vega, Maria Jose",Santiago Deportes,,24,2002,"1:47,00",107000,"X1:50,90",110900,unknown,2
+women 25-29 100 LC Meter breaststroke,"Perea, Rocio",Copiapo Swim,1,26,2000,"1:50,00",110000,"1:38,72",98720,valid,2
+women 25-29 100 LC Meter breaststroke,"Araya, Sofia",Cien por Ciento Swim,2,27,1999,"1:46,00",106000,"1:45,25",105250,valid,2
+women 25-29 100 LC Meter breaststroke,"Nunñez, Claudia",Aquateam,3,25,2001,"1:54,00",114000,"1:51,95",111950,valid,2
+women 25-29 100 LC Meter breaststroke,"Montecinos, Sandra",Nunoa Master,4,28,1998,"1:45,00",105000,"1:55,32",115320,valid,2
+women 30-34 100 LC Meter breaststroke,"Castro, Valentina",Condrictios Team,1,34,1992,"1:57,00",117000,"1:49,34",109340,valid,2
+women 30-34 100 LC Meter breaststroke,"Castanñeda, Belen",Condrictios Team,2,31,1995,"1:57,00",117000,"1:54,76",114760,valid,2
+women 30-34 100 LC Meter breaststroke,"Munizaga, Javiera",Estadio Espanñol,3,30,1996,"1:50,50",110500,"1:56,82",116820,valid,2
+women 30-34 100 LC Meter breaststroke,"Zamora, Barbara",Master Vitacura,4,30,1996,"1:50,00",110000,"1:56,98",116980,valid,2
+women 30-34 100 LC Meter breaststroke,"Zhang, Jinyi",Aguila Natacion,5,30,1996,"2:45,00",165000,"2:15,00",135000,valid,2
+women 30-34 100 LC Meter breaststroke,"Largi, Stephanie",Orinoco Swim Team,6,34,1992,"2:06,81",126810,"2:15,57",135570,valid,2
+women 30-34 100 LC Meter breaststroke,"Diaz, Victoria",CS Maipu,7,31,1995,"2:20,43",140430,"2:17,85",137850,valid,2
+women 35-39 100 LC Meter breaststroke,"Carrenño, Paulina",Squadra Proswim,1,39,1987,"1:32,00",92000,"1:28,94",88940,valid,2
+women 35-39 100 LC Meter breaststroke,"Calderon, Xiana",Lozada Swim Team,2,35,1991,"1:38,00",98000,"1:29,30",89300,valid,2
+women 35-39 100 LC Meter breaststroke,"Perez, Daniela",Lozada Swim Team,3,36,1990,"1:27,67",87670,"1:34,52",94520,valid,2
+women 35-39 100 LC Meter breaststroke,"Herrera, Cinthia",Goura Swim Team,4,38,1988,"1:48,00",108000,"1:43,60",103600,valid,2
+women 35-39 100 LC Meter breaststroke,"Caro, Stefany",Goura Swim Team,5,35,1991,"1:49,00",109000,"1:46,33",106330,valid,2
+women 35-39 100 LC Meter breaststroke,"Raposo, Leslie",Santiago Deportes,6,39,1987,"1:50,00",110000,"1:47,85",107850,valid,2
+women 35-39 100 LC Meter breaststroke,"Venegas, Javiera",Goura Swim Team,7,35,1991,"1:50,00",110000,"1:54,58",114580,valid,2
+women 35-39 100 LC Meter breaststroke,"Rodriguez, Dayana",Lozada Swim Team,8,37,1989,"1:48,30",108300,"2:02,82",122820,valid,2
+women 40-44 100 LC Meter breaststroke,"Salazar, Diana",Goura Swim Team,1,41,1985,"1:48,00",108000,"1:48,28",108280,valid,2
+women 40-44 100 LC Meter breaststroke,"Mindiola, Magdiri",Nunoa Master,2,43,1983,"1:50,00",110000,"1:50,51",110510,valid,2
+women 40-44 100 LC Meter breaststroke,"Rojas, Maria Jose",Nunoa Master,3,40,1986,"2:12,60",132600,"2:14,73",134730,valid,2
+women 40-44 100 LC Meter breaststroke,"Arias, Daniela",Aguila Natacion,4,42,1984,"2:40,00",160000,"2:15,27",135270,valid,2
+women 40-44 100 LC Meter breaststroke,"Aparicio, Adriana",Nunoa Master,5,40,1986,"2:10,00",130000,"2:18,10",138100,valid,2
+women 40-44 100 LC Meter breaststroke,"Velasquez, Nohelis",Lozada Swim Team,6,42,1984,"4:00,00",240000,"2:45,07",165070,valid,2
+women 45-49 100 LC Meter breaststroke,"Grinspun, Daphne",Youtopia,1,46,1980,"1:40,00",100000,"1:40,71",100710,valid,2
+women 45-49 100 LC Meter breaststroke,"Stuven, Rocio",Nunoa Master,2,45,1981,"1:43,30",103300,"1:41,91",101910,valid,2
+women 45-49 100 LC Meter breaststroke,"Anania, Tatiana",Stadio Italiano,3,47,1979,"1:36,38",96380,"1:42,82",102820,valid,2
+women 45-49 100 LC Meter breaststroke,"Defosse, Carla",Master Providencia,4,45,1981,"1:53,00",113000,"1:49,76",109760,valid,2
+women 45-49 100 LC Meter breaststroke,"Lozada, Evani",Lozada Swim Team,5,45,1981,"3:00,00",180000,"1:58,15",118150,valid,2
+women 45-49 100 LC Meter breaststroke,"Munñoz, Alejandra",Estadio Espanñol,6,48,1978,"2:00,30",120300,"2:31,88",151880,valid,2
+women 50-54 100 LC Meter breaststroke,"Perez, Paula",Lozada Swim Team,1,53,1973,"1:54,77",114770,"1:46,23",106230,valid,2
+women 50-54 100 LC Meter breaststroke,"Castillo, Iza",Lo Que Boto La Ola,2,50,1976,"1:50,69",110690,"1:54,07",114070,valid,2
+women 50-54 100 LC Meter breaststroke,"Lucena, Marggi",Nunoa Master,3,50,1976,"1:50,90",110900,"1:59,08",119080,valid,2
+women 50-54 100 LC Meter breaststroke,"Jara, Carolina",Natacion Buin,4,52,1974,"2:10,00",130000,"2:01,92",121920,valid,2
+women 55-59 100 LC Meter breaststroke,"Paris, Claudia",Stadio Italiano,1,58,1968,"1:50,00",110000,"1:46,58",106580,valid,2
+women 55-59 100 LC Meter breaststroke,"Campazzo, Claudia",Stadio Italiano,2,55,1971,"1:50,00",110000,"1:52,26",112260,valid,2
+women 55-59 100 LC Meter breaststroke,"Pino, Marcela",Santiago Deportes,3,55,1971,"1:52,00",112000,"1:57,61",117610,valid,2
+women 55-59 100 LC Meter breaststroke,"Tapia, Marcela G",Africa Natacion,4,58,1968,"1:56,00",116000,"2:02,71",122710,valid,2
+women 55-59 100 LC Meter breaststroke,"Salvo, Karen",Estadio Istaerlita,5,55,1971,"2:21,00",141000,"2:07,40",127400,valid,2
+women 55-59 100 LC Meter breaststroke,"Arias, Tatiana",Delfines de las Condes,6,58,1968,"1:55,00",115000,"2:11,97",131970,valid,2
+women 55-59 100 LC Meter breaststroke,"Aros, Paola",Master Providencia,7,55,1971,"2:40,00",160000,"2:36,35",156350,valid,2
+women 60-64 100 LC Meter breaststroke,"Soto, Eslavia",Nunoa Master,1,61,1965,"2:41,90",161900,"2:35,01",155010,valid,2
+women 60-64 100 LC Meter breaststroke,"Ormazabal, Claudia",Delfines de las Condes,2,62,1964,"3:00,00",180000,"2:40,65",160650,valid,2
+women 60-64 100 LC Meter breaststroke,"Rojas, Ivonne",Nunoa Master,3,64,1962,"3:50,10",230100,"4:08,57",248570,valid,2
+women 65-69 100 LC Meter breaststroke,"Ojeda, Soledad",Stadio Italiano,1,67,1959,"1:55,00",115000,"1:59,89",119890,valid,2
+women 65-69 100 LC Meter breaststroke,"Munñoz, Ilse",Aquateam,2,67,1959,"2:22,00",142000,"2:25,47",145470,valid,2
+women 65-69 100 LC Meter breaststroke,"Ayala, Elena",Master Providencia,3,67,1959,"3:10,00",190000,"3:37,89",217890,valid,2
+women 65-69 100 LC Meter breaststroke,"Quezada, Cristina",Aquamaster Chillan,4,66,1960,"2:50,00",170000,"3:49,08",229080,valid,2
+women 70-74 100 LC Meter breaststroke,"Hormazabal, Rita",Delfines de las Condes,1,70,1956,"1:48,00",108000,"1:48,51",108510,valid,2
+women 70-74 100 LC Meter breaststroke,"Toro, Soledad",Master Providencia,2,72,1954,"3:05,00",185000,"2:57,36",177360,valid,2
+women 70-74 100 LC Meter breaststroke,"Robles, Graciela",Nunoa Master,3,73,1953,"4:26,50",266500,"4:53,10",293100,valid,2
+women 75-79 100 LC Meter breaststroke,"Gazitua, Maria",Nunoa Master,1,76,1950,"3:40,90",220900,"3:51,13",231130,valid,2
+women 75-79 100 LC Meter breaststroke,"Fuster, Maria Isabel",Estadio Espanñol,2,79,1947,"3:22,50",202500,"3:53,29",233290,valid,2
+women 85-89 100 LC Meter breaststroke,"Martinez, Estela",Estadio Espanñol,1,86,1940,"3:20,50",200500,"3:44,42",224420,valid,2
+men 20-24 100 LC Meter breaststroke,"Navarrete, Luis",Aquamaster Chillan,,24,2002,"1:15,00",75000,"X1:19,93",79930,unknown,2
+men 25-29 100 LC Meter breaststroke,"Ortego, Ignacio",Estadio Espanñol,1,26,2000,"1:10,00",70000,"1:13,21",73210,valid,2
+men 25-29 100 LC Meter breaststroke,"De Andraca, Roberto",Estadio Espanñol,2,28,1998,"1:13,73",73730,"1:15,62",75620,valid,2
+men 25-29 100 LC Meter breaststroke,"Portilla, Manuel",Squadra Proswim,3,29,1997,"1:14,00",74000,"1:15,79",75790,valid,2
+men 25-29 100 LC Meter breaststroke,"Osorio, Benjamin",Stadio Italiano,4,28,1998,"1:18,00",78000,"1:20,39",80390,valid,2
+men 25-29 100 LC Meter breaststroke,"Mendoza, Nestor",Lozada Swim Team,5,29,1997,"1:40,00",100000,"1:27,08",87080,valid,2
+men 25-29 100 LC Meter breaststroke,"Guirriman, Alexis",Lozada Swim Team,6,29,1997,"1:25,00",85000,"1:28,79",88790,valid,2
+men 25-29 100 LC Meter breaststroke,"Bennewitz, Martin",Estadio Espanñol,7,29,1997,"2:03,55",123550,"2:06,96",126960,valid,2
+men 30-34 100 LC Meter breaststroke,"Perez, Felipe",Goura Swim Team,1,30,1996,"1:16,00",76000,"1:17,92",77920,valid,2
+men 30-34 100 LC Meter breaststroke,"Perez, Romulo",Nunoa Master,2,34,1992,"1:18,50",78500,"1:20,40",80400,valid,2
+men 30-34 100 LC Meter breaststroke,"Silva, Cristian",CS Maipu,3,34,1992,"1:20,67",80670,"1:20,60",80600,valid,2
+men 30-34 100 LC Meter breaststroke,"Flores, Jaime",Stadio Italiano,4,33,1993,"1:17,00",77000,"1:21,92",81920,valid,2
+men 30-34 100 LC Meter breaststroke,"Sayago, Alexis",Nunoa Master,5,33,1993,"1:40,00",100000,"1:39,42",99420,valid,2
+men 30-34 100 LC Meter breaststroke,"Carrasco, Eduardo",Goura Swim Team,6,34,1992,"1:35,00",95000,"1:40,37",100370,valid,2
+men 30-34 100 LC Meter breaststroke,"Gutierrez, Enzo",Natacion Master Recoleta,7,31,1995,"1:43,00",103000,"1:44,27",104270,valid,2
+men 30-34 100 LC Meter breaststroke,"Poncelion, Erickson",Lozada Swim Team,8,33,1993,"3:50,00",230000,"1:48,19",108190,valid,2
+men 30-34 100 LC Meter breaststroke,"Canñete, Rafael",Lozada Swim Team,9,33,1993,"2:35,00",155000,"1:56,05",116050,valid,2
+men 30-34 100 LC Meter breaststroke,"Garcia, Nelvis",Condrictios Team,10,32,1994,"2:00,00",120000,"2:43,82",163820,valid,2
+men 35-39 100 LC Meter breaststroke,"Curletti, Nahuel",Ironswim Master,1,39,1987,"1:14,00",74000,"1:19,21",79210,valid,2
+men 35-39 100 LC Meter breaststroke,"Gonzalez, Alvaro",Condrictios Team,2,39,1987,"1:23,00",83000,"1:22,04",82040,valid,2
+men 35-39 100 LC Meter breaststroke,"Campos, Alfredo",Lozada Swim Team,3,38,1988,"1:20,11",80110,"1:22,21",82210,valid,2
+men 35-39 100 LC Meter breaststroke,"Gamez, Eliezer",Condrictios Team,4,37,1989,"1:50,00",110000,"1:31,90",91900,valid,2
+men 35-39 100 LC Meter breaststroke,"Alfaro, Mauricio",Copiapo Swim,5,36,1990,"1:50,00",110000,"1:39,12",99120,valid,2
+men 35-39 100 LC Meter breaststroke,"Ames, Javier",Copiapo Swim,6,35,1991,"1:35,00",95000,"1:40,26",100260,valid,2
+men 35-39 100 LC Meter breaststroke,"Faundez, Cristobal",Ironswim Master,7,35,1991,"1:50,00",110000,"1:42,72",102720,valid,2
+men 40-44 100 LC Meter breaststroke,"Montero, Francisco",Estadio Espanñol,1,40,1986,"1:14,50",74500,"1:15,77",75770,valid,2
+men 40-44 100 LC Meter breaststroke,"Dominguez, Jose",Lozada Swim Team,2,42,1984,"1:13,00",73000,"1:19,00",79000,valid,2
+men 40-44 100 LC Meter breaststroke,"Gomez, Carlos",Nunoa Master,3,43,1983,"1:26,10",86100,"1:26,44",86440,valid,2
+men 40-44 100 LC Meter breaststroke,"Baeza, Matias",Delfines de las Condes,4,40,1986,"1:36,15",96150,"1:37,03",97030,valid,2
+men 40-44 100 LC Meter breaststroke,"Vasquez, Claudio",Tiburones de Curico,5,41,1985,"2:04,00",124000,"1:54,28",114280,valid,2
+men 40-44 100 LC Meter breaststroke,"Aranguiz, Jose",Natacion Master Recoleta,6,44,1982,"1:50,00",110000,"1:58,05",118050,valid,2
+men 40-44 100 LC Meter breaststroke,"Castro, Emerson",Santiago Deportes,7,43,1983,"1:50,00",110000,"1:59,70",119700,valid,2
+men 40-44 100 LC Meter breaststroke,"Medina, Christopher",CS Maipu,8,43,1983,"2:11,77",131770,"2:10,44",130440,valid,2
+men 40-44 100 LC Meter breaststroke,"Santibanñez, Roberto",Natacion Master Recoleta,9,42,1984,"2:13,00",133000,"2:26,00",146000,valid,2
+men 45-49 100 LC Meter breaststroke,"Matulic, Juan Pablo",Ironswim Master,1,45,1981,"1:25,00",85000,"1:25,14",85140,valid,2
+men 45-49 100 LC Meter breaststroke,"Valenzuela, Patricio",Ironswim Master,2,48,1978,"1:25,00",85000,"1:28,53",88530,valid,2
+men 45-49 100 LC Meter breaststroke,"Winter, Juan Enrique",Club Deportivo UC,3,46,1980,"1:25,00",85000,"1:31,95",91950,valid,2
+men 45-49 100 LC Meter breaststroke,"De Elejalde, Ramiro",Nunoa Master,4,49,1977,"1:36,00",96000,"1:35,67",95670,valid,2
+men 45-49 100 LC Meter breaststroke,"Sepulveda, Matias C",Africa Natacion,5,47,1979,"1:30,00",90000,"1:35,79",95790,valid,2
+men 45-49 100 LC Meter breaststroke,"Cerrada, Yorggyn",Natacion Master Recoleta,6,47,1979,"1:36,00",96000,"1:37,26",97260,valid,2
+men 45-49 100 LC Meter breaststroke,"Rojas, Freddy",Cien por Ciento Swim,7,47,1979,"1:55,00",115000,"1:46,72",106720,valid,2
+men 50-54 100 LC Meter breaststroke,"Casassus, Matias",Estadio Espanñol,1,54,1972,"1:25,00",85000,"1:26,47",86470,valid,2
+men 50-54 100 LC Meter breaststroke,"Ferrada, Boris",H2o,2,52,1974,"1:30,00",90000,"1:32,09",92090,valid,2
+men 50-54 100 LC Meter breaststroke,"Lagos, Miguel",H2o,3,54,1972,"1:34,00",94000,"1:33,46",93460,valid,2
+men 50-54 100 LC Meter breaststroke,"Zoppi, Giorgio",Delfines de las Condes,4,54,1972,"1:38,00",98000,"1:34,30",94300,valid,2
+men 50-54 100 LC Meter breaststroke,"Navarro, Cesar",Master U de Chile,5,50,1976,"1:40,00",100000,"1:34,77",94770,valid,2
+men 50-54 100 LC Meter breaststroke,"Cabaret, Sebastian",Tiburones de Curico,6,51,1975,"1:50,00",110000,"1:56,77",116770,valid,2
+men 50-54 100 LC Meter breaststroke,"Olea, Andres",Condrictios Team,7,54,1972,"1:55,00",115000,"2:01,41",121410,valid,2
+men 55-59 100 LC Meter breaststroke,"Lecaros, Pablo",Delfines de las Condes,1,57,1969,"1:31,00",91000,"1:32,49",92490,valid,2
+men 55-59 100 LC Meter breaststroke,"Garcia, Eloy",Lozada Swim Team,2,59,1967,"1:46,00",106000,"1:40,74",100740,valid,2
+men 55-59 100 LC Meter breaststroke,"Godoy, Eduardo",Master U de Chile,3,55,1971,"1:40,00",100000,"1:42,18",102180,valid,2
+men 55-59 100 LC Meter breaststroke,"Caraballo, Jairo",Lozada Swim Team,4,57,1969,"1:48,00",108000,"1:44,25",104250,valid,2
+men 55-59 100 LC Meter breaststroke,"Panetti, Mario",Golden,5,59,1967,"2:08,00",128000,"1:59,58",119580,valid,2
+men 55-59 100 LC Meter breaststroke,"Acevedo, Luis",Natacion Master Recoleta,6,57,1969,"2:13,00",133000,"2:20,18",140180,valid,2
+men 60-64 100 LC Meter breaststroke,"Chacon, Yojan",Ironswim Master,1,61,1965,"1:40,00",100000,"1:35,40",95400,valid,2
+men 60-64 100 LC Meter breaststroke,"Zagolin, Manlio",Stadio Italiano,2,63,1963,"1:49,50",109500,"1:49,15",109150,valid,2
+men 60-64 100 LC Meter breaststroke,"Perez, Victor Manuel",Club Deportivo UC,3,63,1963,"2:10,00",130000,"2:01,11",121110,valid,2
+men 60-64 100 LC Meter breaststroke,"Astudillo, Cristian",Delfines de las Condes,4,62,1964,"1:57,00",117000,"2:01,48",121480,valid,2
+men 60-64 100 LC Meter breaststroke,"Munñoz, Felipe",CS Maipu,5,63,1963,"2:17,04",137040,"2:14,51",134510,valid,2
+men 65-69 100 LC Meter breaststroke,"Huber, Harald",Stadio Italiano,1,67,1959,"1:39,00",99000,"1:37,48",97480,valid,2
+men 65-69 100 LC Meter breaststroke,"Johnson, Cristian",Ironswim Master,2,68,1958,"1:45,00",105000,"1:55,67",115670,valid,2
+men 65-69 100 LC Meter breaststroke,"Choppelo, Fernando",Nunoa Master,3,67,1959,"2:45,00",165000,"2:26,21",146210,valid,2
+men 65-69 100 LC Meter breaststroke,"Vega, Patricio",Natacion Buin,4,69,1957,"2:30,00",150000,"2:29,94",149940,valid,2
+men 70-74 100 LC Meter breaststroke,"Montero, Antonio",Delfines de las Condes,1,72,1954,"1:47,37",107370,"1:51,45",111450,valid,2
+men 70-74 100 LC Meter breaststroke,"Trewhela, Heriberto",Tiburones de Curico,2,72,1954,"2:05,00",125000,"2:13,04",133040,valid,2
+men 70-74 100 LC Meter breaststroke,"Guerrero, Roberto",Master San Bernardo,3,70,1956,"2:25,00",145000,"2:46,18",166180,valid,2
+men 70-74 100 LC Meter breaststroke,"Cudworth, Bruce",Delfines de las Condes,4,72,1954,NT,,"2:46,38",166380,valid,2
+men 75-79 100 LC Meter breaststroke,"Zepeda, Ricardo",Penalolen Master,1,76,1950,"2:32,00",152000,"2:20,73",140730,valid,2
+men 75-79 100 LC Meter breaststroke,"Gojanovic, Jure",Lo Que Boto La Ola,2,75,1951,"2:20,00",140000,"2:33,80",153800,valid,2
+men 80-84 100 LC Meter breaststroke,"Ferrando, Nestor",Nunoa Master,1,84,1942,"3:20,50",200500,"3:14,35",194350,valid,2
+women 20-24 100 LC Meter butterfly,"Vega, Maria Jose",Santiago Deportes,,24,2002,"1:39,00",99000,"X1:41,31",101310,unknown,2
+women 20-24 100 LC Meter butterfly,"Gonzalez, Constanza",Nunoa Master,,24,2002,"1:50,00",110000,"X1:54,70",114700,unknown,2
+women 25-29 100 LC Meter butterfly,"Munñoz, Isidora",Stadio Italiano,1,28,1998,"1:30,00",90000,"1:32,14",92140,valid,2
+women 25-29 100 LC Meter butterfly,"Quispe, Nicole",Goura Swim Team,2,28,1998,"1:35,00",95000,"1:35,01",95010,valid,2
+women 25-29 100 LC Meter butterfly,"Rangel, Gabriela",Lozada Swim Team,3,26,2000,"1:44,00",104000,"1:42,39",102390,valid,2
+women 30-34 100 LC Meter butterfly,"Correa, Carolina",Nunoa Master,1,34,1992,"1:15,00",75000,"1:15,24",75240,valid,2
+women 30-34 100 LC Meter butterfly,"Guzman, Maria",Lozada Swim Team,2,32,1994,"1:35,00",95000,"1:24,54",84540,valid,2
+women 30-34 100 LC Meter butterfly,"Gomez, Maria Jose",Santiago Deportes,3,30,1996,"1:40,00",100000,"1:34,31",94310,valid,2
+women 30-34 100 LC Meter butterfly,"Barria, Jazmin",Manateam Swim,4,33,1993,"1:46,00",106000,"1:58,13",118130,valid,2
+women 35-39 100 LC Meter butterfly,"Revilla, Elvismar",Lozada Swim Team,1,35,1991,"1:17,90",77900,"1:17,36",77360,valid,2
+women 35-39 100 LC Meter butterfly,"Vacher, Francisca",Golden,2,35,1991,"1:30,00",90000,"1:26,40",86400,valid,2
+women 35-39 100 LC Meter butterfly,"Godoy, Marbelys",Nunoa Master,3,38,1988,"1:39,00",99000,"1:27,22",87220,valid,2
+women 35-39 100 LC Meter butterfly,"Nunñez, Sabine",Aquateam,4,38,1988,"1:55,00",115000,"1:47,51",107510,valid,2
+women 35-39 100 LC Meter butterfly,"Puebla, Tania",Aguila Natacion,5,35,1991,"2:01,00",121000,"1:58,41",118410,valid,2
+women 40-44 100 LC Meter butterfly,"Turcotte, Isabelle",Delfines de las Condes,1,41,1985,"1:44,00",104000,"1:36,89",96890,valid,2
+women 45-49 100 LC Meter butterfly,"Rivas, Carolina",Delfines de las Condes,1,49,1977,"3:30,00",210000,"2:39,00",159000,valid,2
+women 55-59 100 LC Meter butterfly,"Lizana, Loreto",Stadio Italiano,1,55,1971,"1:45,00",105000,"1:43,04",103040,valid,2
+men 20-24 100 LC Meter butterfly,"Henriquez, Cristian",Ironswim Master,,23,2003,"1:04,00",64000,"X1:09,72",69720,unknown,2
+men 25-29 100 LC Meter butterfly,"Barros, Sergio",Estadio Espanñol,1,28,1998,"1:10,50",70500,"1:10,74",70740,valid,2
+men 25-29 100 LC Meter butterfly,"Machado, Vicente",Goura Swim Team,2,29,1997,"1:10,00",70000,"1:10,80",70800,valid,2
+men 25-29 100 LC Meter butterfly,"Ortego, Ignacio",Estadio Espanñol,3,26,2000,"1:05,00",65000,"1:10,92",70920,valid,2
+men 25-29 100 LC Meter butterfly,"Figueroa, Simon",Goura Swim Team,4,29,1997,"1:10,00",70000,"1:11,22",71220,valid,2
+men 25-29 100 LC Meter butterfly,"Monsalve, Nicolas",Natacion Master Recoleta,5,27,1999,"1:36,00",96000,"1:34,87",94870,valid,2
+men 25-29 100 LC Meter butterfly,"Walter, Raul",Cien por Ciento Swim,6,26,2000,"2:00,00",120000,"1:49,59",109590,valid,2
+men 25-29 100 LC Meter butterfly,"Bennewitz, Martin",Estadio Espanñol,7,29,1997,"1:56,78",116780,"2:24,11",144110,valid,2
+men 30-34 100 LC Meter butterfly,"Torres, Giovanni",Goura Swim Team,1,30,1996,"1:04,00",64000,"1:06,35",66350,valid,2
+men 30-34 100 LC Meter butterfly,"Diaz, Camilo",Goura Swim Team,2,32,1994,"1:06,00",66000,"1:07,33",67330,valid,2
+men 30-34 100 LC Meter butterfly,"Segovia, Pedro",Lozada Swim Team,3,32,1994,"1:20,00",80000,"1:09,31",69310,valid,2
+men 30-34 100 LC Meter butterfly,"Ibarra, Gustavo",Goura Swim Team,4,34,1992,"1:09,00",69000,"1:10,46",70460,valid,2
+men 30-34 100 LC Meter butterfly,"Nava, Juan",Nunoa Master,5,30,1996,"1:14,00",74000,"1:17,42",77420,valid,2
+men 30-34 100 LC Meter butterfly,"Perez, Jonathan",Lozada Swim Team,6,34,1992,"1:30,00",90000,"1:28,01",88010,valid,2
+men 35-39 100 LC Meter butterfly,"Contreras, Freddy",Lozada Swim Team,1,38,1988,"1:00,18",60180,"1:02,09",62090,valid,2
+men 35-39 100 LC Meter butterfly,"Polo, David",Lozada Swim Team,2,37,1989,"1:15,99",75990,"1:09,39",69390,valid,2
+men 35-39 100 LC Meter butterfly,"Contador, Juan Ignacio",Stadio Italiano,3,35,1991,"1:07,00",67000,"1:09,46",69460,valid,2
+men 35-39 100 LC Meter butterfly,"Huerta, Francisco",Estadio Espanñol,4,39,1987,"1:08,00",68000,"1:11,74",71740,valid,2
+men 35-39 100 LC Meter butterfly,"Garcia, Felipe",Condrictios Team,5,36,1990,"1:15,00",75000,"1:12,26",72260,valid,2
+men 35-39 100 LC Meter butterfly,"Herrera, Felipe",Master Vitacura,6,36,1990,"1:12,00",72000,"1:17,33",77330,valid,2
+men 35-39 100 LC Meter butterfly,"Rivera, Camilo",Goura Swim Team,7,36,1990,"1:19,00",79000,"1:18,85",78850,valid,2
+men 35-39 100 LC Meter butterfly,"Le Cerf, Patricio",Orinoco Swim Team,8,36,1990,"1:40,00",100000,"1:49,27",109270,valid,2
+men 40-44 100 LC Meter butterfly,"Hernandez, Williams",Ironswim Master,1,41,1985,"1:30,00",90000,"1:14,27",74270,valid,2
+men 40-44 100 LC Meter butterfly,"Bricenño, Carlos",Cien por Ciento Swim,2,41,1985,"1:20,00",80000,"1:17,63",77630,valid,2
+men 40-44 100 LC Meter butterfly,"Gonzalez, Rodrigo",Lo Que Boto La Ola,3,40,1986,"1:25,36",85360,"1:31,57",91570,valid,2
+men 40-44 100 LC Meter butterfly,"Velasco, Alejandro",Lozada Swim Team,4,44,1982,"1:40,00",100000,"1:41,13",101130,valid,2
+men 45-49 100 LC Meter butterfly,"Valenzuela, Patricio",Ironswim Master,1,48,1978,"1:30,00",90000,"1:36,42",96420,valid,2
+men 50-54 100 LC Meter butterfly,"Duran R, Fernando Andres",Club Deportivo UC,1,52,1974,"1:19,35",79350,"1:24,68",84680,valid,2
+men 50-54 100 LC Meter butterfly,"Matulic L, Wladimir",Club Deportivo UC,2,53,1973,"1:40,34",100340,"1:33,39",93390,valid,2
+men 50-54 100 LC Meter butterfly,"Lucena, Larry",Nunoa Master,3,51,1975,"1:39,10",99100,"1:45,05",105050,valid,2
+men 50-54 100 LC Meter butterfly,"Bastidas, Marcelo",Fullmar,4,52,1974,"1:40,00",100000,"1:53,45",113450,valid,2
+men 55-59 100 LC Meter butterfly,"Uribe, Daniel",Nunoa Master,1,55,1971,"2:00,00",120000,"2:08,30",128300,valid,2
+men 60-64 100 LC Meter butterfly,"Fonturbel, Alberto",Master Providencia,1,60,1966,"1:43,00",103000,"1:45,30",105300,valid,2
+men 60-64 100 LC Meter butterfly,"Jimenez, Andres",Natacion Buin,2,61,1965,"1:50,00",110000,"1:50,52",110520,valid,2
+men 65-69 100 LC Meter butterfly,"Huber, Harald",Stadio Italiano,1,67,1959,"1:42,00",102000,"1:44,31",104310,valid,2
+men 65-69 100 LC Meter butterfly,"Mimica, Axel",Delfines de las Condes,2,67,1959,"2:05,00",125000,"1:50,82",110820,valid,2
+men 65-69 100 LC Meter butterfly,"Toledo, Fredi",Natacion Master Recoleta,3,67,1959,"2:09,00",129000,"2:06,22",126220,valid,2
+men 70-74 100 LC Meter butterfly,"Bosshardt, Rolf",Master San Bernardo,1,70,1956,"2:15,00",135000,"2:12,68",132680,valid,2
+men 70-74 100 LC Meter butterfly,"Vasquez, Oscar",Aquamaster Chillan,2,71,1955,"2:42,00",162000,"2:55,89",175890,valid,2
+men 75-79 100 LC Meter butterfly,"Guerra B, Manfredo",Calambre Swim Team,1,75,1951,"1:45,00",105000,"1:45,48",105480,valid,2
+women 20-24 100 LC Meter freestyle,"Rauch, Emma",Stadio Italiano,,22,2004,"1:10,00",70000,"X1:15,32",75320,unknown,2
+women 25-29 100 LC Meter freestyle,"Badilla, Claudia",Aquamaster Chillan,1,27,1999,"1:08,00",68000,"1:09,78",69780,valid,2
+women 25-29 100 LC Meter freestyle,"Perea, Rocio",Copiapo Swim,2,26,2000,"1:09,00",69000,"1:10,49",70490,valid,2
+women 25-29 100 LC Meter freestyle,"Quispe, Nicole",Goura Swim Team,3,28,1998,"1:20,00",80000,"1:16,72",76720,valid,2
+women 25-29 100 LC Meter freestyle,"Aliste, Camila",Goura Swim Team,4,28,1998,"1:15,00",75000,"1:17,41",77410,valid,2
+women 25-29 100 LC Meter freestyle,"Cardenas, Ambar",Nunoa Master,5,26,2000,"1:13,00",73000,"1:18,11",78110,valid,2
+women 25-29 100 LC Meter freestyle,"Nunñez, Claudia",Aquateam,6,25,2001,"1:20,60",80600,"1:18,67",78670,valid,2
+women 25-29 100 LC Meter freestyle,"Montecinos, Sandra",Nunoa Master,7,28,1998,"1:21,00",81000,"1:20,87",80870,valid,2
+women 25-29 100 LC Meter freestyle,"Iriarte, Rocio",Squadra Proswim,8,27,1999,"1:25,00",85000,"1:23,84",83840,valid,2
+women 25-29 100 LC Meter freestyle,"Tavali, Antonella",Stadio Italiano,9,29,1997,"2:00,00",120000,"1:28,70",88700,valid,2
+women 25-29 100 LC Meter freestyle,"Torres, Magdalena",CS Maipu,10,27,1999,"1:34,76",94760,"1:29,20",89200,valid,2
+women 25-29 100 LC Meter freestyle,"Bravo, Alejandra",Lozada Swim Team,11,25,2001,"1:45,00",105000,"1:32,10",92100,valid,2
+women 30-34 100 LC Meter freestyle,"Spuhr, Marianne",Estadio Espanñol,1,32,1994,"1:06,00",66000,"1:07,81",67810,valid,2
+women 30-34 100 LC Meter freestyle,"Correa, Carolina",Nunoa Master,2,34,1992,"1:08,10",68100,"1:08,65",68650,valid,2
+women 30-34 100 LC Meter freestyle,"Banchieri, Macarena",Stadio Italiano,3,30,1996,"1:12,00",72000,"1:12,04",72040,valid,2
+women 30-34 100 LC Meter freestyle,"Rojas, Ana",Lozada Swim Team,4,33,1993,"1:17,00",77000,"1:14,02",74020,valid,2
+women 30-34 100 LC Meter freestyle,"Badilla, Estefania",Aquamaster Chillan,5,30,1996,"1:17,00",77000,"1:18,72",78720,valid,2
+women 30-34 100 LC Meter freestyle,"Solans, Ines",Goura Swim Team,6,34,1992,"1:15,00",75000,"1:19,42",79420,valid,2
+women 30-34 100 LC Meter freestyle,"Regaldis, Andrea",Aguila Natacion,7,30,1996,"1:50,00",110000,"1:26,55",86550,valid,2
+women 30-34 100 LC Meter freestyle,"Bustos, Constanza",CS Maipu,8,34,1992,"1:30,62",90620,"1:27,20",87200,valid,2
+women 30-34 100 LC Meter freestyle,"Escudero, Francesca",Lozada Swim Team,9,31,1995,"1:30,00",90000,"1:27,69",87690,valid,2
+women 30-34 100 LC Meter freestyle,"Gonzalez, Tracy",Nunoa Master,10,34,1992,"2:50,00",170000,"1:28,74",88740,valid,2
+women 30-34 100 LC Meter freestyle,"Ortega, Katerine",Condrictios Team,11,34,1992,"2:00,00",120000,"1:32,09",92090,valid,2
+women 30-34 100 LC Meter freestyle,"Salinas, Consuelo",Santiago Deportes,12,30,1996,"1:45,00",105000,"1:37,81",97810,valid,2
+women 30-34 100 LC Meter freestyle,"Castanñeda, Belen",Condrictios Team,13,31,1995,"1:45,00",105000,"1:39,20",99200,valid,2
+women 30-34 100 LC Meter freestyle,"Zhang, Jinyi",Aguila Natacion,14,30,1996,"2:00,00",120000,"1:41,25",101250,valid,2
+women 30-34 100 LC Meter freestyle,"Largi, Stephanie",Orinoco Swim Team,15,34,1992,"1:45,38",105380,"1:49,73",109730,valid,2
+women 30-34 100 LC Meter freestyle,"Quintanilla, Francisca",Orinoco Swim Team,16,33,1993,"2:15,00",135000,"2:02,97",122970,valid,2
+women 35-39 100 LC Meter freestyle,"Munñoz, Valentina",Stadio Italiano,1,37,1989,"1:05,30",65300,"1:06,58",66580,valid,2
+women 35-39 100 LC Meter freestyle,"Calderon, Xiana",Lozada Swim Team,2,35,1991,"1:30,00",90000,"1:08,00",68000,valid,2
+women 35-39 100 LC Meter freestyle,"Trewhela, Carolina",Squadra Proswim,3,38,1988,"1:08,00",68000,"1:08,17",68170,valid,2
+women 35-39 100 LC Meter freestyle,"Zamorano, Natalia",Stadio Italiano,4,36,1990,"1:10,00",70000,"1:13,49",73490,valid,2
+women 35-39 100 LC Meter freestyle,"Trewhela, Nicole",Ironswim Master,5,38,1988,"1:16,00",76000,"1:16,68",76680,valid,2
+women 35-39 100 LC Meter freestyle,"Espoz, Vaneza",Copiapo Swim,6,37,1989,"1:18,00",78000,"1:17,66",77660,valid,2
+women 35-39 100 LC Meter freestyle,"Godoy, Ana",Nunoa Master,7,37,1989,"1:16,20",76200,"1:17,71",77710,valid,2
+women 35-39 100 LC Meter freestyle,"Reyes, Maria Jose",Goura Swim Team,8,37,1989,"1:35,00",95000,"1:21,38",81380,valid,2
+women 35-39 100 LC Meter freestyle,"Caro, Stefany",Goura Swim Team,9,35,1991,"1:22,00",82000,"1:22,49",82490,valid,2
+women 35-39 100 LC Meter freestyle,"Von Borries, Cecilia",Stadio Italiano,10,38,1988,"1:18,00",78000,"1:23,01",83010,valid,2
+women 35-39 100 LC Meter freestyle,"Santana, Consuelo",Ironswim Master,11,36,1990,"1:30,00",90000,"1:25,29",85290,valid,2
+women 35-39 100 LC Meter freestyle,"Rodriguez, Vanessa",Lozada Swim Team,12,37,1989,"1:17,80",77800,"1:26,45",86450,valid,2
+women 35-39 100 LC Meter freestyle,"Rodriguez, Dayana",Lozada Swim Team,13,37,1989,"1:23,40",83400,"1:29,05",89050,valid,2
+women 35-39 100 LC Meter freestyle,"Aguilon, Anila",H2o,14,39,1987,"1:40,00",100000,"1:37,08",97080,valid,2
+women 35-39 100 LC Meter freestyle,"Venegas, Javiera",Goura Swim Team,15,35,1991,"1:30,00",90000,"1:37,40",97400,valid,2
+women 35-39 100 LC Meter freestyle,"Cuesta, Carolina",Nunoa Master,16,39,1987,"1:34,00",94000,"1:50,84",110840,valid,2
+women 35-39 100 LC Meter freestyle,"Nahuepan, Nicole",Cien por Ciento Swim,17,36,1990,"2:15,00",135000,"1:53,51",113510,valid,2
+women 40-44 100 LC Meter freestyle,"Cabezas, Camila",H2o,1,41,1985,"1:20,00",80000,"1:17,55",77550,valid,2
+women 40-44 100 LC Meter freestyle,"Penña, Daniela",Orinoco Swim Team,2,40,1986,"1:20,00",80000,"1:19,24",79240,valid,2
+women 40-44 100 LC Meter freestyle,"Ortega, Paula",Stadio Italiano,3,40,1986,"1:16,00",76000,"1:22,38",82380,valid,2
+women 40-44 100 LC Meter freestyle,"Montero, Maria Antonieta",Cien por Ciento Swim,4,41,1985,"2:00,00",120000,"1:34,14",94140,valid,2
+women 40-44 100 LC Meter freestyle,"Rojas, Maria Jose",Nunoa Master,5,40,1986,"1:40,10",100100,"1:44,50",104500,valid,2
+women 40-44 100 LC Meter freestyle,"Soto, Magdalena",Squadra Proswim,6,41,1985,"1:50,00",110000,"1:51,63",111630,valid,2
+women 40-44 100 LC Meter freestyle,"Aravena, Fabiola",Condrictios Team,7,41,1985,"2:34,00",154000,"1:53,03",113030,valid,2
+women 40-44 100 LC Meter freestyle,"Arias, Daniela",Aguila Natacion,8,42,1984,"2:00,00",120000,"1:53,54",113540,valid,2
+women 45-49 100 LC Meter freestyle,"Meneses, Maria Jose",Squadra Proswim,1,46,1980,"1:22,00",82000,"1:22,30",82300,valid,2
+women 45-49 100 LC Meter freestyle,"Defosse, Carla",Master Providencia,2,45,1981,"1:25,00",85000,"1:26,49",86490,valid,2
+women 45-49 100 LC Meter freestyle,"Gonzalez, Alejandra",Ironswim Master,3,45,1981,"1:30,00",90000,"1:30,09",90090,valid,2
+women 45-49 100 LC Meter freestyle,"Munñoz, Alejandra",Estadio Espanñol,4,48,1978,"1:43,50",103500,"1:41,81",101810,valid,2
+women 45-49 100 LC Meter freestyle,"Mellado, Constanza",Squadra Proswim,5,47,1979,"1:50,00",110000,"2:00,53",120530,valid,2
+women 50-54 100 LC Meter freestyle,"Lucena, Marggi",Nunoa Master,1,50,1976,"1:29,30",89300,"1:25,89",85890,valid,2
+women 50-54 100 LC Meter freestyle,"Jara, Carolina",Natacion Buin,2,52,1974,"1:42,00",102000,"1:37,85",97850,valid,2
+women 50-54 100 LC Meter freestyle,"Gonzalez, Elena",Nunoa Master,3,52,1974,"1:47,30",107300,"1:47,82",107820,valid,2
+women 50-54 100 LC Meter freestyle,"Cabeza, Marisel",Nunoa Master,4,52,1974,"2:07,60",127600,"2:03,41",123410,valid,2
+women 55-59 100 LC Meter freestyle,"Lois, Pamela",Stadio Italiano,1,56,1970,"1:12,00",72000,"1:19,09",79090,valid,2
+women 55-59 100 LC Meter freestyle,"Espinoza, Roxana",Lo Que Boto La Ola,2,59,1967,"1:35,00",95000,"1:28,72",88720,valid,2
+women 55-59 100 LC Meter freestyle,"Olivari, Patricia",Youtopia,3,58,1968,"1:45,00",105000,"1:39,39",99390,valid,2
+women 55-59 100 LC Meter freestyle,"Arias, Tatiana",Delfines de las Condes,4,58,1968,"1:50,00",110000,"1:43,14",103140,valid,2
+women 55-59 100 LC Meter freestyle,"Troni, Antonella",Stadio Italiano,5,59,1967,"2:00,00",120000,"1:47,16",107160,valid,2
+women 55-59 100 LC Meter freestyle,"Aros, Paola",Master Providencia,6,55,1971,"2:00,00",120000,"2:02,56",122560,valid,2
+women 55-59 100 LC Meter freestyle,"Perez, Paulina",Natacion Master Recoleta,7,56,1970,"1:58,00",118000,"2:48,90",168900,valid,2
+women 60-64 100 LC Meter freestyle,"Machuca, Claudia C",Africa Natacion,1,60,1966,"1:35,00",95000,"1:35,99",95990,valid,2
+women 60-64 100 LC Meter freestyle,"Godoy, Isabel",Stadio Italiano,2,61,1965,"1:49,00",109000,"1:53,03",113030,valid,2
+women 60-64 100 LC Meter freestyle,"Ormazabal, Claudia",Delfines de las Condes,3,62,1964,"1:55,00",115000,"1:55,76",115760,valid,2
+women 60-64 100 LC Meter freestyle,"Canñete, Soledad",Natacion Master Recoleta,4,63,1963,"2:06,00",126000,"2:07,18",127180,valid,2
+women 60-64 100 LC Meter freestyle,"Castillo, Maylett",Lozada Swim Team,5,61,1965,"2:18,29",138290,"2:30,33",150330,valid,2
+women 60-64 100 LC Meter freestyle,"Soto, Eslavia",Nunoa Master,6,61,1965,"2:01,10",121100,"2:36,80",156800,valid,2
+women 65-69 100 LC Meter freestyle,"Chamberlain, Mary Ann",Stadio Italiano,1,66,1960,"1:30,00",90000,"1:31,57",91570,valid,2
+women 65-69 100 LC Meter freestyle,"Tapia, Angelica",Delfines de las Condes,2,68,1958,"1:50,00",110000,"1:40,35",100350,valid,2
+women 65-69 100 LC Meter freestyle,"Munñoz, Ilse",Aquateam,3,67,1959,"1:42,00",102000,"1:42,42",102420,valid,2
+women 65-69 100 LC Meter freestyle,"Munñoz, Elisabeth",Stadio Italiano,4,67,1959,"1:45,00",105000,"1:42,86",102860,valid,2
+women 65-69 100 LC Meter freestyle,"Rojo, Yiakelin",Youtopia,5,65,1961,"1:50,00",110000,"1:58,15",118150,valid,2
+women 65-69 100 LC Meter freestyle,"Ayala, Elena",Master Providencia,6,67,1959,"3:15,00",195000,"2:49,58",169580,valid,2
+women 70-74 100 LC Meter freestyle,"Bonta, Maureen",Stadio Italiano,1,72,1954,"1:40,00",100000,"1:42,84",102840,valid,2
+women 70-74 100 LC Meter freestyle,"Lorca, Maria Luisa",Stadio Italiano,2,71,1955,"1:50,00",110000,"1:59,95",119950,valid,2
+women 70-74 100 LC Meter freestyle,"Toro, Soledad",Master Providencia,3,72,1954,"2:25,00",145000,"2:21,65",141650,valid,2
+women 70-74 100 LC Meter freestyle,"Adaros, Gladys",Delfines de las Condes,4,72,1954,"2:30,00",150000,"2:23,66",143660,valid,2
+women 70-74 100 LC Meter freestyle,"Munñoz, Maria",Nunoa Master,5,70,1956,"2:21,30",141300,"2:28,53",148530,valid,2
+women 70-74 100 LC Meter freestyle,"Lastra, Carmen",Ironswim Master,6,70,1956,"2:00,00",120000,"2:48,90",168900,valid,2
+women 70-74 100 LC Meter freestyle,"Robles, Graciela",Nunoa Master,7,73,1953,"2:59,00",179000,"3:12,56",192560,valid,2
+women 75-79 100 LC Meter freestyle,"Ilic, Patricia",Stadio Italiano,1,79,1947,"1:37,00",97000,"1:31,72",91720,valid,2
+women 75-79 100 LC Meter freestyle,"Gazitua, Maria",Nunoa Master,2,76,1950,"3:43,10",223100,"2:42,91",162910,valid,2
+women 85-89 100 LC Meter freestyle,"Kosche, Ingrid",Delfines de las Condes,1,87,1939,"2:46,00",166000,"2:41,54",161540,valid,2
+women 85-89 100 LC Meter freestyle,"Escudero, Oriele",Nunoa Master,2,85,1941,"2:45,50",165500,"2:44,14",164140,valid,2
+men 20-24 100 LC Meter freestyle,"Navarrete, Luis",Aquamaster Chillan,,24,2002,"58,10",58100,"X59,95",59950,unknown,2
+men 20-24 100 LC Meter freestyle,"Henriquez, Cristian",Ironswim Master,,23,2003,"57,00",57000,"X1:01,62",61620,unknown,2
+men 20-24 100 LC Meter freestyle,"Gonzalez, Cristopher",Nunoa Master,,23,2003,"1:10,00",70000,"X1:11,49",71490,unknown,2
+men 25-29 100 LC Meter freestyle,"Pinto, Matias",Stadio Italiano,1,29,1997,"52,00",52000,"55,87",55870,valid,2
+men 25-29 100 LC Meter freestyle,"Ordenes, Alejandro",Copiapo Swim,2,26,2000,"1:10,00",70000,"1:01,20",61200,valid,2
+men 25-29 100 LC Meter freestyle,"Mendoza, Nestor",Lozada Swim Team,3,29,1997,"1:20,10",80100,"1:01,32",61320,valid,2
+men 25-29 100 LC Meter freestyle,"Portilla, Manuel",Squadra Proswim,4,29,1997,"1:00,00",60000,"1:02,58",62580,valid,2
+men 25-29 100 LC Meter freestyle,"Osorio, Benjamin",Stadio Italiano,5,28,1998,"1:01,00",61000,"1:03,88",63880,valid,2
+men 25-29 100 LC Meter freestyle,"Bulnes, Martin",Golden,6,27,1999,"1:04,00",64000,"1:03,99",63990,valid,2
+men 25-29 100 LC Meter freestyle,"Abarca, Pablo",Goura Swim Team,7,27,1999,"1:16,00",76000,"1:15,98",75980,valid,2
+men 25-29 100 LC Meter freestyle,"Salvo, Jorge",Aguila Natacion,8,28,1998,"1:20,00",80000,"1:16,46",76460,valid,2
+men 25-29 100 LC Meter freestyle,"Gomez, Cristobal",Condrictios Team,9,25,2001,"1:21,44",81440,"1:20,80",80800,valid,2
+men 25-29 100 LC Meter freestyle,"Monsalve, Nicolas",Natacion Master Recoleta,10,27,1999,"1:25,00",85000,"1:23,86",83860,valid,2
+men 30-34 100 LC Meter freestyle,"Hernandez, Carlos",Nunoa Master,1,30,1996,"58,10",58100,"59,95",59950,valid,2
+men 30-34 100 LC Meter freestyle,"Segovia, Pedro",Lozada Swim Team,2,32,1994,"59,77",59770,"1:00,14",60140,valid,2
+men 30-34 100 LC Meter freestyle,"Godoy, Ignacio",Squadra Proswim,3,32,1994,"1:00,00",60000,"1:02,14",62140,valid,2
+men 30-34 100 LC Meter freestyle,"Neira, Octavio",Master Providencia,4,32,1994,"1:05,00",65000,"1:04,34",64340,valid,2
+men 30-34 100 LC Meter freestyle,"Morales, Nicolas",Goura Swim Team,5,33,1993,"1:05,00",65000,"1:04,52",64520,valid,2
+men 30-34 100 LC Meter freestyle,"Lobos, Martin",Goura Swim Team,6,31,1995,"1:01,70",61700,"1:04,83",64830,valid,2
+men 30-34 100 LC Meter freestyle,"Castanñeda, Alejandro",Squadra Proswim,7,34,1992,"1:08,00",68000,"1:05,95",65950,valid,2
+men 30-34 100 LC Meter freestyle,"Toro, Javier",Condrictios Team,8,30,1996,"1:15,00",75000,"1:07,49",67490,valid,2
+men 30-34 100 LC Meter freestyle,"Pedrero, Esteban",Squadra Proswim,9,32,1994,"1:10,00",70000,"1:08,69",68690,valid,2
+men 30-34 100 LC Meter freestyle,"Silva, Cristian",CS Maipu,10,34,1992,"1:16,00",76000,"1:10,80",70800,valid,2
+men 30-34 100 LC Meter freestyle,"Illanes, Cristopher",Lozada Swim Team,11,33,1993,"1:09,00",69000,"1:11,07",71070,valid,2
+men 30-34 100 LC Meter freestyle,"Perez, Jonathan",Lozada Swim Team,12,34,1992,"1:19,00",79000,"1:14,27",74270,valid,2
+men 30-34 100 LC Meter freestyle,"Rabi, Isaac",Goura Swim Team,13,34,1992,"1:18,00",78000,"1:14,32",74320,valid,2
+men 30-34 100 LC Meter freestyle,"Zambrano, Henry",Aguila Natacion,14,34,1992,"1:30,00",90000,"1:15,05",75050,valid,2
+men 30-34 100 LC Meter freestyle,"Gomez, Pablo",Goura Swim Team,15,34,1992,"1:14,00",74000,"1:15,59",75590,valid,2
+men 30-34 100 LC Meter freestyle,"Poncelion, Erickson",Lozada Swim Team,16,33,1993,"1:20,80",80800,"1:19,08",79080,valid,2
+men 30-34 100 LC Meter freestyle,"Pineda, Miguel",Orinoco Swim Team,17,30,1996,"1:20,98",80980,"1:19,88",79880,valid,2
+men 30-34 100 LC Meter freestyle,"Lujan, Yhon",Cien por Ciento Swim,18,33,1993,"2:00,00",120000,"1:48,36",108360,valid,2
+men 35-39 100 LC Meter freestyle,"Garcia, Humberto",Goura Swim Team,1,36,1990,"1:02,00",62000,"1:01,65",61650,valid,2
+men 35-39 100 LC Meter freestyle,"Acosta, Andres",Nunoa Master,2,39,1987,"1:04,00",64000,"1:03,33",63330,valid,2
+men 35-39 100 LC Meter freestyle,"Gonzalez, Alvaro",Condrictios Team,3,39,1987,"1:06,00",66000,"1:06,00",66000,valid,2
+men 35-39 100 LC Meter freestyle,"Garcia, Felipe",Condrictios Team,4,36,1990,"1:10,00",70000,"1:06,75",66750,valid,2
+men 35-39 100 LC Meter freestyle,"Herrera, Felipe",Master Vitacura,5,36,1990,"1:03,00",63000,"1:08,26",68260,valid,2
+men 35-39 100 LC Meter freestyle,"Alfaro, Mauricio",Copiapo Swim,6,36,1990,"1:14,00",74000,"1:11,72",71720,valid,2
+men 35-39 100 LC Meter freestyle,"Cisterna, Marcelo",Goura Swim Team,7,38,1988,"1:15,00",75000,"1:12,21",72210,valid,2
+men 35-39 100 LC Meter freestyle,"Delgado, Jhonny",Goura Swim Team,8,35,1991,"1:16,00",76000,"1:13,97",73970,valid,2
+men 35-39 100 LC Meter freestyle,"Godoy, Yoser",Goura Swim Team,9,35,1991,"1:14,00",74000,"1:13,99",73990,valid,2
+men 35-39 100 LC Meter freestyle,"Parra, Eliseo",Aguila Natacion,10,35,1991,"1:20,41",80410,"1:14,84",74840,valid,2
+men 35-39 100 LC Meter freestyle,"Vasquez, Isaias",CS Maipu,11,38,1988,"1:20,60",80600,"1:16,15",76150,valid,2
+men 35-39 100 LC Meter freestyle,"Figueroa, Carlos",Copiapo Swim,12,39,1987,"1:19,00",79000,"1:16,40",76400,valid,2
+men 35-39 100 LC Meter freestyle,"Ames, Javier",Copiapo Swim,13,35,1991,"1:15,00",75000,"1:21,81",81810,valid,2
+men 35-39 100 LC Meter freestyle,"Le Cerf, Patricio",Orinoco Swim Team,14,36,1990,"1:28,11",88110,"1:29,80",89800,valid,2
+men 35-39 100 LC Meter freestyle,"Gangas, Pablo",CS Maipu,15,36,1990,"1:28,44",88440,"1:30,77",90770,valid,2
+men 40-44 100 LC Meter freestyle,"Daga Leppe, Alberto",Club Deportivo UC,1,40,1986,"1:00,00",60000,"1:00,08",60080,valid,2
+men 40-44 100 LC Meter freestyle,"Hernandez, Williams",Ironswim Master,2,41,1985,"1:20,00",80000,"1:01,38",61380,valid,2
+men 40-44 100 LC Meter freestyle,"Cipriano, Italo",Stadio Italiano,3,40,1986,"1:02,00",62000,"1:01,65",61650,valid,2
+men 40-44 100 LC Meter freestyle,"Avendanño, Javier",H2o,4,40,1986,"1:00,00",60000,"1:02,37",62370,valid,2
+men 40-44 100 LC Meter freestyle,"Soto, Rodrigo",Stadio Italiano,5,40,1986,"1:02,00",62000,"1:03,37",63370,valid,2
+men 40-44 100 LC Meter freestyle,"Donoso, Ignacio",Squadra Proswim,6,40,1986,"1:03,00",63000,"1:05,88",65880,valid,2
+men 40-44 100 LC Meter freestyle,"Cardenas, Dario",Goura Swim Team,7,41,1985,"1:14,00",74000,"1:16,18",76180,valid,2
+men 40-44 100 LC Meter freestyle,"Baeza, Matias",Delfines de las Condes,8,40,1986,"1:17,44",77440,"1:18,55",78550,valid,2
+men 40-44 100 LC Meter freestyle,"Vasquez, Gabriel",Condrictios Team,9,40,1986,"1:45,00",105000,"1:24,18",84180,valid,2
+men 40-44 100 LC Meter freestyle,"Pincheira, Nathan",Squadra Proswim,10,42,1984,"1:25,00",85000,"1:24,47",84470,valid,2
+men 40-44 100 LC Meter freestyle,"Vasquez, Claudio",Tiburones de Curico,11,41,1985,"1:27,00",87000,"1:26,54",86540,valid,2
+men 40-44 100 LC Meter freestyle,"Carmona, Roberto",Aguila Natacion,12,44,1982,"1:32,00",92000,"1:28,26",88260,valid,2
+men 40-44 100 LC Meter freestyle,"Santibanñez, Roberto",Natacion Master Recoleta,13,42,1984,"1:39,00",99000,"1:32,19",92190,valid,2
+men 40-44 100 LC Meter freestyle,"Aranguiz, Jose",Natacion Master Recoleta,14,44,1982,"1:39,00",99000,"1:35,30",95300,valid,2
+men 40-44 100 LC Meter freestyle,"Castro, Emerson",Santiago Deportes,15,43,1983,"1:25,00",85000,"1:38,54",98540,valid,2
+men 40-44 100 LC Meter freestyle,"Molina, Diego",Natacion Master Recoleta,16,40,1986,"1:39,00",99000,"1:39,60",99600,valid,2
+men 40-44 100 LC Meter freestyle,"Medina, Christopher",CS Maipu,17,43,1983,"1:46,81",106810,"1:56,72",116720,valid,2
+men 45-49 100 LC Meter freestyle,"Gonzalez, Ciro",Cien por Ciento Swim,1,48,1978,"1:07,00",67000,"1:04,64",64640,valid,2
+men 45-49 100 LC Meter freestyle,"Matulic, Juan Pablo",Ironswim Master,2,45,1981,"1:20,00",80000,"1:07,91",67910,valid,2
+men 45-49 100 LC Meter freestyle,"Reyes, Pablo",Estadio Espanñol,3,49,1977,"1:10,00",70000,"1:08,98",68980,valid,2
+men 45-49 100 LC Meter freestyle,"Reggio, Franklyn",Master U de Chile,4,49,1977,"1:15,00",75000,"1:12,82",72820,valid,2
+men 45-49 100 LC Meter freestyle,"Martinez, Rodrigo",Stadio Italiano,5,45,1981,"1:25,00",85000,"1:17,36",77360,valid,2
+men 45-49 100 LC Meter freestyle,"Rojas, Freddy",Cien por Ciento Swim,6,47,1979,"1:40,00",100000,"1:28,01",88010,valid,2
+men 50-54 100 LC Meter freestyle,"Bertoni, Mario S",Africa Natacion,1,51,1975,"1:09,00",69000,"1:08,47",68470,valid,2
+men 50-54 100 LC Meter freestyle,"Gutierrez Oliveros, Luis",Club Deportivo UC,2,52,1974,"1:08,00",68000,"1:08,48",68480,valid,2
+men 50-54 100 LC Meter freestyle,"Zoppi, Giorgio",Delfines de las Condes,3,54,1972,"1:12,00",72000,"1:13,98",73980,valid,2
+men 50-54 100 LC Meter freestyle,"Quezada, Alvaro",Lo Que Boto La Ola,4,52,1974,"1:13,00",73000,"1:15,41",75410,valid,2
+men 50-54 100 LC Meter freestyle,"Lagos, Miguel",H2o,5,54,1972,"1:17,00",77000,"1:15,96",75960,valid,2
+men 50-54 100 LC Meter freestyle,"Ferrada, Boris",H2o,6,52,1974,"1:14,00",74000,"1:16,13",76130,valid,2
+men 50-54 100 LC Meter freestyle,"Lastra, Enrique",Tiburones de Curico,7,52,1974,"1:33,00",93000,"1:34,80",94800,valid,2
+men 50-54 100 LC Meter freestyle,"Leiva, Alejandro T",Africa Natacion,8,51,1975,"1:42,00",102000,"1:35,38",95380,valid,2
+men 50-54 100 LC Meter freestyle,"Olea, Andres",Condrictios Team,9,54,1972,"1:45,00",105000,"1:45,69",105690,valid,2
+men 55-59 100 LC Meter freestyle,"Tapia, Miguel",Stadio Italiano,1,57,1969,"1:03,00",63000,"1:03,76",63760,valid,2
+men 55-59 100 LC Meter freestyle,"Arrigorriaga, Jaime",Delfines de las Condes,2,58,1968,"1:16,00",76000,"1:16,96",76960,valid,2
+men 55-59 100 LC Meter freestyle,"Panetti, Mario",Golden,3,59,1967,"1:24,00",84000,"1:23,75",83750,valid,2
+men 55-59 100 LC Meter freestyle,"Godoy, Eduardo",Master U de Chile,4,55,1971,"1:35,00",95000,"1:26,29",86290,valid,2
+men 55-59 100 LC Meter freestyle,"Munñoz, Carlos",Master NÑ uble,5,55,1971,"1:25,00",85000,"1:34,13",94130,valid,2
+men 55-59 100 LC Meter freestyle,"Portilla, Sergio",Squadra Proswim,6,58,1968,"1:30,00",90000,"1:34,49",94490,valid,2
+men 55-59 100 LC Meter freestyle,"Acevedo, Luis",Natacion Master Recoleta,7,57,1969,"1:42,00",102000,"1:46,81",106810,valid,2
+men 55-59 100 LC Meter freestyle,"Matus, Ivan",Stadio Italiano,8,57,1969,"1:52,00",112000,"1:53,31",113310,valid,2
+men 60-64 100 LC Meter freestyle,"Fonturbel, Alberto",Master Providencia,1,60,1966,"1:18,00",78000,"1:20,13",80130,valid,2
+men 60-64 100 LC Meter freestyle,"Leal, Rene",Fullmar,2,62,1964,"1:25,00",85000,"1:26,43",86430,valid,2
+men 60-64 100 LC Meter freestyle,"Zagolin, Manlio",Stadio Italiano,3,63,1963,"1:31,55",91550,"1:29,21",89210,valid,2
+men 60-64 100 LC Meter freestyle,"Astudillo, Cristian",Delfines de las Condes,4,62,1964,"1:40,00",100000,"1:39,41",99410,valid,2
+men 60-64 100 LC Meter freestyle,"Munñoz, Felipe",CS Maipu,5,63,1963,"1:45,44",105440,"1:43,80",103800,valid,2
+men 60-64 100 LC Meter freestyle,"Perez, Victor Manuel",Club Deportivo UC,6,63,1963,"2:00,00",120000,"1:44,04",104040,valid,2
+men 65-69 100 LC Meter freestyle,"Traverso, Lorenzo",Stadio Italiano,1,67,1959,"1:10,00",70000,"1:11,50",71500,valid,2
+men 65-69 100 LC Meter freestyle,"Trewhela, Juan Carlos",Squadra Proswim,2,66,1960,"1:15,00",75000,"1:16,68",76680,valid,2
+men 65-69 100 LC Meter freestyle,"Mimica, Axel",Delfines de las Condes,3,67,1959,"1:19,00",79000,"1:26,83",86830,valid,2
+men 65-69 100 LC Meter freestyle,"Toledo, Fredi",Natacion Master Recoleta,4,67,1959,"1:39,00",99000,"1:34,05",94050,valid,2
+men 65-69 100 LC Meter freestyle,"Aybar, Miguel",Master U de Chile,5,67,1959,"1:42,00",102000,"1:35,34",95340,valid,2
+men 70-74 100 LC Meter freestyle,"Cruz, Manuel",Stadio Italiano,1,70,1956,"1:24,00",84000,"1:20,74",80740,valid,2
+men 70-74 100 LC Meter freestyle,"Bustos, Jose Maria",Stadio Italiano,2,72,1954,"1:25,00",85000,"1:27,93",87930,valid,2
+men 70-74 100 LC Meter freestyle,"Reyes, Cristian",Nunoa Master,3,72,1954,"1:50,40",110400,"1:35,72",95720,valid,2
+men 70-74 100 LC Meter freestyle,"Guerrero, Roberto",Master San Bernardo,4,70,1956,"1:55,00",115000,"2:03,16",123160,valid,2
+men 75-79 100 LC Meter freestyle,"Torrejon, Raul",Natacion Buin,1,76,1950,"3:10,00",190000,"2:15,41",135410,valid,2
+men 75-79 100 LC Meter freestyle,"Canepa, Angel",Stadio Italiano,2,79,1947,"2:43,00",163000,"2:39,53",159530,valid,2
+men 80-84 100 LC Meter freestyle,"Machuca, Egidio R",Africa Natacion,1,83,1943,"2:30,00",150000,"2:33,41",153410,valid,2
+men 80-84 100 LC Meter freestyle,"Ferrando, Nestor",Nunoa Master,2,84,1942,"3:20,50",200500,"3:15,23",195230,valid,2
+men 85-89 100 LC Meter freestyle,"Bennewitz, Rolando",Stadio Italiano,1,85,1941,"2:00,00",120000,"1:58,60",118600,valid,2

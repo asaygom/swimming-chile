@@ -1,0 +1,486 @@
+﻿event_name,athlete_name,club_name,rank_position,age_at_event,birth_year_estimated,seed_time_text,seed_time_ms,result_time_text,result_time_ms,status,source_id
+women 19 & Under 200 SC Meter freestyle,"Trabazo, Guadalupe",Andes Talleres,1,19,2007,"3:05,00",185000,"3:08,71",188710,valid,5
+women 20-24 200 SC Meter freestyle,"Muchut Moyano, Rocíío Alumine í",Club Sparta A.C.,1,24,2002,"2:29,51",149510,"2:28,09",148090,valid,5
+women 20-24 200 SC Meter freestyle,"Gavilucci, Valentina",Club Sparta A.C.,2,24,2002,"3:58,44",238440,"3:17,64",197640,valid,5
+women 25-29 200 SC Meter freestyle,"Pavio Civit, Natalia",Club Sparta A.C.,1,26,2000,"2:35,47",155470,"2:25,21",145210,valid,5
+women 25-29 200 SC Meter freestyle,"Mellado, Ana Laura",Aquaclub Maipu,2,25,2001,"2:43,06",163060,"2:50,44",170440,valid,5
+women 25-29 200 SC Meter freestyle,"Arce, Aisha",Club Sparta A.C.,3,28,1998,"2:57,14",177140,"2:54,07",174070,valid,5
+women 25-29 200 SC Meter freestyle,"Gargantini, Agostina",Club Sparta A.C.,4,25,2001,"3:19,14",199140,"3:09,81",189810,valid,5
+women 25-29 200 SC Meter freestyle,"Galetto, Ornella",Club Sparta A.C.,5,26,2000,"3:32,14",212140,"3:18,35",198350,valid,5
+women 25-29 200 SC Meter freestyle,"Herrera, Amparo",Club Sparta A.C.,6,29,1997,"3:57,61",237610,"3:19,24",199240,valid,5
+women 25-29 200 SC Meter freestyle,"Faríías, Tiare",Pedro Aguirre Cerda,7,27,1999,"3:33,00",213000,"3:25,99",205990,valid,5
+women 25-29 200 SC Meter freestyle,"Escudero, Ailen",Club Sparta A.C.,8,28,1998,"4:15,21",255210,"3:26,17",206170,valid,5
+women 25-29 200 SC Meter freestyle,"Funes, Carolina",Club Sparta A.C.,9,25,2001,"3:39,45",219450,"3:35,74",215740,valid,5
+women 30-34 200 SC Meter freestyle,"Monassa, Emeli",Club Sparta A.C.,1,34,1992,"2:40,28",160280,"2:44,26",164260,valid,5
+women 30-34 200 SC Meter freestyle,"Mauad, Yamile",Club Sparta A.C.,2,30,1996,"3:02,70",182700,"2:50,28",170280,valid,5
+women 30-34 200 SC Meter freestyle,"Garin, Emilia",Club Sparta A.C.,3,34,1992,"3:13,50",193500,"2:59,63",179630,valid,5
+women 30-34 200 SC Meter freestyle,"Badui, Nahir",Club Sparta A.C.,4,31,1995,"3:03,15",183150,"3:05,70",185700,valid,5
+women 30-34 200 SC Meter freestyle,"Sanchez, Johana",Aquaclub Maipu,5,31,1995,"3:12,69",192690,"3:11,86",191860,valid,5
+women 30-34 200 SC Meter freestyle,"Chavez, Roxana",Club Sparta A.C.,6,34,1992,"3:55,63",235630,"3:25,22",205220,valid,5
+women 30-34 200 SC Meter freestyle,"Alvarez, Samanta",Club Sparta A.C.,7,30,1996,"3:57,12",237120,"3:44,37",224370,valid,5
+women 30-34 200 SC Meter freestyle,"Arancibia, Virginia",Club Sparta A.C.,8,31,1995,"3:49,85",229850,"3:46,89",226890,valid,5
+women 30-34 200 SC Meter freestyle,"Revello, Michelle",Pedro Aguirre Cerda,9,31,1995,"4:07,40",247400,"4:08,18",248180,valid,5
+women 35-39 200 SC Meter freestyle,"Martin, Anita",Andes Talleres,1,38,1988,"3:15,00",195000,"3:00,74",180740,valid,5
+women 35-39 200 SC Meter freestyle,"Radivoy, Maria E",Andes Talleres,2,39,1987,"3:20,00",200000,"3:07,53",187530,valid,5
+women 35-39 200 SC Meter freestyle,"Ortubia, Natalia",Club Sparta A.C.,3,38,1988,"4:05,12",245120,"3:59,19",239190,valid,5
+women 40-44 200 SC Meter freestyle,"Cabeza, Maria Belen",Andes Talleres,1,40,1986,"2:29,21",149210,"2:30,58",150580,valid,5
+women 40-44 200 SC Meter freestyle,"Rodriguez, Diana",NÑ unñoa Master,2,41,1985,"3:20,00",200000,"3:12,24",192240,valid,5
+women 40-44 200 SC Meter freestyle,"Espinosa, Analia L",Club DE Natacion Atlantis,3,41,1985,"3:20,00",200000,"3:14,29",194290,valid,5
+women 40-44 200 SC Meter freestyle,"Bisson, Natali",Andes Talleres,4,40,1986,"3:30,00",210000,"3:17,59",197590,valid,5
+women 40-44 200 SC Meter freestyle,"Natalia, Silva",Agua Plena San Rafael,5,41,1985,"4:05,00",245000,"3:40,15",220150,valid,5
+women 45-49 200 SC Meter freestyle,"Gestoso Fraga, Maria Soledad",Andes Talleres,1,46,1980,"3:32,00",212000,"3:24,61",204610,valid,5
+women 45-49 200 SC Meter freestyle,"Gonzalez, Maria",Club Sparta A.C.,2,47,1979,"3:56,08",236080,"3:45,89",225890,valid,5
+women 50-54 200 SC Meter freestyle,"Tapia, Julieta",Master Providencia Chile,1,51,1975,"4:00,00",240000,"3:40,14",220140,valid,5
+women 55-59 200 SC Meter freestyle,"Figueroa, Angela",Club Sparta A.C.,1,58,1968,"6:58,33",418330,"5:09,75",309750,valid,5
+women 60-64 200 SC Meter freestyle,"Case, Cynthia",Master Providencia Chile,1,64,1962,"2:58,42",178420,"2:58,19",178190,valid,5
+women 60-64 200 SC Meter freestyle,"Moyano, Claudia",Club Sparta A.C.,2,60,1966,"3:11,17",191170,"3:05,57",185570,valid,5
+women 60-64 200 SC Meter freestyle,"Richardi, Marisa",Andes Talleres,3,64,1962,"5:07,54",307540,"5:11,11",311110,valid,5
+women 60-64 200 SC Meter freestyle,"Lopez, Elena",Club Sparta A.C.,4,64,1962,"5:12,55",312550,"5:15,06",315060,valid,5
+women 65-69 200 SC Meter freestyle,"Concha, Elizabeth",NÑ unñoa Master,1,68,1958,"4:38,00",278000,"3:27,47",207470,valid,5
+women 70-74 200 SC Meter freestyle,"Ruiz, Alicia",Andes Talleres,1,70,1956,"5:19,76",319760,"5:04,03",304030,valid,5
+women 90-94 200 SC Meter freestyle,"Bush, Eliana",Delfines DE Las Condes,1,92,1934,NT,,"5:05,95",305950,valid,5
+men 19 & Under 200 SC Meter freestyle,"Benegas, Laureano",Andes Talleres,1,17,2009,"2:20,00",140000,"2:14,79",134790,valid,5
+men 19 & Under 200 SC Meter freestyle,"Gonzalez, Nicolas Agustíín",Andes Talleres,2,19,2007,"2:19,78",139780,"2:15,55",135550,valid,5
+men 19 & Under 200 SC Meter freestyle,"Rodriguez, Joaquin",Agua Plena San Rafael,3,19,2007,"3:21,00",201000,"3:06,50",186500,valid,5
+men 20-24 200 SC Meter freestyle,"Galetto, Valentino",Club Sparta A.C.,1,22,2004,"2:14,53",134530,"2:11,15",131150,valid,5
+men 20-24 200 SC Meter freestyle,"Gimenez DE Michilis, Tobias",Club Sparta A.C.,2,24,2002,"2:30,78",150780,"2:31,09",151090,valid,5
+men 20-24 200 SC Meter freestyle,"Martinez, Julio",Andes Talleres,3,21,2005,"3:00,00",180000,"2:49,15",169150,valid,5
+men 20-24 200 SC Meter freestyle,"Moron, Martin",Club Azul Natacion Mendoza,4,22,2004,"3:40,00",220000,"3:08,17",188170,valid,5
+men 20-24 200 SC Meter freestyle,"Rivas, Leo",Club Azul Natacion Mendoza,,24,2002,"3:10,00",190000,DNF,,dnf,5
+men 25-29 200 SC Meter freestyle,"Ferro, Bruno A",Club Sparta A.C.,1,26,2000,"2:29,14",149140,"2:24,61",144610,valid,5
+men 25-29 200 SC Meter freestyle,"Ledda, Augusto",Club Sparta A.C.,2,26,2000,"2:32,14",152140,"2:27,29",147290,valid,5
+men 25-29 200 SC Meter freestyle,"Ventura, Marcos",Club Sparta A.C.,3,27,1999,"2:37,02",157020,"2:28,83",148830,valid,5
+men 25-29 200 SC Meter freestyle,"Caro P, Cristoíbal Fdo",Pedro Aguirre Cerda,4,26,2000,"2:28,20",148200,"2:29,06",149060,valid,5
+men 25-29 200 SC Meter freestyle,"Gonzalez, Daniel",NÑ unñoa Master,5,27,1999,"2:27,00",147000,"2:31,54",151540,valid,5
+men 25-29 200 SC Meter freestyle,"Meneses, Felipe",Pedro Aguirre Cerda,6,27,1999,"2:42,20",162200,"2:41,09",161090,valid,5
+men 25-29 200 SC Meter freestyle,"Robledo, Mariano",Club Sparta A.C.,7,26,2000,"2:46,59",166590,"2:45,95",165950,valid,5
+men 25-29 200 SC Meter freestyle,"Bustos Bastias, Brian Gabriel",Club Sparta A.C.,8,28,1998,"2:59,36",179360,"2:50,33",170330,valid,5
+men 25-29 200 SC Meter freestyle,"Perez, Maximiliano",Agua Plena San Rafael,9,28,1998,"3:27,00",207000,"3:09,15",189150,valid,5
+men 30-34 200 SC Meter freestyle,"Mugnani Valero, Luciano",Andes Talleres,1,32,1994,"2:30,00",150000,"2:22,73",142730,valid,5
+men 30-34 200 SC Meter freestyle,"Mallea, Abdo",Club Sparta A.C.,2,33,1993,"2:41,38",161380,"2:36,80",156800,valid,5
+men 30-34 200 SC Meter freestyle,"Castro, Alexis",Master Providencia Chile,3,34,1992,"2:47,98",167980,"2:40,00",160000,valid,5
+men 30-34 200 SC Meter freestyle,"Ventura, Maxi",Club Azul Natacion Mendoza,4,32,1994,"3:10,00",190000,"2:43,05",163050,valid,5
+men 30-34 200 SC Meter freestyle,"Alcaraz, Matias",Club Sparta A.C.,5,33,1993,"3:10,35",190350,"2:48,65",168650,valid,5
+men 30-34 200 SC Meter freestyle,"Maldonado, Nicolas",Agua Plena San Rafael,6,31,1995,"3:42,00",222000,"3:12,24",192240,valid,5
+men 30-34 200 SC Meter freestyle,"Romero, Gonzalo",Club Sparta A.C.,7,33,1993,"3:23,34",203340,"3:14,33",194330,valid,5
+men 30-34 200 SC Meter freestyle,"Lelio, Leandro",Club Sparta A.C.,8,30,1996,"3:30,21",210210,"3:19,97",199970,valid,5
+men 30-34 200 SC Meter freestyle,"Degiorgi, Emiliano",Club Sparta A.C.,9,34,1992,"3:49,12",229120,"3:36,89",216890,valid,5
+men 30-34 200 SC Meter freestyle,"Magnenat, Javier",Agua Plena San Rafael,,34,1992,"3:30,00",210000,DNF,,dnf,5
+men 30-34 200 SC Meter freestyle,"Ortega, Atilio",Club Sparta A.C.,,32,1994,"2:42,30",162300,DNF,,dnf,5
+men 35-39 200 SC Meter freestyle,"Alchapar, Oscar Alejandro",Club Sparta A.C.,1,35,1991,"2:27,43",147430,"2:26,20",146200,valid,5
+men 35-39 200 SC Meter freestyle,"Castro, Javier",Club Sparta A.C.,2,35,1991,"2:32,17",152170,"2:34,60",154600,valid,5
+men 35-39 200 SC Meter freestyle,"Mansilla, Juan",Club Sparta A.C.,3,35,1991,"2:34,94",154940,"2:39,70",159700,valid,5
+men 35-39 200 SC Meter freestyle,"Rubin, Fernando",Club DE Natacion Atlantis,4,39,1987,"3:05,00",185000,"2:53,39",173390,valid,5
+men 35-39 200 SC Meter freestyle,"Aguilera, Juan Carlos",Master Providencia Chile,5,37,1989,"3:31,91",211910,"3:13,70",193700,valid,5
+men 35-39 200 SC Meter freestyle,"Barreto, Yuhneyber",Pedro Aguirre Cerda,6,39,1987,"3:20,00",200000,"3:33,64",213640,valid,5
+men 35-39 200 SC Meter freestyle,"Yanzon, Matias",Club Sparta A.C.,7,39,1987,"3:25,41",205410,"3:36,56",216560,valid,5
+men 35-39 200 SC Meter freestyle,"Rodriguez, Alberto",Club Sparta A.C.,,36,1990,"4:45,12",285120,DQ,,dsq,5
+men 35-39 200 SC Meter freestyle,"Nievas, Emmanuel",Club Sparta A.C.,,35,1991,"3:00,11",180110,DNF,,dnf,5
+men 40-44 200 SC Meter freestyle,"Azevedo, Marcio",Club Sparta A.C.,1,44,1982,"2:34,30",154300,"2:29,72",149720,valid,5
+men 40-44 200 SC Meter freestyle,"Turela, Marcos",Andes Talleres,2,40,1986,"2:45,22",165220,"2:47,07",167070,valid,5
+men 40-44 200 SC Meter freestyle,"Martin, Leonardo",Andes Talleres,3,44,1982,"2:45,00",165000,"2:50,93",170930,valid,5
+men 40-44 200 SC Meter freestyle,"Munñoz, Carlos",Club Dep Master Magallanes,4,42,1984,"3:00,00",180000,"2:57,83",177830,valid,5
+men 40-44 200 SC Meter freestyle,"Maron, Horacio",Club Sparta A.C.,5,44,1982,"3:06,79",186790,"3:10,53",190530,valid,5
+men 40-44 200 SC Meter freestyle,"Maza, Carlos",Club Sparta A.C.,6,40,1986,"3:05,24",185240,"3:22,46",202460,valid,5
+men 40-44 200 SC Meter freestyle,"Escudero, Daniel",Club Sparta A.C.,7,40,1986,"3:46,55",226550,"3:37,01",217010,valid,5
+men 40-44 200 SC Meter freestyle,"Romero, Christian",NÑ unñoa Master,,42,1984,"3:13,94",193940,DNF,,dnf,5
+men 45-49 200 SC Meter freestyle,"Profili, Osvaldo L",Club Sparta A.C.,1,47,1979,"2:52,56",172560,"2:42,61",162610,valid,5
+men 45-49 200 SC Meter freestyle,"Catelino, Daniel",Andes Talleres,2,49,1977,"3:20,00",200000,"3:15,66",195660,valid,5
+men 50-54 200 SC Meter freestyle,"Boreto, Federico",Andes Talleres,1,50,1976,"2:35,00",155000,"2:34,28",154280,valid,5
+men 50-54 200 SC Meter freestyle,"Catalan, Marcelo",Master Providencia Chile,2,52,1974,"2:50,00",170000,"2:44,94",164940,valid,5
+men 50-54 200 SC Meter freestyle,"Lucero, Gaston",Club Sparta A.C.,3,50,1976,"2:49,32",169320,"2:47,09",167090,valid,5
+men 50-54 200 SC Meter freestyle,"Henrííquez, Pablo",Andes Talleres,4,54,1972,"3:35,00",215000,"3:19,26",199260,valid,5
+men 50-54 200 SC Meter freestyle,"Sosa, Carlos",Aquaclub Maipu,5,50,1976,"3:36,42",216420,"3:28,62",208620,valid,5
+men 50-54 200 SC Meter freestyle,"Cabrera, Hernan",Club Sparta A.C.,6,53,1973,"4:01,32",241320,"3:52,45",232450,valid,5
+men 50-54 200 SC Meter freestyle,"Medina, Carlos",Master Providencia Chile,7,53,1973,"6:00,00",360000,"6:29,99",389990,valid,5
+men 55-59 200 SC Meter freestyle,"Figueroa, Miguel",Club Azul Natacion Mendoza,1,59,1967,"3:39,65",219650,"3:43,99",223990,valid,5
+men 55-59 200 SC Meter freestyle,"Velazquez, Orlando",Aquaclub Maipu,2,56,1970,"4:38,07",278070,"4:28,41",268410,valid,5
+men 60-64 200 SC Meter freestyle,"Oliva, Ricardo",Club Sparta A.C.,1,61,1965,"3:45,87",225870,"3:33,39",213390,valid,5
+men 60-64 200 SC Meter freestyle,"Vargas, Jose Luis",Golden,2,60,1966,"3:30,00",210000,"4:10,21",250210,valid,5
+men 65-69 200 SC Meter freestyle,"Domina, Ricardo",Club Sparta A.C.,1,67,1959,"2:54,29",174290,"3:19,08",199080,valid,5
+men 65-69 200 SC Meter freestyle,"Cabello, Jorge",Penñalolen Master,2,68,1958,"4:00,00",240000,"3:26,06",206060,valid,5
+men 65-69 200 SC Meter freestyle,"Aguirre, Miguel",Agua Plena San Rafael,3,68,1958,"4:53,00",293000,"3:41,41",221410,valid,5
+men 65-69 200 SC Meter freestyle,"Moreno, Luis",NÑ unñoa Master,4,68,1958,"5:55,40",355400,"4:42,42",282420,valid,5
+men 70-74 200 SC Meter freestyle,"Alvarez, Ricardo",NÑ unñoa Master,1,73,1953,"4:24,50",264500,"4:40,88",280880,valid,5
+women 19 & Under 100 SC Meter butterfly,"Chertcoff, Victoria",Agua Plena San Rafael,1,18,2008,"1:50,00",110000,"1:36,26",96260,valid,5
+women 20-24 100 SC Meter butterfly,"Muchut Moyano, Rocíío Alumine í",Club Sparta A.C.,1,24,2002,"1:20,89",80890,"1:19,57",79570,valid,5
+women 20-24 100 SC Meter butterfly,"Vidal, Pierina",Club Sparta A.C.,2,21,2005,"1:30,36",90360,"1:26,74",86740,valid,5
+women 25-29 100 SC Meter butterfly,"Castro A, Paula A",Pedro Aguirre Cerda,1,26,2000,"1:30,00",90000,"1:20,36",80360,valid,5
+women 25-29 100 SC Meter butterfly,"Dave, Gisela",Aquaclub Maipu,2,28,1998,"1:29,47",89470,"1:24,22",84220,valid,5
+women 25-29 100 SC Meter butterfly,"Arce, Aisha",Club Sparta A.C.,3,28,1998,"1:45,49",105490,"1:42,57",102570,valid,5
+women 30-34 100 SC Meter butterfly,"Loípez, Diane",Pedro Aguirre Cerda,1,30,1996,"1:35,00",95000,"1:40,30",100300,valid,5
+women 30-34 100 SC Meter butterfly,"Zapata, Rocio Nicole",Club DE Natacion Atlantis,2,31,1995,"1:50,00",110000,"1:47,36",107360,valid,5
+women 35-39 100 SC Meter butterfly,"Fravega, Julieta",Club Sparta A.C.,1,39,1987,"2:02,95",122950,"2:02,61",122610,valid,5
+women 40-44 100 SC Meter butterfly,"Cabeza, Maria Belen",Andes Talleres,1,40,1986,"1:21,32",81320,"1:18,66",78660,valid,5
+women 45-49 100 SC Meter butterfly,"Gonzalez, Maria",Club Sparta A.C.,1,47,1979,"2:12,17",132170,"1:51,40",111400,valid,5
+women 45-49 100 SC Meter butterfly,"Gestoso Fraga, Maria Soledad",Andes Talleres,2,46,1980,"1:56,91",116910,"1:56,51",116510,valid,5
+women 45-49 100 SC Meter butterfly,"Guadalupe, Cynthia",Master Providencia Chile,3,45,1981,"1:45,00",105000,"1:57,06",117060,valid,5
+women 50-54 100 SC Meter butterfly,"Tapia, Julieta",Master Providencia Chile,1,51,1975,"2:10,00",130000,"2:02,81",122810,valid,5
+women 60-64 100 SC Meter butterfly,"Case, Cynthia",Master Providencia Chile,1,64,1962,"1:36,24",96240,"1:36,95",96950,valid,5
+women 65-69 100 SC Meter butterfly,"Concha, Elizabeth",NÑ unñoa Master,1,68,1958,"3:12,00",192000,"2:57,73",177730,valid,5
+women 70-74 100 SC Meter butterfly,"Obredor, Rosa",Aquaclub Maipu,1,74,1952,"3:03,59",183590,"1:38,31",98310,valid,5
+women 70-74 100 SC Meter butterfly,"Ruiz, Alicia",Andes Talleres,2,70,1956,"3:16,19",196190,"3:09,30",189300,valid,5
+men 19 & Under 100 SC Meter butterfly,"Gonzalez, Nicolas Agustíín",Andes Talleres,1,19,2007,"1:09,44",69440,"1:08,38",68380,valid,5
+men 19 & Under 100 SC Meter butterfly,"Rodriguez, Joaquin",Agua Plena San Rafael,2,19,2007,"1:54,00",114000,"1:41,82",101820,valid,5
+men 20-24 100 SC Meter butterfly,"Galetto, Valentino",Club Sparta A.C.,1,22,2004,"1:08,66",68660,"1:05,13",65130,valid,5
+men 20-24 100 SC Meter butterfly,"Gonzalez, Franco",Andes Talleres,2,23,2003,"1:14,52",74520,"1:18,38",78380,valid,5
+men 20-24 100 SC Meter butterfly,"Martinez, Julio",Andes Talleres,3,21,2005,"1:30,00",90000,"1:27,32",87320,valid,5
+men 20-24 100 SC Meter butterfly,"Chacoín, Manuel",Club Sparta A.C.,4,20,2006,"1:39,21",99210,"1:33,77",93770,valid,5
+men 20-24 100 SC Meter butterfly,"Rivas, Leo",Club Azul Natacion Mendoza,5,24,2002,"1:27,30",87300,"1:49,90",109900,valid,5
+men 25-29 100 SC Meter butterfly,"Vollmer, Matias A",Andes Talleres,1,28,1998,"1:05,95",65950,"1:05,85",65850,valid,5
+men 25-29 100 SC Meter butterfly,"Moreno, Julian",Aquaclub Maipu,2,29,1997,"1:29,00",89000,"1:22,05",82050,valid,5
+men 25-29 100 SC Meter butterfly,"Gonzalez, Daniel",NÑ unñoa Master,3,27,1999,"1:24,00",84000,"1:22,40",82400,valid,5
+men 25-29 100 SC Meter butterfly,"Bustos Bastias, Brian Gabriel",Club Sparta A.C.,4,28,1998,"1:42,35",102350,"1:35,25",95250,valid,5
+men 25-29 100 SC Meter butterfly,"Ventura, Marcos",Club Sparta A.C.,5,27,1999,"1:27,67",87670,"1:39,30",99300,valid,5
+men 25-29 100 SC Meter butterfly,"Perez, Maximiliano",Agua Plena San Rafael,6,28,1998,"1:52,00",112000,"1:41,77",101770,valid,5
+men 25-29 100 SC Meter butterfly,"Bolanños, Kleiber",Pedro Aguirre Cerda,7,29,1997,"2:00,00",120000,"2:03,66",123660,valid,5
+men 30-34 100 SC Meter butterfly,"Parra SM, Nicolaís",Pedro Aguirre Cerda,1,31,1995,"1:19,00",79000,"1:15,41",75410,valid,5
+men 30-34 100 SC Meter butterfly,"Becerra A., Martíín",Pedro Aguirre Cerda,2,30,1996,"1:24,30",84300,"1:16,97",76970,valid,5
+men 30-34 100 SC Meter butterfly,"Morales, Jesus",Club Sparta A.C.,3,33,1993,"1:42,39",102390,"1:28,41",88410,valid,5
+men 30-34 100 SC Meter butterfly,"Castro, Alexis",Master Providencia Chile,4,34,1992,"1:27,25",87250,"1:31,16",91160,valid,5
+men 30-34 100 SC Meter butterfly,"Alcaraz, Matias",Club Sparta A.C.,5,33,1993,"1:43,38",103380,"1:31,17",91170,valid,5
+men 35-39 100 SC Meter butterfly,"Celaya, Ariel",Aquaclub Maipu,1,36,1990,"1:17,24",77240,"1:20,10",80100,valid,5
+men 35-39 100 SC Meter butterfly,"Castro, Javier",Club Sparta A.C.,2,35,1991,"1:24,92",84920,"1:29,60",89600,valid,5
+men 35-39 100 SC Meter butterfly,"Aguilera, Juan Carlos",Master Providencia Chile,3,37,1989,"1:43,00",103000,"1:43,81",103810,valid,5
+men 40-44 100 SC Meter butterfly,"Peralta, Leonardo",Aquaclub Maipu,1,43,1983,"1:16,86",76860,"1:12,98",72980,valid,5
+men 40-44 100 SC Meter butterfly,"Castilla, Emiliano",Andes Talleres,2,43,1983,"1:30,00",90000,"1:25,39",85390,valid,5
+men 40-44 100 SC Meter butterfly,"Turela, Marcos",Andes Talleres,3,40,1986,"1:30,00",90000,"1:28,31",88310,valid,5
+men 45-49 100 SC Meter butterfly,"Roman, Nestor M",Club Sparta A.C.,1,47,1979,"1:36,29",96290,"1:39,33",99330,valid,5
+men 50-54 100 SC Meter butterfly,"Lucero, Gaston",Club Sparta A.C.,1,50,1976,"1:49,11",109110,"1:30,57",90570,valid,5
+men 55-59 100 SC Meter butterfly,"Velazquez, Orlando",Aquaclub Maipu,1,56,1970,"2:50,00",170000,"1:51,40",111400,valid,5
+men 60-64 100 SC Meter butterfly,"Oliva, Ricardo",Club Sparta A.C.,1,61,1965,"1:55,29",115290,"2:03,74",123740,valid,5
+men 60-64 100 SC Meter butterfly,"Pavoni, Ricardo O",Andes Talleres,2,63,1963,"2:01,25",121250,"2:10,02",130020,valid,5
+men 65-69 100 SC Meter butterfly,"Lucero, Carlos A",Area Club San Luis,1,66,1960,"1:52,59",112590,"1:53,19",113190,valid,5
+women 19 & Under 50 SC Meter backstroke,"Chertcoff, Victoria",Agua Plena San Rafael,1,18,2008,"43,00",43000,"41,72",41720,valid,5
+women 20-24 50 SC Meter backstroke,"Vidal, Pierina",Club Sparta A.C.,1,21,2005,"40,97",40970,"40,00",40000,valid,5
+women 20-24 50 SC Meter backstroke,"Guinñazu, Selene",Aquaclub Maipu,2,20,2006,"43,92",43920,"43,91",43910,valid,5
+women 25-29 50 SC Meter backstroke,"Pavio Civit, Natalia",Club Sparta A.C.,1,26,2000,"33,99",33990,"33,40",33400,valid,5
+women 25-29 50 SC Meter backstroke,"Castro A, Paula A",Pedro Aguirre Cerda,2,26,2000,"40,70",40700,"37,38",37380,valid,5
+women 25-29 50 SC Meter backstroke,"Dave, Gisela",Aquaclub Maipu,3,28,1998,"39,01",39010,"39,99",39990,valid,5
+women 25-29 50 SC Meter backstroke,"Aguilera, Ayelen",Club Azul Natacion Mendoza,4,27,1999,"54,15",54150,"53,61",53610,valid,5
+women 30-34 50 SC Meter backstroke,"Mauad, Yamile",Club Sparta A.C.,1,30,1996,"41,42",41420,"38,20",38200,valid,5
+women 30-34 50 SC Meter backstroke,"Loípez, Diane",Pedro Aguirre Cerda,2,30,1996,"42,00",42000,"46,02",46020,valid,5
+women 30-34 50 SC Meter backstroke,"Zapata, Rocio Nicole",Club DE Natacion Atlantis,3,31,1995,"47,00",47000,"49,14",49140,valid,5
+women 30-34 50 SC Meter backstroke,"Osuna, Daiana Esther",Agua Plena San Rafael,4,33,1993,"53,00",53000,"56,28",56280,valid,5
+women 30-34 50 SC Meter backstroke,"Revello, Michelle",Pedro Aguirre Cerda,5,31,1995,"58,09",58090,"1:00,44",60440,valid,5
+women 35-39 50 SC Meter backstroke,"Martin, Anita",Andes Talleres,1,38,1988,"41,02",41020,"40,75",40750,valid,5
+women 35-39 50 SC Meter backstroke,"Cabello, Romina",Club DE Natacion Atlantis,2,36,1990,"1:04,00",64000,"1:00,54",60540,valid,5
+women 40-44 50 SC Meter backstroke,"Rodriguez, Diana",NÑ unñoa Master,1,41,1985,"42,00",42000,"39,86",39860,valid,5
+women 40-44 50 SC Meter backstroke,"Espinosa, Analia L",Club DE Natacion Atlantis,2,41,1985,"46,42",46420,"45,35",45350,valid,5
+women 40-44 50 SC Meter backstroke,"Bisson, Natali",Andes Talleres,3,40,1986,"47,83",47830,"46,93",46930,valid,5
+women 40-44 50 SC Meter backstroke,"Carmona, Maria Angeles",Club DE Natacion Atlantis,4,44,1982,"1:10,00",70000,"1:05,27",65270,valid,5
+women 45-49 50 SC Meter backstroke,"Arriola, Silvia",Aquaclub Maipu,1,45,1981,"37,04",37040,"39,97",39970,valid,5
+women 45-49 50 SC Meter backstroke,"Gauna, Noe",Club Azul Natacion Mendoza,2,45,1981,"56,30",56300,"1:01,00",61000,valid,5
+women 55-59 50 SC Meter backstroke,"Dable, Marie Claire",Master Providencia Chile,1,57,1969,"50,78",50780,"48,33",48330,valid,5
+women 55-59 50 SC Meter backstroke,"Amaro, Maria",Pedro Aguirre Cerda,2,56,1970,"1:25,00",85000,"1:24,84",84840,valid,5
+women 60-64 50 SC Meter backstroke,"Moyano, Claudia",Club Sparta A.C.,1,60,1966,"47,52",47520,"44,32",44320,valid,5
+women 60-64 50 SC Meter backstroke,"Acencio, Claudia",Master Providencia Chile,2,63,1963,"49,91",49910,"49,53",49530,valid,5
+women 60-64 50 SC Meter backstroke,"DI Paola, Laura",Club Sparta A.C.,3,61,1965,"58,46",58460,"58,11",58110,valid,5
+women 60-64 50 SC Meter backstroke,"Reyes L, Ma Irene",Pedro Aguirre Cerda,4,62,1964,"1:02,20",62200,"1:03,35",63350,valid,5
+women 60-64 50 SC Meter backstroke,"Lopez, Elena",Club Sparta A.C.,5,64,1962,"1:26,56",86560,"1:13,58",73580,valid,5
+women 60-64 50 SC Meter backstroke,"Richardi, Marisa",Andes Talleres,6,64,1962,"1:17,27",77270,"1:28,60",88600,valid,5
+women 70-74 50 SC Meter backstroke,"Obredor, Rosa",Aquaclub Maipu,1,74,1952,"1:09,01",69010,"1:15,31",75310,valid,5
+women 70-74 50 SC Meter backstroke,"Lusso, Berta",Andes Talleres,2,73,1953,"1:38,20",98200,"1:22,48",82480,valid,5
+women 75-79 50 SC Meter backstroke,"Nunñez, Elizabeth",Master Providencia Chile,1,77,1949,"1:07,05",67050,"1:09,61",69610,valid,5
+women 90-94 50 SC Meter backstroke,"Bush, Eliana",Delfines DE Las Condes,1,92,1934,NT,,"1:06,02",66020,valid,5
+men 19 & Under 50 SC Meter backstroke,"Benegas, Laureano",Andes Talleres,1,17,2009,"33,38",33380,"31,57",31570,valid,5
+men 20-24 50 SC Meter backstroke,"Gimenez DE Michilis, Tobias",Club Sparta A.C.,1,24,2002,"33,52",33520,"33,41",33410,valid,5
+men 20-24 50 SC Meter backstroke,"Flores, Joseí Luis",Pedro Aguirre Cerda,2,20,2006,"37,30",37300,"36,54",36540,valid,5
+men 20-24 50 SC Meter backstroke,"Zapata Esquivel, Tomas Benjamin F.",Aquaclub Maipu,3,24,2002,"42,43",42430,"40,26",40260,valid,5
+men 20-24 50 SC Meter backstroke,"Caro, Martíín",Pedro Aguirre Cerda,4,20,2006,"43,94",43940,"41,49",41490,valid,5
+men 20-24 50 SC Meter backstroke,"Trilla, Ignacio",Club Azul Natacion Mendoza,,21,2005,"44,25",44250,DNF,,dnf,5
+men 20-24 50 SC Meter backstroke,"Rivas, Leo",Club Azul Natacion Mendoza,,24,2002,"37,77",37770,DNF,,dnf,5
+men 25-29 50 SC Meter backstroke,"Ferro, Bruno A",Club Sparta A.C.,1,26,2000,"31,42",31420,"31,29",31290,valid,5
+men 25-29 50 SC Meter backstroke,"Ledda, Augusto",Club Sparta A.C.,2,26,2000,"31,40",31400,"31,87",31870,valid,5
+men 25-29 50 SC Meter backstroke,"Caro P, Cristoíbal Fdo",Pedro Aguirre Cerda,3,26,2000,"35,20",35200,"34,26",34260,valid,5
+men 25-29 50 SC Meter backstroke,"Talfiti, Facundo",Aquaclub Maipu,4,28,1998,"38,39",38390,"37,56",37560,valid,5
+men 25-29 50 SC Meter backstroke,"Meneses, Felipe",Pedro Aguirre Cerda,5,27,1999,"38,00",38000,"37,61",37610,valid,5
+men 25-29 50 SC Meter backstroke,"Moreno, Julian",Aquaclub Maipu,6,29,1997,"38,35",38350,"37,64",37640,valid,5
+men 25-29 50 SC Meter backstroke,"Rodriguez, Santi",Club Azul Natacion Mendoza,7,27,1999,"39,58",39580,"38,75",38750,valid,5
+men 25-29 50 SC Meter backstroke,"Magallanes, Enzo",Aquaclub Maipu,8,29,1997,"41,57",41570,"41,49",41490,valid,5
+men 25-29 50 SC Meter backstroke,"Scandolera, Lucas",Agua Plena San Rafael,9,26,2000,"40,00",40000,"42,27",42270,valid,5
+men 25-29 50 SC Meter backstroke,"Bolanños, Kleiber",Pedro Aguirre Cerda,10,29,1997,"42,10",42100,"44,80",44800,valid,5
+men 25-29 50 SC Meter backstroke,"Ortega, Luciano",Aquaclub Maipu,11,28,1998,"42,43",42430,"45,15",45150,valid,5
+men 25-29 50 SC Meter backstroke,"Ros, Matias",Aquaclub Maipu,12,29,1997,"54,88",54880,"45,76",45760,valid,5
+men 30-34 50 SC Meter backstroke,"Mugnani Valero, Luciano",Andes Talleres,1,32,1994,"34,00",34000,"35,20",35200,valid,5
+men 30-34 50 SC Meter backstroke,"Parra SM, Nicolaís",Pedro Aguirre Cerda,2,31,1995,"37,30",37300,"35,60",35600,valid,5
+men 30-34 50 SC Meter backstroke,"Cantoro, Sergio",Aquaclub Maipu,3,33,1993,"37,69",37690,"39,04",39040,valid,5
+men 30-34 50 SC Meter backstroke,"Bront, Matias",Club Sparta A.C.,4,31,1995,"44,23",44230,"41,39",41390,valid,5
+men 30-34 50 SC Meter backstroke,"Barrera, Diego",Club Azul Natacion Mendoza,5,32,1994,"47,00",47000,"47,03",47030,valid,5
+men 30-34 50 SC Meter backstroke,"Ortega, Atilio",Club Sparta A.C.,,32,1994,"42,29",42290,DQ,,dsq,5
+men 30-34 50 SC Meter backstroke,"Magnenat, Javier",Agua Plena San Rafael,,34,1992,"45,00",45000,DNF,,dnf,5
+men 30-34 50 SC Meter backstroke,"Ventura, Maxi",Club Azul Natacion Mendoza,,32,1994,"40,88",40880,DNF,,dnf,5
+men 30-34 50 SC Meter backstroke,"Maldonado, Nicolas",Agua Plena San Rafael,,31,1995,"48,00",48000,DNF,,dnf,5
+men 35-39 50 SC Meter backstroke,"Celaya, Ariel",Aquaclub Maipu,1,36,1990,"33,55",33550,"34,05",34050,valid,5
+men 35-39 50 SC Meter backstroke,"Alchapar, Oscar Alejandro",Club Sparta A.C.,2,35,1991,"36,28",36280,"34,40",34400,valid,5
+men 35-39 50 SC Meter backstroke,"Mansilla, Juan",Club Sparta A.C.,3,35,1991,"34,84",34840,"34,52",34520,valid,5
+men 35-39 50 SC Meter backstroke,"Rubin, Fernando",Club DE Natacion Atlantis,4,39,1987,"40,92",40920,"45,15",45150,valid,5
+men 40-44 50 SC Meter backstroke,"Peralta, Leonardo",Aquaclub Maipu,1,43,1983,"37,33",37330,"37,95",37950,valid,5
+men 40-44 50 SC Meter backstroke,"Castilla, Emiliano",Andes Talleres,2,43,1983,"39,00",39000,"38,96",38960,valid,5
+men 40-44 50 SC Meter backstroke,"Azevedo, Marcio",Club Sparta A.C.,3,44,1982,"38,25",38250,"39,86",39860,valid,5
+men 40-44 50 SC Meter backstroke,"Munñoz, Carlos",Club Dep Master Magallanes,4,42,1984,"41,00",41000,"45,41",45410,valid,5
+men 40-44 50 SC Meter backstroke,"Romero, Christian",NÑ unñoa Master,,42,1984,"48,40",48400,DNF,,dnf,5
+men 45-49 50 SC Meter backstroke,"Camargo, Pablo Sergio",Aquaclub Maipu,1,46,1980,"42,06",42060,"42,27",42270,valid,5
+men 45-49 50 SC Meter backstroke,"Roman, Nestor M",Club Sparta A.C.,2,47,1979,"43,57",43570,"45,41",45410,valid,5
+men 45-49 50 SC Meter backstroke,"Catelino, Daniel",Andes Talleres,3,49,1977,"44,00",44000,"46,56",46560,valid,5
+men 45-49 50 SC Meter backstroke,"Soria, Gabriel",Master Providencia Chile,4,47,1979,"1:06,96",66960,"1:04,78",64780,valid,5
+men 50-54 50 SC Meter backstroke,"Boreto, Federico",Andes Talleres,1,50,1976,"36,00",36000,"36,29",36290,valid,5
+men 50-54 50 SC Meter backstroke,"Catalan, Marcelo",Master Providencia Chile,2,52,1974,"41,00",41000,"40,26",40260,valid,5
+men 50-54 50 SC Meter backstroke,"Sosa, Carlos",Aquaclub Maipu,3,50,1976,"51,91",51910,"52,58",52580,valid,5
+men 50-54 50 SC Meter backstroke,"Romo, Fabri",Club Azul Natacion Mendoza,4,52,1974,"55,38",55380,"1:00,40",60400,valid,5
+men 50-54 50 SC Meter backstroke,"Medina, Carlos",Master Providencia Chile,5,53,1973,"1:30,00",90000,"1:19,89",79890,valid,5
+men 55-59 50 SC Meter backstroke,"Smith, Carlos",Master Providencia Chile,1,58,1968,"44,00",44000,"42,78",42780,valid,5
+men 55-59 50 SC Meter backstroke,"Figueroa, Miguel",Club Azul Natacion Mendoza,2,59,1967,"52,13",52130,"54,54",54540,valid,5
+men 60-64 50 SC Meter backstroke,"Vargas, Jose Luis",Golden,1,60,1966,"1:10,00",70000,"1:02,02",62020,valid,5
+men 65-69 50 SC Meter backstroke,"Domina, Ricardo",Club Sparta A.C.,1,67,1959,"40,85",40850,"44,29",44290,valid,5
+men 65-69 50 SC Meter backstroke,"Lucero, Carlos A",Area Club San Luis,2,66,1960,"48,56",48560,"51,66",51660,valid,5
+men 65-69 50 SC Meter backstroke,"Cabello Tilleríía, Andre ís",Penñalolen Master,3,69,1957,"1:10,00",70000,"56,01",56010,valid,5
+men 65-69 50 SC Meter backstroke,"Cabello, Jorge",Penñalolen Master,4,68,1958,"1:20,00",80000,"1:03,72",63720,valid,5
+men 65-69 50 SC Meter backstroke,"Moreno, Luis",NÑ unñoa Master,5,68,1958,"1:15,10",75100,"1:08,67",68670,valid,5
+men 70-74 50 SC Meter backstroke,"Alvarez, Ricardo",NÑ unñoa Master,1,73,1953,"1:34,90",94900,"1:24,45",84450,valid,5
+men 75-79 50 SC Meter backstroke,"Guadalupe, Jaime",Master Providencia Chile,1,77,1949,"59,19",59190,"1:02,54",62540,valid,5
+men 75-79 50 SC Meter backstroke,"Huerta, Oscar",Penñalolen Master,2,75,1951,"2:00,00",120000,"1:40,66",100660,valid,5
+men 80-84 50 SC Meter backstroke,"Andrada, Alfredo",Penñalolen Master,1,81,1945,"2:00,00",120000,"1:15,70",75700,valid,5
+women 19 & Under 100 SC Meter breaststroke,"Trabazo, Guadalupe",Andes Talleres,1,19,2007,"1:30,32",90320,"1:23,67",83670,valid,5
+women 19 & Under 100 SC Meter breaststroke,"Lacerna, Guadalupe",Andes Talleres,2,18,2008,"1:34,37",94370,"1:35,40",95400,valid,5
+women 20-24 100 SC Meter breaststroke,"Muchut Moyano, Rocíío Alumine í",Club Sparta A.C.,1,24,2002,"1:40,21",100210,"1:34,90",94900,valid,5
+women 20-24 100 SC Meter breaststroke,"Guinñazu, Selene",Aquaclub Maipu,2,20,2006,"1:39,98",99980,"1:42,95",102950,valid,5
+women 20-24 100 SC Meter breaststroke,"Gavilucci, Valentina",Club Sparta A.C.,3,24,2002,"2:03,56",123560,"2:15,48",135480,valid,5
+women 25-29 100 SC Meter breaststroke,"Mellado, Ana Laura",Aquaclub Maipu,1,25,2001,"1:34,89",94890,"1:30,03",90030,valid,5
+women 25-29 100 SC Meter breaststroke,"Dave, Gisela",Aquaclub Maipu,2,28,1998,"1:40,36",100360,"1:36,91",96910,valid,5
+women 25-29 100 SC Meter breaststroke,"Gargantini, Agostina",Club Sparta A.C.,3,25,2001,"1:50,39",110390,"1:51,44",111440,valid,5
+women 25-29 100 SC Meter breaststroke,"Faríías, Tiare",Pedro Aguirre Cerda,4,27,1999,"2:01,20",121200,"1:52,14",112140,valid,5
+women 25-29 100 SC Meter breaststroke,"Herrera, Amparo",Club Sparta A.C.,5,29,1997,"1:56,12",116120,"1:54,14",114140,valid,5
+women 25-29 100 SC Meter breaststroke,"Aguilera, Ayelen",Club Azul Natacion Mendoza,6,27,1999,"2:31,97",151970,"2:04,00",124000,valid,5
+women 30-34 100 SC Meter breaststroke,"Badui, Nahir",Club Sparta A.C.,1,31,1995,"1:44,55",104550,"1:40,38",100380,valid,5
+women 30-34 100 SC Meter breaststroke,"Sanchez, Johana",Aquaclub Maipu,2,31,1995,"1:44,92",104920,"1:45,02",105020,valid,5
+women 30-34 100 SC Meter breaststroke,"Chavez, Roxana",Club Sparta A.C.,3,34,1992,"2:01,24",121240,"1:48,63",108630,valid,5
+women 30-34 100 SC Meter breaststroke,"Alvarez, Samanta",Club Sparta A.C.,4,30,1996,"1:57,10",117100,"1:51,81",111810,valid,5
+women 30-34 100 SC Meter breaststroke,"Garin, Emilia",Club Sparta A.C.,5,34,1992,"1:45,21",105210,"1:53,94",113940,valid,5
+women 30-34 100 SC Meter breaststroke,"Osuna, Daiana Esther",Agua Plena San Rafael,6,33,1993,"2:30,00",150000,"2:02,99",122990,valid,5
+women 30-34 100 SC Meter breaststroke,"Delpozzi, Julieta",Agua Plena San Rafael,7,31,1995,"2:25,00",145000,"2:19,39",139390,valid,5
+women 35-39 100 SC Meter breaststroke,"Radivoy, Maria E",Andes Talleres,1,39,1987,"1:42,00",102000,"1:42,95",102950,valid,5
+women 35-39 100 SC Meter breaststroke,"Fravega, Julieta",Club Sparta A.C.,2,39,1987,"1:56,53",116530,"1:51,25",111250,valid,5
+women 35-39 100 SC Meter breaststroke,"Ortubia, Natalia",Club Sparta A.C.,3,38,1988,"2:15,03",135030,"2:07,17",127170,valid,5
+women 35-39 100 SC Meter breaststroke,"Diaz, Mariana",Club Sparta A.C.,4,38,1988,"2:15,41",135410,"2:13,02",133020,valid,5
+women 40-44 100 SC Meter breaststroke,"Cabeza, Maria Belen",Andes Talleres,1,40,1986,"1:32,00",92000,"1:32,88",92880,valid,5
+women 40-44 100 SC Meter breaststroke,"Bisson, Natali",Andes Talleres,2,40,1986,"1:50,87",110870,"1:47,82",107820,valid,5
+women 40-44 100 SC Meter breaststroke,"Natalia, Silva",Agua Plena San Rafael,3,41,1985,"2:22,00",142000,"2:04,10",124100,valid,5
+women 40-44 100 SC Meter breaststroke,"Cosas, Florencia",Club Sparta A.C.,4,44,1982,"2:15,32",135320,"2:18,73",138730,valid,5
+women 40-44 100 SC Meter breaststroke,"Carmona, Maria Angeles",Club DE Natacion Atlantis,5,44,1982,"2:40,00",160000,"2:32,73",152730,valid,5
+women 45-49 100 SC Meter breaststroke,"Arriola, Silvia",Aquaclub Maipu,1,45,1981,"1:24,03",84030,"1:27,92",87920,valid,5
+women 45-49 100 SC Meter breaststroke,"Guadalupe, Cynthia",Master Providencia Chile,2,45,1981,"1:42,00",102000,"1:44,57",104570,valid,5
+women 45-49 100 SC Meter breaststroke,"Gauna, Noe",Club Azul Natacion Mendoza,3,45,1981,"2:31,87",151870,"2:32,42",152420,valid,5
+women 50-54 100 SC Meter breaststroke,"Tapia, Julieta",Master Providencia Chile,1,51,1975,"2:15,00",135000,"2:02,51",122510,valid,5
+women 55-59 100 SC Meter breaststroke,"Dable, Marie Claire",Master Providencia Chile,1,57,1969,"1:59,64",119640,"2:03,45",123450,valid,5
+women 60-64 100 SC Meter breaststroke,"DI Paola, Laura",Club Sparta A.C.,1,61,1965,"2:09,46",129460,"2:08,91",128910,valid,5
+women 60-64 100 SC Meter breaststroke,"Acencio, Claudia",Master Providencia Chile,2,63,1963,"2:05,53",125530,"2:08,99",128990,valid,5
+women 60-64 100 SC Meter breaststroke,"Richardi, Marisa",Andes Talleres,3,64,1962,"2:42,95",162950,"3:06,15",186150,valid,5
+women 70-74 100 SC Meter breaststroke,"Barrasa, Silvia",Andes Talleres,1,70,1956,"3:00,00",180000,"3:07,01",187010,valid,5
+women 75-79 100 SC Meter breaststroke,"Nunñez, Elizabeth",Master Providencia Chile,1,77,1949,"2:45,99",165990,"2:54,84",174840,valid,5
+men 19 & Under 100 SC Meter breaststroke,"Gonzalez, Nicolas Agustíín",Andes Talleres,1,19,2007,"1:24,00",84000,"1:22,85",82850,valid,5
+men 20-24 100 SC Meter breaststroke,"Gonzalez, Franco",Andes Talleres,1,23,2003,"1:18,30",78300,"1:20,96",80960,valid,5
+men 20-24 100 SC Meter breaststroke,"Flores, Joseí Luis",Pedro Aguirre Cerda,2,20,2006,"1:35,50",95500,"1:30,35",90350,valid,5
+men 20-24 100 SC Meter breaststroke,"Caro, Martíín",Pedro Aguirre Cerda,3,20,2006,"1:34,00",94000,"1:33,18",93180,valid,5
+men 20-24 100 SC Meter breaststroke,"Zapata Esquivel, Tomas Benjamin F.",Aquaclub Maipu,4,24,2002,"1:36,47",96470,"1:33,72",93720,valid,5
+men 20-24 100 SC Meter breaststroke,"Chacoín, Manuel",Club Sparta A.C.,5,20,2006,"1:33,80",93800,"1:40,80",100800,valid,5
+men 20-24 100 SC Meter breaststroke,"Moron, Martin",Club Azul Natacion Mendoza,6,22,2004,"1:46,19",106190,"1:51,99",111990,valid,5
+men 20-24 100 SC Meter breaststroke,"Trilla, Ignacio",Club Azul Natacion Mendoza,,21,2005,"1:40,00",100000,DNF,,dnf,5
+men 25-29 100 SC Meter breaststroke,"Vollmer, Matias A",Andes Talleres,1,28,1998,"1:21,18",81180,"1:18,77",78770,valid,5
+men 25-29 100 SC Meter breaststroke,"Moreno, Julian",Aquaclub Maipu,2,29,1997,"1:22,31",82310,"1:20,72",80720,valid,5
+men 25-29 100 SC Meter breaststroke,"Talfiti, Facundo",Aquaclub Maipu,3,28,1998,"1:32,28",92280,"1:31,27",91270,valid,5
+men 25-29 100 SC Meter breaststroke,"Rodriguez, Santi",Club Azul Natacion Mendoza,4,27,1999,"1:33,60",93600,"1:32,55",92550,valid,5
+men 25-29 100 SC Meter breaststroke,"Robledo, Mariano",Club Sparta A.C.,5,26,2000,"1:47,65",107650,"1:35,73",95730,valid,5
+men 25-29 100 SC Meter breaststroke,"Scandolera, Lucas",Agua Plena San Rafael,6,26,2000,"2:12,00",132000,"1:37,39",97390,valid,5
+men 25-29 100 SC Meter breaststroke,"Ortega, Luciano",Aquaclub Maipu,7,28,1998,"1:37,00",97000,"1:38,14",98140,valid,5
+men 25-29 100 SC Meter breaststroke,"Ros, Matias",Aquaclub Maipu,8,29,1997,"1:45,43",105430,"1:38,24",98240,valid,5
+men 25-29 100 SC Meter breaststroke,"Magallanes, Enzo",Aquaclub Maipu,9,29,1997,"1:36,13",96130,"1:39,80",99800,valid,5
+men 30-34 100 SC Meter breaststroke,"Cantoro, Sergio",Aquaclub Maipu,1,33,1993,"1:23,29",83290,"1:23,86",83860,valid,5
+men 30-34 100 SC Meter breaststroke,"Becerra A., Martíín",Pedro Aguirre Cerda,2,30,1996,"1:37,20",97200,"1:30,41",90410,valid,5
+men 30-34 100 SC Meter breaststroke,"Mallea, Abdo",Club Sparta A.C.,3,33,1993,NT,,"1:34,21",94210,valid,5
+men 30-34 100 SC Meter breaststroke,"Morales, Jesus",Club Sparta A.C.,4,33,1993,"1:48,21",108210,"1:39,45",99450,valid,5
+men 30-34 100 SC Meter breaststroke,"Bront, Matias",Club Sparta A.C.,5,31,1995,"1:45,09",105090,"1:40,01",100010,valid,5
+men 30-34 100 SC Meter breaststroke,"Barrera, Diego",Club Azul Natacion Mendoza,6,32,1994,"1:46,20",106200,"1:53,32",113320,valid,5
+men 30-34 100 SC Meter breaststroke,"Lelio, Leandro",Club Sparta A.C.,7,30,1996,"1:58,66",118660,"1:53,38",113380,valid,5
+men 30-34 100 SC Meter breaststroke,"Romero, Gonzalo",Club Sparta A.C.,8,33,1993,"2:04,21",124210,"2:06,37",126370,valid,5
+men 35-39 100 SC Meter breaststroke,"Barreto, Yuhneyber",Pedro Aguirre Cerda,1,39,1987,"2:30,00",150000,"1:41,52",101520,valid,5
+men 35-39 100 SC Meter breaststroke,"Aguilera, Juan Carlos",Master Providencia Chile,2,37,1989,"1:53,89",113890,"1:44,10",104100,valid,5
+men 35-39 100 SC Meter breaststroke,"Yanzon, Matias",Club Sparta A.C.,3,39,1987,"2:01,09",121090,"1:55,26",115260,valid,5
+men 35-39 100 SC Meter breaststroke,"Nievas, Emmanuel",Club Sparta A.C.,,35,1991,"2:04,21",124210,DNF,,dnf,5
+men 40-44 100 SC Meter breaststroke,"Calvet, Miguel",Andes Talleres,1,43,1983,"1:30,43",90430,"1:28,77",88770,valid,5
+men 40-44 100 SC Meter breaststroke,"Maron, Horacio",Club Sparta A.C.,2,44,1982,"1:42,72",102720,"1:37,93",97930,valid,5
+men 40-44 100 SC Meter breaststroke,"Maza, Carlos",Club Sparta A.C.,3,40,1986,"1:33,58",93580,"1:39,23",99230,valid,5
+men 40-44 100 SC Meter breaststroke,"Martin, Leonardo",Andes Talleres,4,44,1982,"1:45,00",105000,"1:40,90",100900,valid,5
+men 40-44 100 SC Meter breaststroke,"Romero, Christian",NÑ unñoa Master,,42,1984,"1:38,80",98800,DNF,,dnf,5
+men 45-49 100 SC Meter breaststroke,"Profili, Osvaldo L",Club Sparta A.C.,1,47,1979,"1:49,23",109230,"1:43,73",103730,valid,5
+men 45-49 100 SC Meter breaststroke,"Camargo, Pablo Sergio",Aquaclub Maipu,2,46,1980,"2:02,98",122980,"1:59,46",119460,valid,5
+men 45-49 100 SC Meter breaststroke,"Soria, Gabriel",Master Providencia Chile,3,47,1979,"2:19,20",139200,"2:07,68",127680,valid,5
+men 50-54 100 SC Meter breaststroke,"Henrííquez, Pablo",Andes Talleres,1,54,1972,"1:40,00",100000,"1:43,87",103870,valid,5
+men 50-54 100 SC Meter breaststroke,"Cabrera, Hernan",Club Sparta A.C.,2,53,1973,"2:01,47",121470,"1:48,78",108780,valid,5
+men 50-54 100 SC Meter breaststroke,"Romo, Fabri",Club Azul Natacion Mendoza,3,52,1974,"2:05,00",125000,"1:56,08",116080,valid,5
+men 55-59 100 SC Meter breaststroke,"Smith, Carlos",Master Providencia Chile,1,58,1968,"1:40,00",100000,"1:36,09",96090,valid,5
+men 55-59 100 SC Meter breaststroke,"Perissa, Alejandro",Andes Talleres,2,58,1968,"1:39,66",99660,"1:36,40",96400,valid,5
+men 55-59 100 SC Meter breaststroke,"Velazquez, Orlando",Aquaclub Maipu,3,56,1970,"2:57,57",177570,"2:53,23",173230,valid,5
+men 60-64 100 SC Meter breaststroke,"Pavoni, Ricardo O",Andes Talleres,1,63,1963,"1:37,12",97120,"1:36,93",96930,valid,5
+men 60-64 100 SC Meter breaststroke,"Vargas, Jose Luis",Golden,2,60,1966,"2:30,00",150000,"2:30,23",150230,valid,5
+men 65-69 100 SC Meter breaststroke,"Cabello Tilleríía, Andre ís",Penñalolen Master,1,69,1957,"1:55,00",115000,"2:00,56",120560,valid,5
+men 65-69 100 SC Meter breaststroke,"Moreno, Luis",NÑ unñoa Master,2,68,1958,"3:45,30",225300,"2:47,97",167970,valid,5
+men 75-79 100 SC Meter breaststroke,"Guadalupe, Jaime",Master Providencia Chile,1,77,1949,"2:08,76",128760,"2:11,87",131870,valid,5
+men 75-79 100 SC Meter breaststroke,"Huerta, Oscar",Penñalolen Master,2,75,1951,"4:00,00",240000,"4:13,91",253910,valid,5
+women 19 & Under 50 SC Meter freestyle,"Trabazo, Guadalupe",Andes Talleres,1,19,2007,"33,50",33500,"31,66",31660,valid,5
+women 19 & Under 50 SC Meter freestyle,"Chertcoff, Victoria",Agua Plena San Rafael,2,18,2008,"38,00",38000,"33,28",33280,valid,5
+women 19 & Under 50 SC Meter freestyle,"Lacerna, Guadalupe",Andes Talleres,3,18,2008,"33,30",33300,"33,96",33960,valid,5
+women 20-24 50 SC Meter freestyle,"Vidal, Pierina",Club Sparta A.C.,1,21,2005,"34,52",34520,"35,13",35130,valid,5
+women 20-24 50 SC Meter freestyle,"Gavilucci, Valentina",Club Sparta A.C.,2,24,2002,"39,21",39210,"36,36",36360,valid,5
+women 20-24 50 SC Meter freestyle,"Guinñazu, Selene",Aquaclub Maipu,3,20,2006,"35,01",35010,"36,54",36540,valid,5
+women 25-29 50 SC Meter freestyle,"Pavio Civit, Natalia",Club Sparta A.C.,1,26,2000,"31,33",31330,"31,21",31210,valid,5
+women 25-29 50 SC Meter freestyle,"Castro A, Paula A",Pedro Aguirre Cerda,2,26,2000,"43,00",43000,"32,01",32010,valid,5
+women 25-29 50 SC Meter freestyle,"Mellado, Ana Laura",Aquaclub Maipu,3,25,2001,"30,45",30450,"32,03",32030,valid,5
+women 25-29 50 SC Meter freestyle,"Arce, Aisha",Club Sparta A.C.,4,28,1998,"36,12",36120,"35,78",35780,valid,5
+women 25-29 50 SC Meter freestyle,"Gargantini, Agostina",Club Sparta A.C.,5,25,2001,"38,05",38050,"37,12",37120,valid,5
+women 25-29 50 SC Meter freestyle,"Galetto, Ornella",Club Sparta A.C.,6,26,2000,"40,59",40590,"39,76",39760,valid,5
+women 25-29 50 SC Meter freestyle,"Aguilera, Ayelen",Club Azul Natacion Mendoza,7,27,1999,"48,39",48390,"43,67",43670,valid,5
+women 25-29 50 SC Meter freestyle,"Funes, Carolina",Club Sparta A.C.,8,25,2001,"47,74",47740,"43,92",43920,valid,5
+women 25-29 50 SC Meter freestyle,"Escudero, Ailen",Club Sparta A.C.,9,28,1998,"1:01,23",61230,"46,54",46540,valid,5
+women 25-29 50 SC Meter freestyle,"Faríías, Tiare",Pedro Aguirre Cerda,10,27,1999,"43,70",43700,"46,70",46700,valid,5
+women 25-29 50 SC Meter freestyle,"Herrera, Amparo",Club Sparta A.C.,11,29,1997,"42,12",42120,"47,26",47260,valid,5
+women 30-34 50 SC Meter freestyle,"Monassa, Emeli",Club Sparta A.C.,1,34,1992,"31,62",31620,"32,41",32410,valid,5
+women 30-34 50 SC Meter freestyle,"Mauad, Yamile",Club Sparta A.C.,2,30,1996,"35,79",35790,"34,34",34340,valid,5
+women 30-34 50 SC Meter freestyle,"Badui, Nahir",Club Sparta A.C.,3,31,1995,"35,13",35130,"35,02",35020,valid,5
+women 30-34 50 SC Meter freestyle,"Garin, Emilia",Club Sparta A.C.,4,34,1992,"37,77",37770,"36,74",36740,valid,5
+women 30-34 50 SC Meter freestyle,"Zapata, Rocio Nicole",Club DE Natacion Atlantis,5,31,1995,"37,94",37940,"37,52",37520,valid,5
+women 30-34 50 SC Meter freestyle,"Loípez, Diane",Pedro Aguirre Cerda,6,30,1996,"36,20",36200,"38,32",38320,valid,5
+women 30-34 50 SC Meter freestyle,"Sanchez, Johana",Aquaclub Maipu,7,31,1995,"37,90",37900,"40,01",40010,valid,5
+women 30-34 50 SC Meter freestyle,"Chavez, Roxana",Club Sparta A.C.,8,34,1992,"47,39",47390,"40,02",40020,valid,5
+women 30-34 50 SC Meter freestyle,"Alvarez, Samanta",Club Sparta A.C.,9,30,1996,"40,83",40830,"40,04",40040,valid,5
+women 30-34 50 SC Meter freestyle,"Arancibia, Virginia",Club Sparta A.C.,10,31,1995,"44,12",44120,"44,04",44040,valid,5
+women 30-34 50 SC Meter freestyle,"Delpozzi, Julieta",Agua Plena San Rafael,11,31,1995,"47,00",47000,"45,30",45300,valid,5
+women 30-34 50 SC Meter freestyle,"Revello, Michelle",Pedro Aguirre Cerda,12,31,1995,"47,50",47500,"47,68",47680,valid,5
+women 30-34 50 SC Meter freestyle,"Osuna, Daiana Esther",Agua Plena San Rafael,13,33,1993,"47,00",47000,"48,97",48970,valid,5
+women 35-39 50 SC Meter freestyle,"Martin, Anita",Andes Talleres,1,38,1988,"35,12",35120,"35,59",35590,valid,5
+women 35-39 50 SC Meter freestyle,"Radivoy, Maria E",Andes Talleres,2,39,1987,"37,00",37000,"35,69",35690,valid,5
+women 35-39 50 SC Meter freestyle,"Fravega, Julieta",Club Sparta A.C.,3,39,1987,"45,63",45630,"45,25",45250,valid,5
+women 35-39 50 SC Meter freestyle,"Cabello, Romina",Club DE Natacion Atlantis,4,36,1990,"51,39",51390,"49,72",49720,valid,5
+women 35-39 50 SC Meter freestyle,"Ortubia, Natalia",Club Sparta A.C.,5,38,1988,"49,45",49450,"50,84",50840,valid,5
+women 35-39 50 SC Meter freestyle,"Diaz, Mariana",Club Sparta A.C.,6,38,1988,"57,11",57110,"51,86",51860,valid,5
+women 40-44 50 SC Meter freestyle,"Rodriguez, Diana",NÑ unñoa Master,1,41,1985,"38,00",38000,"35,85",35850,valid,5
+women 40-44 50 SC Meter freestyle,"Espinosa, Analia L",Club DE Natacion Atlantis,2,41,1985,"38,89",38890,"38,28",38280,valid,5
+women 40-44 50 SC Meter freestyle,"Natalia, Silva",Agua Plena San Rafael,3,41,1985,"47,00",47000,"43,27",43270,valid,5
+women 40-44 50 SC Meter freestyle,"Carmona, Maria Angeles",Club DE Natacion Atlantis,4,44,1982,"53,64",53640,"51,40",51400,valid,5
+women 40-44 50 SC Meter freestyle,"Cosas, Florencia",Club Sparta A.C.,5,44,1982,"59,12",59120,"51,44",51440,valid,5
+women 40-44 50 SC Meter freestyle,"Soria, Silvia",Club Sparta A.C.,6,43,1983,"58,14",58140,"57,24",57240,valid,5
+women 45-49 50 SC Meter freestyle,"Arriola, Silvia",Aquaclub Maipu,1,45,1981,"32,45",32450,"38,72",38720,valid,5
+women 45-49 50 SC Meter freestyle,"Gestoso Fraga, Maria Soledad",Andes Talleres,2,46,1980,"40,86",40860,"39,93",39930,valid,5
+women 45-49 50 SC Meter freestyle,"Guadalupe, Cynthia",Master Providencia Chile,3,45,1981,"37,50",37500,"41,11",41110,valid,5
+women 45-49 50 SC Meter freestyle,"Gonzalez, Maria",Club Sparta A.C.,4,47,1979,"43,11",43110,"43,22",43220,valid,5
+women 45-49 50 SC Meter freestyle,"Gauna, Noe",Club Azul Natacion Mendoza,5,45,1981,"50,00",50000,"48,97",48970,valid,5
+women 55-59 50 SC Meter freestyle,"Dable, Marie Claire",Master Providencia Chile,1,57,1969,"40,81",40810,"40,48",40480,valid,5
+women 55-59 50 SC Meter freestyle,"Amaro, Maria",Pedro Aguirre Cerda,2,56,1970,"58,00",58000,"53,97",53970,valid,5
+women 55-59 50 SC Meter freestyle,"Figueroa, Angela",Club Sparta A.C.,3,58,1968,"1:36,22",96220,"1:30,67",90670,valid,5
+women 60-64 50 SC Meter freestyle,"Moyano, Claudia",Club Sparta A.C.,1,60,1966,"35,95",35950,"35,05",35050,valid,5
+women 60-64 50 SC Meter freestyle,"Case, Cynthia",Master Providencia Chile,2,64,1962,"35,50",35500,"35,75",35750,valid,5
+women 60-64 50 SC Meter freestyle,"Acencio, Claudia",Master Providencia Chile,3,63,1963,"41,56",41560,"42,81",42810,valid,5
+women 60-64 50 SC Meter freestyle,"DI Paola, Laura",Club Sparta A.C.,4,61,1965,"50,02",50020,"50,35",50350,valid,5
+women 60-64 50 SC Meter freestyle,"Reyes L, Ma Irene",Pedro Aguirre Cerda,5,62,1964,"58,00",58000,"51,47",51470,valid,5
+women 60-64 50 SC Meter freestyle,"Lopez, Elena",Club Sparta A.C.,6,64,1962,"1:04,34",64340,"1:01,87",61870,valid,5
+women 60-64 50 SC Meter freestyle,"Nader, Patricia",Club Sparta A.C.,7,61,1965,"1:15,21",75210,"1:06,11",66110,valid,5
+women 65-69 50 SC Meter freestyle,"Concha, Elizabeth",NÑ unñoa Master,,68,1958,"57,00",57000,DNF,,dnf,5
+women 70-74 50 SC Meter freestyle,"Obredor, Rosa",Aquaclub Maipu,1,74,1952,"53,19",53190,"58,79",58790,valid,5
+women 70-74 50 SC Meter freestyle,"Barrasa, Silvia",Andes Talleres,2,70,1956,"1:00,00",60000,"1:01,67",61670,valid,5
+women 70-74 50 SC Meter freestyle,"Ruiz, Alicia",Andes Talleres,3,70,1956,"1:01,23",61230,"1:01,82",61820,valid,5
+women 70-74 50 SC Meter freestyle,"Lusso, Berta",Andes Talleres,4,73,1953,"1:21,79",81790,"1:22,59",82590,valid,5
+women 75-79 50 SC Meter freestyle,"Nunñez, Elizabeth",Master Providencia Chile,1,77,1949,"52,84",52840,"55,51",55510,valid,5
+women 90-94 50 SC Meter freestyle,"Bush, Eliana",Delfines DE Las Condes,1,92,1934,NT,,"1:00,39",60390,valid,5
+men 19 & Under 50 SC Meter freestyle,"Benegas, Laureano",Andes Talleres,1,17,2009,"27,01",27010,"27,42",27420,valid,5
+men 19 & Under 50 SC Meter freestyle,"Rodriguez, Joaquin",Agua Plena San Rafael,2,19,2007,"37,00",37000,"33,73",33730,valid,5
+men 20-24 50 SC Meter freestyle,"Galetto, Valentino",Club Sparta A.C.,1,22,2004,"27,35",27350,"27,44",27440,valid,5
+men 20-24 50 SC Meter freestyle,"Gimenez DE Michilis, Tobias",Club Sparta A.C.,2,24,2002,"29,05",29050,"29,26",29260,valid,5
+men 20-24 50 SC Meter freestyle,"Gonzalez, Franco",Andes Talleres,3,23,2003,"31,00",31000,"32,13",32130,valid,5
+men 20-24 50 SC Meter freestyle,"Flores, Joseí Luis",Pedro Aguirre Cerda,4,20,2006,"29,99",29990,"32,41",32410,valid,5
+men 20-24 50 SC Meter freestyle,"Martinez, Julio",Andes Talleres,5,21,2005,"34,55",34550,"33,30",33300,valid,5
+men 20-24 50 SC Meter freestyle,"Zapata Esquivel, Tomas Benjamin F.",Aquaclub Maipu,6,24,2002,"32,62",32620,"33,44",33440,valid,5
+men 20-24 50 SC Meter freestyle,"Caro, Martíín",Pedro Aguirre Cerda,7,20,2006,"34,10",34100,"34,08",34080,valid,5
+men 20-24 50 SC Meter freestyle,"Moron, Martin",Club Azul Natacion Mendoza,8,22,2004,"36,93",36930,"35,32",35320,valid,5
+men 20-24 50 SC Meter freestyle,"Chacoín, Manuel",Club Sparta A.C.,9,20,2006,"35,65",35650,"36,46",36460,valid,5
+men 20-24 50 SC Meter freestyle,"Trilla, Ignacio",Club Azul Natacion Mendoza,,21,2005,"32,77",32770,DNF,,dnf,5
+men 25-29 50 SC Meter freestyle,"Vollmer, Matias A",Andes Talleres,1,28,1998,"27,08",27080,"27,43",27430,valid,5
+men 25-29 50 SC Meter freestyle,"Ferro, Bruno A",Club Sparta A.C.,2,26,2000,"28,61",28610,"28,53",28530,valid,5
+men 25-29 50 SC Meter freestyle,"Gonzalez, Daniel",NÑ unñoa Master,3,27,1999,"30,00",30000,"28,55",28550,valid,5
+men 25-29 50 SC Meter freestyle,"Ledda, Augusto",Club Sparta A.C.,4,26,2000,"27,49",27490,"28,89",28890,valid,5
+men 25-29 50 SC Meter freestyle,"Caro P, Cristoíbal Fdo",Pedro Aguirre Cerda,5,26,2000,"28,80",28800,"29,11",29110,valid,5
+men 25-29 50 SC Meter freestyle,"Rodriguez, Santi",Club Azul Natacion Mendoza,6,27,1999,"29,30",29300,"30,44",30440,valid,5
+men 25-29 50 SC Meter freestyle,"Scandolera, Lucas",Agua Plena San Rafael,7,26,2000,"36,00",36000,"31,00",31000,valid,5
+men 25-29 50 SC Meter freestyle,"Ventura, Marcos",Club Sparta A.C.,8,27,1999,"31,38",31380,"31,16",31160,valid,5
+men 25-29 50 SC Meter freestyle,"Bolanños, Kleiber",Pedro Aguirre Cerda,9,29,1997,"36,50",36500,"31,97",31970,valid,5
+men 25-29 50 SC Meter freestyle,"Meneses, Felipe",Pedro Aguirre Cerda,10,27,1999,"32,10",32100,"32,15",32150,valid,5
+men 25-29 50 SC Meter freestyle,"Perez, Maximiliano",Agua Plena San Rafael,11,28,1998,"37,00",37000,"32,83",32830,valid,5
+men 25-29 50 SC Meter freestyle,"Talfiti, Facundo",Aquaclub Maipu,12,28,1998,"31,16",31160,"33,01",33010,valid,5
+men 25-29 50 SC Meter freestyle,"Bustos Bastias, Brian Gabriel",Club Sparta A.C.,13,28,1998,"35,28",35280,"33,49",33490,valid,5
+men 25-29 50 SC Meter freestyle,"Ortega, Luciano",Aquaclub Maipu,14,28,1998,"32,20",32200,"35,02",35020,valid,5
+men 25-29 50 SC Meter freestyle,"Magallanes, Enzo",Aquaclub Maipu,15,29,1997,"34,36",34360,"35,39",35390,valid,5
+men 25-29 50 SC Meter freestyle,"Ros, Matias",Aquaclub Maipu,16,29,1997,"37,85",37850,"37,23",37230,valid,5
+men 25-29 50 SC Meter freestyle,"Robledo, Mariano",Club Sparta A.C.,,26,2000,"37,21",37210,DNF,,dnf,5
+men 30-34 50 SC Meter freestyle,"Parra SM, Nicolaís",Pedro Aguirre Cerda,1,31,1995,"28,20",28200,"27,69",27690,valid,5
+men 30-34 50 SC Meter freestyle,"Mugnani Valero, Luciano",Andes Talleres,2,32,1994,"29,00",29000,"28,63",28630,valid,5
+men 30-34 50 SC Meter freestyle,"Mallea, Abdo",Club Sparta A.C.,3,33,1993,"28,57",28570,"28,71",28710,valid,5
+men 30-34 50 SC Meter freestyle,"Becerra A., Martíín",Pedro Aguirre Cerda,4,30,1996,"30,08",30080,"29,51",29510,valid,5
+men 30-34 50 SC Meter freestyle,"Ortega, Atilio",Club Sparta A.C.,5,32,1994,"30,78",30780,"30,15",30150,valid,5
+men 30-34 50 SC Meter freestyle,"Castro, Alexis",Master Providencia Chile,6,34,1992,"30,55",30550,"31,16",31160,valid,5
+men 30-34 50 SC Meter freestyle,"Cantoro, Sergio",Aquaclub Maipu,6,33,1993,"29,14",29140,"31,16",31160,valid,5
+men 30-34 50 SC Meter freestyle,"Ventura, Maxi",Club Azul Natacion Mendoza,8,32,1994,"32,76",32760,"32,47",32470,valid,5
+men 30-34 50 SC Meter freestyle,"Barrera, Diego",Club Azul Natacion Mendoza,9,32,1994,"37,00",37000,"33,01",33010,valid,5
+men 30-34 50 SC Meter freestyle,"Alcaraz, Matias",Club Sparta A.C.,10,33,1993,"35,59",35590,"33,59",33590,valid,5
+men 30-34 50 SC Meter freestyle,"Bront, Matias",Club Sparta A.C.,11,31,1995,"35,12",35120,"34,06",34060,valid,5
+men 30-34 50 SC Meter freestyle,"Morales, Jesus",Club Sparta A.C.,12,33,1993,"34,52",34520,"34,36",34360,valid,5
+men 30-34 50 SC Meter freestyle,"Lelio, Leandro",Club Sparta A.C.,13,30,1996,"45,21",45210,"35,20",35200,valid,5
+men 30-34 50 SC Meter freestyle,"Romero, Gonzalo",Club Sparta A.C.,14,33,1993,"38,21",38210,"37,13",37130,valid,5
+men 30-34 50 SC Meter freestyle,"Degiorgi, Emiliano",Club Sparta A.C.,15,34,1992,"39,33",39330,"38,22",38220,valid,5
+men 30-34 50 SC Meter freestyle,"Magnenat, Javier",Agua Plena San Rafael,,34,1992,"37,00",37000,DNF,,dnf,5
+men 30-34 50 SC Meter freestyle,"Maldonado, Nicolas",Agua Plena San Rafael,,31,1995,"54,00",54000,DNF,,dnf,5
+men 35-39 50 SC Meter freestyle,"Alchapar, Oscar Alejandro",Club Sparta A.C.,1,35,1991,"27,76",27760,"28,66",28660,valid,5
+men 35-39 50 SC Meter freestyle,"Celaya, Ariel",Aquaclub Maipu,2,36,1990,"28,56",28560,"29,65",29650,valid,5
+men 35-39 50 SC Meter freestyle,"Castro, Javier",Club Sparta A.C.,3,35,1991,"29,96",29960,"30,30",30300,valid,5
+men 35-39 50 SC Meter freestyle,"Mansilla, Juan",Club Sparta A.C.,4,35,1991,"29,53",29530,"30,42",30420,valid,5
+men 35-39 50 SC Meter freestyle,"Rubin, Fernando",Club DE Natacion Atlantis,5,39,1987,"31,20",31200,"31,66",31660,valid,5
+men 35-39 50 SC Meter freestyle,"Yanzon, Matias",Club Sparta A.C.,6,39,1987,"35,48",35480,"34,96",34960,valid,5
+men 35-39 50 SC Meter freestyle,"Barreto, Yuhneyber",Pedro Aguirre Cerda,7,39,1987,"35,40",35400,"37,36",37360,valid,5
+men 35-39 50 SC Meter freestyle,"Rodriguez, Alberto",Club Sparta A.C.,8,36,1990,"51,29",51290,"47,30",47300,valid,5
+men 35-39 50 SC Meter freestyle,"Nievas, Emmanuel",Club Sparta A.C.,,35,1991,"33,51",33510,DNF,,dnf,5
+men 40-44 50 SC Meter freestyle,"Peralta, Leonardo",Aquaclub Maipu,1,43,1983,"29,94",29940,"28,04",28040,valid,5
+men 40-44 50 SC Meter freestyle,"Azevedo, Marcio",Club Sparta A.C.,2,44,1982,"27,66",27660,"28,38",28380,valid,5
+men 40-44 50 SC Meter freestyle,"Castilla, Emiliano",Andes Talleres,3,43,1983,"30,00",30000,"30,53",30530,valid,5
+men 40-44 50 SC Meter freestyle,"Turela, Marcos",Andes Talleres,4,40,1986,"30,85",30850,"32,75",32750,valid,5
+men 40-44 50 SC Meter freestyle,"Calvet, Miguel",Andes Talleres,5,43,1983,"32,32",32320,"33,60",33600,valid,5
+men 40-44 50 SC Meter freestyle,"Maron, Horacio",Club Sparta A.C.,6,44,1982,"35,00",35000,"33,76",33760,valid,5
+men 40-44 50 SC Meter freestyle,"Martin, Leonardo",Andes Talleres,7,44,1982,"32,00",32000,"34,75",34750,valid,5
+men 40-44 50 SC Meter freestyle,"Maza, Carlos",Club Sparta A.C.,8,40,1986,"36,27",36270,"34,85",34850,valid,5
+men 40-44 50 SC Meter freestyle,"Escudero, Daniel",Club Sparta A.C.,9,40,1986,"39,65",39650,"37,06",37060,valid,5
+men 40-44 50 SC Meter freestyle,"Munñoz, Carlos",Club Dep Master Magallanes,,42,1984,"35,00",35000,DNF,,dnf,5
+men 45-49 50 SC Meter freestyle,"Camargo, Pablo Sergio",Aquaclub Maipu,1,46,1980,"33,39",33390,"33,62",33620,valid,5
+men 45-49 50 SC Meter freestyle,"Profili, Osvaldo L",Club Sparta A.C.,2,47,1979,"33,87",33870,"33,83",33830,valid,5
+men 45-49 50 SC Meter freestyle,"Roman, Nestor M",Club Sparta A.C.,3,47,1979,"38,84",38840,"37,03",37030,valid,5
+men 45-49 50 SC Meter freestyle,"Catelino, Daniel",Andes Talleres,4,49,1977,"38,00",38000,"39,86",39860,valid,5
+men 45-49 50 SC Meter freestyle,"Soria, Gabriel",Master Providencia Chile,5,47,1979,"47,19",47190,"48,25",48250,valid,5
+men 50-54 50 SC Meter freestyle,"Boreto, Federico",Andes Talleres,1,50,1976,"29,00",29000,"30,06",30060,valid,5
+men 50-54 50 SC Meter freestyle,"Catalan, Marcelo",Master Providencia Chile,2,52,1974,"31,00",31000,"31,17",31170,valid,5
+men 50-54 50 SC Meter freestyle,"Lucero, Gaston",Club Sparta A.C.,3,50,1976,"33,39",33390,"31,71",31710,valid,5
+men 50-54 50 SC Meter freestyle,"Henrííquez, Pablo",Andes Talleres,4,54,1972,"34,99",34990,"36,93",36930,valid,5
+men 50-54 50 SC Meter freestyle,"Sosa, Carlos",Aquaclub Maipu,5,50,1976,"40,47",40470,"39,05",39050,valid,5
+men 50-54 50 SC Meter freestyle,"Cabrera, Hernan",Club Sparta A.C.,6,53,1973,"39,87",39870,"39,79",39790,valid,5
+men 50-54 50 SC Meter freestyle,"Romo, Fabri",Club Azul Natacion Mendoza,7,52,1974,"42,73",42730,"41,13",41130,valid,5
+men 50-54 50 SC Meter freestyle,"Medina, Carlos",Master Providencia Chile,8,53,1973,"1:25,00",85000,"1:07,21",67210,valid,5
+men 55-59 50 SC Meter freestyle,"Smith, Carlos",Master Providencia Chile,1,58,1968,"32,45",32450,"33,37",33370,valid,5
+men 55-59 50 SC Meter freestyle,"Perissa, Alejandro",Andes Talleres,2,58,1968,"33,14",33140,"33,75",33750,valid,5
+men 55-59 50 SC Meter freestyle,"Figueroa, Miguel",Club Azul Natacion Mendoza,3,59,1967,"38,83",38830,"39,98",39980,valid,5
+men 60-64 50 SC Meter freestyle,"Pavoni, Ricardo O",Andes Talleres,1,63,1963,NT,,"37,25",37250,valid,5
+men 60-64 50 SC Meter freestyle,"Oliva, Ricardo",Club Sparta A.C.,2,61,1965,"40,61",40610,"41,62",41620,valid,5
+men 65-69 50 SC Meter freestyle,"Lucero, Carlos A",Area Club San Luis,1,66,1960,"34,75",34750,"37,07",37070,valid,5
+men 65-69 50 SC Meter freestyle,"Cabello, Jorge",Penñalolen Master,2,68,1958,"34,00",34000,"37,99",37990,valid,5
+men 65-69 50 SC Meter freestyle,"Domina, Ricardo",Club Sparta A.C.,3,67,1959,"34,44",34440,"39,53",39530,valid,5
+men 65-69 50 SC Meter freestyle,"Cabello Tilleríía, Andre ís",Penñalolen Master,4,69,1957,"37,00",37000,"40,00",40000,valid,5
+men 65-69 50 SC Meter freestyle,"Aguirre, Miguel",Agua Plena San Rafael,5,68,1958,"40,00",40000,"47,07",47070,valid,5
+men 65-69 50 SC Meter freestyle,"Perez, Rafael",NÑ unñoa Master,6,67,1959,"1:00,00",60000,"1:07,52",67520,valid,5
+men 70-74 50 SC Meter freestyle,"Alvarez, Ricardo",NÑ unñoa Master,1,73,1953,"53,90",53900,"56,92",56920,valid,5
+men 75-79 50 SC Meter freestyle,"Guadalupe, Jaime",Master Providencia Chile,1,77,1949,"42,91",42910,"46,71",46710,valid,5
+men 75-79 50 SC Meter freestyle,"Huerta, Oscar",Penñalolen Master,2,75,1951,"1:40,00",100000,"1:05,36",65360,valid,5
+men 80-84 50 SC Meter freestyle,"Andrada, Alfredo",Penñalolen Master,1,81,1945,"2:00,00",120000,"1:14,93",74930,valid,5

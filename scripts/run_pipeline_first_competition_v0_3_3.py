@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+# pipeline v0.3.7
 from __future__ import annotations
 
 import argparse
 import io
 import re
 import sys
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -27,14 +29,14 @@ except ImportError:
 EXPECTED_COLUMNS = {
     "club": ["name", "short_name", "city", "region", "source_id"],
     "event": ["competition_id", "event_name", "stroke", "distance_m", "gender", "age_group", "round_type", "source_id"],
-    "athlete": ["full_name", "gender", "club_name", "source_id"],
-    "result": ["event_name", "athlete_name", "club_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "age_at_event", "birth_year_estimated", "status", "source_id"],
+    "athlete": ["full_name", "gender", "club_name", "birth_year", "source_id"],
+    "result": ["event_name", "athlete_name", "club_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "age_at_event", "birth_year_estimated", "points", "status", "source_id"],
     "relay_result": ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"],
     "relay_result_member": ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"],
 }
 
 PARSER_RELAY_INPUT_COLUMNS = {
-    "relay_team": ["event_name", "relay_team_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "status", "source_id", "page_number", "line_number"],
+    "relay_team": ["event_name", "relay_team_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "status", "source_id", "page_number", "line_number"],
     "relay_swimmer": ["event_name", "relay_team_name", "leg_order", "swimmer_name", "gender", "age_at_event", "birth_year_estimated", "page_number", "line_number"],
 }
 
@@ -61,7 +63,7 @@ class Config:
     schema: str
     truncate_staging: bool
     truncate_core: bool
-    competition_id: int
+    competition_id: Optional[int]
     default_source_id: int
 
 
@@ -83,7 +85,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--schema", type=str, default="core")
     parser.add_argument("--truncate-staging", action="store_true")
     parser.add_argument("--truncate-core", action="store_true")
-    parser.add_argument("--competition-id", type=int, default=1)
+    parser.add_argument("--competition-id", type=int, help="competition_id opcional. Si no se indica, se intentará resolver o crear desde metadata.json")
+    parser.add_argument("--competition-name", type=str, help="Nombre de competencia opcional para auto-upsert cuando no se indique competition_id")
+    parser.add_argument("--competition-source-url", type=str, help="URL fuente opcional para competition cuando se cree automáticamente")
     parser.add_argument("--default-source-id", type=int, default=1)
     return parser.parse_args()
 
@@ -104,10 +108,22 @@ def fqtn(schema: str, table: str) -> str:
 def normalize_string(x):
     if x is None:
         return None
+    if pd.isna(x):
+        return None
     if isinstance(x, str):
         x = x.strip()
         return x if x != "" else None
-    return x
+    x = str(x).strip()
+    return x if x != "" else None
+
+
+def clean_extracted_text(x):
+    x = normalize_string(x)
+    if x is None:
+        return None
+    x = unicodedata.normalize("NFC", str(x))
+    x = re.sub(r"\s+", " ", x).strip()
+    return x if x else None
 
 
 def normalize_controlled_lower(x):
@@ -304,6 +320,8 @@ def infer_relay_club_name(relay_team_name: Optional[str], club_names: List[str])
 def normalize_dataframe(df: pd.DataFrame, expected_columns: List[str], table_key: str) -> pd.DataFrame:
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
+    if table_key == "athlete" and "birth_year" in expected_columns and "birth_year" not in df.columns:
+        df["birth_year"] = None
     missing = [c for c in expected_columns if c not in df.columns]
     extra = [c for c in df.columns if c not in expected_columns]
     if missing:
@@ -316,6 +334,9 @@ def normalize_dataframe(df: pd.DataFrame, expected_columns: List[str], table_key
         df[col] = df[col].where(pd.notna(df[col]), None)
         df[col] = df[col].map(normalize_string)
 
+    for text_col in [c for c in ["name", "short_name", "event_name", "club_name", "full_name", "athlete_name", "relay_team_name"] if c in df.columns]:
+        df[text_col] = df[text_col].map(clean_extracted_text)
+
     if table_key == "event":
         df["stroke"] = df["stroke"].map(normalize_stroke)
         df["gender"] = df["gender"].map(normalize_event_gender)
@@ -323,9 +344,13 @@ def normalize_dataframe(df: pd.DataFrame, expected_columns: List[str], table_key
 
     if table_key == "athlete":
         df["gender"] = df["gender"].map(normalize_athlete_gender)
+        if "birth_year" in df.columns:
+            df["birth_year"] = df["birth_year"].map(normalize_string)
 
     if table_key in {"result", "relay_result"}:
         df["seed_time_text"] = df["seed_time_text"].map(normalize_swim_time_text)
+        if "points" in df.columns:
+            df["points"] = df["points"].map(lambda x: normalize_string(x).replace(",", ".") if isinstance(normalize_string(x), str) else normalize_string(x))
         df["result_time_text"] = df["result_time_text"].map(normalize_swim_time_text)
         normalized_seed_ms = []
         normalized_result_ms = []
@@ -397,7 +422,7 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
     relay_team_df["club_name"] = relay_team_df["relay_team_name"].map(lambda x: infer_relay_club_name(x, club_names))
     relay_team_df["lane"] = None
     relay_team_df["heat_number"] = None
-    relay_team_df["points"] = None
+    relay_team_df["points"] = relay_team_df.get("points")
     relay_team_df["reaction_time"] = None
     relay_team_df["record_flag"] = None
     relay_team_df["source_url"] = None
@@ -419,7 +444,7 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
 
 
 
-def read_inputs(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
+def read_inputs(args: argparse.Namespace) -> tuple[Dict[str, pd.DataFrame], Dict[str, Optional[str]]]:
     has_excel = bool(args.excel)
     has_input_dir = bool(args.input_dir)
     has_explicit_csv = any([args.club_csv, args.event_csv, args.athlete_csv, args.result_csv, args.relay_team_csv, args.relay_swimmer_csv])
@@ -444,12 +469,22 @@ def read_inputs(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
             data[sheet_name] = normalize_dataframe(workbook[sheet_name], expected_columns, sheet_name)
         data["relay_result"] = pd.DataFrame(columns=EXPECTED_COLUMNS["relay_result"])
         data["relay_result_member"] = pd.DataFrame(columns=EXPECTED_COLUMNS["relay_result_member"])
-        return data
+        return data, {}
 
     if has_input_dir:
         input_dir = Path(args.input_dir)
         if not input_dir.exists() or not input_dir.is_dir():
             fail(f"No existe la carpeta de entrada: {input_dir}")
+
+        metadata: Dict[str, Optional[str]] = {}
+        metadata_path = input_dir / "metadata.json"
+        if metadata_path.exists():
+            try:
+                import json
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            except Exception as exc:
+                info(f"No se pudo leer metadata.json: {exc}")
+                metadata = {}
 
         required = {key: input_dir / f"{key}.csv" for key in ["club", "event", "athlete", "result"]}
         missing_csv = [key for key, path in required.items() if not path.exists()]
@@ -484,7 +519,7 @@ def read_inputs(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
         found_ignored = [p.name for p in ignored_outputs if p.exists()]
         if found_ignored:
             info(f"Se detectaron archivos auxiliares del parser PDF que esta versión no cargará: {found_ignored}")
-        return data
+        return data, metadata
 
     required = {"club": args.club_csv, "event": args.event_csv, "athlete": args.athlete_csv, "result": args.result_csv}
     missing_csv = [k for k, v in required.items() if not v]
@@ -513,8 +548,79 @@ def read_inputs(args: argparse.Namespace) -> Dict[str, pd.DataFrame]:
     else:
         data["relay_result"] = pd.DataFrame(columns=EXPECTED_COLUMNS["relay_result"])
         data["relay_result_member"] = pd.DataFrame(columns=EXPECTED_COLUMNS["relay_result_member"])
-    return data
+    return data, {}
 
+
+
+
+
+def infer_course_type_from_events(event_df: pd.DataFrame) -> str:
+    if event_df is None or event_df.empty or "event_name" not in event_df.columns:
+        return "unknown"
+    names = " | ".join([str(x) for x in event_df["event_name"].dropna().tolist()[:20]])
+    if re.search(r"\bSC\s+Meter\b", names, re.IGNORECASE):
+        return "scm"
+    if re.search(r"\bLC\s+Meter\b", names, re.IGNORECASE):
+        return "lcm"
+    return "unknown"
+
+
+def derive_competition_year_from_text(*values: Optional[str]) -> Optional[int]:
+    for value in values:
+        if not value:
+            continue
+        years = re.findall(r"(19\d{2}|20\d{2}|21\d{2})", str(value))
+        if years:
+            return int(years[-1])
+    return None
+
+
+def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data: Dict[str, pd.DataFrame], metadata: Dict[str, Optional[str]]) -> int:
+    if config.competition_id is not None:
+        return int(config.competition_id)
+
+    competition_name = normalize_string(getattr(args, "competition_name", None)) or normalize_string(metadata.get("competition_name")) or normalize_string(metadata.get("pdf_name"))
+    if competition_name is None:
+        fail("No se indicó --competition-id y tampoco se pudo derivar competition_name desde metadata.json o --competition-name.")
+
+    season_year = metadata.get("competition_year")
+    try:
+        season_year_int = int(season_year) if season_year is not None else None
+    except Exception:
+        season_year_int = None
+    if season_year_int is None:
+        season_year_int = derive_competition_year_from_text(competition_name, metadata.get("results_label"), metadata.get("pdf_name"))
+
+    course_type = infer_course_type_from_events(data.get("event"))
+    source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            SELECT id
+            FROM {fqtn(config.schema, 'competition')}
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(%s))
+              AND (%s IS NULL OR season_year = %s OR season_year IS NULL)
+            ORDER BY CASE WHEN season_year = %s THEN 0 ELSE 1 END, id
+            LIMIT 1;
+        """, (competition_name, season_year_int, season_year_int, season_year_int))
+        row = cur.fetchone()
+        if row and row[0] is not None:
+            competition_id = int(row[0])
+            info(f"Se reutilizará competition_id={competition_id} para '{competition_name}'.")
+            return competition_id
+
+        cur.execute(f"""
+            INSERT INTO {fqtn(config.schema, 'competition')} (name, season_year, course_type, status, source_id, source_url)
+            VALUES (%s, %s, %s, 'finished', %s, %s)
+            RETURNING id;
+        """, (competition_name, season_year_int, course_type, config.default_source_id, source_url))
+        competition_id = int(cur.fetchone()[0])
+    conn.commit()
+    info(f"Se creó competition_id={competition_id} para '{competition_name}'.")
+    return competition_id
+
+
+def athlete_gender_from_event_gender_sql(expr: str) -> str:
+    return f"CASE LOWER(TRIM({expr})) WHEN 'women' THEN 'female' WHEN 'men' THEN 'male' ELSE NULL END"
 
 
 def get_conn(config: Config):
@@ -624,7 +730,7 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
             event_id, athlete_id, club_id, rank_position,
             seed_time_text, seed_time_ms,
             result_time_text, result_time_ms,
-            age_at_event, birth_year_estimated,
+            age_at_event, birth_year_estimated, points,
             status, source_id
         )
         SELECT e.id, a.id, c.id,
@@ -635,6 +741,7 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
                NULLIF(TRIM(r.result_time_ms), '')::BIGINT,
                NULLIF(TRIM(r.age_at_event), '')::INTEGER,
                NULLIF(TRIM(r.birth_year_estimated), '')::INTEGER,
+               NULLIF(TRIM(r.points), '')::NUMERIC(10,2),
                LOWER(NULLIF(TRIM(r.status), '')),
                COALESCE(NULLIF(TRIM(r.source_id), '')::BIGINT, %s)
         FROM {fqtn(schema, 'stg_result')} r
@@ -793,8 +900,27 @@ def print_validations(conn, config: Config) -> None:
         "results_sin_athlete_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_result')} r
             LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
-            LEFT JOIN {fqtn(config.schema, 'athlete')} a ON LOWER(TRIM(r.athlete_name)) = LOWER(TRIM(a.full_name))
-                 AND ((a.club_id IS NULL AND c.id IS NULL) OR a.club_id = c.id)
+            LEFT JOIN {fqtn(config.schema, 'event')} e ON LOWER(TRIM(r.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = {config.competition_id}
+            LEFT JOIN LATERAL (
+                SELECT at.id
+                FROM {fqtn(config.schema, 'athlete')} at
+                WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(r.athlete_name))
+                  AND (
+                        {athlete_gender_from_event_gender_sql('e.gender')} IS NULL
+                        OR at.gender IS NULL
+                        OR at.gender = {athlete_gender_from_event_gender_sql('e.gender')}
+                      )
+                ORDER BY
+                    CASE
+                        WHEN NULLIF(TRIM(r.birth_year_estimated), '') IS NOT NULL
+                         AND at.birth_year = NULLIF(TRIM(r.birth_year_estimated), '')::INTEGER THEN 0
+                        WHEN at.birth_year IS NULL THEN 1
+                        ELSE 2
+                    END,
+                    CASE WHEN COALESCE(at.club_id, -1) = COALESCE(c.id, -1) THEN 0 ELSE 1 END,
+                    at.id
+                LIMIT 1
+            ) a ON TRUE
             WHERE NULLIF(TRIM(r.athlete_name), '') IS NOT NULL AND a.id IS NULL;
         """,
         "results_sin_club_match": f"""
@@ -826,8 +952,26 @@ def print_validations(conn, config: Config) -> None:
         "relay_members_sin_athlete_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_relay_result_member')} m
             LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(m.club_name)) = LOWER(TRIM(c.name))
-            LEFT JOIN {fqtn(config.schema, 'athlete')} a ON LOWER(TRIM(m.athlete_name)) = LOWER(TRIM(a.full_name))
-                 AND ((a.club_id IS NULL AND c.id IS NULL) OR a.club_id = c.id)
+            LEFT JOIN LATERAL (
+                SELECT at.id
+                FROM {fqtn(config.schema, 'athlete')} at
+                WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+                  AND (
+                        LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
+                        OR at.gender IS NULL
+                        OR at.gender = LOWER(NULLIF(TRIM(m.gender), ''))
+                      )
+                ORDER BY
+                    CASE
+                        WHEN NULLIF(TRIM(m.birth_year_estimated), '') IS NOT NULL
+                         AND at.birth_year = NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER THEN 0
+                        WHEN at.birth_year IS NULL THEN 1
+                        ELSE 2
+                    END,
+                    CASE WHEN COALESCE(at.club_id, -1) = COALESCE(c.id, -1) THEN 0 ELSE 1 END,
+                    at.id
+                LIMIT 1
+            ) a ON TRUE
             WHERE NULLIF(TRIM(m.athlete_name), '') IS NOT NULL AND a.id IS NULL;
         """,
     }
@@ -842,15 +986,16 @@ def print_validations(conn, config: Config) -> None:
 def main() -> None:
     args = parse_args()
     config = Config(host=args.host, port=args.port, dbname=args.dbname, user=args.user, password=args.password, schema=args.schema, truncate_staging=args.truncate_staging, truncate_core=args.truncate_core, competition_id=args.competition_id, default_source_id=args.default_source_id)
-    data = read_inputs(args)
+    data, metadata = read_inputs(args)
     conn = get_conn(config)
     try:
+        config.competition_id = resolve_competition_id(conn, config, args, data, metadata)
         truncate_tables(conn, config)
         load_staging(conn, config, data)
         load_core(conn, config)
         print_counts(conn, config, data)
         print_validations(conn, config)
-        print("\n[OK] Pipeline v0.3.5 completado.")
+        print("\n[OK] Pipeline v0.3.7 completado.")
     except Exception as exc:
         conn.rollback()
         fail(f"El pipeline falló: {exc}")

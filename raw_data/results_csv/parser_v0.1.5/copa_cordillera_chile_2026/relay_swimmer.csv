@@ -1,0 +1,105 @@
+﻿event_name,relay_team_name,leg_order,swimmer_name,gender,age_at_event,birth_year_estimated,page_number,line_number
+mixed 100-119 200 LC Meter freestyle_relay,Aquaclub Maipu A,1,"Dave, Gisela",female,28,1998,15,14
+mixed 100-119 200 LC Meter freestyle_relay,Aquaclub Maipu A,2,"Mellado, Ana Laura",female,25,2001,15,14
+mixed 100-119 200 LC Meter freestyle_relay,Aquaclub Maipu A,3,"Moreno, Julian",male,29,1997,15,14
+mixed 100-119 200 LC Meter freestyle_relay,Aquaclub Maipu A,4,"Celaya, Ariel",male,36,1990,15,14
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,1,"Nava, Juan",male,30,1996,15,17
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,2,"Mangiameli, Georgina",female,41,1985,15,17
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,3,"Godoy, Ana",female,37,1989,15,17
+mixed 120-159 200 LC Meter freestyle_relay,Nunoa Master A,4,"Carrera, Angel",male,35,1991,15,17
+mixed 120-159 200 LC Meter freestyle_relay,Aquaclub Maipu A,1,"Guinñazu, Selene",female,21,2005,15,19
+mixed 120-159 200 LC Meter freestyle_relay,Aquaclub Maipu A,2,"Sanchez, Johana",female,31,1995,15,19
+mixed 120-159 200 LC Meter freestyle_relay,Aquaclub Maipu A,3,"Ros, Matias",male,29,1997,15,19
+mixed 120-159 200 LC Meter freestyle_relay,Aquaclub Maipu A,4,"Camargo, Pablo Sergio",male,46,1980,15,19
+mixed 160-199 200 LC Meter freestyle_relay,Club Deportivo UC A,1,"Pacheco Juri, Jose Tomas",male,30,1996,15,22
+mixed 160-199 200 LC Meter freestyle_relay,Club Deportivo UC A,2,"Quinones, Ema",female,61,1965,15,22
+mixed 160-199 200 LC Meter freestyle_relay,Club Deportivo UC A,3,"Ramirez, Carolina Isabel",female,33,1993,15,22
+mixed 160-199 200 LC Meter freestyle_relay,Club Deportivo UC A,4,"Matulic L, Wladimir",male,53,1973,15,22
+mixed 160-199 200 LC Meter freestyle_relay,Pedro Aguirre Cerda A,1,"Meneses, Felipe",male,27,1999,15,24
+mixed 160-199 200 LC Meter freestyle_relay,Pedro Aguirre Cerda A,2,"Reyes, Irene",female,62,1964,15,24
+mixed 160-199 200 LC Meter freestyle_relay,Pedro Aguirre Cerda A,3,"Amaro, Maria",female,56,1970,15,24
+mixed 160-199 200 LC Meter freestyle_relay,Pedro Aguirre Cerda A,4,"Caro, Cristobal",male,26,2000,15,24
+mixed 160-199 200 LC Meter freestyle_relay,Master Providencia A,1,"Diaz, Andres",male,42,1984,15,26
+mixed 160-199 200 LC Meter freestyle_relay,Master Providencia A,2,"Aros, Paola",female,55,1971,15,26
+mixed 160-199 200 LC Meter freestyle_relay,Master Providencia A,3,"Defosse, Carla",female,45,1981,15,26
+mixed 160-199 200 LC Meter freestyle_relay,Master Providencia A,4,"Sanchez, Marco",male,37,1989,15,26
+mixed 160-199 200 LC Meter freestyle_relay,Natacion Master Recoleta A,1,"Vera, Claudia",female,52,1974,15,28
+mixed 160-199 200 LC Meter freestyle_relay,Natacion Master Recoleta A,2,"Cabello, Daniel",male,45,1981,15,28
+mixed 160-199 200 LC Meter freestyle_relay,Natacion Master Recoleta A,3,"Monsalve, Nicolas",male,27,1999,15,28
+mixed 160-199 200 LC Meter freestyle_relay,Natacion Master Recoleta A,4,"Moncada, Marisol",female,61,1965,15,28
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,1,"Torres, Renzo",male,42,1984,15,31
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,2,"Canñete, Soledad",female,63,1963,15,31
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,3,"Curihuinca, Camilo",male,35,1991,15,31
+mixed 200-239 200 LC Meter freestyle_relay,Natacion Master Recoleta A,4,"Alarcon, Silvia",female,68,1958,15,31
+mixed 240-279 200 LC Meter freestyle_relay,Peñalolen Master A,1,"Aguirre, Jose Ignacio",male,64,1962,15,34
+mixed 240-279 200 LC Meter freestyle_relay,Peñalolen Master A,2,"Ramíérez, Orieta",female,55,1971,15,34
+mixed 240-279 200 LC Meter freestyle_relay,Peñalolen Master A,3,"Muüller, Bettina",female,62,1964,15,34
+mixed 240-279 200 LC Meter freestyle_relay,Peñalolen Master A,4,"Fuenzalida, Roberto",male,64,1962,15,34
+mixed 240-279 200 LC Meter freestyle_relay,Master Providencia A,1,"Soria, Gabriel",male,47,1979,15,36
+mixed 240-279 200 LC Meter freestyle_relay,Master Providencia A,2,"Ayala, Elena",female,67,1959,15,36
+mixed 240-279 200 LC Meter freestyle_relay,Master Providencia A,3,"Acunña, Patricia",female,60,1966,15,36
+mixed 240-279 200 LC Meter freestyle_relay,Master Providencia A,4,"Rasse, Patricio",male,67,1959,15,36
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,1,"Gonzalez, Daniela",female,43,1983,15,38
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,2,"Osses, Daniel",male,41,1985,15,38
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,3,"Ferrando, Nestor",male,84,1942,15,38
+mixed 240-279 200 LC Meter freestyle_relay,Nunoa Master A,4,"Robles, Graciela",female,73,1953,15,38
+mixed 100-119 200 LC Meter medley_relay,Pedro Aguirre Cerda A,1,"Lopez, Diane",female,30,1996,15,41
+mixed 100-119 200 LC Meter medley_relay,Pedro Aguirre Cerda A,2,"Becerra, Martin",male,30,1996,15,41
+mixed 100-119 200 LC Meter medley_relay,Pedro Aguirre Cerda A,3,"Parra, Nicolas",male,30,1996,15,41
+mixed 100-119 200 LC Meter medley_relay,Pedro Aguirre Cerda A,4,"Farias, Thiare",female,27,1999,15,41
+mixed 100-119 200 LC Meter medley_relay,Peñalolen Master A,1,"Avila, Franco",male,26,2000,15,43
+mixed 100-119 200 LC Meter medley_relay,Peñalolen Master A,2,"Ubilla, Catalina",female,29,1997,15,43
+mixed 100-119 200 LC Meter medley_relay,Peñalolen Master A,3,"Saavedra, Lucas",male,25,2001,15,43
+mixed 100-119 200 LC Meter medley_relay,Peñalolen Master A,4,"Carter, Daniela",female,28,1998,15,43
+mixed 120-159 200 LC Meter medley_relay,Natacion Master Recoleta A,1,"Lagos, Rodrigo",male,30,1996,15,46
+mixed 120-159 200 LC Meter medley_relay,Natacion Master Recoleta A,2,"Silva, Benjamin",male,25,2001,15,46
+mixed 120-159 200 LC Meter medley_relay,Natacion Master Recoleta A,3,"Velasquez, Lenismar",female,44,1982,15,46
+mixed 120-159 200 LC Meter medley_relay,Natacion Master Recoleta A,4,"Tapia, Maria Jesus",female,25,2001,15,46
+mixed 120-159 200 LC Meter medley_relay,100 por Ciento Swim A,1,"Rojas, Freddy",male,47,1979,15,48
+mixed 120-159 200 LC Meter medley_relay,100 por Ciento Swim A,2,"Araya, Sofia",female,27,1999,15,48
+mixed 120-159 200 LC Meter medley_relay,100 por Ciento Swim A,3,"Bricenño, Carlos",male,41,1985,15,48
+mixed 120-159 200 LC Meter medley_relay,100 por Ciento Swim A,4,"Nahuelpan, Nicole",female,36,1990,15,48
+mixed 120-159 200 LC Meter medley_relay,Azul Natacion Mendoza A,1,"Aguilera, Ayelen",female,27,1999,15,50
+mixed 120-159 200 LC Meter medley_relay,Azul Natacion Mendoza A,2,"Ventura, Maxi",male,32,1994,15,50
+mixed 120-159 200 LC Meter medley_relay,Azul Natacion Mendoza A,3,"Rivas, Leo",male,24,2002,15,50
+mixed 120-159 200 LC Meter medley_relay,Azul Natacion Mendoza A,4,"Gauna, Noe",female,45,1981,15,50
+mixed 160-199 200 LC Meter medley_relay,Master Providencia A,1,"Nunñez, Manuela",female,29,1997,16,6
+mixed 160-199 200 LC Meter medley_relay,Master Providencia A,2,"Gonzalez, German",male,42,1984,16,6
+mixed 160-199 200 LC Meter medley_relay,Master Providencia A,3,"Garzon, Jean",male,41,1985,16,6
+mixed 160-199 200 LC Meter medley_relay,Master Providencia A,4,"Guadalupe, Paula",female,48,1978,16,6
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,1,"Rodriguez, Diana",female,41,1985,16,8
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,2,"Gomez, Carlos",male,43,1983,16,8
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,3,"Nava, Jose",male,35,1991,16,8
+mixed 160-199 200 LC Meter medley_relay,Nunoa Master A,4,"Aguilar, Glaisa",female,48,1978,16,8
+mixed 160-199 200 LC Meter medley_relay,Peñalolen Master A,1,"Sevil, Angel",male,54,1972,16,10
+mixed 160-199 200 LC Meter medley_relay,Peñalolen Master A,2,"Paredes, David",male,46,1980,16,10
+mixed 160-199 200 LC Meter medley_relay,Peñalolen Master A,3,"Herrera Rojas, Gema",female,34,1992,16,10
+mixed 160-199 200 LC Meter medley_relay,Peñalolen Master A,4,"Rodriguez, Erika",female,48,1978,16,10
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,1,"Acencio, Claudia",female,63,1963,16,13
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,2,"Dable, Marie Claire",female,57,1969,16,13
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,3,"Catalan, Marcelo",male,52,1974,16,13
+mixed 200-239 200 LC Meter medley_relay,Master Providencia A,4,"Aguilera, Juan Carlos",male,37,1989,16,13
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,1,"Vasquez, Carola",female,49,1977,16,15
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,2,"Cerrada, Yorggyn",male,47,1979,16,15
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,3,"Toledo, Fredi",male,67,1959,16,15
+mixed 200-239 200 LC Meter medley_relay,Natacion Master Recoleta A,4,"Perez, Paulina",female,56,1970,16,15
+mixed 240-279 200 LC Meter medley_relay,Master Providencia A,1,"Loayza, Alejandra",female,61,1965,16,18
+mixed 240-279 200 LC Meter medley_relay,Master Providencia A,2,"Smith, Carlos",male,58,1968,16,18
+mixed 240-279 200 LC Meter medley_relay,Master Providencia A,3,"Briones, Eduardo",male,57,1969,16,18
+mixed 240-279 200 LC Meter medley_relay,Master Providencia A,4,"Case, Cynthia",female,64,1962,16,18
+mixed 240-279 200 LC Meter medley_relay,Peñalolen Master A,1,"Ojeda, Veroénica",female,51,1975,16,20
+mixed 240-279 200 LC Meter medley_relay,Peñalolen Master A,2,"Cantoé, Claudio",male,66,1960,16,20
+mixed 240-279 200 LC Meter medley_relay,Peñalolen Master A,3,"Silva, Raul",male,56,1970,16,20
+mixed 240-279 200 LC Meter medley_relay,Peñalolen Master A,4,"Pinto Galleguillos, Rosario Soledad",female,67,1959,16,20
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,1,"Gonzalez, Elena",female,52,1974,16,22
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,2,"Moreno, Luis",male,68,1958,16,22
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,3,"Lucena, Larry",male,51,1975,16,22
+mixed 240-279 200 LC Meter medley_relay,Nunoa Master A,4,"Munñoz, Maria",female,70,1956,16,22
+mixed 280-319 200 LC Meter medley_relay,Master Providencia A,1,"Nunñez, Elizabeth",female,77,1949,16,25
+mixed 280-319 200 LC Meter medley_relay,Master Providencia A,2,"Guadalupe, Jaime",male,77,1949,16,25
+mixed 280-319 200 LC Meter medley_relay,Master Providencia A,3,"Montes, Eduardo",male,56,1970,16,25
+mixed 280-319 200 LC Meter medley_relay,Master Providencia A,4,"Toro, Soledad",female,72,1954,16,25
+mixed 280-319 200 LC Meter medley_relay,Nunoa Master A,1,"Escudero, Oriele",female,85,1941,16,27
+mixed 280-319 200 LC Meter medley_relay,Nunoa Master A,2,"Catalan, Sergio",male,65,1961,16,27
+mixed 280-319 200 LC Meter medley_relay,Nunoa Master A,3,"Concha, Elizabeth",female,68,1958,16,27
+mixed 280-319 200 LC Meter medley_relay,Nunoa Master A,4,"Alvarez, Ricardo",male,73,1953,16,27
