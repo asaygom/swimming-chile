@@ -105,6 +105,16 @@ def fqtn(schema: str, table: str) -> str:
     return f"{schema}.{table}"
 
 
+def club_match_key_sql(expr: str) -> str:
+    accent_chars = "CHR(225)||CHR(233)||CHR(237)||CHR(243)||CHR(250)||CHR(252)||CHR(241)"
+    return f"NULLIF(BTRIM(REGEXP_REPLACE(TRANSLATE(LOWER(TRIM({expr})), {accent_chars}, 'aeiouun'), '[^a-z0-9]+', ' ', 'g')), '')"
+
+
+def club_name_quality_sql(expr: str) -> str:
+    accent_chars = "CHR(225)||CHR(233)||CHR(237)||CHR(243)||CHR(250)||CHR(252)||CHR(241)"
+    return f"LENGTH(LOWER(TRIM({expr}))) - LENGTH(TRANSLATE(LOWER(TRIM({expr})), {accent_chars}, ''))"
+
+
 def normalize_string(x):
     if x is None:
         return None
@@ -129,6 +139,17 @@ def clean_extracted_text(x):
 def normalize_controlled_lower(x):
     x = normalize_string(x)
     return x.lower() if isinstance(x, str) else x
+
+
+def normalize_match_text(x):
+    x = normalize_string(x)
+    if x is None:
+        return None
+    x = unicodedata.normalize("NFKD", str(x))
+    x = "".join(ch for ch in x if not unicodedata.combining(ch))
+    x = x.lower()
+    x = re.sub(r"[^a-z0-9]+", " ", x)
+    return re.sub(r"\s+", " ", x).strip() or None
 
 
 def normalize_event_gender(x):
@@ -291,23 +312,23 @@ def infer_relay_club_name(relay_team_name: Optional[str], club_names: List[str])
     relay_team_name = normalize_string(relay_team_name)
     if relay_team_name is None:
         return None
-    relay_norm = normalize_controlled_lower(relay_team_name)
+    relay_norm = normalize_match_text(relay_team_name)
     if relay_norm is None:
         return None
 
-    direct = {normalize_controlled_lower(name): name for name in club_names if normalize_string(name) is not None}
+    direct = {normalize_match_text(name): name for name in club_names if normalize_string(name) is not None}
     if relay_norm in direct:
         return direct[relay_norm]
 
     suffix_match = re.match(r"^(.*?)(?:\s+[A-Z])$", relay_team_name.strip())
     if suffix_match:
-        candidate = normalize_controlled_lower(suffix_match.group(1))
+        candidate = normalize_match_text(suffix_match.group(1))
         if candidate in direct:
             return direct[candidate]
 
     candidates = []
     for original in club_names:
-        norm = normalize_controlled_lower(original)
+        norm = normalize_match_text(original)
         if norm and (relay_norm == norm or relay_norm.startswith(norm + " ")):
             candidates.append((len(norm), original))
     if candidates:
@@ -678,15 +699,40 @@ def load_staging(conn, config: Config, data: Dict[str, pd.DataFrame]) -> None:
 
 def insert_core_club(cur, schema: str, default_source_id: int) -> None:
     cur.execute(f"""
+        UPDATE {fqtn(schema, 'club')} c
+        SET name = s.name,
+            updated_at = NOW()
+        FROM (
+            SELECT DISTINCT ON ({club_match_key_sql('s.name')})
+                   TRIM(s.name) AS name,
+                   {club_match_key_sql('s.name')} AS club_key
+            FROM {fqtn(schema, 'stg_club')} s
+            WHERE NULLIF(TRIM(s.name), '') IS NOT NULL
+            ORDER BY {club_match_key_sql('s.name')}, {club_name_quality_sql('s.name')} DESC, TRIM(s.name)
+        ) s
+        WHERE {club_match_key_sql('c.name')} = s.club_key
+          AND {club_name_quality_sql('s.name')} > {club_name_quality_sql('c.name')};
+    """)
+
+    cur.execute(f"""
         INSERT INTO {fqtn(schema, 'club')} (name, short_name, city, region, source_id)
-        SELECT DISTINCT TRIM(s.name), NULLIF(TRIM(s.short_name), ''), NULLIF(TRIM(s.city), ''), NULLIF(TRIM(s.region), ''),
-               COALESCE(NULLIF(TRIM(s.source_id), '')::BIGINT, %s)
-        FROM {fqtn(schema, 'stg_club')} s
-        WHERE NULLIF(TRIM(s.name), '') IS NOT NULL
-          AND NOT EXISTS (
-              SELECT 1 FROM {fqtn(schema, 'club')} c
-              WHERE LOWER(TRIM(c.name)) = LOWER(TRIM(s.name))
-          );
+        SELECT s.name, s.short_name, s.city, s.region, s.source_id
+        FROM (
+            SELECT DISTINCT ON ({club_match_key_sql('s.name')})
+                   TRIM(s.name) AS name,
+                   NULLIF(TRIM(s.short_name), '') AS short_name,
+                   NULLIF(TRIM(s.city), '') AS city,
+                   NULLIF(TRIM(s.region), '') AS region,
+                   COALESCE(NULLIF(TRIM(s.source_id), '')::BIGINT, %s) AS source_id,
+                   {club_match_key_sql('s.name')} AS club_key
+            FROM {fqtn(schema, 'stg_club')} s
+            WHERE NULLIF(TRIM(s.name), '') IS NOT NULL
+            ORDER BY {club_match_key_sql('s.name')}, {club_name_quality_sql('s.name')} DESC, TRIM(s.name)
+        ) s
+        WHERE NOT EXISTS (
+            SELECT 1 FROM {fqtn(schema, 'club')} c
+            WHERE {club_match_key_sql('c.name')} = s.club_key
+        );
     """, (default_source_id,))
 
 
@@ -712,7 +758,7 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
         UPDATE {fqtn(schema, 'athlete')} at
         SET birth_year = NULLIF(TRIM(a.birth_year), '')::INTEGER
         FROM {fqtn(schema, 'stg_athlete')} a
-        LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(a.club_name)) = LOWER(TRIM(c.name))
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('a.club_name')} = {club_match_key_sql('c.name')}
         WHERE at.birth_year IS NULL
           AND NULLIF(TRIM(a.birth_year), '') IS NOT NULL
           AND LOWER(TRIM(at.full_name)) = LOWER(TRIM(a.full_name))
@@ -725,12 +771,28 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
     """)
 
     cur.execute(f"""
+        UPDATE {fqtn(schema, 'athlete')} at
+        SET birth_year = NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER
+        FROM {fqtn(schema, 'stg_relay_result_member')} m
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
+        WHERE at.birth_year IS NULL
+          AND NULLIF(TRIM(m.birth_year_estimated), '') IS NOT NULL
+          AND LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+          AND (
+                LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
+                OR at.gender IS NULL
+                OR at.gender = LOWER(NULLIF(TRIM(m.gender), ''))
+              )
+          AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id);
+    """)
+
+    cur.execute(f"""
         INSERT INTO {fqtn(schema, 'athlete')} (full_name, gender, birth_year, club_id, source_id)
         SELECT DISTINCT TRIM(a.full_name), LOWER(NULLIF(TRIM(a.gender), '')),
                NULLIF(TRIM(a.birth_year), '')::INTEGER, c.id,
                COALESCE(NULLIF(TRIM(a.source_id), '')::BIGINT, %s)
         FROM {fqtn(schema, 'stg_athlete')} a
-        LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(a.club_name)) = LOWER(TRIM(c.name))
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('a.club_name')} = {club_match_key_sql('c.name')}
         WHERE NULLIF(TRIM(a.full_name), '') IS NOT NULL
           AND NOT EXISTS (
               SELECT 1 FROM {fqtn(schema, 'athlete')} at
@@ -753,6 +815,40 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
                     )
                     OR (
                         NULLIF(TRIM(a.birth_year), '') IS NULL
+                        AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                    )
+                )
+          );
+    """, (default_source_id,))
+
+    cur.execute(f"""
+        INSERT INTO {fqtn(schema, 'athlete')} (full_name, gender, birth_year, club_id, source_id)
+        SELECT DISTINCT TRIM(m.athlete_name), LOWER(NULLIF(TRIM(m.gender), '')),
+               NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER, c.id, %s
+        FROM {fqtn(schema, 'stg_relay_result_member')} m
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
+        WHERE NULLIF(TRIM(m.athlete_name), '') IS NOT NULL
+          AND NOT EXISTS (
+              SELECT 1 FROM {fqtn(schema, 'athlete')} at
+              WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+                AND (
+                    LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
+                    OR at.gender IS NULL
+                    OR at.gender = LOWER(NULLIF(TRIM(m.gender), ''))
+                )
+                AND (
+                    (
+                        NULLIF(TRIM(m.birth_year_estimated), '') IS NOT NULL
+                        AND (
+                            at.birth_year = NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER
+                            OR (
+                                at.birth_year IS NULL
+                                AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                            )
+                        )
+                    )
+                    OR (
+                        NULLIF(TRIM(m.birth_year_estimated), '') IS NULL
                         AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
                     )
                 )
@@ -782,7 +878,7 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
                LOWER(NULLIF(TRIM(r.status), '')),
                COALESCE(NULLIF(TRIM(r.source_id), '')::BIGINT, %s)
         FROM {fqtn(schema, 'stg_result')} r
-        LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('r.club_name')} = {club_match_key_sql('c.name')}
         LEFT JOIN {fqtn(schema, 'event')} e ON LOWER(TRIM(r.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = %s
         LEFT JOIN LATERAL (
             SELECT at.id
@@ -843,7 +939,7 @@ def insert_core_relay_result(cur, schema: str, competition_id: int, default_sour
                COALESCE(NULLIF(TRIM(r.source_id), '')::BIGINT, %s),
                NULLIF(TRIM(r.source_url), '')
         FROM {fqtn(schema, 'stg_relay_result')} r
-        LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('r.club_name')} = {club_match_key_sql('c.name')}
         LEFT JOIN {fqtn(schema, 'event')} e ON LOWER(TRIM(r.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = %s
         WHERE NULLIF(TRIM(r.event_name), '') IS NOT NULL
           AND NULLIF(TRIM(r.relay_team_name), '') IS NOT NULL
@@ -874,7 +970,7 @@ def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> No
                NULLIF(TRIM(m.age_at_event), '')::INTEGER,
                NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER
         FROM {fqtn(schema, 'stg_relay_result_member')} m
-        LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(m.club_name)) = LOWER(TRIM(c.name))
+        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
         LEFT JOIN {fqtn(schema, 'event')} e ON LOWER(TRIM(m.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = %s
         LEFT JOIN {fqtn(schema, 'relay_result')} rr ON rr.event_id = e.id
              AND LOWER(TRIM(rr.relay_team_name)) = LOWER(TRIM(m.relay_team_name))
@@ -962,7 +1058,7 @@ def print_validations(conn, config: Config) -> None:
     validation_queries = {
         "athletes_sin_club_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_athlete')} a
-            LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(a.club_name)) = LOWER(TRIM(c.name))
+            LEFT JOIN {fqtn(config.schema, 'club')} c ON {club_match_key_sql('a.club_name')} = {club_match_key_sql('c.name')}
             WHERE NULLIF(TRIM(a.club_name), '') IS NOT NULL AND c.id IS NULL;
         """,
         "results_sin_event_match": f"""
@@ -972,7 +1068,7 @@ def print_validations(conn, config: Config) -> None:
         """,
         "results_sin_athlete_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_result')} r
-            LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
+            LEFT JOIN {fqtn(config.schema, 'club')} c ON {club_match_key_sql('r.club_name')} = {club_match_key_sql('c.name')}
             LEFT JOIN {fqtn(config.schema, 'event')} e ON LOWER(TRIM(r.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = {config.competition_id}
             LEFT JOIN LATERAL (
                 SELECT at.id
@@ -998,7 +1094,7 @@ def print_validations(conn, config: Config) -> None:
         """,
         "results_sin_club_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_result')} r
-            LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
+            LEFT JOIN {fqtn(config.schema, 'club')} c ON {club_match_key_sql('r.club_name')} = {club_match_key_sql('c.name')}
             WHERE NULLIF(TRIM(r.club_name), '') IS NOT NULL AND c.id IS NULL;
         """,
         "relay_results_sin_event_match": f"""
@@ -1008,12 +1104,12 @@ def print_validations(conn, config: Config) -> None:
         """,
         "relay_results_sin_club_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_relay_result')} r
-            LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
+            LEFT JOIN {fqtn(config.schema, 'club')} c ON {club_match_key_sql('r.club_name')} = {club_match_key_sql('c.name')}
             WHERE NULLIF(TRIM(r.club_name), '') IS NOT NULL AND c.id IS NULL;
         """,
         "relay_members_sin_relay_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_relay_result_member')} m
-            LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(m.club_name)) = LOWER(TRIM(c.name))
+            LEFT JOIN {fqtn(config.schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
             LEFT JOIN {fqtn(config.schema, 'event')} e ON LOWER(TRIM(m.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = {config.competition_id}
             LEFT JOIN {fqtn(config.schema, 'relay_result')} rr ON rr.event_id = e.id
                  AND LOWER(TRIM(rr.relay_team_name)) = LOWER(TRIM(m.relay_team_name))
@@ -1024,7 +1120,7 @@ def print_validations(conn, config: Config) -> None:
         """,
         "relay_members_sin_athlete_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_relay_result_member')} m
-            LEFT JOIN {fqtn(config.schema, 'club')} c ON LOWER(TRIM(m.club_name)) = LOWER(TRIM(c.name))
+            LEFT JOIN {fqtn(config.schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
             LEFT JOIN LATERAL (
                 SELECT at.id
                 FROM {fqtn(config.schema, 'athlete')} at
