@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# parser v0.1.5
 from __future__ import annotations
 
 import argparse
@@ -6,6 +7,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass, asdict
+import unicodedata
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -24,32 +26,33 @@ TIME_OR_STATUS_PATTERN = (
 )
 
 EVENT_HEADER_RE = re.compile(
-    r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_m>\d+)\s+LC\s+Meter\s+(?P<stroke>.+?)\)?$",
+    r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>LC|SC)\s+Meter\s+(?P<stroke>.+?)\)?$",
     re.IGNORECASE,
 )
 
 RESULT_LINE_RE = re.compile(
-    rf"^(?P<rank>\d+|---)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})\s+(?P<final>{TIME_OR_STATUS_PATTERN})$",
+    rf"^(?P<rank>\*?\d+|---)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
 )
 
 RELAY_TEAM_RE = re.compile(
-    rf"^(?P<rank>\d+|---)\s+(?P<team>.+?)\s+(?:(?P<seed>{TIME_OR_STATUS_PATTERN})\s+)?(?P<final>{TIME_OR_STATUS_PATTERN})$",
+    rf"^(?P<rank>\*?\d+|---)\s+(?P<team>.+?)\s+(?:(?P<seed>{TIME_OR_STATUS_PATTERN})\s+)?(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
 )
 
 RELAY_SWIMMER_RE = re.compile(
-    r"(?P<leg>\d)\)\s+(?P<name>.+?)\s+(?P<gender>[WM])(?P<age>\d{1,3})(?=\s+\d\)|$)",
+    r"(?P<leg>\d)\)\s+(?P<name>.+?)\s+(?P<gender>[WM])(?P<age>\d{1,3})\)?(?=\s*\d\)|$)",
     re.IGNORECASE,
 )
 
 HEADER_SKIP_PATTERNS = [
     re.compile(r"HY-TEK'?S MEET MANAGER", re.IGNORECASE),
+    re.compile(r"^Results\s*$", re.IGNORECASE),
     re.compile(r"^Results\s*-", re.IGNORECASE),
-    re.compile(r"^Name\s+Age\s+Team\s+Seed\s+Time\s+Finals\s+Time$", re.IGNORECASE),
+    re.compile(r"^Name\s+Age\s+Team\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Estadio ", re.IGNORECASE),
     re.compile(r"^Page\s+\d+$", re.IGNORECASE),
-    re.compile(r"^.+\s+-\s+\d{2}-\d{2}-\d{4}$", re.IGNORECASE),
+    re.compile(r"^.+\s+-\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}$", re.IGNORECASE),
 ]
 
 
@@ -58,12 +61,14 @@ class EventContext:
     event_number: int
     gender: str
     age_group: str
+    distance_label: str
     distance_m: int
+    course_code: str
     stroke: str
 
     @property
     def event_name(self) -> str:
-        return f"{self.gender} {self.age_group} {self.distance_m} LC Meter {self.stroke}"
+        return f"{self.gender} {self.age_group} {self.distance_label} {self.course_code} Meter {self.stroke}"
 
     @property
     def is_relay(self) -> bool:
@@ -77,13 +82,16 @@ class ParsedResultRow:
     event_number: int
     event_name: str
     athlete_name: str
-    age: Optional[int]
+    age_at_event: Optional[int]
+    birth_year_estimated: Optional[int]
     club_name: str
     rank_position: Optional[str]
     seed_time_text: Optional[str]
+    seed_time_ms: Optional[str]
     result_time_text: Optional[str]
     result_time_ms: Optional[str]
     status: Optional[str]
+    points: Optional[str]
     raw_line: str
 
 
@@ -96,9 +104,11 @@ class ParsedRelayTeamRow:
     relay_team_name: str
     rank_position: Optional[str]
     seed_time_text: Optional[str]
+    seed_time_ms: Optional[str]
     result_time_text: Optional[str]
     result_time_ms: Optional[str]
     status: Optional[str]
+    points: Optional[str]
     raw_line: str
 
 
@@ -112,7 +122,8 @@ class ParsedRelaySwimmerRow:
     leg_order: int
     swimmer_name: str
     gender: Optional[str]
-    age: Optional[int]
+    age_at_event: Optional[int]
+    birth_year_estimated: Optional[int]
     raw_line: str
 
 
@@ -125,6 +136,170 @@ class ParseStats:
     relay_swimmer_rows_found: int = 0
     lines_skipped: int = 0
     lines_unparsed: int = 0
+
+
+def normalize_string(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        value = value.strip()
+        return value if value != "" else None
+    return value
+
+
+ACCENTED = "ÁÉÍÓÚáéíóúÑñÜü"
+
+def clean_extracted_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+
+    value = unicodedata.normalize("NFC", str(value))
+
+    # arreglos simples ya detectados
+    replacements = {
+        "NÑ": "Ñ",
+        "nñ": "ñ",
+        "Penñ": "Peñ",
+        "Munñ": "Muñ",
+        "Espanñ": "Españ",
+        "Canñ": "Cañ",
+        "Ñ u": "Ñu",
+        "ñ u": "ñu",
+        "Ñ a": "Ña",
+        "ñ a": "ña",
+        "Ñ o": "Ño",
+        "ñ o": "ño",
+        "Ñ e": "Ñe",
+        "ñ e": "ñe",
+        "Ñ i": "Ñi",
+        "ñ i": "ñi",
+        "Joseí": "José"
+    }
+    for bad, good in replacements.items():
+        value = value.replace(bad, good)
+
+    # Corrige artefactos frecuentes de tildes mal extraídas en nombres propios
+    value = re.sub(r"oí(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "ó", value)
+    value = re.sub(r"aí(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "á", value)
+    value = re.sub(r"eí(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "é", value)
+
+    # Variante con espacio artificial: "Andre ís" -> "Andrés"
+    value = re.sub(r"o\s+í(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "ó", value)
+    value = re.sub(r"a\s+í(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "á", value)
+    value = re.sub(r"e\s+í(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "é", value)
+
+    # corrige duplicación frecuente tipo "Rocíío" -> "Rocío"
+    value = re.sub(r"íi", "í", value)
+    value = re.sub(r"íí", "í", value)
+    value = re.sub(r"ÍI", "Í", value)
+    value = re.sub(r"áa", "á", value)
+    value = re.sub(r"ée", "é", value)
+    value = re.sub(r"óo", "ó", value)
+    value = re.sub(r"úu", "ú", value)
+    value = re.sub(r"ÁA", "Á", value)
+    value = re.sub(r"ÉE", "É", value)
+    value = re.sub(r"ÓO", "Ó", value)
+    value = re.sub(r"ÚU", "Ú", value)
+
+    # corrige vocal acentuada suelta al final de palabra anterior:
+    # "Alumine í" -> "Aluminé"
+    value = re.sub(r"([A-Za-zÑñ])e\s+í\b", r"\1é", value)
+    value = re.sub(r"([A-Za-zÑñ])o\s+í\b", r"\1ó", value)
+
+    # espacios múltiples
+    value = re.sub(r"\s+", " ", value).strip()
+
+    return value if value else None
+
+
+def normalize_event_gender(value: Optional[str]) -> Optional[str]:
+    value = normalize_string(value)
+    if value is None:
+        return None
+    key = value.lower()
+    mapping = {
+        "women": "women",
+        "woman": "women",
+        "female": "women",
+        "f": "women",
+        "men": "men",
+        "man": "men",
+        "male": "men",
+        "m": "men",
+        "mixed": "mixed",
+        "mix": "mixed",
+        "mixto": "mixed",
+    }
+    return mapping.get(key, key)
+
+
+def normalize_athlete_gender(value: Optional[str]) -> Optional[str]:
+    value = normalize_string(value)
+    if value is None:
+        return None
+    key = value.lower()
+    mapping = {
+        "women": "female",
+        "woman": "female",
+        "female": "female",
+        "f": "female",
+        "w": "female",
+        "men": "male",
+        "man": "male",
+        "male": "male",
+        "m": "male",
+    }
+    return mapping.get(key, key)
+
+
+def normalize_stroke(value: Optional[str]) -> Optional[str]:
+    value = normalize_string(value)
+    if value is None:
+        return None
+    key = value.lower().replace('-', ' ').replace('_', ' ')
+    key = re.sub(r"\s+", " ", key)
+    mapping = {
+        "free": "freestyle",
+        "freestyle": "freestyle",
+        "back": "backstroke",
+        "backstroke": "backstroke",
+        "breast": "breaststroke",
+        "breaststroke": "breaststroke",
+        "fly": "butterfly",
+        "butterfly": "butterfly",
+        "im": "individual_medley",
+        "individual medley": "individual_medley",
+        "medley": "individual_medley",
+        "medley relay": "medley_relay",
+        "freestyle relay": "freestyle_relay",
+        "free relay": "freestyle_relay",
+    }
+    return mapping.get(key, key.replace(' ', '_'))
+
+
+def derive_competition_year(metadata: Dict[str, Optional[str]], pdf_path: Optional[Path] = None) -> Optional[int]:
+    candidates = [metadata.get("competition_name"), metadata.get("results_label")]
+    if pdf_path is not None:
+        candidates.append(pdf_path.name)
+    for candidate in candidates:
+        if not candidate:
+            continue
+        years = re.findall(r"(19\d{2}|20\d{2}|21\d{2})", str(candidate))
+        if years:
+            return int(years[-1])
+    return None
+
+
+def parse_distance_to_meters(distance_raw: Optional[str]) -> Optional[int]:
+    distance_raw = normalize_string(distance_raw)
+    if distance_raw is None:
+        return None
+    m = re.fullmatch(r"(\d+)x(\d+)", distance_raw.lower())
+    if m:
+        return int(m.group(1)) * int(m.group(2))
+    if distance_raw.isdigit():
+        return int(distance_raw)
+    return None
 
 
 def info(msg: str) -> None:
@@ -269,15 +444,17 @@ def parse_event_header(line: str) -> Optional[EventContext]:
         return None
     return EventContext(
         event_number=int(m.group("event_number")),
-        gender=m.group("gender").strip(),
+        gender=normalize_event_gender(m.group("gender")),
         age_group=m.group("age_group").strip(),
-        distance_m=int(m.group("distance_m")),
-        stroke=m.group("stroke").strip(),
+        distance_label=m.group("distance_raw"),
+        distance_m=parse_distance_to_meters(m.group("distance_raw")) or 0,
+        course_code=m.group("course").upper(),
+        stroke=normalize_stroke(m.group("stroke")),
     )
 
 
 
-def parse_result_line(line: str, ctx: EventContext, page_number: int, line_number: int) -> Optional[ParsedResultRow]:
+def parse_result_line(line: str, ctx: EventContext, page_number: int, line_number: int, competition_year: Optional[int]) -> Optional[ParsedResultRow]:
     m = RESULT_LINE_RE.match(line.strip())
     if not m:
         return None
@@ -286,26 +463,35 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
     final_raw = normalize_string(m.group("final"))
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
-    rank_position: Optional[str] = None if rank_raw == "---" else rank_raw
+    rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
 
     if isinstance(normalized_final, str) and normalized_final.upper().startswith("X"):
         rank_position = None
 
+    seed_time_text = normalize_swim_time_text(m.group("seed"))
+    seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
+    age_at_event = int(m.group("age"))
+    birth_year_estimated = (competition_year - age_at_event) if competition_year is not None else None
+
+    points_raw = normalize_string(m.groupdict().get("points"))
 
     return ParsedResultRow(
         page_number=page_number,
         line_number=line_number,
         event_number=ctx.event_number,
-        event_name=ctx.event_name,
-        athlete_name=m.group("name").strip(),
-        age=int(m.group("age")),
-        club_name=m.group("team").strip(),
+        event_name=clean_extracted_text(ctx.event_name),
+        athlete_name=clean_extracted_text(m.group("name")),
+        age_at_event=age_at_event,
+        birth_year_estimated=birth_year_estimated,
+        club_name=clean_extracted_text(m.group("team")),
         rank_position=rank_position,
-        seed_time_text=normalize_swim_time_text(m.group("seed")),
+        seed_time_text=seed_time_text,
+        seed_time_ms=str(seed_time_ms) if seed_time_ms is not None else None,
         result_time_text=normalized_final,
         result_time_ms=str(result_time_ms) if result_time_ms is not None else None,
         status=status,
+        points=points_raw.replace(" ", "") if isinstance(points_raw, str) else points_raw,
         raw_line=line.strip(),
     )
 
@@ -321,30 +507,36 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
     final_raw = normalize_string(m.group("final"))
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
-    rank_position: Optional[str] = None if rank_raw == "---" else rank_raw
+    rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
 
     if isinstance(normalized_final, str) and normalized_final.upper().startswith("X"):
         rank_position = None
 
+    seed_time_text = normalize_swim_time_text(seed_raw)
+    seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
+
+    points_raw = normalize_string(m.groupdict().get("points"))
 
     return ParsedRelayTeamRow(
         page_number=page_number,
         line_number=line_number,
         event_number=ctx.event_number,
-        event_name=ctx.event_name,
-        relay_team_name=m.group("team").strip(),
+        event_name=clean_extracted_text(ctx.event_name),
+        relay_team_name=clean_extracted_text(m.group("team")),
         rank_position=rank_position,
-        seed_time_text=normalize_swim_time_text(seed_raw),
+        seed_time_text=seed_time_text,
+        seed_time_ms=str(seed_time_ms) if seed_time_ms is not None else None,
         result_time_text=normalized_final,
         result_time_ms=str(result_time_ms) if result_time_ms is not None else None,
         status=status,
+        points=points_raw.replace(" ", "") if isinstance(points_raw, str) else points_raw,
         raw_line=line.strip(),
     )
 
 
 
-def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, line_number: int, relay_team_name: Optional[str]) -> List[ParsedRelaySwimmerRow]:
+def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, line_number: int, relay_team_name: Optional[str], competition_year: Optional[int]) -> List[ParsedRelaySwimmerRow]:
     stripped = line.strip()
     if not stripped.startswith("1)"):
         return []
@@ -356,6 +548,8 @@ def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, lin
     swimmers: List[ParsedRelaySwimmerRow] = []
     for m in matches:
         gender_raw = (m.group("gender") or "").upper()
+        age_at_event = int(m.group("age")) if m.group("age") else None
+        birth_year_estimated = (competition_year - age_at_event) if (competition_year is not None and age_at_event is not None) else None
         swimmers.append(
             ParsedRelaySwimmerRow(
                 page_number=page_number,
@@ -364,9 +558,11 @@ def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, lin
                 event_name=ctx.event_name,
                 relay_team_name=relay_team_name,
                 leg_order=int(m.group("leg")),
-                swimmer_name=m.group("name").strip(),
-                gender={"W": "women", "M": "men"}.get(gender_raw),
-                age=int(m.group("age")) if m.group("age") else None,
+                swimmer_name=clean_extracted_text(m.group("name")).strip(),
+                #swimmer_name=m.group("name").strip(),
+                gender=normalize_athlete_gender(gender_raw),
+                age_at_event=age_at_event,
+                birth_year_estimated=birth_year_estimated,
                 raw_line=stripped,
             )
         )
@@ -397,6 +593,7 @@ def parse_pdf(pdf_path: Path):
 
     competition_name: Optional[str] = None
     results_label: Optional[str] = None
+    competition_year: Optional[int] = None
 
     for page_number, lines in pages:
         for idx, raw_line in enumerate(lines, start=1):
@@ -409,6 +606,10 @@ def parse_pdf(pdf_path: Path):
                 competition_name = line
             if results_label is None and line.lower().startswith("results"):
                 results_label = line
+
+            if competition_year is None:
+                meta_probe = {"competition_name": competition_name, "results_label": results_label}
+                competition_year = derive_competition_year(meta_probe, pdf_path)
 
             if should_skip_line(line):
                 stats.lines_skipped += 1
@@ -442,7 +643,7 @@ def parse_pdf(pdf_path: Path):
                     stats.relay_team_rows_found += 1
                     continue
 
-                relay_swimmers = parse_relay_swimmer_line(line, current_event, page_number, idx, last_relay_team_name)
+                relay_swimmers = parse_relay_swimmer_line(line, current_event, page_number, idx, last_relay_team_name, competition_year)
                 if relay_swimmers:
                     relay_swimmer_rows.extend(relay_swimmers)
                     stats.relay_swimmer_rows_found += len(relay_swimmers)
@@ -460,7 +661,7 @@ def parse_pdf(pdf_path: Path):
                 )
                 continue
 
-            parsed = parse_result_line(line, current_event, page_number, idx)
+            parsed = parse_result_line(line, current_event, page_number, idx, competition_year)
             if parsed is not None:
                 rows.append(parsed)
                 stats.result_rows_found += 1
@@ -482,13 +683,15 @@ def parse_pdf(pdf_path: Path):
         "pdf_name": pdf_path.name,
         "competition_name": competition_name,
         "results_label": results_label,
+        "competition_year": competition_year,
     }
     return rows, relay_team_rows, relay_swimmer_rows, debug_df, stats, metadata
 
 
 
-def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: List[ParsedRelayTeamRow], relay_swimmer_rows: List[ParsedRelaySwimmerRow], competition_id: Optional[int], default_source_id: Optional[int]) -> Dict[str, pd.DataFrame]:
+def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: List[ParsedRelayTeamRow], relay_swimmer_rows: List[ParsedRelaySwimmerRow], competition_id: Optional[int], default_source_id: Optional[int], metadata: Dict[str, Optional[str]]) -> Dict[str, pd.DataFrame]:
     source_id_value = str(default_source_id) if default_source_id is not None else None
+    competition_year = metadata.get("competition_year")
 
     event_records: List[Dict[str, Optional[str]]] = []
     athlete_records: List[Dict[str, Optional[str]]] = []
@@ -512,9 +715,9 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
             {
                 "competition_id": str(competition_id) if competition_id is not None else None,
                 "event_name": row_event_name,
-                "stroke": event_match.group("stroke").strip().lower(),
-                "distance_m": event_match.group("distance_m").strip(),
-                "gender": event_match.group("gender").strip().lower(),
+                "stroke": normalize_stroke(event_match.group("stroke")),
+                "distance_m": str(parse_distance_to_meters(event_match.group("distance_raw")) or 0),
+                "gender": normalize_event_gender(event_match.group("gender")),
                 "age_group": event_match.group("age_group").strip(),
                 "round_type": "final",
                 "source_id": source_id_value,
@@ -536,8 +739,9 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
             athlete_records.append(
                 {
                     "full_name": row.athlete_name,
-                    "gender": event_match.group("gender").strip().lower() if event_match else None,
+                    "gender": normalize_athlete_gender(event_match.group("gender")) if event_match else None,
                     "club_name": row.club_name,
+                    "birth_year": str(row.birth_year_estimated) if row.birth_year_estimated is not None else None,
                     "source_id": source_id_value,
                 }
             )
@@ -548,8 +752,13 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
                 "athlete_name": row.athlete_name,
                 "club_name": row.club_name,
                 "rank_position": row.rank_position,
+                "age_at_event": str(row.age_at_event) if row.age_at_event is not None else None,
+                "birth_year_estimated": str(row.birth_year_estimated) if row.birth_year_estimated is not None else None,
+                "seed_time_text": row.seed_time_text,
+                "seed_time_ms": row.seed_time_ms,
                 "result_time_text": row.result_time_text,
                 "result_time_ms": row.result_time_ms,
+                "points": row.points,
                 "status": row.status,
                 "source_id": source_id_value,
             }
@@ -563,8 +772,10 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
                 "relay_team_name": row.relay_team_name,
                 "rank_position": row.rank_position,
                 "seed_time_text": row.seed_time_text,
+                "seed_time_ms": row.seed_time_ms,
                 "result_time_text": row.result_time_text,
                 "result_time_ms": row.result_time_ms,
+                "points": row.points,
                 "status": row.status,
                 "source_id": source_id_value,
                 "page_number": row.page_number,
@@ -580,7 +791,8 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
                 "leg_order": str(row.leg_order),
                 "swimmer_name": row.swimmer_name,
                 "gender": row.gender,
-                "age": str(row.age) if row.age is not None else None,
+                "age_at_event": str(row.age_at_event) if row.age_at_event is not None else None,
+                "birth_year_estimated": str(row.birth_year_estimated) if row.birth_year_estimated is not None else None,
                 "page_number": row.page_number,
                 "line_number": row.line_number,
             }
@@ -589,11 +801,11 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
     frames = {
         "club": pd.DataFrame(club_records, columns=["name", "short_name", "city", "region", "source_id"]),
         "event": pd.DataFrame(event_records, columns=["competition_id", "event_name", "stroke", "distance_m", "gender", "age_group", "round_type", "source_id"]),
-        "athlete": pd.DataFrame(athlete_records, columns=["full_name", "gender", "club_name", "source_id"]),
-        "result": pd.DataFrame(result_records, columns=["event_name", "athlete_name", "club_name", "rank_position", "result_time_text", "result_time_ms", "status", "source_id"]),
+        "athlete": pd.DataFrame(athlete_records, columns=["full_name", "gender", "club_name", "birth_year", "source_id"]),
+        "result": pd.DataFrame(result_records, columns=["event_name", "athlete_name", "club_name", "rank_position", "age_at_event", "birth_year_estimated", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "status", "source_id"]),
         "raw_result": pd.DataFrame([asdict(r) for r in parsed_rows]),
-        "relay_team": pd.DataFrame(relay_team_records, columns=["event_name", "relay_team_name", "rank_position", "seed_time_text", "result_time_text", "result_time_ms", "status", "source_id", "page_number", "line_number"]),
-        "relay_swimmer": pd.DataFrame(relay_swimmer_records, columns=["event_name", "relay_team_name", "leg_order", "swimmer_name", "gender", "age", "page_number", "line_number"]),
+        "relay_team": pd.DataFrame(relay_team_records, columns=["event_name", "relay_team_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "status", "source_id", "page_number", "line_number"]),
+        "relay_swimmer": pd.DataFrame(relay_swimmer_records, columns=["event_name", "relay_team_name", "leg_order", "swimmer_name", "gender", "age_at_event", "birth_year_estimated", "page_number", "line_number"]),
         "raw_relay_team": pd.DataFrame([asdict(r) for r in relay_team_rows]),
         "raw_relay_swimmer": pd.DataFrame([asdict(r) for r in relay_swimmer_rows]),
     }
@@ -626,13 +838,13 @@ def save_outputs(frames: Dict[str, pd.DataFrame], debug_df: pd.DataFrame, metada
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.1 separa relevos de pruebas individuales."
+        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.5 agrega soporte para SC Meter, columna Points, ranks con * y ruido 'Results'."
     )
     parser.add_argument("--pdf", required=True, help="Ruta al PDF de resultados")
     parser.add_argument("--out-dir", required=True, help="Carpeta de salida para CSV/XLSX")
     parser.add_argument("--competition-id", type=int, help="competition_id opcional para poblar la hoja event")
     parser.add_argument("--default-source-id", type=int, help="source_id opcional para poblar hojas de salida")
-    parser.add_argument("--excel-name", default="parsed_results_v0_1_1.xlsx", help="Nombre del archivo Excel de salida")
+    parser.add_argument("--excel-name", default="parsed_results_v0_1_5.xlsx", help="Nombre del archivo Excel de salida")
     return parser.parse_args()
 
 
@@ -651,7 +863,7 @@ def main() -> None:
     if not parsed_rows and not relay_team_rows:
         fail("No se extrajeron filas de resultados. Revisa el layout del PDF o el archivo de debug.")
 
-    frames = build_output_frames(parsed_rows, relay_team_rows, relay_swimmer_rows, args.competition_id, args.default_source_id)
+    frames = build_output_frames(parsed_rows, relay_team_rows, relay_swimmer_rows, args.competition_id, args.default_source_id, metadata)
     save_outputs(frames, debug_df, metadata, out_dir, args.excel_name)
 
     print("\n=== RESUMEN DE EXTRACCIÓN ===")
