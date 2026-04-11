@@ -8,6 +8,7 @@ import re
 import sys
 import unicodedata
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
@@ -51,6 +52,7 @@ STAGING_TABLES = {
 
 STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "VALID", "UNKNOWN"}
+DEFAULT_CLUB_ALIAS_CSV = Path(__file__).resolve().parents[1] / "data" / "reference" / "club_alias.csv"
 
 
 @dataclass
@@ -89,6 +91,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-name", type=str, help="Nombre de competencia opcional para auto-upsert cuando no se indique competition_id")
     parser.add_argument("--competition-source-url", type=str, help="URL fuente opcional para competition cuando se cree automáticamente")
     parser.add_argument("--default-source-id", type=int, default=1)
+    parser.add_argument("--club-alias-csv", type=str, default=str(DEFAULT_CLUB_ALIAS_CSV), help="CSV opcional con columnas alias_name, canonical_name para resolver variantes de nombres de clubes")
     return parser.parse_args()
 
 
@@ -335,6 +338,140 @@ def infer_relay_club_name(relay_team_name: Optional[str], club_names: List[str])
         candidates.sort(reverse=True)
         return candidates[0][1]
     return None
+
+
+
+def load_club_aliases(alias_csv: Optional[str]) -> Dict[str, str]:
+    if not alias_csv:
+        return {}
+    alias_path = Path(alias_csv)
+    if not alias_path.exists():
+        info(f"No se encontró club_alias_csv: {alias_path}. Se continuará sin aliases manuales.")
+        return {}
+
+    alias_df = pd.read_csv(alias_path, dtype=str, encoding="utf-8-sig").fillna("")
+    required = {"alias_name", "canonical_name"}
+    if not required.issubset(set(alias_df.columns)):
+        fail(f"{alias_path} debe tener columnas {sorted(required)}")
+
+    aliases: Dict[str, str] = {}
+    for _, row in alias_df.iterrows():
+        alias_name = clean_extracted_text(row.get("alias_name"))
+        canonical_name = clean_extracted_text(row.get("canonical_name"))
+        alias_key = normalize_match_text(alias_name)
+        if alias_key and canonical_name:
+            aliases[alias_key] = canonical_name
+            canonical_key = normalize_match_text(canonical_name)
+            if canonical_key:
+                aliases.setdefault(canonical_key, canonical_name)
+
+    info(f"Aliases de club cargados: {len(aliases)} claves desde {alias_path}")
+    return aliases
+
+
+
+def resolve_club_alias(value: Optional[str], aliases: Dict[str, str]) -> Optional[str]:
+    value = clean_extracted_text(value)
+    if value is None:
+        return None
+    return aliases.get(normalize_match_text(value), value)
+
+
+
+def apply_club_aliases(data: Dict[str, pd.DataFrame], aliases: Dict[str, str]) -> None:
+    if not aliases:
+        return
+    for table_key, df in data.items():
+        if df.empty:
+            continue
+        if table_key == "club" and "name" in df.columns:
+            df["name"] = df["name"].map(lambda x: resolve_club_alias(x, aliases))
+            df.drop_duplicates(subset=["name"], keep="first", inplace=True, ignore_index=True)
+        if "club_name" in df.columns:
+            df["club_name"] = df["club_name"].map(lambda x: resolve_club_alias(x, aliases))
+
+
+
+def club_similarity_key(value: Optional[str]) -> Optional[str]:
+    value = normalize_match_text(value)
+    if value is None:
+        return None
+    generic_tokens = {"club", "master", "masters", "swim", "swimming", "team", "natacion", "de", "del", "la", "las", "los"}
+    number_words = {"100": "cien"}
+    tokens = [number_words.get(token, token) for token in value.split() if token not in generic_tokens]
+    return " ".join(tokens) or value
+
+
+
+def write_club_alias_candidates(data: Dict[str, pd.DataFrame], out_path: Optional[Path], reference_names: Optional[Iterable[str]] = None) -> None:
+    if out_path is None or "club" not in data or data["club"].empty:
+        return
+
+    club_names = sorted({name for name in data["club"].get("name", pd.Series(dtype=str)).map(clean_extracted_text).tolist() if name})
+    reference_names = sorted({name for name in (reference_names or []) if clean_extracted_text(name)})
+    athlete_sets: Dict[str, set] = {}
+    if "athlete" in data and not data["athlete"].empty:
+        for _, row in data["athlete"].iterrows():
+            club_name = clean_extracted_text(row.get("club_name"))
+            athlete_key = (
+                normalize_match_text(row.get("full_name")),
+                normalize_athlete_gender(row.get("gender")),
+                normalize_string(row.get("birth_year")),
+            )
+            if club_name and athlete_key[0]:
+                athlete_sets.setdefault(club_name, set()).add(athlete_key)
+
+    records = []
+    for i, left in enumerate(club_names):
+        left_key = club_similarity_key(left)
+        for right in club_names[i + 1:]:
+            right_key = club_similarity_key(right)
+            if not left_key or not right_key:
+                continue
+            ratio = SequenceMatcher(None, left_key, right_key).ratio()
+            overlap = len(athlete_sets.get(left, set()) & athlete_sets.get(right, set()))
+            if ratio >= 0.72 or overlap >= 2:
+                records.append(
+                    {
+                        "club_name_a": left,
+                        "club_name_b": right,
+                        "candidate_source": "current_input",
+                        "similarity_key_a": left_key,
+                        "similarity_key_b": right_key,
+                        "similarity_ratio": f"{ratio:.3f}",
+                        "shared_athletes": str(overlap),
+                    }
+                )
+
+    existing_pairs = {(record["club_name_a"], record["club_name_b"]) for record in records}
+    for left in club_names:
+        left_key = club_similarity_key(left)
+        left_norm = normalize_match_text(left)
+        for right in reference_names:
+            right_key = club_similarity_key(right)
+            right_norm = normalize_match_text(right)
+            if not left_key or not right_key or left_norm == right_norm:
+                continue
+            ratio = SequenceMatcher(None, left_key, right_key).ratio()
+            pair_key = (left, right)
+            if ratio >= 0.72 and pair_key not in existing_pairs:
+                records.append(
+                    {
+                        "club_name_a": left,
+                        "club_name_b": right,
+                        "candidate_source": "alias_reference",
+                        "similarity_key_a": left_key,
+                        "similarity_key_b": right_key,
+                        "similarity_ratio": f"{ratio:.3f}",
+                        "shared_athletes": "",
+                    }
+                )
+
+    if not records:
+        return
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(records).to_csv(out_path, index=False, encoding="utf-8-sig")
+    info(f"Candidatos de alias de club para revisar: {out_path}")
 
 
 
@@ -1156,6 +1293,10 @@ def main() -> None:
     args = parse_args()
     config = Config(host=args.host, port=args.port, dbname=args.dbname, user=args.user, password=args.password, schema=args.schema, truncate_staging=args.truncate_staging, truncate_core=args.truncate_core, competition_id=args.competition_id, default_source_id=args.default_source_id)
     data, metadata = read_inputs(args)
+    aliases = load_club_aliases(args.club_alias_csv)
+    apply_club_aliases(data, aliases)
+    candidates_path = (Path(args.input_dir) / "club_alias_candidates.csv") if args.input_dir else None
+    write_club_alias_candidates(data, candidates_path, reference_names=aliases.values())
     conn = get_conn(config)
     try:
         config.competition_id = resolve_competition_id(conn, config, args, data, metadata)
