@@ -709,8 +709,25 @@ def insert_core_event(cur, schema: str, competition_id: int, default_source_id: 
 
 def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
     cur.execute(f"""
-        INSERT INTO {fqtn(schema, 'athlete')} (full_name, gender, club_id, source_id)
-        SELECT DISTINCT TRIM(a.full_name), LOWER(NULLIF(TRIM(a.gender), '')), c.id,
+        UPDATE {fqtn(schema, 'athlete')} at
+        SET birth_year = NULLIF(TRIM(a.birth_year), '')::INTEGER
+        FROM {fqtn(schema, 'stg_athlete')} a
+        LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(a.club_name)) = LOWER(TRIM(c.name))
+        WHERE at.birth_year IS NULL
+          AND NULLIF(TRIM(a.birth_year), '') IS NOT NULL
+          AND LOWER(TRIM(at.full_name)) = LOWER(TRIM(a.full_name))
+          AND (
+                LOWER(NULLIF(TRIM(a.gender), '')) IS NULL
+                OR at.gender IS NULL
+                OR at.gender = LOWER(NULLIF(TRIM(a.gender), ''))
+              )
+          AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id);
+    """)
+
+    cur.execute(f"""
+        INSERT INTO {fqtn(schema, 'athlete')} (full_name, gender, birth_year, club_id, source_id)
+        SELECT DISTINCT TRIM(a.full_name), LOWER(NULLIF(TRIM(a.gender), '')),
+               NULLIF(TRIM(a.birth_year), '')::INTEGER, c.id,
                COALESCE(NULLIF(TRIM(a.source_id), '')::BIGINT, %s)
         FROM {fqtn(schema, 'stg_athlete')} a
         LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(a.club_name)) = LOWER(TRIM(c.name))
@@ -718,7 +735,27 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
           AND NOT EXISTS (
               SELECT 1 FROM {fqtn(schema, 'athlete')} at
               WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(a.full_name))
-                AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                AND (
+                    LOWER(NULLIF(TRIM(a.gender), '')) IS NULL
+                    OR at.gender IS NULL
+                    OR at.gender = LOWER(NULLIF(TRIM(a.gender), ''))
+                )
+                AND (
+                    (
+                        NULLIF(TRIM(a.birth_year), '') IS NOT NULL
+                        AND (
+                            at.birth_year = NULLIF(TRIM(a.birth_year), '')::INTEGER
+                            OR (
+                                at.birth_year IS NULL
+                                AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                            )
+                        )
+                    )
+                    OR (
+                        NULLIF(TRIM(a.birth_year), '') IS NULL
+                        AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                    )
+                )
           );
     """, (default_source_id,))
 
@@ -747,8 +784,26 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
         FROM {fqtn(schema, 'stg_result')} r
         LEFT JOIN {fqtn(schema, 'club')} c ON LOWER(TRIM(r.club_name)) = LOWER(TRIM(c.name))
         LEFT JOIN {fqtn(schema, 'event')} e ON LOWER(TRIM(r.event_name)) = LOWER(TRIM(e.event_name)) AND e.competition_id = %s
-        LEFT JOIN {fqtn(schema, 'athlete')} a ON LOWER(TRIM(r.athlete_name)) = LOWER(TRIM(a.full_name))
-             AND ((a.club_id IS NULL AND c.id IS NULL) OR a.club_id = c.id)
+        LEFT JOIN LATERAL (
+            SELECT at.id
+            FROM {fqtn(schema, 'athlete')} at
+            WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(r.athlete_name))
+              AND (
+                    {athlete_gender_from_event_gender_sql('e.gender')} IS NULL
+                    OR at.gender IS NULL
+                    OR at.gender = {athlete_gender_from_event_gender_sql('e.gender')}
+                  )
+            ORDER BY
+                CASE
+                    WHEN NULLIF(TRIM(r.birth_year_estimated), '') IS NOT NULL
+                     AND at.birth_year = NULLIF(TRIM(r.birth_year_estimated), '')::INTEGER THEN 0
+                    WHEN at.birth_year IS NULL THEN 1
+                    ELSE 2
+                END,
+                CASE WHEN COALESCE(at.club_id, -1) = COALESCE(c.id, -1) THEN 0 ELSE 1 END,
+                at.id
+            LIMIT 1
+        ) a ON TRUE
         WHERE NULLIF(TRIM(r.event_name), '') IS NOT NULL
           AND NULLIF(TRIM(r.athlete_name), '') IS NOT NULL
           AND e.id IS NOT NULL
@@ -824,8 +879,26 @@ def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> No
         LEFT JOIN {fqtn(schema, 'relay_result')} rr ON rr.event_id = e.id
              AND LOWER(TRIM(rr.relay_team_name)) = LOWER(TRIM(m.relay_team_name))
              AND ((rr.club_id IS NULL AND c.id IS NULL) OR rr.club_id = c.id)
-        LEFT JOIN {fqtn(schema, 'athlete')} a ON LOWER(TRIM(m.athlete_name)) = LOWER(TRIM(a.full_name))
-             AND ((a.club_id IS NULL AND c.id IS NULL) OR a.club_id = c.id)
+        LEFT JOIN LATERAL (
+            SELECT at.id
+            FROM {fqtn(schema, 'athlete')} at
+            WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+              AND (
+                    LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
+                    OR at.gender IS NULL
+                    OR at.gender = LOWER(NULLIF(TRIM(m.gender), ''))
+                  )
+            ORDER BY
+                CASE
+                    WHEN NULLIF(TRIM(m.birth_year_estimated), '') IS NOT NULL
+                     AND at.birth_year = NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER THEN 0
+                    WHEN at.birth_year IS NULL THEN 1
+                    ELSE 2
+                END,
+                CASE WHEN COALESCE(at.club_id, -1) = COALESCE(c.id, -1) THEN 0 ELSE 1 END,
+                at.id
+            LIMIT 1
+        ) a ON TRUE
         WHERE NULLIF(TRIM(m.event_name), '') IS NOT NULL
           AND NULLIF(TRIM(m.relay_team_name), '') IS NOT NULL
           AND NULLIF(TRIM(m.athlete_name), '') IS NOT NULL

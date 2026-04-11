@@ -296,6 +296,7 @@ CREATE TABLE stg_athlete (
     full_name TEXT,
     gender TEXT,
     club_name TEXT,
+    birth_year TEXT,
     source_id TEXT
 );
 
@@ -308,6 +309,7 @@ CREATE TABLE stg_result (
     result_time_ms TEXT,
     age_at_event TEXT,
     birth_year_estimated TEXT,
+    points TEXT,
     seed_time_text TEXT,
     seed_time_ms TEXT,
     status TEXT,

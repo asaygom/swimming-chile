@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from difflib import SequenceMatcher
 import json
 import re
 import sys
@@ -40,8 +41,18 @@ RELAY_TEAM_RE = re.compile(
     re.IGNORECASE,
 )
 
-RELAY_SWIMMER_RE = re.compile(
-    r"(?P<leg>\d)\)\s+(?P<name>.+?)\s+(?P<gender>[WM])(?P<age>\d{1,3})\)?(?=\s*\d\)|$)",
+RELAY_SWIMMER_STUCK_LEG_RE = re.compile(
+    r"(?P<age_marker>[WM](?:1[8-9]|[2-9]\d|10\d))(?=[1-4]\))",
+    re.IGNORECASE,
+)
+
+RELAY_SWIMMER_LEG_MARKER_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?P<leg>[1-4])(?:[A-Z])?(?:\)\.?\s*|\s+)",
+    re.IGNORECASE,
+)
+
+RELAY_SWIMMER_SEGMENT_RE = re.compile(
+    r"^(?P<name>.+?)(?:\s+(?P<gender>[WM])(?P<age>\d{1,3})\)?)?$",
     re.IGNORECASE,
 )
 
@@ -538,16 +549,24 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
 
 def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, line_number: int, relay_team_name: Optional[str], competition_year: Optional[int]) -> List[ParsedRelaySwimmerRow]:
     stripped = line.strip()
-    if not stripped.startswith("1)"):
-        return []
-
-    matches = list(RELAY_SWIMMER_RE.finditer(stripped))
-    if not matches:
+    # pdfplumber a veces pega la edad del nadador anterior con el siguiente tramo: "W394)" -> "W39 4)".
+    stripped = RELAY_SWIMMER_STUCK_LEG_RE.sub(r"\g<age_marker> ", stripped)
+    # En líneas largas también puede deformar el marcador, por ejemplo "4F)."; segmentar evita fusionar nadadores.
+    markers = list(RELAY_SWIMMER_LEG_MARKER_RE.finditer(stripped))
+    if not markers:
         return []
 
     swimmers: List[ParsedRelaySwimmerRow] = []
-    for m in matches:
-        gender_raw = (m.group("gender") or "").upper()
+    for index, marker in enumerate(markers):
+        next_start = markers[index + 1].start() if index + 1 < len(markers) else len(stripped)
+        segment = stripped[marker.end():next_start].strip()
+        m = RELAY_SWIMMER_SEGMENT_RE.match(segment)
+        if not m:
+            continue
+        swimmer_name = clean_extracted_text(m.group("name"))
+        if not swimmer_name:
+            continue
+        gender_raw = (m.group("gender") or ctx.gender or "").upper()
         age_at_event = int(m.group("age")) if m.group("age") else None
         birth_year_estimated = (competition_year - age_at_event) if (competition_year is not None and age_at_event is not None) else None
         swimmers.append(
@@ -557,8 +576,8 @@ def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, lin
                 event_number=ctx.event_number,
                 event_name=ctx.event_name,
                 relay_team_name=relay_team_name,
-                leg_order=int(m.group("leg")),
-                swimmer_name=clean_extracted_text(m.group("name")).strip(),
+                leg_order=int(marker.group("leg")),
+                swimmer_name=swimmer_name.strip(),
                 #swimmer_name=m.group("name").strip(),
                 gender=normalize_athlete_gender(gender_raw),
                 age_at_event=age_at_event,
@@ -567,6 +586,119 @@ def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, lin
             )
         )
     return swimmers
+
+
+
+def normalize_match_text(value: Optional[str]) -> str:
+    value = clean_extracted_text(value)
+    if value is None:
+        return ""
+    value = unicodedata.normalize("NFKD", value)
+    value = "".join(ch for ch in value if not unicodedata.combining(ch))
+    value = value.lower()
+    value = re.sub(r"[^a-z0-9]+", " ", value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+
+def name_match_score(left: Optional[str], right: Optional[str]) -> float:
+    left_norm = normalize_match_text(left)
+    right_norm = normalize_match_text(right)
+    if not left_norm or not right_norm:
+        return 0.0
+
+    ratio = SequenceMatcher(None, left_norm, right_norm).ratio()
+    left_tokens = {tok for tok in left_norm.split() if len(tok) > 1 and not any(ch.isdigit() for ch in tok)}
+    right_tokens = {tok for tok in right_norm.split() if len(tok) > 1 and not any(ch.isdigit() for ch in tok)}
+    token_score = 0.0
+    if left_tokens and right_tokens:
+        token_score = len(left_tokens & right_tokens) / max(len(left_tokens), len(right_tokens))
+    return (ratio * 0.65) + (token_score * 0.35)
+
+
+
+def infer_relay_club_name_for_parser(relay_team_name: Optional[str], club_names: List[str]) -> Optional[str]:
+    relay_team_name = clean_extracted_text(relay_team_name)
+    if relay_team_name is None:
+        return None
+
+    relay_norm = normalize_match_text(relay_team_name)
+    direct = {normalize_match_text(name): name for name in club_names if clean_extracted_text(name)}
+    if relay_norm in direct:
+        return direct[relay_norm]
+
+    suffix_match = re.match(r"^(.*?)(?:\s+[A-Z])$", relay_team_name.strip())
+    if suffix_match:
+        candidate = normalize_match_text(suffix_match.group(1))
+        if candidate in direct:
+            return direct[candidate]
+
+    candidates = []
+    for original in club_names:
+        norm = normalize_match_text(original)
+        if norm and (relay_norm == norm or relay_norm.startswith(norm + " ")):
+            candidates.append((len(norm), original))
+    if candidates:
+        candidates.sort(reverse=True)
+        return candidates[0][1]
+    return None
+
+
+
+def reconcile_relay_swimmers_with_individuals(parsed_rows: List[ParsedResultRow], relay_team_rows: List[ParsedRelayTeamRow], relay_swimmer_rows: List[ParsedRelaySwimmerRow]) -> None:
+    individual_by_club_gender: Dict[Tuple[str, str], List[ParsedResultRow]] = {}
+    club_names: List[str] = []
+    seen_club_names = set()
+    seen_individual_keys = set()
+
+    for row in parsed_rows:
+        club_name = clean_extracted_text(row.club_name)
+        athlete_gender = None
+        event_match = EVENT_HEADER_RE.match(f"Event {row.event_number} {row.event_name}")
+        if event_match:
+            athlete_gender = normalize_athlete_gender(event_match.group("gender"))
+        club_key = normalize_match_text(club_name)
+        gender_key = normalize_athlete_gender(athlete_gender)
+        if club_name and club_key not in seen_club_names:
+            seen_club_names.add(club_key)
+            club_names.append(club_name)
+        if club_key and gender_key:
+            individual_key = (club_key, gender_key, normalize_match_text(row.athlete_name), row.age_at_event)
+            if individual_key in seen_individual_keys:
+                continue
+            seen_individual_keys.add(individual_key)
+            individual_by_club_gender.setdefault((club_key, gender_key), []).append(row)
+
+    relay_club_by_team: Dict[str, Optional[str]] = {}
+    for row in relay_team_rows:
+        relay_club_by_team[normalize_match_text(row.relay_team_name)] = infer_relay_club_name_for_parser(row.relay_team_name, club_names)
+
+    for row in relay_swimmer_rows:
+        relay_club = relay_club_by_team.get(normalize_match_text(row.relay_team_name))
+        club_key = normalize_match_text(relay_club)
+        gender_key = normalize_athlete_gender(row.gender)
+        candidates = individual_by_club_gender.get((club_key, gender_key), [])
+        scored_candidates: List[Tuple[float, ParsedResultRow]] = []
+
+        for candidate in candidates:
+            score = name_match_score(row.swimmer_name, candidate.athlete_name)
+            if row.age_at_event is not None and candidate.age_at_event == row.age_at_event:
+                score += 0.10
+            elif row.age_at_event is not None and score < 0.82:
+                score -= 0.10
+            scored_candidates.append((score, candidate))
+
+        if not scored_candidates:
+            continue
+
+        scored_candidates.sort(key=lambda item: item[0], reverse=True)
+        best_score, best = scored_candidates[0]
+        second_score = scored_candidates[1][0] if len(scored_candidates) > 1 else 0.0
+
+        if best_score >= 0.82 and (best_score - second_score) >= 0.12:
+            row.swimmer_name = best.athlete_name
+            row.age_at_event = best.age_at_event
+            row.birth_year_estimated = best.birth_year_estimated
 
 
 
@@ -677,6 +809,8 @@ def parse_pdf(pdf_path: Path):
                     "reason": "unparsed_inside_event",
                 }
             )
+
+    reconcile_relay_swimmers_with_individuals(rows, relay_team_rows, relay_swimmer_rows)
 
     debug_df = pd.DataFrame(debug_rows, columns=["page_number", "line_number", "event_name_context", "raw_line", "reason"])
     metadata = {
