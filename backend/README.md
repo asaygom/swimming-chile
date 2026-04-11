@@ -20,6 +20,7 @@ It is designed as a practical data workflow, not just a notebook or isolated scr
 
 - `scripts/` → ingestion and pipeline execution
 - `sql/` → database objects, schema, and transformations
+- `sql/analysis_queries.sql` → sample analysis queries for clubs, athletes, results, and relays
 - `data/` or input files → source competition files
 - `docs/` → notes, assumptions, and mapping decisions
 
