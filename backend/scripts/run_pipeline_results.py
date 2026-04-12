@@ -733,6 +733,15 @@ def derive_competition_year_from_text(*values: Optional[str]) -> Optional[int]:
     return None
 
 
+def parse_iso_date(value: Optional[str]) -> Optional[str]:
+    value = normalize_string(value)
+    if value is None:
+        return None
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        return value
+    return None
+
+
 def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data: Dict[str, pd.DataFrame], metadata: Dict[str, Optional[str]]) -> int:
     if config.competition_id is not None:
         return int(config.competition_id)
@@ -751,6 +760,8 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
 
     course_type = infer_course_type_from_events(data.get("event"))
     source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+    start_date = parse_iso_date(metadata.get("competition_start_date"))
+    end_date = parse_iso_date(metadata.get("competition_end_date")) or start_date
     with conn.cursor() as cur:
         cur.execute(f"""
             SELECT id
@@ -767,10 +778,10 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
             return competition_id
 
         cur.execute(f"""
-            INSERT INTO {fqtn(config.schema, 'competition')} (name, season_year, course_type, status, source_id, source_url)
-            VALUES (%s, %s, %s, 'finished', %s, %s)
+            INSERT INTO {fqtn(config.schema, 'competition')} (name, season_year, start_date, end_date, course_type, status, source_id, source_url)
+            VALUES (%s, %s, %s, %s, %s, 'finished', %s, %s)
             RETURNING id;
-        """, (competition_name, season_year_int, course_type, config.default_source_id, source_url))
+        """, (competition_name, season_year_int, start_date, end_date, course_type, config.default_source_id, source_url))
         competition_id = int(cur.fetchone()[0])
     conn.commit()
     info(f"Se creó competition_id={competition_id} para '{competition_name}'.")

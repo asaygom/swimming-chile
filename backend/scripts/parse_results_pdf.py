@@ -25,6 +25,10 @@ TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "VALID", "UNK
 TIME_OR_STATUS_PATTERN = (
     r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ)"
 )
+DATE_DMY_RE = re.compile(r"(?P<day>\d{1,2})[-/](?P<month>\d{1,2})[-/](?P<year>\d{4})")
+COMPETITION_HEADER_WITH_DATE_RE = re.compile(
+    r"^(?P<name>.+?)\s+-\s+(?P<date>\d{1,2}[-/]\d{1,2}[-/]\d{4})$"
+)
 
 EVENT_HEADER_RE = re.compile(
     r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>LC|SC)\s+Meter\s+(?P<stroke>.+?)\)?$",
@@ -288,8 +292,42 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
     return mapping.get(key, key.replace(' ', '_'))
 
 
+def parse_dmy_date(value: Optional[str]) -> Optional[str]:
+    value = normalize_string(value)
+    if value is None:
+        return None
+    m = DATE_DMY_RE.search(value)
+    if not m:
+        return None
+    return f"{int(m.group('year')):04d}-{int(m.group('month')):02d}-{int(m.group('day')):02d}"
+
+
+def parse_competition_header(line: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    candidate = normalize_string(line)
+    if candidate is None:
+        return None, None, None
+    if re.search(r"HY-TEK|MEET MANAGER|\bPage\s+\d+\b|^Results\b|^Event\s+\d+\b", candidate, re.IGNORECASE):
+        return None, None, None
+
+    # Encabezado FCHMN/HY-TEK usual: "VI Torneo Smart Swim Team - 24-05-2025".
+    m = COMPETITION_HEADER_WITH_DATE_RE.match(candidate)
+    if m:
+        name = clean_extracted_text(m.group("name"))
+        date_iso = parse_dmy_date(m.group("date"))
+        return name, date_iso, date_iso
+
+    if (candidate.startswith("II Copa") or candidate.startswith("I Copa")) or "Copa" in candidate:
+        return clean_extracted_text(candidate), None, None
+    return None, None, None
+
+
 def derive_competition_year(metadata: Dict[str, Optional[str]], pdf_path: Optional[Path] = None) -> Optional[int]:
-    candidates = [metadata.get("competition_name"), metadata.get("results_label")]
+    candidates = [
+        metadata.get("competition_start_date"),
+        metadata.get("competition_end_date"),
+        metadata.get("competition_name"),
+        metadata.get("results_label"),
+    ]
     if pdf_path is not None:
         candidates.append(pdf_path.name)
     for candidate in candidates:
@@ -725,6 +763,8 @@ def parse_pdf(pdf_path: Path):
 
     competition_name: Optional[str] = None
     results_label: Optional[str] = None
+    competition_start_date: Optional[str] = None
+    competition_end_date: Optional[str] = None
     competition_year: Optional[int] = None
 
     for page_number, lines in pages:
@@ -734,13 +774,22 @@ def parse_pdf(pdf_path: Path):
                 stats.lines_skipped += 1
                 continue
 
-            if competition_name is None and ((line.startswith("II Copa") or line.startswith("I Copa")) or "Copa" in line):
-                competition_name = line
+            if competition_name is None:
+                parsed_name, parsed_start_date, parsed_end_date = parse_competition_header(line)
+                if parsed_name is not None:
+                    competition_name = parsed_name
+                    competition_start_date = parsed_start_date
+                    competition_end_date = parsed_end_date
             if results_label is None and line.lower().startswith("results"):
                 results_label = line
 
             if competition_year is None:
-                meta_probe = {"competition_name": competition_name, "results_label": results_label}
+                meta_probe = {
+                    "competition_start_date": competition_start_date,
+                    "competition_end_date": competition_end_date,
+                    "competition_name": competition_name,
+                    "results_label": results_label,
+                }
                 competition_year = derive_competition_year(meta_probe, pdf_path)
 
             if should_skip_line(line):
@@ -816,6 +865,8 @@ def parse_pdf(pdf_path: Path):
     metadata = {
         "pdf_name": pdf_path.name,
         "competition_name": competition_name,
+        "competition_start_date": competition_start_date,
+        "competition_end_date": competition_end_date,
         "results_label": results_label,
         "competition_year": competition_year,
     }
