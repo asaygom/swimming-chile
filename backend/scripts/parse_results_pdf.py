@@ -35,8 +35,18 @@ EVENT_HEADER_RE = re.compile(
     re.IGNORECASE,
 )
 
+SPANISH_EVENT_HEADER_RE = re.compile(
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP)\s+Metro\s+(?P<stroke>.+?)\)?$",
+    re.IGNORECASE,
+)
+
 RESULT_LINE_RE = re.compile(
     rf"^(?P<rank>\*?\d+|---)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
+    re.IGNORECASE,
+)
+
+RESULT_NO_SEED_LINE_RE = re.compile(
+    rf"^(?P<rank>\*?\d+|---)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
 )
 
@@ -64,9 +74,12 @@ HEADER_SKIP_PATTERNS = [
     re.compile(r"HY-TEK'?S MEET MANAGER", re.IGNORECASE),
     re.compile(r"^Results\s*$", re.IGNORECASE),
     re.compile(r"^Results\s*-", re.IGNORECASE),
+    re.compile(r"^Resultados\s*-", re.IGNORECASE),
     re.compile(r"^Name\s+Age\s+Team\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
+    re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Estadio ", re.IGNORECASE),
     re.compile(r"^Page\s+\d+$", re.IGNORECASE),
+    re.compile(r"^P[aá]gina\s+\d+$", re.IGNORECASE),
     re.compile(r"^.+\s+-\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}$", re.IGNORECASE),
 ]
 
@@ -237,10 +250,14 @@ def normalize_event_gender(value: Optional[str]) -> Optional[str]:
         "woman": "women",
         "female": "women",
         "f": "women",
+        "mujeres": "women",
+        "mujer": "women",
         "men": "men",
         "man": "men",
         "male": "men",
         "m": "men",
+        "hombres": "men",
+        "hombre": "men",
         "mixed": "mixed",
         "mix": "mixed",
         "mixto": "mixed",
@@ -259,10 +276,28 @@ def normalize_athlete_gender(value: Optional[str]) -> Optional[str]:
         "female": "female",
         "f": "female",
         "w": "female",
+        "mujeres": "female",
+        "mujer": "female",
         "men": "male",
         "man": "male",
         "male": "male",
         "m": "male",
+        "hombres": "male",
+        "hombre": "male",
+    }
+    return mapping.get(key, key)
+
+
+def normalize_course_code(value: Optional[str]) -> Optional[str]:
+    value = normalize_string(value)
+    if value is None:
+        return None
+    key = value.upper()
+    mapping = {
+        "LC": "LC",
+        "SC": "SC",
+        "CL": "LC",
+        "CP": "SC",
     }
     return mapping.get(key, key)
 
@@ -288,6 +323,18 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
         "medley relay": "medley_relay",
         "freestyle relay": "freestyle_relay",
         "free relay": "freestyle_relay",
+        "estilo libre": "freestyle",
+        "libre": "freestyle",
+        "estilo de espalda": "backstroke",
+        "espalda": "backstroke",
+        "estilo de pecho": "breaststroke",
+        "pecho": "breaststroke",
+        "estilo de mariposa": "butterfly",
+        "mariposa": "butterfly",
+        "ci": "individual_medley",
+        "combinado individual": "individual_medley",
+        "combinado relevo": "medley_relay",
+        "estilo libre relevo": "freestyle_relay",
     }
     return mapping.get(key, key.replace(' ', '_'))
 
@@ -306,7 +353,7 @@ def parse_competition_header(line: str) -> Tuple[Optional[str], Optional[str], O
     candidate = normalize_string(line)
     if candidate is None:
         return None, None, None
-    if re.search(r"HY-TEK|MEET MANAGER|\bPage\s+\d+\b|^Results\b|^Event\s+\d+\b", candidate, re.IGNORECASE):
+    if re.search(r"HY-TEK|MEET MANAGER|\bPage\s+\d+\b|\bP[aá]gina\s+\d+\b|^Results\b|^Resultados\b|^Event\s+\d+\b|^Evento\s+\d+\b", candidate, re.IGNORECASE):
         return None, None, None
 
     # Encabezado FCHMN/HY-TEK usual: "VI Torneo Smart Swim Team - 24-05-2025".
@@ -490,14 +537,17 @@ def parse_event_header(line: str) -> Optional[EventContext]:
     candidate = line.strip()
     m = EVENT_HEADER_RE.match(candidate)
     if not m:
+        m = SPANISH_EVENT_HEADER_RE.match(candidate)
+    if not m:
         return None
+    course_code = normalize_course_code(m.group("course")) or m.group("course").upper()
     return EventContext(
         event_number=int(m.group("event_number")),
         gender=normalize_event_gender(m.group("gender")),
         age_group=m.group("age_group").strip(),
         distance_label=m.group("distance_raw"),
         distance_m=parse_distance_to_meters(m.group("distance_raw")) or 0,
-        course_code=m.group("course").upper(),
+        course_code=course_code,
         stroke=normalize_stroke(m.group("stroke")),
     )
 
@@ -505,6 +555,10 @@ def parse_event_header(line: str) -> Optional[EventContext]:
 
 def parse_result_line(line: str, ctx: EventContext, page_number: int, line_number: int, competition_year: Optional[int]) -> Optional[ParsedResultRow]:
     m = RESULT_LINE_RE.match(line.strip())
+    has_seed = True
+    if not m:
+        m = RESULT_NO_SEED_LINE_RE.match(line.strip())
+        has_seed = False
     if not m:
         return None
 
@@ -517,7 +571,7 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
     if isinstance(normalized_final, str) and normalized_final.upper().startswith("X"):
         rank_position = None
 
-    seed_time_text = normalize_swim_time_text(m.group("seed"))
+    seed_time_text = normalize_swim_time_text(m.group("seed")) if has_seed else None
     seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
     age_at_event = int(m.group("age"))
