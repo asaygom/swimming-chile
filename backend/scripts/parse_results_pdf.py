@@ -21,13 +21,17 @@ except ImportError as exc:  # pragma: no cover
 
 
 STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
-TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "VALID", "UNKNOWN"}
+TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
 TIME_OR_STATUS_PATTERN = (
-    r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ)"
+    r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ|DFS)"
 )
 DATE_DMY_RE = re.compile(r"(?P<day>\d{1,2})[-/](?P<month>\d{1,2})[-/](?P<year>\d{4})")
 COMPETITION_HEADER_WITH_DATE_RE = re.compile(
     r"^(?P<name>.+?)\s+-\s+(?P<date>\d{1,2}[-/]\d{1,2}[-/]\d{4})$"
+)
+COMPETITION_HEADER_WITH_DATE_RANGE_RE = re.compile(
+    r"^(?P<name>.+?)\s+-\s+(?P<start_date>\d{1,2}[-/]\d{1,2}[-/]\d{4})\s+(?:a|to)\s+(?P<end_date>\d{1,2}[-/]\d{1,2}[-/]\d{4})$",
+    re.IGNORECASE,
 )
 
 EVENT_HEADER_RE = re.compile(
@@ -36,7 +40,17 @@ EVENT_HEADER_RE = re.compile(
 )
 
 SPANISH_EVENT_HEADER_RE = re.compile(
-    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP)\s+Metro\s+(?P<stroke>.+?)\)?$",
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC)\s+Metro\s+(?P<stroke>.+?)\)?$",
+    re.IGNORECASE,
+)
+
+SPANISH_RELAY_EVENT_HEADER_RE = re.compile(
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+x\d+)\s+(?P<course>CL|CP|CC)\s+Metro\s+Relevo\s+(?P<stroke>.+?)\)?$",
+    re.IGNORECASE,
+)
+
+SPANISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE = re.compile(
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<distance_raw>\d+)\s+(?P<course>CL|CP|CC)\s+Metro\s+\d+x\d+\s+(?P<stroke>comb|libre)\s+(?P<age_group>\d+\s+a(?:ñ|n)os)\s+Relevo\)?$",
     re.IGNORECASE,
 )
 
@@ -66,7 +80,7 @@ RELAY_SWIMMER_LEG_MARKER_RE = re.compile(
 )
 
 RELAY_SWIMMER_SEGMENT_RE = re.compile(
-    r"^(?P<name>.+?)(?:\s+(?P<gender>[WM])(?P<age>\d{1,3})\)?)?$",
+    r"^(?P<name>.+?)(?:\s+(?P<gender>[WM])?(?P<age>\d{1,3})\)?)?$",
     re.IGNORECASE,
 )
 
@@ -74,13 +88,25 @@ HEADER_SKIP_PATTERNS = [
     re.compile(r"HY-TEK'?S MEET MANAGER", re.IGNORECASE),
     re.compile(r"^Results\s*$", re.IGNORECASE),
     re.compile(r"^Results\s*-", re.IGNORECASE),
+    re.compile(r"^Resultados\s*$", re.IGNORECASE),
     re.compile(r"^Resultados\s*-", re.IGNORECASE),
     re.compile(r"^Name\s+Age\s+Team\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
+    re.compile(r"^Name\s+Age\s+Team\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
+    re.compile(r"^Team\s+Relay\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
+    re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+para\s+Sembrado\s*Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
+    re.compile(r"^Equipo\s+Relevo\s+Tiempo\s+para\s+Sembrado\s*Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Estadio ", re.IGNORECASE),
     re.compile(r"^Page\s+\d+$", re.IGNORECASE),
     re.compile(r"^P[aá]gina\s+\d+$", re.IGNORECASE),
     re.compile(r"^.+\s+-\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}$", re.IGNORECASE),
+    re.compile(r"^.+\s+-\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}\s+(?:a|to)\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}$", re.IGNORECASE),
+    re.compile(r"^\(?(?:Combined\s+Team\s+Scores|Scores\s+-|Puntajes\s+-)", re.IGNORECASE),
+    re.compile(r"^(?:Women|Men|Mujeres|Hombres)\s+-\s+.*(?:Team\s+Rankings|Lugar\s+por\s+Equipo)", re.IGNORECASE),
+    re.compile(r"^\d+\.\s+.+\s+\d+(?:[\.,]\d+)?(?:\s+\d+\.\s+.+\s+\d+(?:[\.,]\d+)?)?$", re.IGNORECASE),
+    # Líneas explicativas HY-TEK para DQ/DNF; el resultado ya queda en la fila del nadador.
+    re.compile(r"^(?:DNF|DQ)\s+No\s+", re.IGNORECASE),
+    re.compile(r"^SW\d+(?:\.\d+)*\s+", re.IGNORECASE),
 ]
 
 
@@ -191,6 +217,13 @@ def clean_extracted_text(value: str | None) -> str | None:
         "Munñ": "Muñ",
         "Espanñ": "Españ",
         "Canñ": "Cañ",
+        "Vinñ": "Viñ",
+        "Natacioán": "Natación",
+        "Natacioón": "Natación",
+        "N(cid:450) i": "Ñi",
+        "N(cid:450) u": "Ñu",
+        "n(cid:450) i": "ñi",
+        "n(cid:450) u": "ñu",
         "Ñ u": "Ñu",
         "ñ u": "ñu",
         "Ñ a": "Ña",
@@ -298,6 +331,7 @@ def normalize_course_code(value: Optional[str]) -> Optional[str]:
         "SC": "SC",
         "CL": "LC",
         "CP": "SC",
+        "CC": "SC",
     }
     return mapping.get(key, key)
 
@@ -308,6 +342,7 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
         return None
     key = value.lower().replace('-', ' ').replace('_', ' ')
     key = re.sub(r"\s+", " ", key)
+    key = re.sub(r"\s+\d+\s+a(?:ñ|n)os\s+y\s+m[aá]s$", "", key)
     mapping = {
         "free": "freestyle",
         "freestyle": "freestyle",
@@ -332,8 +367,13 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
         "estilo de mariposa": "butterfly",
         "mariposa": "butterfly",
         "ci": "individual_medley",
+        "combinado": "individual_medley",
         "combinado individual": "individual_medley",
+        "comb relevo": "medley_relay",
         "combinado relevo": "medley_relay",
+        "relevo combinado": "medley_relay",
+        "libre relevo": "freestyle_relay",
+        "relevo libre": "freestyle_relay",
         "estilo libre relevo": "freestyle_relay",
     }
     return mapping.get(key, key.replace(' ', '_'))
@@ -355,6 +395,11 @@ def parse_competition_header(line: str) -> Tuple[Optional[str], Optional[str], O
         return None, None, None
     if re.search(r"HY-TEK|MEET MANAGER|\bPage\s+\d+\b|\bP[aá]gina\s+\d+\b|^Results\b|^Resultados\b|^Event\s+\d+\b|^Evento\s+\d+\b", candidate, re.IGNORECASE):
         return None, None, None
+
+    m = COMPETITION_HEADER_WITH_DATE_RANGE_RE.match(candidate)
+    if m:
+        name = clean_extracted_text(m.group("name"))
+        return name, parse_dmy_date(m.group("start_date")), parse_dmy_date(m.group("end_date"))
 
     # Encabezado FCHMN/HY-TEK usual: "VI Torneo Smart Swim Team - 24-05-2025".
     m = COMPETITION_HEADER_WITH_DATE_RE.match(candidate)
@@ -513,7 +558,7 @@ def normalize_result_status(status, result_time_text):
             return "dns"
         if upper == "DNF":
             return "dnf"
-        if upper in {"DSQ", "DQ"}:
+        if upper in {"DSQ", "DQ", "DFS"}:
             return "dsq"
         if upper in {"NT", "NS"}:
             return "unknown"
@@ -539,8 +584,17 @@ def parse_event_header(line: str) -> Optional[EventContext]:
     if not m:
         m = SPANISH_EVENT_HEADER_RE.match(candidate)
     if not m:
+        m = SPANISH_RELAY_EVENT_HEADER_RE.match(candidate)
+    if not m:
+        m = SPANISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE.match(candidate)
+    if not m:
         return None
     course_code = normalize_course_code(m.group("course")) or m.group("course").upper()
+    stroke_raw = m.group("stroke")
+    if m.re is SPANISH_RELAY_EVENT_HEADER_RE:
+        stroke_raw = f"relevo {stroke_raw}"
+    if m.re is SPANISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE:
+        stroke_raw = f"{stroke_raw} relevo"
     return EventContext(
         event_number=int(m.group("event_number")),
         gender=normalize_event_gender(m.group("gender")),
@@ -548,7 +602,7 @@ def parse_event_header(line: str) -> Optional[EventContext]:
         distance_label=m.group("distance_raw"),
         distance_m=parse_distance_to_meters(m.group("distance_raw")) or 0,
         course_code=course_code,
-        stroke=normalize_stroke(m.group("stroke")),
+        stroke=normalize_stroke(stroke_raw),
     )
 
 

@@ -51,7 +51,7 @@ STAGING_TABLES = {
 }
 
 STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
-TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "VALID", "UNKNOWN"}
+TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
 DEFAULT_CLUB_ALIAS_CSV = Path(__file__).resolve().parents[1] / "data" / "reference" / "club_alias.csv"
 
 
@@ -303,7 +303,7 @@ def normalize_result_status(status, result_time_text):
             return "dns"
         if upper == "DNF":
             return "dnf"
-        if upper in {"DSQ", "DQ"}:
+        if upper in {"DSQ", "DQ", "DFS"}:
             return "dsq"
         if upper in {"NT", "NS"}:
             return "unknown"
