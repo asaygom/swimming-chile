@@ -1,64 +1,66 @@
-# Schema v0.1 - Plataforma de datos de natación Chile
+# Schema v0.1 - Plataforma de datos de Natacion Chile
 
-## 1. Propósito del documento
+## 1. Proposito
 
-Este documento define el esquema lógico `v0.1` actualmente operativo para la plataforma de datos de natación en Chile.
+Este documento describe el esquema logico actualmente operativo para cargar resultados de competencias de natacion en Chile, con foco inicial en resultados master publicados por FCHMN.
 
-El objetivo de esta versión es dejar una base clara, simple y extensible para:
+El flujo vigente extrae datos desde PDFs tipo HY-TEK, genera CSVs normalizados y carga una base PostgreSQL separando staging y core.
 
-- registrar fuentes de información
-- registrar clubes
-- registrar piscinas
-- registrar competencias
-- registrar pruebas dentro de cada competencia
-- registrar nadadores
-- registrar resultados individuales
-- registrar resultados de relevos y sus integrantes
-- registrar récords
-- soportar cargas staging desde Excel, CSV y parser PDF
+## 2. Estado operativo actual
 
----
+Actualmente el proyecto soporta:
 
-## 2. Estado actual del proyecto
+- parser PDF para layouts FCHMN tipo HY-TEK
+- cursos `LC Meter` y `SC Meter`
+- resultados individuales
+- resultados de relevos e integrantes por posta
+- tiempos de inscripcion (`seed_time_text`, `seed_time_ms`)
+- tiempos finales (`result_time_text`, `result_time_ms`)
+- edad contextual del resultado (`age_at_event`)
+- estimacion de año de nacimiento (`birth_year_estimated`)
+- puntos cuando existen en el PDF
+- carga end-to-end a PostgreSQL para individuales y relevos
 
-A la fecha, el proyecto ya tiene funcionando:
+El pipeline carga:
 
-- parser PDF estable para resultados individuales y relevos
-- carga a `core` estable para clubes, eventos, atletas y resultados individuales
-- separación de relevos en entidades propias
-- staging tables para cargas controladas antes de insertar en tablas core
+- `club`
+- `event`
+- `athlete`
+- `result`
+- `relay_result`
+- `relay_result_member`
 
-Actualmente:
+## 3. Principios de modelado
 
-- `event` puede contener pruebas individuales y relevos
-- `result` contiene resultados individuales
-- `relay_result` contiene resultados de equipos de relevo
-- `relay_result_member` contiene los integrantes de cada relevo
+### 3.1 Staging antes de core
 
----
+Los CSVs se cargan primero en tablas `stg_*`. La limpieza generica, casts y cruces se hacen antes de insertar en tablas core.
 
-## 3. Principios del diseño
+### 3.2 Separar dato bruto y dato consultable
 
-### 3.1 No sobrediseñar
-El modelo debe resolver el flujo actual sin bloquear extensiones futuras.
+Los tiempos se conservan como texto para trazabilidad y tambien como milisegundos para ordenar, comparar y analizar.
 
-### 3.2 Mantener trazabilidad
-Cada dato importante debe poder asociarse a una fuente.
+### 3.3 No usar club como identidad rigida del atleta
 
-### 3.3 Separar dato bruto y dato normalizado
-Ejemplo: guardar tiempos como texto y también como valor numérico en milisegundos.
+El club ayuda a resolver el resultado observado, pero no debe ser la identidad permanente del nadador. Un atleta puede cambiar de club entre competencias.
 
-### 3.4 Permitir incompletitud
-La base debe tolerar datos faltantes, porque muchas fuentes públicas no estarán completas.
+### 3.4 La edad pertenece al resultado
 
-### 3.5 Separar staging de core
-Las cargas pasan primero por tablas staging para facilitar validación, normalización y deduplicación.
+`age_at_event` es contextual al evento. No reemplaza la identidad del atleta.
 
----
+Cuando el parser tiene año de competencia y edad:
 
-## 4. Alcance del esquema v0.1
+```text
+birth_year_estimated = competition_year - age_at_event
+```
 
-Las tablas core definidas para esta versión son:
+### 3.5 Parser especializado, pipeline generico
+
+El parser puede corregir problemas tipicos de extraccion PDF. El pipeline debe limitarse a limpieza generica, normalizacion de catalogos, casts y carga.
+
+## 4. Tablas core
+
+Las tablas core definidas en `backend/sql/schema.sql` son:
 
 - `source`
 - `club`
@@ -71,7 +73,9 @@ Las tablas core definidas para esta versión son:
 - `relay_result_member`
 - `record`
 
-Las tablas staging definidas para esta versión son:
+## 5. Tablas staging
+
+Las tablas staging vigentes son:
 
 - `stg_club`
 - `stg_event`
@@ -80,24 +84,25 @@ Las tablas staging definidas para esta versión son:
 - `stg_relay_result`
 - `stg_relay_result_member`
 
----
+## 6. Catalogos canonicos
 
-## 5. Catálogos canónicos actuales
+### 6.1 `event.gender`
 
-### 5.1 `event.gender`
 Valores esperados:
 
 - `women`
 - `men`
 - `mixed`
 
-### 5.2 `athlete.gender`
+### 6.2 `athlete.gender` y `relay_result_member.gender`
+
 Valores esperados:
 
 - `female`
 - `male`
 
-### 5.3 `event.stroke` y `record.stroke`
+### 6.3 `event.stroke` y `record.stroke`
+
 Valores esperados:
 
 - `freestyle`
@@ -108,7 +113,8 @@ Valores esperados:
 - `medley_relay`
 - `freestyle_relay`
 
-### 5.4 `result.status` y `relay_result.status`
+### 6.4 `result.status` y `relay_result.status`
+
 Valores esperados:
 
 - `valid`
@@ -118,53 +124,22 @@ Valores esperados:
 - `scratch`
 - `unknown`
 
----
+### 6.5 `competition.course_type` y `record.course_type`
 
-## 6. Descripción general de entidades
+Valores esperados:
 
-### 6.1 `source`
-Registra de dónde proviene la información.
+- `scm`
+- `lcm`
+- `unknown`
 
-Ejemplos:
-- FECHIDA
-- FCHMN
-- World Aquatics
-- carga manual
-- sitio web municipal
-
-### 6.2 `club`
-Registra clubes, equipos o instituciones vinculadas a la natación.
-
-### 6.3 `pool`
-Registra piscinas o recintos disponibles para entrenar o competir.
-
-### 6.4 `competition`
-Registra competencias, campeonatos, torneos o controles.
-
-### 6.5 `event`
-Registra cada prueba o evento dentro de una competencia, incluyendo individuales y relevos.
-
-### 6.6 `athlete`
-Registra nadadores.
-
-### 6.7 `result`
-Registra resultados individuales por prueba y atleta.
-
-### 6.8 `relay_result`
-Registra resultados por equipo en pruebas de relevo.
-
-### 6.9 `relay_result_member`
-Registra los integrantes de cada relevo y su orden de posta.
-
-### 6.10 `record`
-Registra récords nacionales, máster u otros tipos que se definan.
-
----
-
-## 7. Definición resumida de tablas core
+## 7. Resumen de entidades core
 
 ### 7.1 `source`
+
+Registra origenes de informacion.
+
 Campos principales:
+
 - `id`
 - `name`
 - `source_type`
@@ -174,7 +149,11 @@ Campos principales:
 - `created_at`
 
 ### 7.2 `club`
+
+Registra clubes, equipos o instituciones.
+
 Campos principales:
+
 - `id`
 - `name`
 - `short_name`
@@ -189,7 +168,11 @@ Campos principales:
 - `updated_at`
 
 ### 7.3 `pool`
+
+Registra piscinas o recintos.
+
 Campos principales:
+
 - `id`
 - `name`
 - `city`
@@ -211,7 +194,11 @@ Campos principales:
 - `updated_at`
 
 ### 7.4 `competition`
+
+Registra competencias.
+
 Campos principales:
+
 - `id`
 - `name`
 - `season_year`
@@ -231,7 +218,11 @@ Campos principales:
 - `updated_at`
 
 ### 7.5 `event`
+
+Registra pruebas individuales y relevos dentro de una competencia.
+
 Campos principales:
+
 - `id`
 - `competition_id`
 - `event_name`
@@ -245,11 +236,12 @@ Campos principales:
 - `source_id`
 - `created_at`
 
-Observación:
-- `event` almacena tanto pruebas individuales como relevos.
-
 ### 7.6 `athlete`
+
+Registra nadadores.
+
 Campos principales:
+
 - `id`
 - `full_name`
 - `gender`
@@ -260,8 +252,17 @@ Campos principales:
 - `created_at`
 - `updated_at`
 
+Observaciones:
+
+- `club_id` refleja el club conocido para una carga o cruce, no una identidad historica permanente.
+- `birth_year` puede provenir desde `stg_athlete.birth_year` o desde estimaciones de resultados/relevos cuando el atleta aun no lo tiene.
+
 ### 7.7 `result`
+
+Registra resultados individuales.
+
 Campos principales:
+
 - `id`
 - `event_id`
 - `athlete_id`
@@ -271,8 +272,10 @@ Campos principales:
 - `rank_position`
 - `result_time_text`
 - `result_time_ms`
+- `seed_time_text`
+- `seed_time_ms`
 - `points`
-- `age`
+- `age_at_event`
 - `birth_year_estimated`
 - `record_flag`
 - `status`
@@ -280,11 +283,17 @@ Campos principales:
 - `source_url`
 - `created_at`
 
-Observación:
-- `result` se usa solo para resultados individuales.
+Observaciones:
+
+- `result` no se usa para resultados de relevos.
+- `age_at_event` y `birth_year_estimated` son datos del resultado observado.
 
 ### 7.8 `relay_result`
+
+Registra resultados de equipos de relevo.
+
 Campos principales:
+
 - `id`
 - `event_id`
 - `club_id`
@@ -294,6 +303,8 @@ Campos principales:
 - `rank_position`
 - `result_time_text`
 - `result_time_ms`
+- `seed_time_text`
+- `seed_time_ms`
 - `points`
 - `reaction_time`
 - `record_flag`
@@ -303,7 +314,11 @@ Campos principales:
 - `created_at`
 
 ### 7.9 `relay_result_member`
+
+Registra integrantes de un relevo y su orden de posta.
+
 Campos principales:
+
 - `id`
 - `relay_result_id`
 - `athlete_id`
@@ -314,11 +329,17 @@ Campos principales:
 - `birth_year_estimated`
 - `created_at`
 
-Observación:
-- `relay_result_member` usa `UNIQUE (relay_result_id, leg_order)` para impedir duplicidad de integrantes en la misma posta.
+Restricciones relevantes:
+
+- `leg_order` debe estar entre 1 y 4.
+- `UNIQUE (relay_result_id, leg_order)` evita duplicar la misma posta dentro de un relevo.
 
 ### 7.10 `record`
+
+Registra records nacionales, master u otros tipos que se definan.
+
 Campos principales:
+
 - `id`
 - `record_type`
 - `stroke`
@@ -339,26 +360,35 @@ Campos principales:
 - `created_at`
 - `updated_at`
 
----
+## 8. CSVs generados por el parser PDF
 
-## 8. Definición resumida de tablas staging
+`backend/scripts/parse_results_pdf.py` genera:
 
-### 8.1 `stg_club`
-Propósito:
-- carga preliminar de clubes antes de normalizar e insertar en `club`
+- `club.csv`
+- `event.csv`
+- `athlete.csv`
+- `result.csv`
+- `relay_team.csv`
+- `relay_swimmer.csv`
+- `raw_results.csv`
+- `raw_relay_team.csv`
+- `raw_relay_swimmer.csv`
+- `debug_unparsed_lines.csv`
+- `metadata.json`
+- un Excel consolidado
 
-Campos:
+Columnas principales por CSV operativo:
+
+### 8.1 `club.csv`
+
 - `name`
 - `short_name`
 - `city`
 - `region`
 - `source_id`
 
-### 8.2 `stg_event`
-Propósito:
-- carga preliminar de eventos antes de normalizar e insertar en `event`
+### 8.2 `event.csv`
 
-Campos:
 - `competition_id`
 - `event_name`
 - `stroke`
@@ -368,21 +398,88 @@ Campos:
 - `round_type`
 - `source_id`
 
-### 8.3 `stg_athlete`
-Propósito:
-- carga preliminar de atletas antes de normalizar e insertar en `athlete`
+### 8.3 `athlete.csv`
 
-Campos:
 - `full_name`
 - `gender`
 - `club_name`
+- `birth_year`
 - `source_id`
 
-### 8.4 `stg_result`
-Propósito:
-- carga preliminar de resultados individuales antes de insertar en `result`
+### 8.4 `result.csv`
 
-Campos:
+- `event_name`
+- `athlete_name`
+- `club_name`
+- `rank_position`
+- `age_at_event`
+- `birth_year_estimated`
+- `seed_time_text`
+- `seed_time_ms`
+- `result_time_text`
+- `result_time_ms`
+- `points`
+- `status`
+- `source_id`
+
+### 8.5 `relay_team.csv`
+
+- `event_name`
+- `relay_team_name`
+- `rank_position`
+- `seed_time_text`
+- `seed_time_ms`
+- `result_time_text`
+- `result_time_ms`
+- `points`
+- `status`
+- `source_id`
+- `page_number`
+- `line_number`
+
+### 8.6 `relay_swimmer.csv`
+
+- `event_name`
+- `relay_team_name`
+- `leg_order`
+- `swimmer_name`
+- `gender`
+- `age_at_event`
+- `birth_year_estimated`
+- `page_number`
+- `line_number`
+
+## 9. Definicion resumida de staging
+
+### 9.1 `stg_club`
+
+- `name`
+- `short_name`
+- `city`
+- `region`
+- `source_id`
+
+### 9.2 `stg_event`
+
+- `competition_id`
+- `event_name`
+- `stroke`
+- `distance_m`
+- `gender`
+- `age_group`
+- `round_type`
+- `source_id`
+
+### 9.3 `stg_athlete`
+
+- `full_name`
+- `gender`
+- `club_name`
+- `birth_year`
+- `source_id`
+
+### 9.4 `stg_result`
+
 - `event_name`
 - `athlete_name`
 - `club_name`
@@ -391,14 +488,14 @@ Campos:
 - `result_time_ms`
 - `age_at_event`
 - `birth_year_estimated`
+- `points`
+- `seed_time_text`
+- `seed_time_ms`
 - `status`
 - `source_id`
 
-### 8.5 `stg_relay_result`
-Propósito:
-- carga preliminar de resultados de relevo antes de insertar en `relay_result`
+### 9.5 `stg_relay_result`
 
-Campos:
 - `event_name`
 - `club_name`
 - `relay_team_name`
@@ -413,12 +510,11 @@ Campos:
 - `status`
 - `source_id`
 - `source_url`
+- `seed_time_text`
+- `seed_time_ms`
 
-### 8.6 `stg_relay_result_member`
-Propósito:
-- carga preliminar de integrantes de relevo antes de insertar en `relay_result_member`
+### 9.6 `stg_relay_result_member`
 
-Campos:
 - `event_name`
 - `club_name`
 - `relay_team_name`
@@ -428,56 +524,54 @@ Campos:
 - `age_at_event`
 - `birth_year_estimated`
 
----
+## 10. Flujo actual de carga
 
-## 9. Flujo actual de carga
+### 10.1 Parseo PDF
 
-### 9.1 Resultados individuales
-Flujo operativo actual:
+1. `parse_results_pdf.py` lee el PDF.
+2. Detecta metadata de competencia cuando esta disponible.
+3. Extrae eventos, individuales, equipos de relevo e integrantes.
+4. Normaliza catalogos canonicos.
+5. Genera CSVs y archivos raw/debug.
 
-1. parser PDF o carga manual genera CSV/Excel
-2. datos pasan por `stg_club`, `stg_event`, `stg_athlete`, `stg_result`
-3. pipeline normaliza y deduplica
-4. inserción en `club`, `event`, `athlete`, `result`
+### 10.2 Carga a PostgreSQL
 
-### 9.2 Relevos
-Flujo parcialmente implementado:
+1. `run_pipeline_results.py` lee `club.csv`, `event.csv`, `athlete.csv`, `result.csv`.
+2. Si existen `relay_team.csv` y `relay_swimmer.csv`, los transforma a `stg_relay_result` y `stg_relay_result_member`.
+3. Carga todas las tablas staging con `COPY`.
+4. Inserta o reutiliza clubes, eventos y atletas.
+5. Inserta resultados individuales en `result`.
+6. Inserta resultados de relevos en `relay_result`.
+7. Inserta integrantes de relevos en `relay_result_member`.
+8. Ejecuta chequeos de diagnostico para detectar filas sin match.
 
-1. parser PDF ya genera `relay_team.csv` y `relay_swimmer.csv`
-2. el esquema ya tiene `stg_relay_result`, `stg_relay_result_member`, `relay_result` y `relay_result_member`
-3. falta completar el pipeline para la carga end-to-end de relevos a `core`
+## 11. Decisiones relevantes
 
----
+### 11.1 Relevos separados de individuales
 
-## 10. Decisiones de modelado relevantes
+Un relevo es un resultado de equipo. Por eso se modela en `relay_result`, con integrantes en `relay_result_member`, y no como cuatro filas en `result`.
 
-### 10.1 Relevos separados de resultados individuales
-No se modelan relevos dentro de `result`.
+### 11.2 Identidad de atletas
 
-Razón:
-- un relevo es un resultado de equipo, no un resultado individual repetido cuatro veces
-- además requiere integrantes y orden de posta
+El pipeline cruza atletas principalmente por nombre normalizado, genero y año de nacimiento cuando existe. El club ayuda, pero no debe convertirse en identidad historica rigida.
 
-### 10.2 Tiempo textual y tiempo numérico
-Se conserva:
-- `result_time_text` para trazabilidad y presentación
-- `result_time_ms` para orden, ranking y análisis
+### 11.3 Semantica de tiempos
 
-### 10.3 Diferencia entre género de evento y género de atleta
-Se mantiene separada:
-- `event.gender`: `women | men | mixed`
-- `athlete.gender`: `female | male`
+- `seed_time_*`: tiempo de inscripcion o marca previa reportada por la fuente.
+- `result_time_*`: tiempo final obtenido en la prueba.
 
-Esto evita mezclar la denominación competitiva del evento con el sexo/género del atleta dentro del modelo.
+### 11.4 Semantica de anio de nacimiento
 
----
+- `athlete.birth_year`: atributo del atleta cuando se conoce o se infiere de forma consistente.
+- `result.birth_year_estimated`: estimacion contextual del resultado.
+- `relay_result_member.birth_year_estimated`: estimacion contextual del integrante en ese relevo.
 
-## 11. Próximos pasos esperables
+## 12. Propuestas de proximos cambios
 
-Los siguientes pasos razonables del proyecto son:
+Estas propuestas no son obligatorias para el flujo actual, pero quedaron visibles al actualizar la documentacion:
 
-- completar la carga a core de `relay_result` y `relay_result_member`
-- probar deduplicación de relevos en cargas repetidas
-- definir si se agregará unicidad adicional en resultados individuales y relevos
-- documentar scripts estables y comandos operativos del proceso
-
+- agregar constraints de unicidad para evitar duplicados en cargas repetidas de `result` y `relay_result`
+- documentar una estrategia explicita de merge de atletas cuando aparezca mejor informacion historica
+- agregar tests con fixtures chicos de CSV para verificar la carga end-to-end de individuales y relevos
+- crear un documento corto de comandos operativos con ejemplos reales de parseo y carga
+- revisar si `record.gender` debe alinearse con `event.gender` (`women`, `men`, `mixed`) o mantenerse como catalogo propio (`female`, `male`, `mixed`, `unknown`)

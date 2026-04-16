@@ -1,52 +1,107 @@
-# swimming-chile
+# Natacion Chile backend
 
-Data project for loading, structuring, and analyzing swimming competition results in Chile.
+Backend de datos para extraer, normalizar y cargar resultados de competencias de natacion en Chile, con foco inicial en resultados master publicados por FCHMN.
 
-## Overview
+## Objetivo
 
-This project is focused on transforming raw competition files into a cleaner, queryable data model that supports analysis of swimmers, events, results, and competition history.
+Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo una separacion clara entre:
 
-It is designed as a practical data workflow, not just a notebook or isolated script. The goal is to move from messy source files to a reusable pipeline and database structure.
+- archivos fuente y salidas raw/debug
+- CSVs normalizados
+- tablas staging
+- tablas core listas para analisis
 
-## Main goals
+## Flujo actual
 
-- Import competition data from source files
-- Standardize event, swimmer, and result records
-- Load data into a relational database
-- Keep staging and core layers separated
-- Enable later analysis and reporting
+1. `scripts/parse_results_pdf.py` lee PDFs de resultados tipo HY-TEK/FCHMN.
+2. El parser genera CSVs operativos:
+   - `club.csv`
+   - `event.csv`
+   - `athlete.csv`
+   - `result.csv`
+   - `relay_team.csv`
+   - `relay_swimmer.csv`
+3. Tambien genera archivos de trazabilidad:
+   - `raw_results.csv`
+   - `raw_relay_team.csv`
+   - `raw_relay_swimmer.csv`
+   - `debug_unparsed_lines.csv`
+   - `metadata.json`
+4. `scripts/run_pipeline_results.py` carga los CSVs a staging.
+5. El pipeline inserta datos normalizados en core:
+   - `club`
+   - `event`
+   - `athlete`
+   - `result`
+   - `relay_result`
+   - `relay_result_member`
 
-## Project structure
+## Capacidades soportadas
 
-- `scripts/` → ingestion and pipeline execution
-- `sql/` → database objects, schema, and transformations
-- `sql/analysis_queries.sql` → sample analysis queries for clubs, athletes, results, and relays
-- `data/` or input files → source competition files
-- `docs/` → notes, assumptions, and mapping decisions
+- resultados individuales
+- resultados de relevos
+- integrantes de relevos por orden de posta
+- cursos `LC Meter` y `SC Meter`
+- `seed_time_text` y `seed_time_ms`
+- `result_time_text` y `result_time_ms`
+- `age_at_event`
+- `birth_year_estimated`
+- `points` cuando existen en la fuente
+- normalizacion de genero y estilo a catalogos canonicos
 
-## Workflow
+## Estructura
 
-1. Source files are ingested from Excel / CSV
-2. Raw records are loaded into staging tables
-3. Cleaning and normalization rules are applied
-4. Core entities are populated
-5. Data becomes ready for analysis and future dashboards
+- `scripts/parse_results_pdf.py`: parser de PDFs y generador de CSVs
+- `scripts/run_pipeline_results.py`: carga CSVs a staging y core en PostgreSQL
+- `sql/schema.sql`: definicion de tablas core, staging, constraints e indices
+- `sql/analysis_queries.sql`: consultas analiticas de ejemplo
+- `docs/schema.md`: documentacion logica del modelo vigente
 
-## Tech stack
+## Comandos de referencia
 
-- Python
-- PostgreSQL
-- SQL
-- Excel / CSV as source inputs
+Parsear un PDF:
 
-## Current status
+```powershell
+python backend\scripts\parse_results_pdf.py `
+  --pdf ruta\al\resultado.pdf `
+  --out-dir backend\data\parsed\competencia_x `
+  --competition-id 1 `
+  --default-source-id 1
+```
 
-This repository is under active development. Current work is focused on making the ingestion flow more robust, improving data formatting consistency, and preparing cleaner analytical outputs.
+Cargar una carpeta generada por el parser:
 
-## Next steps
+```powershell
+python backend\scripts\run_pipeline_results.py `
+  --input-dir backend\data\parsed\competencia_x `
+  --competition-id 1 `
+  --default-source-id 1
+```
 
-- Improve pipeline modularity
-- Standardize time/result formatting
-- Add validation checks
-- Document schema and loading rules
-- Add sample queries or a first dashboard layer
+El pipeline tambien puede recibir CSVs explicitos con flags como `--club-csv`, `--event-csv`, `--athlete-csv`, `--result-csv`, `--relay-team-csv` y `--relay-swimmer-csv`.
+
+## Modelo de datos
+
+El esquema mantiene tablas separadas para resultados individuales y relevos:
+
+- `result`: resultados individuales por atleta
+- `relay_result`: resultado del equipo de relevo
+- `relay_result_member`: integrantes del relevo y orden de posta
+
+La documentacion completa del esquema esta en `docs/schema.md`.
+
+## Reglas importantes
+
+- No usar el club como identidad rigida del atleta a largo plazo.
+- `age_at_event` es contextual al evento.
+- `birth_year_estimated = competition_year - age_at_event`.
+- El parser concentra heuristicas propias de extraccion PDF.
+- El pipeline debe hacer limpieza generica, normalizacion y carga, evitando heuristicas agresivas dependientes del PDF.
+
+## Propuestas de mejoras proximas
+
+- Agregar tests con fixtures pequenos para validar carga end-to-end de individuales y relevos.
+- Definir constraints de unicidad para cargas repetidas de `result` y `relay_result`.
+- Documentar comandos operativos con un ejemplo real de competencia.
+- Separar en un modulo comun las normalizaciones compartidas por parser y pipeline.
+- Decidir si `record.gender` debe usar el mismo canon competitivo de `event.gender` o mantenerse como catalogo propio.
