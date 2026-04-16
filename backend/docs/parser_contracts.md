@@ -1,0 +1,48 @@
+# Contratos del parser PDF
+
+Este documento fija los contratos minimos de entrada y salida del parser antes de modularizarlo. La meta es que los tests protejan el comportamiento actual y que cualquier cambio futuro pueda explicarse contra estos acuerdos.
+
+## Entrada
+
+- Fuente principal: PDF de resultados FCHMN/HY-TEK.
+- El parser recibe un archivo PDF y parametros operativos como `--out-dir`, `--competition-id` y `--default-source-id`.
+- Los layouts soportados incluyen encabezados de evento en ingles y espanol, cursos `LC/SC Meter` y `CL/CP/CC Metro`, resultados individuales y relevos.
+
+## Salidas operativas
+
+El parser debe generar CSVs con nombres estables:
+
+- `club.csv`
+- `event.csv`
+- `athlete.csv`
+- `result.csv`
+- `relay_team.csv`
+- `relay_swimmer.csv`
+
+Tambien puede generar archivos de trazabilidad/debug:
+
+- `raw_result.csv`
+- `raw_relay_team.csv`
+- `raw_relay_swimmer.csv`
+- `debug_unparsed_lines.csv`
+- `metadata.json`
+- Excel consolidado para revision manual
+
+## Canon esperado
+
+- `event.gender`: `women`, `men`, `mixed`.
+- `athlete.gender` y nadadores de relevo: `female`, `male`.
+- `event.stroke`: `freestyle`, `backstroke`, `breaststroke`, `butterfly`, `individual_medley`, `medley_relay`, `freestyle_relay`.
+- `status`: `valid`, `dns`, `dnf`, `dsq`, `scratch`, `unknown`.
+
+## Reglas de trazabilidad
+
+- `seed_time_text` y `result_time_text` conservan la forma normalizada del tiempo o status.
+- `seed_time_ms` y `result_time_ms` se derivan cuando el tiempo es comparable.
+- `age_at_event` pertenece al resultado observado.
+- `birth_year_estimated = competition_year - age_at_event` cuando existe anio de competencia.
+- Las heuristicas propias del PDF viven en el parser; el pipeline solo debe hacer limpieza generica y carga.
+
+## Fixtures de prueba
+
+Los fixtures versionados deben ser pequenos y representativos. No se versionan PDFs completos ni CSVs historicos completos; solo lineas o archivos minimos necesarios para prevenir regresiones.

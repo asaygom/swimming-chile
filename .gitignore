@@ -1,1 +1,23 @@
 AGENTS.md
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Env
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data inputs and generated CSVs
+backend/data/raw/
+backend/data/staging/csv/*
+!backend/data/staging/csv/.gitkeep

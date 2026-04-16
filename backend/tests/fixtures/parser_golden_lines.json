@@ -1,0 +1,17 @@
+{
+  "individual_with_seed": {
+    "line": "1 Juan Perez 35 Club Deportivo 1:05.30 1:03.21 9",
+    "competition_year": 2026
+  },
+  "individual_without_seed": {
+    "line": "2 Maria Lopez 42 Club Master 35.40",
+    "competition_year": 2026
+  },
+  "relay_team": {
+    "line": "1 Club Deportivo A 4:30.00 4:22.50 18"
+  },
+  "relay_swimmers": {
+    "line": "1) Juan Perez M35 2) Pedro Soto M41 3) Luis Diaz M38 4) Carlos Rojas M44",
+    "competition_year": 2026
+  }
+}
