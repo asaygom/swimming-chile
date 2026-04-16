@@ -58,6 +58,7 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 - `docs/schema.md`: documentacion logica del modelo vigente
 - `docs/parser_contracts.md`: contratos de entrada/salida del parser PDF
 - `docs/data_artifacts.md`: politica de versionado de datos, raw, staging y fixtures
+- `docs/ai_workflow.md`: metodologia para trabajar con IA y retomar contexto entre conversaciones
 
 ## Comandos de referencia
 
