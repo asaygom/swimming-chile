@@ -1,3 +1,4 @@
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -72,6 +73,12 @@ def test_swim_time_normalization_and_milliseconds():
     assert parser.derive_result_time_ms("1:02:03.45") == 3723450
     assert parser.normalize_swim_time_text("DNS") == "DNS"
     assert parser.derive_result_time_ms("DNS") is None
+
+
+def test_compute_file_sha256():
+    expected = hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest()
+
+    assert parser.compute_file_sha256(FIXTURE_PATH) == expected
 
 
 def test_result_status_from_text_statuses():

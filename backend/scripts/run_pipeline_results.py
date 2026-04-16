@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import json
 import re
 import sys
 import unicodedata
@@ -67,6 +68,8 @@ class Config:
     truncate_core: bool
     competition_id: Optional[int]
     default_source_id: int
+    source_document_id: Optional[int] = None
+    load_run_id: Optional[int] = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -788,6 +791,133 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
     return competition_id
 
 
+def derive_source_document_name(args: argparse.Namespace, metadata: Dict[str, Optional[str]]) -> str:
+    for candidate in [
+        metadata.get("pdf_name"),
+        getattr(args, "excel", None),
+        getattr(args, "input_dir", None),
+        metadata.get("competition_name"),
+    ]:
+        value = normalize_string(candidate)
+        if value:
+            return Path(value).name
+    return "manual_csv_load"
+
+
+def register_source_document(conn, config: Config, args: argparse.Namespace, metadata: Dict[str, Optional[str]]) -> int:
+    document_name = derive_source_document_name(args, metadata)
+    checksum_sha256 = normalize_string(metadata.get("pdf_sha256"))
+    parser_version = normalize_string(metadata.get("parser_version"))
+    source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+    storage_path = normalize_string(getattr(args, "input_dir", None)) or normalize_string(getattr(args, "excel", None))
+    document_type = "results_pdf" if normalize_string(metadata.get("pdf_name")) else "csv_batch"
+    metadata_json = json.dumps(metadata, ensure_ascii=False) if metadata else None
+
+    with conn.cursor() as cur:
+        if checksum_sha256:
+            cur.execute(f"""
+                INSERT INTO {fqtn(config.schema, 'source_document')} AS sd (
+                    source_id, document_name, document_type, source_url, storage_path,
+                    checksum_sha256, parser_version, metadata
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (checksum_sha256) WHERE checksum_sha256 IS NOT NULL
+                DO UPDATE SET
+                    document_name = EXCLUDED.document_name,
+                    source_url = COALESCE(EXCLUDED.source_url, sd.source_url),
+                    storage_path = COALESCE(EXCLUDED.storage_path, sd.storage_path),
+                    parser_version = COALESCE(EXCLUDED.parser_version, sd.parser_version),
+                    metadata = COALESCE(EXCLUDED.metadata, sd.metadata),
+                    last_seen_at = NOW()
+                RETURNING id;
+            """, (config.default_source_id, document_name, document_type, source_url, storage_path, checksum_sha256, parser_version, metadata_json))
+        elif source_url:
+            cur.execute(f"""
+                INSERT INTO {fqtn(config.schema, 'source_document')} AS sd (
+                    source_id, document_name, document_type, source_url, storage_path,
+                    checksum_sha256, parser_version, metadata
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (source_url) WHERE source_url IS NOT NULL
+                DO UPDATE SET
+                    document_name = EXCLUDED.document_name,
+                    storage_path = COALESCE(EXCLUDED.storage_path, sd.storage_path),
+                    parser_version = COALESCE(EXCLUDED.parser_version, sd.parser_version),
+                    metadata = COALESCE(EXCLUDED.metadata, sd.metadata),
+                    last_seen_at = NOW()
+                RETURNING id;
+            """, (config.default_source_id, document_name, document_type, source_url, storage_path, checksum_sha256, parser_version, metadata_json))
+        else:
+            cur.execute(f"""
+                INSERT INTO {fqtn(config.schema, 'source_document')} (
+                    source_id, document_name, document_type, source_url, storage_path,
+                    checksum_sha256, parser_version, metadata
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                RETURNING id;
+            """, (config.default_source_id, document_name, document_type, source_url, storage_path, checksum_sha256, parser_version, metadata_json))
+        source_document_id = int(cur.fetchone()[0])
+    conn.commit()
+    info(f"source_document_id={source_document_id} registrado para '{document_name}'.")
+    return source_document_id
+
+
+def count_input_rows(data: Dict[str, pd.DataFrame]) -> Dict[str, int]:
+    return {
+        "club": len(data.get("club", [])),
+        "event": len(data.get("event", [])),
+        "athlete": len(data.get("athlete", [])),
+        "result": len(data.get("result", [])),
+        "relay_result": len(data.get("relay_result", [])),
+        "relay_result_member": len(data.get("relay_result_member", [])),
+    }
+
+
+def start_load_run(conn, config: Config, args: argparse.Namespace, data: Dict[str, pd.DataFrame], metadata: Dict[str, Optional[str]]) -> int:
+    counts = count_input_rows(data)
+    parser_version = normalize_string(metadata.get("parser_version"))
+    input_dir = normalize_string(getattr(args, "input_dir", None)) or normalize_string(getattr(args, "excel", None))
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            INSERT INTO {fqtn(config.schema, 'load_run')} (
+                source_document_id, competition_id, input_dir, parser_version, status,
+                rows_club, rows_event, rows_athlete, rows_result,
+                rows_relay_result, rows_relay_result_member
+            )
+            VALUES (%s, %s, %s, %s, 'started', %s, %s, %s, %s, %s, %s)
+            RETURNING id;
+        """, (
+            config.source_document_id,
+            config.competition_id,
+            input_dir,
+            parser_version,
+            counts["club"],
+            counts["event"],
+            counts["athlete"],
+            counts["result"],
+            counts["relay_result"],
+            counts["relay_result_member"],
+        ))
+        load_run_id = int(cur.fetchone()[0])
+    conn.commit()
+    info(f"load_run_id={load_run_id} iniciado.")
+    return load_run_id
+
+
+def finish_load_run(conn, config: Config, status: str, error_message: Optional[str] = None) -> None:
+    if config.load_run_id is None:
+        return
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            UPDATE {fqtn(config.schema, 'load_run')}
+            SET status = %s,
+                error_message = %s,
+                completed_at = NOW()
+            WHERE id = %s;
+        """, (status, error_message, config.load_run_id))
+    conn.commit()
+
+
 def athlete_gender_from_event_gender_sql(expr: str) -> str:
     return f"CASE LOWER(TRIM({expr})) WHEN 'women' THEN 'female' WHEN 'men' THEN 'male' ELSE NULL END"
 
@@ -896,7 +1026,8 @@ def insert_core_event(cur, schema: str, competition_id: int, default_source_id: 
           AND NOT EXISTS (
               SELECT 1 FROM {fqtn(schema, 'event')} e
               WHERE e.competition_id = %s AND LOWER(TRIM(e.event_name)) = LOWER(TRIM(s.event_name))
-          );
+          )
+        ON CONFLICT DO NOTHING;
     """, (competition_id, default_source_id, competition_id))
 
 
@@ -1059,7 +1190,8 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
                 AND COALESCE(re.rank_position, -1) = COALESCE(NULLIF(TRIM(r.rank_position), '')::INTEGER, -1)
                 AND COALESCE(re.club_id, -1) = COALESCE(c.id, -1)
                 AND COALESCE(re.status, '') = COALESCE(LOWER(NULLIF(TRIM(r.status), '')), '')
-          );
+          )
+        ON CONFLICT DO NOTHING;
     """, (default_source_id, competition_id))
 
 
@@ -1100,7 +1232,8 @@ def insert_core_relay_result(cur, schema: str, competition_id: int, default_sour
                 AND COALESCE(rr.result_time_ms, -1) = COALESCE(NULLIF(TRIM(r.result_time_ms), '')::BIGINT, -1)
                 AND COALESCE(rr.rank_position, -1) = COALESCE(NULLIF(TRIM(r.rank_position), '')::INTEGER, -1)
                 AND COALESCE(rr.status, '') = COALESCE(LOWER(NULLIF(TRIM(r.status), '')), '')
-          );
+          )
+        ON CONFLICT DO NOTHING;
     """, (default_source_id, competition_id))
 
 
@@ -1152,7 +1285,8 @@ def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> No
               SELECT 1 FROM {fqtn(schema, 'relay_result_member')} rrm
               WHERE rrm.relay_result_id = rr.id
                 AND rrm.leg_order = NULLIF(TRIM(m.leg_order), '')::INTEGER
-          );
+          )
+        ON CONFLICT DO NOTHING;
     """, (competition_id,))
 
 
@@ -1202,7 +1336,7 @@ def print_counts(conn, config: Config, staging_data: Dict[str, pd.DataFrame]) ->
 
 
 
-def print_validations(conn, config: Config) -> None:
+def collect_validations(conn, config: Config) -> Dict[str, int]:
     validation_queries = {
         "athletes_sin_club_match": f"""
             SELECT COUNT(*) FROM {fqtn(config.schema, 'stg_athlete')} a
@@ -1292,11 +1426,39 @@ def print_validations(conn, config: Config) -> None:
             WHERE NULLIF(TRIM(m.athlete_name), '') IS NOT NULL AND a.id IS NULL;
         """,
     }
-    print("\n=== VALIDACIONES ===")
+    results: Dict[str, int] = {}
     with conn.cursor() as cur:
         for label, query in validation_queries.items():
-            count = fetch_one_value(cur, query)
-            print(f"{label}: {count}")
+            results[label] = fetch_one_value(cur, query)
+    return results
+
+
+def save_validation_issues(conn, config: Config, validation_results: Dict[str, int]) -> None:
+    if config.load_run_id is None:
+        return
+    with conn.cursor() as cur:
+        for issue_key, issue_count in validation_results.items():
+            if issue_count <= 0:
+                continue
+            cur.execute(f"""
+                INSERT INTO {fqtn(config.schema, 'validation_issue')} (
+                    load_run_id, competition_id, issue_key, severity, issue_count, details
+                )
+                VALUES (%s, %s, %s, 'warning', %s, %s::jsonb);
+            """, (
+                config.load_run_id,
+                config.competition_id,
+                issue_key,
+                issue_count,
+                json.dumps({"source": "run_pipeline_results.py"}, ensure_ascii=False),
+            ))
+    conn.commit()
+
+
+def print_validations(validation_results: Dict[str, int]) -> None:
+    print("\n=== VALIDACIONES ===")
+    for label, count in validation_results.items():
+        print(f"{label}: {count}")
 
 
 
@@ -1311,14 +1473,20 @@ def main() -> None:
     conn = get_conn(config)
     try:
         config.competition_id = resolve_competition_id(conn, config, args, data, metadata)
+        config.source_document_id = register_source_document(conn, config, args, metadata)
+        config.load_run_id = start_load_run(conn, config, args, data, metadata)
         truncate_tables(conn, config)
         load_staging(conn, config, data)
         load_core(conn, config)
         print_counts(conn, config, data)
-        print_validations(conn, config)
+        validation_results = collect_validations(conn, config)
+        save_validation_issues(conn, config, validation_results)
+        print_validations(validation_results)
+        finish_load_run(conn, config, "completed")
         print("\n[OK] Pipeline v0.3.7 completado.")
     except Exception as exc:
         conn.rollback()
+        finish_load_run(conn, config, "failed", str(exc))
         fail(f"El pipeline falló: {exc}")
     finally:
         conn.close()

@@ -63,6 +63,9 @@ El parser puede corregir problemas tipicos de extraccion PDF. El pipeline debe l
 Las tablas core definidas en `backend/sql/schema.sql` son:
 
 - `source`
+- `source_document`
+- `load_run`
+- `validation_issue`
 - `club`
 - `pool`
 - `competition`
@@ -146,6 +149,56 @@ Campos principales:
 - `base_url`
 - `notes`
 - `last_checked_at`
+- `created_at`
+
+### 7.1.1 `source_document`
+
+Registra documentos o lotes fuente procesados por el pipeline.
+
+Campos principales:
+
+- `id`
+- `source_id`
+- `document_name`
+- `document_type`
+- `source_url`
+- `storage_path`
+- `checksum_sha256`
+- `parser_version`
+- `metadata`
+- `first_seen_at`
+- `last_seen_at`
+
+### 7.1.2 `load_run`
+
+Registra cada ejecucion del pipeline.
+
+Campos principales:
+
+- `id`
+- `source_document_id`
+- `competition_id`
+- `input_dir`
+- `parser_version`
+- conteos `rows_*`
+- `status`
+- `error_message`
+- `started_at`
+- `completed_at`
+
+### 7.1.3 `validation_issue`
+
+Registra issues detectados por las validaciones del pipeline cuando su conteo es mayor que cero.
+
+Campos principales:
+
+- `id`
+- `load_run_id`
+- `competition_id`
+- `issue_key`
+- `severity`
+- `issue_count`
+- `details`
 - `created_at`
 
 ### 7.2 `club`
@@ -538,12 +591,15 @@ Columnas principales por CSV operativo:
 
 1. `run_pipeline_results.py` lee `club.csv`, `event.csv`, `athlete.csv`, `result.csv`.
 2. Si existen `relay_team.csv` y `relay_swimmer.csv`, los transforma a `stg_relay_result` y `stg_relay_result_member`.
-3. Carga todas las tablas staging con `COPY`.
-4. Inserta o reutiliza clubes, eventos y atletas.
-5. Inserta resultados individuales en `result`.
-6. Inserta resultados de relevos en `relay_result`.
-7. Inserta integrantes de relevos en `relay_result_member`.
-8. Ejecuta chequeos de diagnostico para detectar filas sin match.
+3. Registra o reutiliza `source_document` usando checksum del PDF cuando existe.
+4. Crea un `load_run` con conteos de entrada.
+5. Carga todas las tablas staging con `COPY`.
+6. Inserta o reutiliza clubes, eventos y atletas.
+7. Inserta resultados individuales en `result`, ignorando observaciones ya existentes.
+8. Inserta resultados de relevos en `relay_result`, ignorando observaciones ya existentes.
+9. Inserta integrantes de relevos en `relay_result_member`.
+10. Ejecuta chequeos de diagnostico y persiste issues con conteo mayor que cero en `validation_issue`.
+11. Marca el `load_run` como `completed` o `failed`.
 
 ## 11. Decisiones relevantes
 

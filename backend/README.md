@@ -66,7 +66,7 @@ Parsear un PDF:
 ```powershell
 python backend\scripts\parse_results_pdf.py `
   --pdf ruta\al\resultado.pdf `
-  --out-dir backend\data\parsed\competencia_x `
+  --out-dir backend\data\raw\results_csv\competencia_x `
   --competition-id 1 `
   --default-source-id 1
 ```
@@ -75,7 +75,7 @@ Cargar una carpeta generada por el parser:
 
 ```powershell
 python backend\scripts\run_pipeline_results.py `
-  --input-dir backend\data\parsed\competencia_x `
+  --input-dir backend\data\raw\results_csv\competencia_x `
   --competition-id 1 `
   --default-source-id 1
 ```

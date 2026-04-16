@@ -37,6 +37,7 @@ Tambien puede generar archivos de trazabilidad/debug:
 
 ## Reglas de trazabilidad
 
+- `metadata.json` debe incluir `pdf_name`, `pdf_sha256` y `parser_version` cuando el origen sea un PDF.
 - `seed_time_text` y `result_time_text` conservan la forma normalizada del tiempo o status.
 - `seed_time_ms` y `result_time_ms` se derivan cuando el tiempo es comparable.
 - `age_at_event` pertenece al resultado observado.

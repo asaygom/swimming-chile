@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from difflib import SequenceMatcher
+import hashlib
 import json
 import re
 import sys
@@ -13,6 +14,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+
+PARSER_VERSION = "0.1.5"
 
 try:
     import pdfplumber
@@ -858,6 +861,14 @@ def extract_text_lines(pdf_path: Path) -> List[Tuple[int, List[str]]]:
     return pages
 
 
+def compute_file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 
 def parse_pdf(pdf_path: Path):
     pages = extract_text_lines(pdf_path)
@@ -972,6 +983,8 @@ def parse_pdf(pdf_path: Path):
     debug_df = pd.DataFrame(debug_rows, columns=["page_number", "line_number", "event_name_context", "raw_line", "reason"])
     metadata = {
         "pdf_name": pdf_path.name,
+        "pdf_sha256": compute_file_sha256(pdf_path),
+        "parser_version": PARSER_VERSION,
         "competition_name": competition_name,
         "competition_start_date": competition_start_date,
         "competition_end_date": competition_end_date,
