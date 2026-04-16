@@ -169,3 +169,76 @@ def test_parse_relay_swimmer_line_fixture():
     assert rows[0].gender == "male"
     assert rows[0].age_at_event == 35
     assert rows[0].birth_year_estimated == 1991
+
+
+def test_build_output_frames_from_minimal_parsed_rows():
+    individual_fixture = load_fixture("individual_with_seed")
+    relay_team_fixture = load_fixture("relay_team")
+    relay_swimmer_fixture = load_fixture("relay_swimmers")
+
+    individual = parser.parse_result_line(
+        individual_fixture["line"],
+        individual_context(),
+        page_number=1,
+        line_number=10,
+        competition_year=individual_fixture["competition_year"],
+    )
+    relay_team = parser.parse_relay_team_line(
+        relay_team_fixture["line"],
+        relay_context(),
+        page_number=2,
+        line_number=20,
+    )
+    relay_swimmers = parser.parse_relay_swimmer_line(
+        relay_swimmer_fixture["line"],
+        relay_context(),
+        page_number=2,
+        line_number=21,
+        relay_team_name="Club Deportivo A",
+        competition_year=relay_swimmer_fixture["competition_year"],
+    )
+
+    frames = parser.build_output_frames(
+        parsed_rows=[individual],
+        relay_team_rows=[relay_team],
+        relay_swimmer_rows=relay_swimmers,
+        competition_id=99,
+        default_source_id=1,
+        metadata={"competition_year": 2026},
+    )
+
+    assert set(frames) == {
+        "club",
+        "event",
+        "athlete",
+        "result",
+        "raw_result",
+        "relay_team",
+        "relay_swimmer",
+        "raw_relay_team",
+        "raw_relay_swimmer",
+    }
+    assert frames["club"].to_dict("records") == [
+        {"name": "Club Deportivo", "short_name": None, "city": None, "region": None, "source_id": "1"}
+    ]
+    assert frames["event"]["event_name"].tolist() == [
+        "men 35-39 100 LC Meter freestyle",
+        "men 160-199 4x50 SC Meter freestyle_relay",
+    ]
+    assert frames["result"].iloc[0].to_dict() == {
+        "event_name": "men 35-39 100 LC Meter freestyle",
+        "athlete_name": "Juan Perez",
+        "club_name": "Club Deportivo",
+        "rank_position": "1",
+        "age_at_event": "35",
+        "birth_year_estimated": "1991",
+        "seed_time_text": "1:05,30",
+        "seed_time_ms": "65300",
+        "result_time_text": "1:03,21",
+        "result_time_ms": "63210",
+        "points": "9",
+        "status": "valid",
+        "source_id": "1",
+    }
+    assert frames["relay_team"].iloc[0]["relay_team_name"] == "Club Deportivo A"
+    assert frames["relay_swimmer"]["leg_order"].tolist() == ["1", "2", "3", "4"]

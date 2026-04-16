@@ -56,6 +56,8 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 - `sql/schema.sql`: definicion de tablas core, staging, constraints e indices
 - `sql/analysis_queries.sql`: consultas analiticas de ejemplo
 - `docs/schema.md`: documentacion logica del modelo vigente
+- `docs/parser_contracts.md`: contratos de entrada/salida del parser PDF
+- `docs/data_artifacts.md`: politica de versionado de datos, raw, staging y fixtures
 
 ## Comandos de referencia
 
