@@ -55,12 +55,13 @@ Implementado en el repo:
 - Contratos del parser.
 - Tests unitarios y fixtures chicos.
 - Trazabilidad e idempotencia inicial en schema, migracion y pipeline.
+- Trazabilidad e idempotencia validadas contra PostgreSQL local con recarga real de `coppa_italia_2026`.
 - Validaciones persistidas como `validation_issue`.
 
 No implementado todavia:
 
-- Memoria persistente tipo Engram.
-- Skills de `gentle-ai`.
+- Memoria persistente tipo Engram.  https://github.com/Gentleman-Programming/engram 
+- Skills de `gentle-ai`. https://github.com/Gentleman-Programming/gentle-ai 
 - MCP externo para memoria.
 - Orquestacion multiagente.
 - Scraper o batch runner con compuertas duras.
@@ -82,9 +83,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Despues de Fase 2, antes de Fase 3, conviene validar la migracion contra PostgreSQL y correr una carga real controlada para confirmar:
+Fase 2 quedo validada con una carga real controlada. El siguiente paso es iniciar Fase 3: modularizacion controlada.
 
-- `source_document` se reutiliza por checksum.
-- `load_run` queda en `completed`.
-- `validation_issue` registra alertas con conteo mayor que cero.
-- Recargar la misma carpeta no duplica `event`, `result` ni `relay_result`.
+Primer objetivo sugerido:
+
+- Extraer logica compartida de bajo riesgo desde `parse_results_pdf.py` y `run_pipeline_results.py`.
+- Priorizar normalizacion de strings, tiempos, generos, estilos y status.
+- Mantener los CLIs actuales compatibles.
+- Avanzar en parches chicos con tests antes de cada extraccion.
