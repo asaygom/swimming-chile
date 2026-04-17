@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -40,6 +41,7 @@ STROKES = {
 STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 
 DEFAULT_DEBUG_THRESHOLD = 0.20
+PARSER_SCRIPT = BACKEND_DIR / "scripts" / "parse_results_pdf.py"
 
 
 @dataclass
@@ -61,9 +63,15 @@ class BatchValidationResult:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Valida salidas del parser PDF antes de cargar a core. No ejecuta el pipeline."
+        description="Ejecuta parseo opcional y valida salidas antes de cargar a core. No ejecuta el pipeline."
     )
-    parser.add_argument("--input-dir", required=True, help="Carpeta generada por parse_results_pdf.py")
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--input-dir", help="Carpeta generada por parse_results_pdf.py")
+    input_group.add_argument("--pdf", help="PDF de resultados a parsear antes de validar")
+    parser.add_argument("--out-dir", help="Carpeta de salida requerida cuando se usa --pdf")
+    parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
+    parser.add_argument("--default-source-id", type=int, default=1, help="source_id por defecto que se pasara al parser")
+    parser.add_argument("--excel-name", default="parsed_results.xlsx", help="Nombre del Excel consolidado que generara el parser")
     parser.add_argument(
         "--debug-threshold",
         type=float,
@@ -71,7 +79,39 @@ def parse_args() -> argparse.Namespace:
         help="Umbral maximo de debug_unparsed_lines sobre filas parseadas antes de requerir revision.",
     )
     parser.add_argument("--json", action="store_true", help="Imprime el resumen como JSON.")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.pdf and not args.out_dir:
+        parser.error("--out-dir es requerido cuando se usa --pdf")
+    return args
+
+
+def build_parse_command(args: argparse.Namespace) -> list[str]:
+    command = [
+        sys.executable,
+        str(PARSER_SCRIPT),
+        "--pdf",
+        str(Path(args.pdf)),
+        "--out-dir",
+        str(Path(args.out_dir)),
+        "--default-source-id",
+        str(args.default_source_id),
+        "--excel-name",
+        args.excel_name,
+    ]
+    if args.competition_id is not None:
+        command.extend(["--competition-id", str(args.competition_id)])
+    return command
+
+
+def run_parser(args: argparse.Namespace) -> Path:
+    pdf_path = Path(args.pdf)
+    out_dir = Path(args.out_dir)
+    if not pdf_path.exists() or not pdf_path.is_file():
+        raise SystemExit(f"[ERROR] No existe el PDF: {pdf_path}")
+
+    command = build_parse_command(args)
+    subprocess.run(command, check=True)
+    return out_dir
 
 
 def read_csv_rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:
@@ -256,7 +296,8 @@ def print_text_summary(result: BatchValidationResult) -> None:
 
 def main() -> None:
     args = parse_args()
-    result = validate_input_dir(Path(args.input_dir), args.debug_threshold)
+    input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
+    result = validate_input_dir(input_dir, args.debug_threshold)
     if args.json:
         payload = asdict(result)
         print(json.dumps(payload, ensure_ascii=False, indent=2))

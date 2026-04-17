@@ -60,7 +60,7 @@ Implementado en el repo:
 - Modularizacion controlada inicial: normalizacion compartida de tiempos, generos, estilos y status en `backend/natacion_chile/domain/normalization.py`.
 - Validaciones persistidas como `validation_issue`.
 - Contrato minimo de Fase 4 para batch runner y compuertas en `backend/docs/batch_runner_contract.md`.
-- Esqueleto `backend/scripts/run_results_batch.py` para validar salidas del parser sin cargar a core.
+- `backend/scripts/run_results_batch.py` puede validar `--input-dir` o ejecutar `--pdf` + `--out-dir` antes de validar, sin cargar a core.
 
 No implementado todavia:
 
@@ -87,11 +87,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo iniciada con contrato y un validador previo a carga. El siguiente paso es conectar parseo automatico manteniendo la carga a core desactivada por defecto.
+Fase 4 quedo iniciada con contrato y parseo automatico previo a validacion. El siguiente paso es agregar carga explicita a core solo cuando el batch quede validado.
 
 Primer objetivo sugerido:
 
-- Agregar soporte `--pdf` + `--out-dir` en `run_results_batch.py`.
-- Ejecutar `parse_results_pdf.py` desde el batch runner.
-- Mantener la carga a core desactivada hasta tener una bandera explicita.
-- Agregar fixtures chicos para errores de metadata y salidas incompletas.
+- Agregar una bandera explicita de carga, por ejemplo `--load`.
+- Ejecutar `run_pipeline_results.py` solo si el estado es `validated`.
+- Cubrir con tests que `requires_review` no ejecuta carga.
+- Mantener scraper FCHMN fuera de alcance hasta cerrar esta compuerta.

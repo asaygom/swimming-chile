@@ -150,7 +150,7 @@ Pipeline:
 
 Extender `backend/scripts/run_results_batch.py` para que:
 
-1. Reciba `--pdf` y `--out-dir`.
-2. Ejecute `parse_results_pdf.py`.
-3. Valide las salidas generadas.
-4. Mantenga `run_pipeline_results.py` desactivado por defecto hasta agregar una bandera explicita de carga.
+1. Agregue una bandera explicita para cargar a core despues de validar.
+2. Ejecute `run_pipeline_results.py` solo si el estado es `validated`.
+3. Mantenga la carga desactivada por defecto.
+4. Cubra con tests que `requires_review` nunca ejecuta carga.

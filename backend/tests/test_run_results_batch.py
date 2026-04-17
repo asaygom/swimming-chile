@@ -1,4 +1,5 @@
 import sys
+from argparse import Namespace
 from pathlib import Path
 
 
@@ -39,3 +40,30 @@ def test_validate_input_dir_requires_review_when_debug_ratio_is_high():
 
     assert result.state == "requires_review"
     assert any(issue.issue_key == "debug_unparsed_ratio_exceeded" for issue in result.issues)
+
+
+def test_build_parse_command_uses_current_python_and_parser_args():
+    args = Namespace(
+        pdf="backend/data/raw/results_pdf/demo.pdf",
+        out_dir="backend/data/raw/results_csv/demo",
+        competition_id=42,
+        default_source_id=7,
+        excel_name="parsed_demo.xlsx",
+    )
+
+    command = batch.build_parse_command(args)
+
+    assert command[0] == sys.executable
+    assert command[1].endswith("parse_results_pdf.py")
+    assert command[2:] == [
+        "--pdf",
+        str(Path(args.pdf)),
+        "--out-dir",
+        str(Path(args.out_dir)),
+        "--default-source-id",
+        "7",
+        "--excel-name",
+        "parsed_demo.xlsx",
+        "--competition-id",
+        "42",
+    ]

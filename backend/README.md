@@ -74,6 +74,16 @@ python backend\scripts\parse_results_pdf.py `
   --default-source-id 1
 ```
 
+Parsear y validar sin cargar a core:
+
+```powershell
+python backend\scripts\run_results_batch.py `
+  --pdf ruta\al\resultado.pdf `
+  --out-dir backend\data\raw\results_csv\competencia_x `
+  --competition-id 1 `
+  --default-source-id 1
+```
+
 Cargar una carpeta generada por el parser:
 
 ```powershell
