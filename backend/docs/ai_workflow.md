@@ -8,6 +8,7 @@ Este documento permite retomar el proyecto en otra conversacion sin depender del
 - Reglas del proyecto: `AGENTS.md` cuando este disponible en el entorno local.
 - Politica de artefactos: `backend/docs/data_artifacts.md`.
 - Contratos del parser: `backend/docs/parser_contracts.md`.
+- Contrato del batch runner: `backend/docs/batch_runner_contract.md`.
 - Modelo vigente: `backend/docs/schema.md`.
 - Trazabilidad e idempotencia: `backend/docs/traceability_idempotency.md`.
 
@@ -58,6 +59,8 @@ Implementado en el repo:
 - Trazabilidad e idempotencia validadas contra PostgreSQL local con recarga real de `coppa_italia_2026`.
 - Modularizacion controlada inicial: normalizacion compartida de tiempos, generos, estilos y status en `backend/natacion_chile/domain/normalization.py`.
 - Validaciones persistidas como `validation_issue`.
+- Contrato minimo de Fase 4 para batch runner y compuertas en `backend/docs/batch_runner_contract.md`.
+- Esqueleto `backend/scripts/run_results_batch.py` para validar salidas del parser sin cargar a core.
 
 No implementado todavia:
 
@@ -65,7 +68,7 @@ No implementado todavia:
 - Skills de `gentle-ai`. https://github.com/Gentleman-Programming/gentle-ai 
 - MCP externo para memoria.
 - Orquestacion multiagente.
-- Scraper o batch runner con compuertas duras.
+- Scraper o batch runner implementado con compuertas duras.
 
 La metodologia del curso se esta aplicando manualmente: Plan Mode, SDD, contratos, tests, docs vivas y human-in-the-loop. Las herramientas Gentleman/Engram quedan como fase posterior, no como dependencia actual.
 
@@ -84,11 +87,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Fase 3 quedo completada para las normalizaciones compartidas de bajo riesgo. El siguiente paso es iniciar Fase 4: scraper y batch runner con compuertas de calidad.
+Fase 4 quedo iniciada con contrato y un validador previo a carga. El siguiente paso es conectar parseo automatico manteniendo la carga a core desactivada por defecto.
 
 Primer objetivo sugerido:
 
-- Definir el contrato minimo del batch runner antes de implementar.
-- Mantener descarga/parseo/validacion separados de la carga a core.
-- Registrar estados tipo descargado, parseado, validado y requiere revision.
-- No bloquear cargas actuales hasta que existan compuertas verificadas con fixtures.
+- Agregar soporte `--pdf` + `--out-dir` en `run_results_batch.py`.
+- Ejecutar `parse_results_pdf.py` desde el batch runner.
+- Mantener la carga a core desactivada hasta tener una bandera explicita.
+- Agregar fixtures chicos para errores de metadata y salidas incompletas.

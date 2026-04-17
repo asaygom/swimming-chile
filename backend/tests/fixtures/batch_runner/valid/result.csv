@@ -1,0 +1,2 @@
+event_name,athlete_name,club_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,age_at_event,birth_year_estimated,points,status,source_id
+men 35-39 100 LC Meter freestyle,Juan Perez,Club A,1,1:05.30,65300,1:03.21,63210,35,1991,9,valid,1

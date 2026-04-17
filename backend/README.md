@@ -52,11 +52,13 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 ## Estructura
 
 - `scripts/parse_results_pdf.py`: parser de PDFs y generador de CSVs
+- `scripts/run_results_batch.py`: validador inicial de Fase 4 antes de cargar a core
 - `scripts/run_pipeline_results.py`: carga CSVs a staging y core en PostgreSQL
 - `sql/schema.sql`: definicion de tablas core, staging, constraints e indices
 - `sql/analysis_queries.sql`: consultas analiticas de ejemplo
 - `docs/schema.md`: documentacion logica del modelo vigente
 - `docs/parser_contracts.md`: contratos de entrada/salida del parser PDF
+- `docs/batch_runner_contract.md`: contrato de Fase 4 para batch runner y compuertas
 - `docs/data_artifacts.md`: politica de versionado de datos, raw, staging y fixtures
 - `docs/ai_workflow.md`: metodologia para trabajar con IA y retomar contexto entre conversaciones
 
