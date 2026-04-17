@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pipeline v0.3.11
+# pipeline v0.3.12
 from __future__ import annotations
 
 import argparse
@@ -23,7 +23,7 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
-    normalize_result_status,
+    normalize_result_status as normalize_domain_result_status,
     normalize_stroke,
     normalize_swim_time_text,
 )
@@ -167,6 +167,15 @@ def normalize_match_text(x):
     x = x.lower()
     x = re.sub(r"[^a-z0-9]+", " ", x)
     return re.sub(r"\s+", " ", x).strip() or None
+
+
+def normalize_pipeline_result_status(status, result_time_text):
+    normalized = normalize_domain_result_status(status, result_time_text)
+    if normalized != "unknown":
+        return normalized
+    if derive_result_time_ms(result_time_text) is not None:
+        return "valid"
+    return "unknown"
 
 
 def infer_relay_club_name(relay_team_name: Optional[str], club_names: List[str]) -> Optional[str]:
@@ -399,7 +408,7 @@ def normalize_dataframe(df: pd.DataFrame, expected_columns: List[str], table_key
                 normalized_status.append("unknown")
             else:
                 normalized_rank.append(normalize_string(rk))
-                normalized_status.append(normalize_result_status(st, tt))
+                normalized_status.append(normalize_pipeline_result_status(st, tt))
 
         df["seed_time_ms"] = normalized_seed_ms
         df["result_time_ms"] = normalized_result_ms
@@ -1338,7 +1347,7 @@ def main() -> None:
         save_validation_issues(conn, config, validation_results)
         print_validations(validation_results)
         finish_load_run(conn, config, "completed")
-        print("\n[OK] Pipeline v0.3.11 completado.")
+        print("\n[OK] Pipeline v0.3.12 completado.")
     except Exception as exc:
         conn.rollback()
         finish_load_run(conn, config, "failed", str(exc))

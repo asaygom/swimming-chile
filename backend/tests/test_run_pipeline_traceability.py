@@ -43,3 +43,31 @@ def test_derive_source_document_name_falls_back_to_input_dir():
     args = argparse.Namespace(excel=None, input_dir="backend/data/raw/results_csv/demo")
 
     assert pipeline.derive_source_document_name(args, {}) == "demo"
+
+
+def test_normalize_dataframe_derives_valid_status_from_result_time():
+    df = pd.DataFrame(
+        [
+            {
+                "event_name": "Event A",
+                "athlete_name": "Nadador Uno",
+                "club_name": "Club A",
+                "rank_position": "1",
+                "seed_time_text": None,
+                "seed_time_ms": None,
+                "result_time_text": "1:05.30",
+                "result_time_ms": None,
+                "age_at_event": "35",
+                "birth_year_estimated": "1991",
+                "points": None,
+                "status": None,
+                "source_id": "1",
+            }
+        ]
+    )
+
+    normalized = pipeline.normalize_dataframe(df, pipeline.EXPECTED_COLUMNS["result"], "result")
+
+    assert normalized.loc[0, "result_time_text"] == "1:05,30"
+    assert normalized.loc[0, "result_time_ms"] == "65300"
+    assert normalized.loc[0, "status"] == "valid"
