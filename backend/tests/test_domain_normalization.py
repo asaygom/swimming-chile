@@ -6,7 +6,21 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from natacion_chile.domain.normalization import derive_result_time_ms, normalize_swim_time_text
+from natacion_chile.domain.normalization import (
+    derive_result_time_ms,
+    normalize_athlete_gender,
+    normalize_event_gender,
+    normalize_swim_time_text,
+)
+
+
+def test_gender_normalization_uses_domain_canons():
+    assert normalize_event_gender("Women") == "women"
+    assert normalize_event_gender("Hombres") == "men"
+    assert normalize_event_gender("Mixto") == "mixed"
+    assert normalize_athlete_gender("W") == "female"
+    assert normalize_athlete_gender("Mujer") == "female"
+    assert normalize_athlete_gender("M") == "male"
 
 
 def test_normalize_swim_time_text_and_milliseconds():

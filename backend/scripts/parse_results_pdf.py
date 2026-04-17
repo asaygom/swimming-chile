@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# parser v0.1.6
+# parser v0.1.7
 from __future__ import annotations
 
 import argparse
@@ -19,9 +19,14 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from natacion_chile.domain.normalization import derive_result_time_ms, normalize_swim_time_text
+from natacion_chile.domain.normalization import (
+    derive_result_time_ms,
+    normalize_athlete_gender,
+    normalize_event_gender,
+    normalize_swim_time_text,
+)
 
-PARSER_VERSION = "0.1.6"
+PARSER_VERSION = "0.1.7"
 
 try:
     import pdfplumber
@@ -279,54 +284,6 @@ def clean_extracted_text(value: str | None) -> str | None:
     value = re.sub(r"\s+", " ", value).strip()
 
     return value if value else None
-
-
-def normalize_event_gender(value: Optional[str]) -> Optional[str]:
-    value = normalize_string(value)
-    if value is None:
-        return None
-    key = value.lower()
-    mapping = {
-        "women": "women",
-        "woman": "women",
-        "female": "women",
-        "f": "women",
-        "mujeres": "women",
-        "mujer": "women",
-        "men": "men",
-        "man": "men",
-        "male": "men",
-        "m": "men",
-        "hombres": "men",
-        "hombre": "men",
-        "mixed": "mixed",
-        "mix": "mixed",
-        "mixto": "mixed",
-    }
-    return mapping.get(key, key)
-
-
-def normalize_athlete_gender(value: Optional[str]) -> Optional[str]:
-    value = normalize_string(value)
-    if value is None:
-        return None
-    key = value.lower()
-    mapping = {
-        "women": "female",
-        "woman": "female",
-        "female": "female",
-        "f": "female",
-        "w": "female",
-        "mujeres": "female",
-        "mujer": "female",
-        "men": "male",
-        "man": "male",
-        "male": "male",
-        "m": "male",
-        "hombres": "male",
-        "hombre": "male",
-    }
-    return mapping.get(key, key)
 
 
 def normalize_course_code(value: Optional[str]) -> Optional[str]:
@@ -1073,13 +1030,13 @@ def save_outputs(frames: Dict[str, pd.DataFrame], debug_df: pd.DataFrame, metada
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.6 modulariza la normalizacion compartida de tiempos."
+        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.7 modulariza normalizacion compartida de tiempos y generos."
     )
     parser.add_argument("--pdf", required=True, help="Ruta al PDF de resultados")
     parser.add_argument("--out-dir", required=True, help="Carpeta de salida para CSV/XLSX")
     parser.add_argument("--competition-id", type=int, help="competition_id opcional para poblar la hoja event")
     parser.add_argument("--default-source-id", type=int, help="source_id opcional para poblar hojas de salida")
-    parser.add_argument("--excel-name", default="parsed_results_v0_1_6.xlsx", help="Nombre del archivo Excel de salida")
+    parser.add_argument("--excel-name", default="parsed_results.xlsx", help="Nombre del archivo Excel de salida")
     return parser.parse_args()
 
 

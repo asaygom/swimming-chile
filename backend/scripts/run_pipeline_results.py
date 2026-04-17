@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pipeline v0.3.8
+# pipeline v0.3.9
 from __future__ import annotations
 
 import argparse
@@ -19,7 +19,12 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from natacion_chile.domain.normalization import derive_result_time_ms, normalize_swim_time_text
+from natacion_chile.domain.normalization import (
+    derive_result_time_ms,
+    normalize_athlete_gender,
+    normalize_event_gender,
+    normalize_swim_time_text,
+)
 
 try:
     import psycopg
@@ -161,42 +166,6 @@ def normalize_match_text(x):
     x = x.lower()
     x = re.sub(r"[^a-z0-9]+", " ", x)
     return re.sub(r"\s+", " ", x).strip() or None
-
-
-def normalize_event_gender(x):
-    x = normalize_controlled_lower(x)
-    mapping = {
-        "women": "women",
-        "woman": "women",
-        "female": "women",
-        "f": "women",
-        "men": "men",
-        "man": "men",
-        "male": "men",
-        "m": "men",
-        "mixed": "mixed",
-        "mix": "mixed",
-        "mixto": "mixed",
-    }
-    return mapping.get(x, x)
-
-
-
-def normalize_athlete_gender(x):
-    x = normalize_controlled_lower(x)
-    mapping = {
-        "women": "female",
-        "woman": "female",
-        "female": "female",
-        "f": "female",
-        "w": "female",
-        "men": "male",
-        "man": "male",
-        "male": "male",
-        "m": "male",
-    }
-    return mapping.get(x, x)
-
 
 
 def normalize_stroke(x):
@@ -1413,7 +1382,7 @@ def main() -> None:
         save_validation_issues(conn, config, validation_results)
         print_validations(validation_results)
         finish_load_run(conn, config, "completed")
-        print("\n[OK] Pipeline v0.3.8 completado.")
+        print("\n[OK] Pipeline v0.3.9 completado.")
     except Exception as exc:
         conn.rollback()
         finish_load_run(conn, config, "failed", str(exc))

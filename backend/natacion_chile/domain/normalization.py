@@ -19,6 +19,53 @@ def normalize_string(value: Any) -> str | None:
     return value if value else None
 
 
+def normalize_controlled_lower(value: Any) -> str | None:
+    value = normalize_string(value)
+    return value.lower() if value is not None else None
+
+
+def normalize_event_gender(value: Any) -> str | None:
+    value = normalize_controlled_lower(value)
+    mapping = {
+        "women": "women",
+        "woman": "women",
+        "female": "women",
+        "f": "women",
+        "mujeres": "women",
+        "mujer": "women",
+        "men": "men",
+        "man": "men",
+        "male": "men",
+        "m": "men",
+        "hombres": "men",
+        "hombre": "men",
+        "mixed": "mixed",
+        "mix": "mixed",
+        "mixto": "mixed",
+    }
+    return mapping.get(value, value)
+
+
+def normalize_athlete_gender(value: Any) -> str | None:
+    value = normalize_controlled_lower(value)
+    mapping = {
+        "women": "female",
+        "woman": "female",
+        "female": "female",
+        "f": "female",
+        "w": "female",
+        "mujeres": "female",
+        "mujer": "female",
+        "men": "male",
+        "man": "male",
+        "male": "male",
+        "m": "male",
+        "hombres": "male",
+        "hombre": "male",
+    }
+    return mapping.get(value, value)
+
+
 def normalize_swim_time_text(value: Any) -> str | None:
     value = normalize_string(value)
     if value is None:
