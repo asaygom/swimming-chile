@@ -106,5 +106,5 @@ La documentacion completa del esquema esta en `docs/schema.md`.
 - Agregar tests con fixtures pequenos para validar carga end-to-end de individuales y relevos.
 - Definir constraints de unicidad para cargas repetidas de `result` y `relay_result`.
 - Documentar comandos operativos con un ejemplo real de competencia.
-- Separar en un modulo comun las normalizaciones compartidas por parser y pipeline.
+- Definir el contrato minimo del batch runner con estados y compuertas de calidad.
 - Decidir si `record.gender` debe usar el mismo canon competitivo de `event.gender` o mantenerse como catalogo propio.

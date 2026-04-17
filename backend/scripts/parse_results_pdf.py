@@ -22,8 +22,10 @@ if str(BACKEND_DIR) not in sys.path:
 from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
+    normalize_controlled_lower,
     normalize_event_gender,
     normalize_result_status as normalize_domain_result_status,
+    normalize_string,
     normalize_stroke as normalize_domain_stroke,
     normalize_swim_time_text,
 )
@@ -206,15 +208,6 @@ class ParseStats:
     lines_unparsed: int = 0
 
 
-def normalize_string(value):
-    if value is None:
-        return None
-    if isinstance(value, str):
-        value = value.strip()
-        return value if value != "" else None
-    return value
-
-
 ACCENTED = "ÁÉÍÓÚáéíóúÑñÜü"
 
 def clean_extracted_text(value: str | None) -> str | None:
@@ -386,20 +379,6 @@ def warn(msg: str) -> None:
 def fail(msg: str) -> None:
     print(f"[ERROR] {msg}", file=sys.stderr)
     raise SystemExit(1)
-
-
-def normalize_string(x):
-    if x is None:
-        return None
-    if isinstance(x, str):
-        x = x.strip()
-        return x if x != "" else None
-    return x
-
-
-def normalize_controlled_lower(x):
-    x = normalize_string(x)
-    return x.lower() if isinstance(x, str) else x
 
 
 def normalize_result_status(status, result_time_text):
