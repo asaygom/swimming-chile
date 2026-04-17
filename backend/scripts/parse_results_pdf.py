@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# parser v0.1.5
+# parser v0.1.6
 from __future__ import annotations
 
 import argparse
@@ -15,7 +15,13 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-PARSER_VERSION = "0.1.5"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from natacion_chile.domain.normalization import derive_result_time_ms, normalize_swim_time_text
+
+PARSER_VERSION = "0.1.6"
 
 try:
     import pdfplumber
@@ -24,7 +30,6 @@ except ImportError as exc:  # pragma: no cover
 
 
 STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
-TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
 TIME_OR_STATUS_PATTERN = (
     r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ|DFS)"
 )
@@ -471,82 +476,6 @@ def normalize_string(x):
 def normalize_controlled_lower(x):
     x = normalize_string(x)
     return x.lower() if isinstance(x, str) else x
-
-
-def normalize_swim_time_text(value):
-    value = normalize_string(value)
-    if value is None:
-        return None
-
-    upper = value.upper()
-    if upper in TEXT_STATUSES:
-        return upper
-
-    is_x = upper.startswith("X")
-    raw = value
-
-    base = value[1:].strip() if is_x else value
-    base = base.replace(",", ".")
-
-    m = re.fullmatch(r"(\d{1,2}):(\d{2}):(\d{2})(?:\.(\d+))?", base)
-    if m:
-        hours = int(m.group(1))
-        minutes = int(m.group(2))
-        seconds = int(m.group(3))
-        frac = (m.group(4) or "0")
-        centis = int((frac + "00")[:2])
-        total_minutes = hours * 60 + minutes
-        normalized = f"{total_minutes}:{seconds:02d},{centis:02d}" if total_minutes > 0 else f"{seconds},{centis:02d}"
-        return f"X{normalized}" if is_x else normalized
-
-    m = re.fullmatch(r"(\d{1,3}):(\d{2})(?:\.(\d{1,6}))?", base)
-    if m:
-        minutes = int(m.group(1))
-        seconds = int(m.group(2))
-        frac = (m.group(3) or "0")
-        centis = int((frac + "00")[:2])
-        normalized = f"{minutes}:{seconds:02d},{centis:02d}"
-        return f"X{normalized}" if is_x else normalized
-
-    m = re.fullmatch(r"(\d{1,3})(?:\.(\d{1,6}))?", base)
-    if m:
-        seconds = int(m.group(1))
-        frac = (m.group(2) or "0")
-        centis = int((frac + "00")[:2])
-        normalized = f"{seconds},{centis:02d}"
-        return f"X{normalized}" if is_x else normalized
-
-    return raw
-
-
-
-def derive_result_time_ms(value):
-    value = normalize_swim_time_text(value)
-    if value is None:
-        return None
-
-    upper = value.upper()
-    if upper in TEXT_STATUSES:
-        return None
-
-    if upper.startswith("X"):
-        value = value[1:].strip()
-
-    m = re.fullmatch(r"(\d{1,3}):(\d{2}),(\d{2})", value)
-    if m:
-        minutes = int(m.group(1))
-        seconds = int(m.group(2))
-        centis = int(m.group(3))
-        return (minutes * 60 + seconds) * 1000 + centis * 10
-
-    m = re.fullmatch(r"(\d{1,3}),(\d{2})", value)
-    if m:
-        seconds = int(m.group(1))
-        centis = int(m.group(2))
-        return seconds * 1000 + centis * 10
-
-    return None
-
 
 
 def normalize_result_status(status, result_time_text):
@@ -1144,13 +1073,13 @@ def save_outputs(frames: Dict[str, pd.DataFrame], debug_df: pd.DataFrame, metada
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.5 agrega soporte para SC Meter, columna Points, ranks con * y ruido 'Results'."
+        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.6 modulariza la normalizacion compartida de tiempos."
     )
     parser.add_argument("--pdf", required=True, help="Ruta al PDF de resultados")
     parser.add_argument("--out-dir", required=True, help="Carpeta de salida para CSV/XLSX")
     parser.add_argument("--competition-id", type=int, help="competition_id opcional para poblar la hoja event")
     parser.add_argument("--default-source-id", type=int, help="source_id opcional para poblar hojas de salida")
-    parser.add_argument("--excel-name", default="parsed_results_v0_1_5.xlsx", help="Nombre del archivo Excel de salida")
+    parser.add_argument("--excel-name", default="parsed_results_v0_1_6.xlsx", help="Nombre del archivo Excel de salida")
     return parser.parse_args()
 
 

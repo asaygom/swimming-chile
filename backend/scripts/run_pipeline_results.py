@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pipeline v0.3.7
+# pipeline v0.3.8
 from __future__ import annotations
 
 import argparse
@@ -14,6 +14,12 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 import pandas as pd
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from natacion_chile.domain.normalization import derive_result_time_ms, normalize_swim_time_text
 
 try:
     import psycopg
@@ -52,7 +58,6 @@ STAGING_TABLES = {
 }
 
 STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
-TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
 DEFAULT_CLUB_ALIAS_CSV = Path(__file__).resolve().parents[1] / "data" / "reference" / "club_alias.csv"
 
 
@@ -217,81 +222,6 @@ def normalize_stroke(x):
         "free relay": "freestyle_relay",
     }
     return mapping.get(x, x.replace(' ', '_'))
-
-
-
-def normalize_swim_time_text(value):
-    value = normalize_string(value)
-    if value is None:
-        return None
-
-    upper = value.upper()
-    if upper in TEXT_STATUSES:
-        return upper
-
-    is_x = upper.startswith("X")
-    raw = value
-    base = value[1:].strip() if is_x else value
-    base = base.replace(",", ".")
-
-    m = re.fullmatch(r"(\d{1,2}):(\d{2}):(\d{2})(?:\.(\d+))?", base)
-    if m:
-        hours = int(m.group(1))
-        minutes = int(m.group(2))
-        seconds = int(m.group(3))
-        frac = (m.group(4) or "0")
-        centis = int((frac + "00")[:2])
-        total_minutes = hours * 60 + minutes
-        normalized = f"{total_minutes}:{seconds:02d},{centis:02d}" if total_minutes > 0 else f"{seconds},{centis:02d}"
-        return f"X{normalized}" if is_x else normalized
-
-    m = re.fullmatch(r"(\d{1,3}):(\d{2})(?:\.(\d{1,6}))?", base)
-    if m:
-        minutes = int(m.group(1))
-        seconds = int(m.group(2))
-        frac = (m.group(3) or "0")
-        centis = int((frac + "00")[:2])
-        normalized = f"{minutes}:{seconds:02d},{centis:02d}"
-        return f"X{normalized}" if is_x else normalized
-
-    m = re.fullmatch(r"(\d{1,3})(?:\.(\d{1,6}))?", base)
-    if m:
-        seconds = int(m.group(1))
-        frac = (m.group(2) or "0")
-        centis = int((frac + "00")[:2])
-        normalized = f"{seconds},{centis:02d}"
-        return f"X{normalized}" if is_x else normalized
-
-    return raw
-
-
-
-def derive_result_time_ms(value):
-    value = normalize_swim_time_text(value)
-    if value is None:
-        return None
-
-    upper = value.upper()
-    if upper in TEXT_STATUSES:
-        return None
-
-    if upper.startswith("X"):
-        value = value[1:].strip()
-
-    m = re.fullmatch(r"(\d{1,3}):(\d{2}),(\d{2})", value)
-    if m:
-        minutes = int(m.group(1))
-        seconds = int(m.group(2))
-        centis = int(m.group(3))
-        return (minutes * 60 + seconds) * 1000 + centis * 10
-
-    m = re.fullmatch(r"(\d{1,3}),(\d{2})", value)
-    if m:
-        seconds = int(m.group(1))
-        centis = int(m.group(2))
-        return seconds * 1000 + centis * 10
-
-    return None
 
 
 
@@ -1483,7 +1413,7 @@ def main() -> None:
         save_validation_issues(conn, config, validation_results)
         print_validations(validation_results)
         finish_load_run(conn, config, "completed")
-        print("\n[OK] Pipeline v0.3.7 completado.")
+        print("\n[OK] Pipeline v0.3.8 completado.")
     except Exception as exc:
         conn.rollback()
         finish_load_run(conn, config, "failed", str(exc))

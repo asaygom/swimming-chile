@@ -1,0 +1,92 @@
+from __future__ import annotations
+
+import re
+from typing import Any
+
+
+TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
+
+
+def normalize_string(value: Any) -> str | None:
+    if value is None:
+        return None
+    try:
+        if value != value:
+            return None
+    except Exception:
+        pass
+    value = str(value).strip()
+    return value if value else None
+
+
+def normalize_swim_time_text(value: Any) -> str | None:
+    value = normalize_string(value)
+    if value is None:
+        return None
+
+    upper = value.upper()
+    if upper in TEXT_STATUSES:
+        return upper
+
+    is_x = upper.startswith("X")
+    raw = value
+    base = value[1:].strip() if is_x else value
+    base = base.replace(",", ".")
+
+    match = re.fullmatch(r"(\d{1,2}):(\d{2}):(\d{2})(?:\.(\d+))?", base)
+    if match:
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        seconds = int(match.group(3))
+        frac = match.group(4) or "0"
+        centis = int((frac + "00")[:2])
+        total_minutes = hours * 60 + minutes
+        normalized = f"{total_minutes}:{seconds:02d},{centis:02d}" if total_minutes > 0 else f"{seconds},{centis:02d}"
+        return f"X{normalized}" if is_x else normalized
+
+    match = re.fullmatch(r"(\d{1,3}):(\d{2})(?:\.(\d{1,6}))?", base)
+    if match:
+        minutes = int(match.group(1))
+        seconds = int(match.group(2))
+        frac = match.group(3) or "0"
+        centis = int((frac + "00")[:2])
+        normalized = f"{minutes}:{seconds:02d},{centis:02d}"
+        return f"X{normalized}" if is_x else normalized
+
+    match = re.fullmatch(r"(\d{1,3})(?:\.(\d{1,6}))?", base)
+    if match:
+        seconds = int(match.group(1))
+        frac = match.group(2) or "0"
+        centis = int((frac + "00")[:2])
+        normalized = f"{seconds},{centis:02d}"
+        return f"X{normalized}" if is_x else normalized
+
+    return raw
+
+
+def derive_result_time_ms(value: Any) -> int | None:
+    value = normalize_swim_time_text(value)
+    if value is None:
+        return None
+
+    upper = value.upper()
+    if upper in TEXT_STATUSES:
+        return None
+
+    if upper.startswith("X"):
+        value = value[1:].strip()
+
+    match = re.fullmatch(r"(\d{1,3}):(\d{2}),(\d{2})", value)
+    if match:
+        minutes = int(match.group(1))
+        seconds = int(match.group(2))
+        centis = int(match.group(3))
+        return (minutes * 60 + seconds) * 1000 + centis * 10
+
+    match = re.fullmatch(r"(\d{1,3}),(\d{2})", value)
+    if match:
+        seconds = int(match.group(1))
+        centis = int(match.group(2))
+        return seconds * 1000 + centis * 10
+
+    return None
