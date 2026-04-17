@@ -10,6 +10,7 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
+    normalize_stroke,
     normalize_swim_time_text,
 )
 
@@ -21,6 +22,16 @@ def test_gender_normalization_uses_domain_canons():
     assert normalize_athlete_gender("W") == "female"
     assert normalize_athlete_gender("Mujer") == "female"
     assert normalize_athlete_gender("M") == "male"
+
+
+def test_stroke_normalization_uses_domain_canons():
+    assert normalize_stroke("Libre") == "freestyle"
+    assert normalize_stroke("Espalda") == "backstroke"
+    assert normalize_stroke("Pecho") == "breaststroke"
+    assert normalize_stroke("Mariposa") == "butterfly"
+    assert normalize_stroke("Combinado") == "individual_medley"
+    assert normalize_stroke("Relevo Libre") == "freestyle_relay"
+    assert normalize_stroke("Relevo Combinado") == "medley_relay"
 
 
 def test_normalize_swim_time_text_and_milliseconds():

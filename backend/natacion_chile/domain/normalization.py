@@ -66,6 +66,48 @@ def normalize_athlete_gender(value: Any) -> str | None:
     return mapping.get(value, value)
 
 
+def normalize_stroke(value: Any) -> str | None:
+    value = normalize_controlled_lower(value)
+    if value is None:
+        return None
+    value = value.replace("-", " ").replace("_", " ")
+    value = re.sub(r"\s+", " ", value).strip()
+    mapping = {
+        "free": "freestyle",
+        "freestyle": "freestyle",
+        "back": "backstroke",
+        "backstroke": "backstroke",
+        "breast": "breaststroke",
+        "breaststroke": "breaststroke",
+        "fly": "butterfly",
+        "butterfly": "butterfly",
+        "im": "individual_medley",
+        "individual medley": "individual_medley",
+        "medley": "individual_medley",
+        "medley relay": "medley_relay",
+        "freestyle relay": "freestyle_relay",
+        "free relay": "freestyle_relay",
+        "estilo libre": "freestyle",
+        "libre": "freestyle",
+        "estilo de espalda": "backstroke",
+        "espalda": "backstroke",
+        "estilo de pecho": "breaststroke",
+        "pecho": "breaststroke",
+        "estilo de mariposa": "butterfly",
+        "mariposa": "butterfly",
+        "ci": "individual_medley",
+        "combinado": "individual_medley",
+        "combinado individual": "individual_medley",
+        "comb relevo": "medley_relay",
+        "combinado relevo": "medley_relay",
+        "relevo combinado": "medley_relay",
+        "libre relevo": "freestyle_relay",
+        "relevo libre": "freestyle_relay",
+        "estilo libre relevo": "freestyle_relay",
+    }
+    return mapping.get(value, value.replace(" ", "_"))
+
+
 def normalize_swim_time_text(value: Any) -> str | None:
     value = normalize_string(value)
     if value is None:

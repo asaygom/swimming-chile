@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# parser v0.1.7
+# parser v0.1.8
 from __future__ import annotations
 
 import argparse
@@ -23,10 +23,11 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
+    normalize_stroke as normalize_domain_stroke,
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.7"
+PARSER_VERSION = "0.1.8"
 
 try:
     import pdfplumber
@@ -305,43 +306,9 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
     value = normalize_string(value)
     if value is None:
         return None
-    key = value.lower().replace('-', ' ').replace('_', ' ')
-    key = re.sub(r"\s+", " ", key)
-    key = re.sub(r"\s+\d+\s+a(?:ñ|n)os\s+y\s+m[aá]s$", "", key)
-    mapping = {
-        "free": "freestyle",
-        "freestyle": "freestyle",
-        "back": "backstroke",
-        "backstroke": "backstroke",
-        "breast": "breaststroke",
-        "breaststroke": "breaststroke",
-        "fly": "butterfly",
-        "butterfly": "butterfly",
-        "im": "individual_medley",
-        "individual medley": "individual_medley",
-        "medley": "individual_medley",
-        "medley relay": "medley_relay",
-        "freestyle relay": "freestyle_relay",
-        "free relay": "freestyle_relay",
-        "estilo libre": "freestyle",
-        "libre": "freestyle",
-        "estilo de espalda": "backstroke",
-        "espalda": "backstroke",
-        "estilo de pecho": "breaststroke",
-        "pecho": "breaststroke",
-        "estilo de mariposa": "butterfly",
-        "mariposa": "butterfly",
-        "ci": "individual_medley",
-        "combinado": "individual_medley",
-        "combinado individual": "individual_medley",
-        "comb relevo": "medley_relay",
-        "combinado relevo": "medley_relay",
-        "relevo combinado": "medley_relay",
-        "libre relevo": "freestyle_relay",
-        "relevo libre": "freestyle_relay",
-        "estilo libre relevo": "freestyle_relay",
-    }
-    return mapping.get(key, key.replace(' ', '_'))
+    # Limpieza propia del layout PDF: algunos encabezados pegan el sufijo de edad al estilo.
+    value = re.sub(r"\s+\d+\s+a(?:ñ|n)os\s+y\s+m[aá]s$", "", value, flags=re.IGNORECASE)
+    return normalize_domain_stroke(value)
 
 
 def parse_dmy_date(value: Optional[str]) -> Optional[str]:
@@ -1030,7 +997,7 @@ def save_outputs(frames: Dict[str, pd.DataFrame], debug_df: pd.DataFrame, metada
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.7 modulariza normalizacion compartida de tiempos y generos."
+        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.8 modulariza normalizacion compartida de tiempos, generos y estilos."
     )
     parser.add_argument("--pdf", required=True, help="Ruta al PDF de resultados")
     parser.add_argument("--out-dir", required=True, help="Carpeta de salida para CSV/XLSX")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pipeline v0.3.9
+# pipeline v0.3.10
 from __future__ import annotations
 
 import argparse
@@ -23,6 +23,7 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
+    normalize_stroke,
     normalize_swim_time_text,
 )
 
@@ -166,32 +167,6 @@ def normalize_match_text(x):
     x = x.lower()
     x = re.sub(r"[^a-z0-9]+", " ", x)
     return re.sub(r"\s+", " ", x).strip() or None
-
-
-def normalize_stroke(x):
-    x = normalize_controlled_lower(x)
-    if x is None:
-        return None
-    x = x.replace('-', ' ').replace('_', ' ')
-    x = re.sub(r"\s+", " ", x).strip()
-    mapping = {
-        "free": "freestyle",
-        "freestyle": "freestyle",
-        "back": "backstroke",
-        "backstroke": "backstroke",
-        "breast": "breaststroke",
-        "breaststroke": "breaststroke",
-        "fly": "butterfly",
-        "butterfly": "butterfly",
-        "im": "individual_medley",
-        "individual medley": "individual_medley",
-        "medley": "individual_medley",
-        "medley relay": "medley_relay",
-        "freestyle relay": "freestyle_relay",
-        "free relay": "freestyle_relay",
-    }
-    return mapping.get(x, x.replace(' ', '_'))
-
 
 
 def normalize_result_status(status, result_time_text):
@@ -1382,7 +1357,7 @@ def main() -> None:
         save_validation_issues(conn, config, validation_results)
         print_validations(validation_results)
         finish_load_run(conn, config, "completed")
-        print("\n[OK] Pipeline v0.3.9 completado.")
+        print("\n[OK] Pipeline v0.3.10 completado.")
     except Exception as exc:
         conn.rollback()
         finish_load_run(conn, config, "failed", str(exc))
