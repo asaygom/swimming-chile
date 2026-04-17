@@ -94,7 +94,8 @@ python backend\scripts\run_results_batch.py `
   --default-source-id 1 `
   --load `
   --user postgres `
-  --password tu_password
+  --password tu_password `
+  --summary-json backend\data\raw\batch_summaries\competencia_x.json
 ```
 
 Cargar una carpeta generada por el parser:

@@ -87,11 +87,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion y carga explicita protegida por compuertas. El siguiente paso es agregar salida auditable del batch o persistencia de estados antes del scraper.
+Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga explicita protegida por compuertas y resumen JSON auditable opcional. El siguiente paso es soportar un manifest local de multiples documentos antes del scraper.
 
 Primer objetivo sugerido:
 
-- Agregar un resumen local opcional, por ejemplo `--summary-json`.
-- Registrar estado, conteos, issues y comandos ejecutados.
-- Mantener scraper FCHMN fuera de alcance hasta cerrar auditoria del batch.
+- Agregar `--manifest` para procesar multiples PDFs o carpetas parseadas.
+- Escribir un resumen por documento.
+- Mantener scraper FCHMN fuera de alcance hasta probar manifest local.
 - No crear tablas nuevas sin una migracion explicita.

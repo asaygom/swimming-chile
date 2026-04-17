@@ -60,6 +60,7 @@ class BatchValidationResult:
     counts: dict[str, int]
     issues: list[BatchIssue]
     metadata: dict[str, Any]
+    commands: dict[str, list[str] | None]
 
 
 def parse_args() -> argparse.Namespace:
@@ -88,6 +89,7 @@ def parse_args() -> argparse.Namespace:
         help="Umbral maximo de debug_unparsed_lines sobre filas parseadas antes de requerir revision.",
     )
     parser.add_argument("--json", action="store_true", help="Imprime el resumen como JSON.")
+    parser.add_argument("--summary-json", help="Ruta donde escribir un resumen auditable JSON de la corrida.")
     args = parser.parse_args()
     if args.pdf and not args.out_dir:
         parser.error("--out-dir es requerido cuando se usa --pdf")
@@ -151,6 +153,14 @@ def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:
     if args.truncate_staging:
         command.append("--truncate-staging")
     return command
+
+
+def redact_command(command: list[str]) -> list[str]:
+    redacted = list(command)
+    for index, token in enumerate(redacted[:-1]):
+        if token == "--password":
+            redacted[index + 1] = "***"
+    return redacted
 
 
 def run_pipeline(args: argparse.Namespace, input_dir: Path) -> None:
@@ -295,6 +305,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
             counts=counts,
             issues=[BatchIssue("error", "input_dir_not_found", f"No existe la carpeta: {input_dir}.")],
             metadata={},
+            commands={},
         )
 
     metadata = read_metadata(input_dir, issues)
@@ -321,7 +332,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
     validate_debug_ratio(input_dir, parsed_result_rows, debug_threshold, counts, issues)
 
     state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"
-    return BatchValidationResult(state=state, input_dir=str(input_dir), counts=counts, issues=issues, metadata=metadata)
+    return BatchValidationResult(state=state, input_dir=str(input_dir), counts=counts, issues=issues, metadata=metadata, commands={})
 
 
 def print_text_summary(result: BatchValidationResult) -> None:
@@ -338,13 +349,23 @@ def print_text_summary(result: BatchValidationResult) -> None:
         print(f"  [{issue.severity}] {issue.issue_key}: {issue.message} ({issue.count})")
 
 
+def write_summary_json(result: BatchValidationResult, summary_path: Path) -> None:
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(asdict(result), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def main() -> None:
     args = parse_args()
+    parse_command = build_parse_command(args) if args.pdf else None
     input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
     result = validate_input_dir(input_dir, args.debug_threshold)
+    result.commands["parse"] = parse_command
+    result.commands["load"] = redact_command(build_load_command(args, input_dir)) if args.load else None
     if args.load and result.state == "validated":
         run_pipeline(args, input_dir)
         result.state = "loaded"
+    if args.summary_json:
+        write_summary_json(result, Path(args.summary_json))
     if args.json:
         payload = asdict(result)
         print(json.dumps(payload, ensure_ascii=False, indent=2))

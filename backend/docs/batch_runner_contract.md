@@ -150,7 +150,7 @@ Pipeline:
 
 Extender `backend/scripts/run_results_batch.py` para que:
 
-1. Registre un resumen auditable del batch en archivo local opcional.
-2. Use estados persistentes cuando exista una tabla operativa de batch.
+1. Procese un manifest local con multiples documentos.
+2. Escriba un resumen por documento.
 3. Mantenga scraper FCHMN separado del parseo, validacion y carga.
-4. Cubra con tests la ruta PDF completa usando fixtures controlados.
+4. Use estados persistentes cuando exista una tabla operativa de batch.
