@@ -5,6 +5,7 @@ from typing import Any
 
 
 TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
+STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 
 
 def normalize_string(value: Any) -> str | None:
@@ -106,6 +107,28 @@ def normalize_stroke(value: Any) -> str | None:
         "estilo libre relevo": "freestyle_relay",
     }
     return mapping.get(value, value.replace(" ", "_"))
+
+
+def normalize_result_status(status: Any, result_time_text: Any = None) -> str:
+    status = normalize_controlled_lower(status)
+    if status in STATUS_VALUES:
+        return status
+
+    result_time_text = normalize_string(result_time_text)
+    if result_time_text:
+        upper = result_time_text.upper()
+        if upper == "DNS":
+            return "dns"
+        if upper == "DNF":
+            return "dnf"
+        if upper in {"DSQ", "DQ", "DFS"}:
+            return "dsq"
+        if upper == "SCRATCH":
+            return "scratch"
+        if upper in {"NT", "NS"}:
+            return "unknown"
+
+    return "unknown"
 
 
 def normalize_swim_time_text(value: Any) -> str | None:

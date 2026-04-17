@@ -10,6 +10,7 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
+    normalize_result_status,
     normalize_stroke,
     normalize_swim_time_text,
 )
@@ -32,6 +33,16 @@ def test_stroke_normalization_uses_domain_canons():
     assert normalize_stroke("Combinado") == "individual_medley"
     assert normalize_stroke("Relevo Libre") == "freestyle_relay"
     assert normalize_stroke("Relevo Combinado") == "medley_relay"
+
+
+def test_result_status_normalization_maps_explicit_statuses():
+    assert normalize_result_status(None, "DNS") == "dns"
+    assert normalize_result_status(None, "DNF") == "dnf"
+    assert normalize_result_status(None, "DQ") == "dsq"
+    assert normalize_result_status(None, "SCRATCH") == "scratch"
+    assert normalize_result_status(None, "NT") == "unknown"
+    assert normalize_result_status("valid", None) == "valid"
+    assert normalize_result_status(None, "1:05.30") == "unknown"
 
 
 def test_normalize_swim_time_text_and_milliseconds():

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pipeline v0.3.10
+# pipeline v0.3.11
 from __future__ import annotations
 
 import argparse
@@ -23,6 +23,7 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
+    normalize_result_status,
     normalize_stroke,
     normalize_swim_time_text,
 )
@@ -63,7 +64,6 @@ STAGING_TABLES = {
     "relay_result_member": "stg_relay_result_member",
 }
 
-STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 DEFAULT_CLUB_ALIAS_CSV = Path(__file__).resolve().parents[1] / "data" / "reference" / "club_alias.csv"
 
 
@@ -167,25 +167,6 @@ def normalize_match_text(x):
     x = x.lower()
     x = re.sub(r"[^a-z0-9]+", " ", x)
     return re.sub(r"\s+", " ", x).strip() or None
-
-
-def normalize_result_status(status, result_time_text):
-    status = normalize_controlled_lower(status)
-    if status in STATUS_VALUES:
-        return status
-    rtt = normalize_string(result_time_text)
-    if rtt:
-        upper = rtt.upper()
-        if upper == "DNS":
-            return "dns"
-        if upper == "DNF":
-            return "dnf"
-        if upper in {"DSQ", "DQ", "DFS"}:
-            return "dsq"
-        if upper in {"NT", "NS"}:
-            return "unknown"
-    return "unknown"
-
 
 
 def infer_relay_club_name(relay_team_name: Optional[str], club_names: List[str]) -> Optional[str]:
@@ -1357,7 +1338,7 @@ def main() -> None:
         save_validation_issues(conn, config, validation_results)
         print_validations(validation_results)
         finish_load_run(conn, config, "completed")
-        print("\n[OK] Pipeline v0.3.10 completado.")
+        print("\n[OK] Pipeline v0.3.11 completado.")
     except Exception as exc:
         conn.rollback()
         finish_load_run(conn, config, "failed", str(exc))

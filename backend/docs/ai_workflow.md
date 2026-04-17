@@ -56,6 +56,7 @@ Implementado en el repo:
 - Tests unitarios y fixtures chicos.
 - Trazabilidad e idempotencia inicial en schema, migracion y pipeline.
 - Trazabilidad e idempotencia validadas contra PostgreSQL local con recarga real de `coppa_italia_2026`.
+- Modularizacion controlada inicial: normalizacion compartida de tiempos, generos, estilos y status en `backend/natacion_chile/domain/normalization.py`.
 - Validaciones persistidas como `validation_issue`.
 
 No implementado todavia:
@@ -83,11 +84,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Fase 2 quedo validada con una carga real controlada. El siguiente paso es iniciar Fase 3: modularizacion controlada.
+Fase 3 quedo completada para las normalizaciones compartidas de bajo riesgo. El siguiente paso es iniciar Fase 4: scraper y batch runner con compuertas de calidad.
 
 Primer objetivo sugerido:
 
-- Extraer logica compartida de bajo riesgo desde `parse_results_pdf.py` y `run_pipeline_results.py`.
-- Priorizar normalizacion de strings, tiempos, generos, estilos y status.
-- Mantener los CLIs actuales compatibles.
-- Avanzar en parches chicos con tests antes de cada extraccion.
+- Definir el contrato minimo del batch runner antes de implementar.
+- Mantener descarga/parseo/validacion separados de la carga a core.
+- Registrar estados tipo descargado, parseado, validado y requiere revision.
+- No bloquear cargas actuales hasta que existan compuertas verificadas con fixtures.

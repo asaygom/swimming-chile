@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# parser v0.1.8
+# parser v0.1.9
 from __future__ import annotations
 
 import argparse
@@ -23,11 +23,12 @@ from natacion_chile.domain.normalization import (
     derive_result_time_ms,
     normalize_athlete_gender,
     normalize_event_gender,
+    normalize_result_status as normalize_domain_result_status,
     normalize_stroke as normalize_domain_stroke,
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.8"
+PARSER_VERSION = "0.1.9"
 
 try:
     import pdfplumber
@@ -35,7 +36,6 @@ except ImportError as exc:  # pragma: no cover
     raise SystemExit("[ERROR] Falta pdfplumber. Instálalo con: pip install pdfplumber openpyxl") from exc
 
 
-STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 TIME_OR_STATUS_PATTERN = (
     r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ|DFS)"
 )
@@ -403,23 +403,18 @@ def normalize_controlled_lower(x):
 
 
 def normalize_result_status(status, result_time_text):
-    status = normalize_controlled_lower(status)
-    if status in STATUS_VALUES:
-        return status
-
+    normalized = normalize_domain_result_status(status, result_time_text)
+    if normalized != "unknown":
+        return normalized
     rtt = normalize_string(result_time_text)
     if rtt:
         upper = rtt.upper()
-        if upper == "DNS":
-            return "dns"
-        if upper == "DNF":
-            return "dnf"
-        if upper in {"DSQ", "DQ", "DFS"}:
-            return "dsq"
-        if upper in {"NT", "NS"}:
+        if upper in {"NT", "NS", "UNKNOWN"}:
             return "unknown"
         if upper.startswith("X"):
             return "unknown"
+        if derive_result_time_ms(rtt) is not None:
+            return "valid"
         return "valid"
 
     return "unknown"
@@ -997,7 +992,7 @@ def save_outputs(frames: Dict[str, pd.DataFrame], debug_df: pd.DataFrame, metada
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.8 modulariza normalizacion compartida de tiempos, generos y estilos."
+        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.9 modulariza normalizacion compartida de tiempos, generos, estilos y status."
     )
     parser.add_argument("--pdf", required=True, help="Ruta al PDF de resultados")
     parser.add_argument("--out-dir", required=True, help="Carpeta de salida para CSV/XLSX")
