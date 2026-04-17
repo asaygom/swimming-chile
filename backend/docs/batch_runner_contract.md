@@ -150,7 +150,7 @@ Pipeline:
 
 Extender `backend/scripts/run_results_batch.py` para que:
 
-1. Agregue una bandera explicita para cargar a core despues de validar.
-2. Ejecute `run_pipeline_results.py` solo si el estado es `validated`.
-3. Mantenga la carga desactivada por defecto.
-4. Cubra con tests que `requires_review` nunca ejecuta carga.
+1. Registre un resumen auditable del batch en archivo local opcional.
+2. Use estados persistentes cuando exista una tabla operativa de batch.
+3. Mantenga scraper FCHMN separado del parseo, validacion y carga.
+4. Cubra con tests la ruta PDF completa usando fixtures controlados.

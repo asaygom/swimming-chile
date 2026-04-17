@@ -42,6 +42,7 @@ STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 
 DEFAULT_DEBUG_THRESHOLD = 0.20
 PARSER_SCRIPT = BACKEND_DIR / "scripts" / "parse_results_pdf.py"
+PIPELINE_SCRIPT = BACKEND_DIR / "scripts" / "run_pipeline_results.py"
 
 
 @dataclass
@@ -63,7 +64,7 @@ class BatchValidationResult:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Ejecuta parseo opcional y valida salidas antes de cargar a core. No ejecuta el pipeline."
+        description="Ejecuta parseo opcional, valida salidas y carga a core solo con --load."
     )
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument("--input-dir", help="Carpeta generada por parse_results_pdf.py")
@@ -72,6 +73,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
     parser.add_argument("--default-source-id", type=int, default=1, help="source_id por defecto que se pasara al parser")
     parser.add_argument("--excel-name", default="parsed_results.xlsx", help="Nombre del Excel consolidado que generara el parser")
+    parser.add_argument("--load", action="store_true", help="Ejecuta run_pipeline_results.py solo si el batch queda validated.")
+    parser.add_argument("--host", type=str, default="localhost", help="Host PostgreSQL para --load.")
+    parser.add_argument("--port", type=int, default=5432, help="Puerto PostgreSQL para --load.")
+    parser.add_argument("--dbname", type=str, default="natacion_chile", help="Base PostgreSQL para --load.")
+    parser.add_argument("--user", type=str, help="Usuario PostgreSQL requerido para --load.")
+    parser.add_argument("--password", type=str, help="Password PostgreSQL requerido para --load.")
+    parser.add_argument("--schema", type=str, default="core", help="Schema PostgreSQL para --load.")
+    parser.add_argument("--truncate-staging", action="store_true", help="Trunca staging durante --load.")
     parser.add_argument(
         "--debug-threshold",
         type=float,
@@ -82,6 +91,8 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.pdf and not args.out_dir:
         parser.error("--out-dir es requerido cuando se usa --pdf")
+    if args.load and (not args.user or not args.password):
+        parser.error("--user y --password son requeridos cuando se usa --load")
     return args
 
 
@@ -112,6 +123,39 @@ def run_parser(args: argparse.Namespace) -> Path:
     command = build_parse_command(args)
     subprocess.run(command, check=True)
     return out_dir
+
+
+def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:
+    command = [
+        sys.executable,
+        str(PIPELINE_SCRIPT),
+        "--input-dir",
+        str(input_dir),
+        "--host",
+        args.host,
+        "--port",
+        str(args.port),
+        "--dbname",
+        args.dbname,
+        "--user",
+        args.user,
+        "--password",
+        args.password,
+        "--schema",
+        args.schema,
+        "--default-source-id",
+        str(args.default_source_id),
+    ]
+    if args.competition_id is not None:
+        command.extend(["--competition-id", str(args.competition_id)])
+    if args.truncate_staging:
+        command.append("--truncate-staging")
+    return command
+
+
+def run_pipeline(args: argparse.Namespace, input_dir: Path) -> None:
+    command = build_load_command(args, input_dir)
+    subprocess.run(command, check=True)
 
 
 def read_csv_rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:
@@ -298,6 +342,9 @@ def main() -> None:
     args = parse_args()
     input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
     result = validate_input_dir(input_dir, args.debug_threshold)
+    if args.load and result.state == "validated":
+        run_pipeline(args, input_dir)
+        result.state = "loaded"
     if args.json:
         payload = asdict(result)
         print(json.dumps(payload, ensure_ascii=False, indent=2))

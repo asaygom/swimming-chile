@@ -60,7 +60,7 @@ Implementado en el repo:
 - Modularizacion controlada inicial: normalizacion compartida de tiempos, generos, estilos y status en `backend/natacion_chile/domain/normalization.py`.
 - Validaciones persistidas como `validation_issue`.
 - Contrato minimo de Fase 4 para batch runner y compuertas en `backend/docs/batch_runner_contract.md`.
-- `backend/scripts/run_results_batch.py` puede validar `--input-dir` o ejecutar `--pdf` + `--out-dir` antes de validar, sin cargar a core.
+- `backend/scripts/run_results_batch.py` puede validar `--input-dir`, ejecutar `--pdf` + `--out-dir` antes de validar y cargar con `--load` solo si el batch queda `validated`.
 
 No implementado todavia:
 
@@ -87,11 +87,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo iniciada con contrato y parseo automatico previo a validacion. El siguiente paso es agregar carga explicita a core solo cuando el batch quede validado.
+Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion y carga explicita protegida por compuertas. El siguiente paso es agregar salida auditable del batch o persistencia de estados antes del scraper.
 
 Primer objetivo sugerido:
 
-- Agregar una bandera explicita de carga, por ejemplo `--load`.
-- Ejecutar `run_pipeline_results.py` solo si el estado es `validated`.
-- Cubrir con tests que `requires_review` no ejecuta carga.
-- Mantener scraper FCHMN fuera de alcance hasta cerrar esta compuerta.
+- Agregar un resumen local opcional, por ejemplo `--summary-json`.
+- Registrar estado, conteos, issues y comandos ejecutados.
+- Mantener scraper FCHMN fuera de alcance hasta cerrar auditoria del batch.
+- No crear tablas nuevas sin una migracion explicita.

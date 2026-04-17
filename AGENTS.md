@@ -24,7 +24,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
    - Orquesta Fase 4 inicial.
    - Puede validar una carpeta ya parseada con `--input-dir`.
    - Puede ejecutar el parser desde un PDF con `--pdf` + `--out-dir` y luego validar.
-   - No carga a core por defecto.
+   - No carga a core por defecto; solo carga con `--load` si el batch queda `validated`.
 
 ## Estado actual
 - El parser ya soporta layouts FCHMN tipo HY-TEK.
@@ -52,7 +52,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
   - contrato minimo de batch runner y compuertas
   - validacion previa a carga
   - parseo automatico desde PDF antes de validar
-  - carga a core todavia desactivada por defecto
+  - carga a core explicita con `--load` protegida por compuertas
 
 ## Canon de datos
 ### event.gender
@@ -81,6 +81,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - El pipeline debe hacer solo limpieza genérica, no heurísticas agresivas del PDF.
 - Las compuertas duras de Fase 4 viven antes de `run_pipeline_results.py`.
 - Si `run_results_batch.py` devuelve `requires_review`, no se debe cargar a core.
+- `--load` solo debe ejecutar `run_pipeline_results.py` cuando el estado previo sea `validated`.
 - No implementar scraper FCHMN hasta cerrar primero batch runner con carga explicita y tests.
 
 ## Archivos clave

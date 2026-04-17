@@ -84,6 +84,19 @@ python backend\scripts\run_results_batch.py `
   --default-source-id 1
 ```
 
+Parsear, validar y cargar solo si las compuertas pasan:
+
+```powershell
+python backend\scripts\run_results_batch.py `
+  --pdf ruta\al\resultado.pdf `
+  --out-dir backend\data\raw\results_csv\competencia_x `
+  --competition-id 1 `
+  --default-source-id 1 `
+  --load `
+  --user postgres `
+  --password tu_password
+```
+
 Cargar una carpeta generada por el parser:
 
 ```powershell

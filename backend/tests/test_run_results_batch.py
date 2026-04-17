@@ -2,6 +2,8 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
+import pytest
+
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = BACKEND_DIR / "scripts"
@@ -67,3 +69,99 @@ def test_build_parse_command_uses_current_python_and_parser_args():
         "--competition-id",
         "42",
     ]
+
+
+def test_build_load_command_uses_pipeline_args():
+    args = Namespace(
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user="postgres",
+        password="secret",
+        schema="core",
+        default_source_id=7,
+        competition_id=42,
+        truncate_staging=True,
+    )
+
+    command = batch.build_load_command(args, Path("backend/data/raw/results_csv/demo"))
+
+    assert command[0] == sys.executable
+    assert command[1].endswith("run_pipeline_results.py")
+    assert command[2:] == [
+        "--input-dir",
+        str(Path("backend/data/raw/results_csv/demo")),
+        "--host",
+        "localhost",
+        "--port",
+        "5432",
+        "--dbname",
+        "natacion_chile",
+        "--user",
+        "postgres",
+        "--password",
+        "secret",
+        "--schema",
+        "core",
+        "--default-source-id",
+        "7",
+        "--competition-id",
+        "42",
+        "--truncate-staging",
+    ]
+
+
+def test_main_does_not_load_when_batch_requires_review(monkeypatch):
+    called = {"load": False}
+
+    def fake_run_pipeline(args, input_dir):
+        called["load"] = True
+
+    monkeypatch.setattr(batch, "run_pipeline", fake_run_pipeline)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_results_batch.py",
+            "--input-dir",
+            str(FIXTURES_DIR / "missing_result"),
+            "--load",
+            "--user",
+            "postgres",
+            "--password",
+            "secret",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        batch.main()
+
+    assert excinfo.value.code == 1
+    assert called["load"] is False
+
+
+def test_main_loads_only_after_validated_batch(monkeypatch):
+    called = {"load": False}
+
+    def fake_run_pipeline(args, input_dir):
+        called["load"] = True
+
+    monkeypatch.setattr(batch, "run_pipeline", fake_run_pipeline)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_results_batch.py",
+            "--input-dir",
+            str(FIXTURES_DIR / "valid"),
+            "--load",
+            "--user",
+            "postgres",
+            "--password",
+            "secret",
+        ],
+    )
+
+    batch.main()
+
+    assert called["load"] is True
