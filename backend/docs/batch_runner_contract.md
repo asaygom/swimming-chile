@@ -38,6 +38,38 @@ Reglas:
 - Si no existe PDF, se usa `source_url` cuando este disponible.
 - Si no hay checksum ni URL, el lote se considera manual y no idempotente a nivel documental.
 
+### Manifest JSONL local
+
+Antes del scraper, el formato estable para lotes locales es JSONL: una unidad de
+trabajo por linea, sin envolver el archivo en un arreglo JSON. Las lineas vacias
+y las lineas que empiezan con `#` se ignoran.
+
+Cada entrada debe usar exactamente una de estas formas:
+
+```json
+{"input_dir": "backend/data/raw/results_csv/competencia_x", "competition_id": 1, "default_source_id": 1}
+```
+
+```json
+{"pdf": "backend/data/raw/results_pdf/competencia_x.pdf", "out_dir": "backend/data/raw/results_csv/competencia_x", "competition_id": 1, "default_source_id": 1}
+```
+
+Campos por entrada:
+
+- `input_dir`: carpeta ya parseada con CSVs operativos.
+- `pdf`: PDF local a parsear antes de validar. `pdf_path` se acepta como alias
+  compatible con el nombre conceptual del contrato.
+- `out_dir`: carpeta donde el parser escribira CSVs; requerido con `pdf` o
+  `pdf_path`.
+- `competition_id`: opcional si viene por CLI; el valor de la entrada tiene
+  prioridad sobre el valor global.
+- `default_source_id`: opcional; hereda el valor global cuando no se declara.
+- `excel_name`: opcional; hereda el valor global cuando no se declara.
+
+Cada documento se procesa de forma aislada. Un documento en `requires_review`
+debe quedar reportado en el resumen del manifest, pero no debe impedir que los
+otros documentos del mismo manifest se validen con su propio estado.
+
 ## Salidas esperadas
 
 Por cada unidad procesada:

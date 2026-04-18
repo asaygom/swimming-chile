@@ -1,0 +1,2 @@
+{"pdf": "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_a.pdf", "out_dir": "backend/tests/fixtures/batch_runner/valid", "competition_id": 42, "default_source_id": 7}
+{"pdf_path": "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_b.pdf", "out_dir": "backend/tests/fixtures/batch_runner/missing_result", "competition_id": 43}

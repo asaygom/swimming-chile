@@ -156,7 +156,7 @@ def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any
     item = argparse.Namespace(**vars(base_args))
     item.manifest = None
     item.input_dir = entry.get("input_dir")
-    item.pdf = entry.get("pdf")
+    item.pdf = entry.get("pdf") or entry.get("pdf_path")
     item.out_dir = entry.get("out_dir")
     item.competition_id = entry.get("competition_id", base_args.competition_id)
     item.default_source_id = entry.get("default_source_id", base_args.default_source_id)

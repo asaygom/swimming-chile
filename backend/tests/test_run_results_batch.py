@@ -244,6 +244,66 @@ def test_process_manifest_continues_across_valid_and_review_documents():
     assert [document.state for document in result.documents] == ["validated", "requires_review"]
 
 
+def test_process_manifest_supports_pdf_entries_without_cross_document_contamination(monkeypatch):
+    parsed = []
+
+    def fake_run_parser(args):
+        parsed.append(
+            {
+                "pdf": args.pdf,
+                "out_dir": args.out_dir,
+                "competition_id": args.competition_id,
+                "default_source_id": args.default_source_id,
+            }
+        )
+        return Path(args.out_dir)
+
+    monkeypatch.setattr(batch, "run_parser", fake_run_parser)
+    args = Namespace(
+        manifest=str(FIXTURES_DIR / "manifest_pdfs.jsonl"),
+        input_dir=None,
+        pdf=None,
+        out_dir=None,
+        competition_id=None,
+        default_source_id=1,
+        excel_name="parsed_results.xlsx",
+        load=False,
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user=None,
+        password=None,
+        schema="core",
+        truncate_staging=False,
+        debug_threshold=0.20,
+    )
+
+    result = batch.process_manifest(args)
+
+    assert result.state == "requires_review"
+    assert [document.state for document in result.documents] == ["validated", "requires_review"]
+    assert [document.input_dir for document in result.documents] == [
+        str(Path("backend/tests/fixtures/batch_runner/valid")),
+        str(Path("backend/tests/fixtures/batch_runner/missing_result")),
+    ]
+    assert parsed == [
+        {
+            "pdf": "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_a.pdf",
+            "out_dir": "backend/tests/fixtures/batch_runner/valid",
+            "competition_id": 42,
+            "default_source_id": 7,
+        },
+        {
+            "pdf": "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_b.pdf",
+            "out_dir": "backend/tests/fixtures/batch_runner/missing_result",
+            "competition_id": 43,
+            "default_source_id": 1,
+        },
+    ]
+    assert result.documents[0].commands["parse"] is not None
+    assert result.documents[1].commands["parse"] is not None
+
+
 def test_main_writes_manifest_summary_json(monkeypatch):
     summary_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_manifest_summary.json"
     summary_path.unlink(missing_ok=True)
