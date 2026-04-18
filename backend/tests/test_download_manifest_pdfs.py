@@ -86,6 +86,21 @@ def test_process_manifest_marks_entries_without_source_url_as_failed():
     assert result.documents[0].message == "Falta source_url."
 
 
+def test_read_manifest_accepts_utf8_bom():
+    manifest_path = STAGING_DIR / "test_download_bom_manifest.jsonl"
+    manifest_path.write_text(
+        "\ufeff" + json.dumps({"source_url": "https://fchmn.cl/resultados.pdf", "pdf": "demo.pdf"}) + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        entries = downloader.read_manifest_entries(manifest_path)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert entries == [{"source_url": "https://fchmn.cl/resultados.pdf", "pdf": "demo.pdf"}]
+
+
 def test_process_manifest_continues_when_one_download_fails():
     manifest_path = STAGING_DIR / "test_download_partial_manifest.jsonl"
     good_pdf_path = STAGING_DIR / "test_partial_good.pdf"

@@ -77,6 +77,12 @@ def slugify_pdf_url(url: str) -> str:
     return slug or "documento"
 
 
+def infer_year_from_url(url: str) -> str:
+    path = unquote(urlparse(url).path)
+    match = re.search(r"/(20\d{2})(?:/|$)", path)
+    return match.group(1) if match else "unknown_year"
+
+
 def build_manifest_entries(args: argparse.Namespace, urls: list[str]) -> list[ManifestEntry]:
     entries: list[ManifestEntry] = []
     slug_counts: dict[str, int] = {}
@@ -85,14 +91,15 @@ def build_manifest_entries(args: argparse.Namespace, urls: list[str]) -> list[Ma
 
     for url in urls[: args.limit]:
         slug = slugify_pdf_url(url)
+        year = str(args.year) if args.year else infer_year_from_url(url)
         slug_counts[slug] = slug_counts.get(slug, 0) + 1
         if slug_counts[slug] > 1:
             slug = f"{slug}-{slug_counts[slug]}"
         entries.append(
             ManifestEntry(
                 source_url=url,
-                pdf=str(pdf_dir / f"{slug}.pdf"),
-                out_dir=str(out_dir_root / slug),
+                pdf=str(pdf_dir / year / f"{slug}.pdf"),
+                out_dir=str(out_dir_root / year / slug),
                 competition_id=args.competition_id,
                 default_source_id=args.default_source_id,
             )
@@ -117,6 +124,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", required=True, help="Ruta del manifest JSONL a escribir.")
     parser.add_argument("--pdf-dir", default=str(BACKEND_DIR / "data" / "raw" / "results_pdf" / "fchmn"))
     parser.add_argument("--out-dir-root", default=str(BACKEND_DIR / "data" / "raw" / "results_csv" / "fchmn"))
+    parser.add_argument("--year", type=int, help="Año de competencia para agrupar PDFs y CSVs; si falta, se infiere de la URL.")
     parser.add_argument("--competition-id", type=int)
     parser.add_argument("--default-source-id", type=int, default=1)
     parser.add_argument("--limit", type=int, default=sys.maxsize, help="Maximo de PDFs a incluir.")

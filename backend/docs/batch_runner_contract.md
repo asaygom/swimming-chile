@@ -42,7 +42,8 @@ Reglas:
 
 Antes del scraper, el formato estable para lotes locales es JSONL: una unidad de
 trabajo por linea, sin envolver el archivo en un arreglo JSON. Las lineas vacias
-y las lineas que empiezan con `#` se ignoran.
+y las lineas que empiezan con `#` se ignoran. Los manifests se leen como UTF-8 y
+tambien toleran BOM UTF-8 generado por herramientas de Windows.
 
 Cada entrada debe usar exactamente una de estas formas:
 
@@ -65,6 +66,11 @@ Campos por entrada:
   prioridad sobre el valor global.
 - `default_source_id`: opcional; hereda el valor global cuando no se declara.
 - `excel_name`: opcional; hereda el valor global cuando no se declara.
+
+Los manifests generados por el scraper deben agrupar `pdf` y `out_dir` por año:
+`backend/data/raw/results_pdf/fchmn/<año>/...` y
+`backend/data/raw/results_csv/fchmn/<año>/...`. El año se infiere desde la URL
+del PDF cuando es posible y puede forzarse con `--year`.
 
 Cada documento se procesa de forma aislada. Un documento en `requires_review`
 debe quedar reportado en el resumen del manifest, pero no debe impedir que los

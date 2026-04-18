@@ -27,6 +27,8 @@ PostgreSQL es la fuente final de verdad para datos consultables. Los CSVs, Excel
 ## Carpetas principales
 
 - `backend/data/raw/`: fuentes externas y salidas completas generadas localmente. Esta carpeta no se versiona.
+- `backend/data/raw/results_pdf/fchmn/<año>/`: PDFs FCHMN descargados, agrupados por año de competencia o fuente.
+- `backend/data/raw/results_csv/fchmn/<año>/`: CSVs/debug generados por el parser, agrupados igual que el PDF de origen.
 - `backend/data/staging/csv/`: zona de trabajo para CSVs generados o preparados para carga. Solo se versiona `.gitkeep`.
 - `backend/data/reference/`: datos curados pequenos que ayudan a normalizar o resolver entidades.
 - `backend/tests/fixtures/`: entradas minimas y esperados pequenos para prevenir regresiones.

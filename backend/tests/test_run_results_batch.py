@@ -304,6 +304,21 @@ def test_process_manifest_supports_pdf_entries_without_cross_document_contaminat
     assert result.documents[1].commands["parse"] is not None
 
 
+def test_read_manifest_entries_accepts_utf8_bom():
+    manifest_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_batch_bom_manifest.jsonl"
+    manifest_path.write_text(
+        "\ufeff" + json.dumps({"input_dir": "backend/tests/fixtures/batch_runner/valid"}) + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        entries = batch.read_manifest_entries(manifest_path)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert entries == [{"input_dir": "backend/tests/fixtures/batch_runner/valid"}]
+
+
 def test_main_writes_manifest_summary_json(monkeypatch):
     summary_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_manifest_summary.json"
     summary_path.unlink(missing_ok=True)

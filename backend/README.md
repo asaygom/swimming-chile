@@ -84,6 +84,10 @@ python backend\scripts\scrape_fchmn.py `
   --default-source-id 1
 ```
 
+El scraper agrupa las rutas generadas por año: `results_pdf\fchmn\<año>\...` y
+`results_csv\fchmn\<año>\...`. Por defecto infiere el año desde la URL del PDF;
+usa `--year` cuando el año de competencia no coincida con la ruta publicada.
+
 Descargar PDFs declarados en un manifest:
 
 ```powershell
@@ -134,6 +138,13 @@ python backend\scripts\run_results_batch.py `
   --summary-json backend\data\raw\batch_summaries\fchmn_2026.json
 ```
 
+Flujo manual recomendado de Fase 4:
+
+1. Descubrir enlaces y escribir manifest con `scrape_fchmn.py`.
+2. Descargar PDFs del manifest con `download_manifest_pdfs.py`.
+3. Parsear y validar el mismo manifest con `run_results_batch.py`.
+4. Agregar `--load` solo cuando el resumen del batch quede `validated`.
+
 Cada linea del manifest debe ser un objeto JSON con una carpeta parseada:
 
 ```json
@@ -147,6 +158,7 @@ o con un PDF local y su salida:
 ```
 
 `pdf_path` tambien se acepta como alias de `pdf` en manifests generados por otras herramientas.
+Los manifests pueden estar en UTF-8 con o sin BOM.
 
 Cargar una carpeta generada por el parser:
 

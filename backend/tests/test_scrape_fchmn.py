@@ -28,6 +28,7 @@ def test_build_manifest_entries_uses_stable_local_paths():
     args = Namespace(
         pdf_dir="backend/data/raw/results_pdf/fchmn",
         out_dir_root="backend/data/raw/results_csv/fchmn",
+        year=None,
         competition_id=42,
         default_source_id=7,
         limit=10,
@@ -41,21 +42,41 @@ def test_build_manifest_entries_uses_stable_local_paths():
 
     assert [entry.source_url for entry in entries] == urls
     assert [entry.pdf for entry in entries] == [
-        str(Path("backend/data/raw/results_pdf/fchmn/resultados-ii-copa-chile-1.pdf")),
-        str(Path("backend/data/raw/results_pdf/fchmn/resultados-coppa-italia-master-2026.pdf")),
+        str(Path("backend/data/raw/results_pdf/fchmn/2026/resultados-ii-copa-chile-1.pdf")),
+        str(Path("backend/data/raw/results_pdf/fchmn/2026/resultados-coppa-italia-master-2026.pdf")),
     ]
     assert [entry.out_dir for entry in entries] == [
-        str(Path("backend/data/raw/results_csv/fchmn/resultados-ii-copa-chile-1")),
-        str(Path("backend/data/raw/results_csv/fchmn/resultados-coppa-italia-master-2026")),
+        str(Path("backend/data/raw/results_csv/fchmn/2026/resultados-ii-copa-chile-1")),
+        str(Path("backend/data/raw/results_csv/fchmn/2026/resultados-coppa-italia-master-2026")),
     ]
     assert entries[0].competition_id == 42
     assert entries[0].default_source_id == 7
+
+
+def test_build_manifest_entries_can_override_year():
+    args = Namespace(
+        pdf_dir="backend/data/raw/results_pdf/fchmn",
+        out_dir_root="backend/data/raw/results_csv/fchmn",
+        year=2025,
+        competition_id=None,
+        default_source_id=1,
+        limit=1,
+    )
+
+    entries = scraper.build_manifest_entries(
+        args,
+        ["https://fchmn.cl/wp-content/uploads/2026/03/resultados-ii-copa-chile-1.pdf"],
+    )
+
+    assert entries[0].pdf == str(Path("backend/data/raw/results_pdf/fchmn/2025/resultados-ii-copa-chile-1.pdf"))
+    assert entries[0].out_dir == str(Path("backend/data/raw/results_csv/fchmn/2025/resultados-ii-copa-chile-1"))
 
 
 def test_write_manifest_emits_jsonl():
     args = Namespace(
         pdf_dir="backend/data/raw/results_pdf/fchmn",
         out_dir_root="backend/data/raw/results_csv/fchmn",
+        year=None,
         competition_id=None,
         default_source_id=1,
         limit=1,
@@ -76,8 +97,8 @@ def test_write_manifest_emits_jsonl():
     payload = json.loads(lines[0])
     assert payload == {
         "source_url": "https://fchmn.cl/wp-content/uploads/2026/03/resultados-ii-copa-chile-1.pdf",
-        "pdf": str(Path("backend/data/raw/results_pdf/fchmn/resultados-ii-copa-chile-1.pdf")),
-        "out_dir": str(Path("backend/data/raw/results_csv/fchmn/resultados-ii-copa-chile-1")),
+        "pdf": str(Path("backend/data/raw/results_pdf/fchmn/2026/resultados-ii-copa-chile-1.pdf")),
+        "out_dir": str(Path("backend/data/raw/results_csv/fchmn/2026/resultados-ii-copa-chile-1")),
         "competition_id": None,
         "default_source_id": 1,
     }
