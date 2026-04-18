@@ -150,7 +150,7 @@ Pipeline:
 
 Extender `backend/scripts/run_results_batch.py` para que:
 
-1. Procese un manifest local con multiples documentos.
-2. Escriba un resumen por documento.
+1. Soporte entradas `pdf` en manifest con fixtures controlados.
+2. Escriba resumen agregado y por documento en formato estable.
 3. Mantenga scraper FCHMN separado del parseo, validacion y carga.
 4. Use estados persistentes cuando exista una tabla operativa de batch.

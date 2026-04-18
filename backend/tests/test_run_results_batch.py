@@ -216,3 +216,56 @@ def test_main_writes_summary_json_with_redacted_load_command(monkeypatch):
     assert "--password" in payload["commands"]["load"]
     assert "secret" not in payload["commands"]["load"]
     assert "***" in payload["commands"]["load"]
+
+
+def test_process_manifest_continues_across_valid_and_review_documents():
+    args = Namespace(
+        manifest=str(FIXTURES_DIR / "manifest_input_dirs.jsonl"),
+        input_dir=None,
+        pdf=None,
+        out_dir=None,
+        competition_id=None,
+        default_source_id=1,
+        excel_name="parsed_results.xlsx",
+        load=False,
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user=None,
+        password=None,
+        schema="core",
+        truncate_staging=False,
+        debug_threshold=0.20,
+    )
+
+    result = batch.process_manifest(args)
+
+    assert result.state == "requires_review"
+    assert [document.state for document in result.documents] == ["validated", "requires_review"]
+
+
+def test_main_writes_manifest_summary_json(monkeypatch):
+    summary_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_manifest_summary.json"
+    summary_path.unlink(missing_ok=True)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_results_batch.py",
+            "--manifest",
+            str(FIXTURES_DIR / "manifest_input_dirs.jsonl"),
+            "--summary-json",
+            str(summary_path),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        try:
+            batch.main()
+        finally:
+            payload = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary_path.unlink(missing_ok=True)
+
+    assert payload["state"] == "requires_review"
+    assert len(payload["documents"]) == 2
+    assert [document["state"] for document in payload["documents"]] == ["validated", "requires_review"]

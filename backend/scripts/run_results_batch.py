@@ -63,6 +63,13 @@ class BatchValidationResult:
     commands: dict[str, list[str] | None]
 
 
+@dataclass
+class BatchManifestResult:
+    state: str
+    manifest_path: str
+    documents: list[BatchValidationResult]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Ejecuta parseo opcional, valida salidas y carga a core solo con --load."
@@ -70,6 +77,7 @@ def parse_args() -> argparse.Namespace:
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument("--input-dir", help="Carpeta generada por parse_results_pdf.py")
     input_group.add_argument("--pdf", help="PDF de resultados a parsear antes de validar")
+    input_group.add_argument("--manifest", help="Manifest JSONL con documentos a procesar uno a uno")
     parser.add_argument("--out-dir", help="Carpeta de salida requerida cuando se usa --pdf")
     parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
     parser.add_argument("--default-source-id", type=int, default=1, help="source_id por defecto que se pasara al parser")
@@ -125,6 +133,42 @@ def run_parser(args: argparse.Namespace) -> Path:
     command = build_parse_command(args)
     subprocess.run(command, check=True)
     return out_dir
+
+
+def read_manifest_entries(manifest_path: Path) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    with manifest_path.open("r", encoding="utf-8") as handle:
+        for line_number, raw_line in enumerate(handle, start=1):
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise SystemExit(f"[ERROR] Manifest JSONL invalido en linea {line_number}: {exc}") from exc
+            if not isinstance(entry, dict):
+                raise SystemExit(f"[ERROR] Manifest linea {line_number} debe ser un objeto JSON.")
+            entries.append(entry)
+    return entries
+
+
+def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any]) -> argparse.Namespace:
+    item = argparse.Namespace(**vars(base_args))
+    item.manifest = None
+    item.input_dir = entry.get("input_dir")
+    item.pdf = entry.get("pdf")
+    item.out_dir = entry.get("out_dir")
+    item.competition_id = entry.get("competition_id", base_args.competition_id)
+    item.default_source_id = entry.get("default_source_id", base_args.default_source_id)
+    item.excel_name = entry.get("excel_name", base_args.excel_name)
+
+    has_input_dir = bool(item.input_dir)
+    has_pdf = bool(item.pdf)
+    if has_input_dir == has_pdf:
+        raise SystemExit("[ERROR] Cada entrada del manifest debe tener exactamente uno de input_dir o pdf.")
+    if has_pdf and not item.out_dir:
+        raise SystemExit("[ERROR] Cada entrada con pdf debe incluir out_dir.")
+    return item
 
 
 def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:
@@ -354,8 +398,12 @@ def write_summary_json(result: BatchValidationResult, summary_path: Path) -> Non
     summary_path.write_text(json.dumps(asdict(result), ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def main() -> None:
-    args = parse_args()
+def write_manifest_summary_json(result: BatchManifestResult, summary_path: Path) -> None:
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(asdict(result), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def process_one(args: argparse.Namespace) -> BatchValidationResult:
     parse_command = build_parse_command(args) if args.pdf else None
     input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
     result = validate_input_dir(input_dir, args.debug_threshold)
@@ -364,6 +412,57 @@ def main() -> None:
     if args.load and result.state == "validated":
         run_pipeline(args, input_dir)
         result.state = "loaded"
+    return result
+
+
+def summarize_manifest_state(documents: list[BatchValidationResult], load_enabled: bool) -> str:
+    states = {document.state for document in documents}
+    if "failed" in states:
+        return "failed"
+    if "requires_review" in states:
+        return "requires_review"
+    if load_enabled and states == {"loaded"}:
+        return "loaded"
+    return "validated"
+
+
+def process_manifest(args: argparse.Namespace) -> BatchManifestResult:
+    manifest_path = Path(args.manifest)
+    if not manifest_path.exists() or not manifest_path.is_file():
+        raise SystemExit(f"[ERROR] No existe el manifest: {manifest_path}")
+
+    documents: list[BatchValidationResult] = []
+    for entry in read_manifest_entries(manifest_path):
+        item_args = build_manifest_item_args(args, entry)
+        documents.append(process_one(item_args))
+
+    state = summarize_manifest_state(documents, args.load)
+    return BatchManifestResult(state=state, manifest_path=str(manifest_path), documents=documents)
+
+
+def print_manifest_summary(result: BatchManifestResult) -> None:
+    print(f"Estado manifest: {result.state}")
+    print(f"Manifest: {result.manifest_path}")
+    print(f"Documentos: {len(result.documents)}")
+    for index, document in enumerate(result.documents, start=1):
+        print(f"  {index}. {document.state} - {document.input_dir}")
+
+
+def main() -> None:
+    args = parse_args()
+    if args.manifest:
+        manifest_result = process_manifest(args)
+        if args.summary_json:
+            write_manifest_summary_json(manifest_result, Path(args.summary_json))
+        if args.json:
+            print(json.dumps(asdict(manifest_result), ensure_ascii=False, indent=2))
+        else:
+            print_manifest_summary(manifest_result)
+        if manifest_result.state in {"failed", "requires_review"}:
+            raise SystemExit(1)
+        return
+
+    result = process_one(args)
     if args.summary_json:
         write_summary_json(result, Path(args.summary_json))
     if args.json:

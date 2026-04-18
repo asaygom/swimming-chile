@@ -98,6 +98,26 @@ python backend\scripts\run_results_batch.py `
   --summary-json backend\data\raw\batch_summaries\competencia_x.json
 ```
 
+Procesar un manifest JSONL local:
+
+```powershell
+python backend\scripts\run_results_batch.py `
+  --manifest backend\data\raw\manifests\fchmn_2026.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_2026.json
+```
+
+Cada linea del manifest debe ser un objeto JSON con una carpeta parseada:
+
+```json
+{"input_dir": "backend/data/raw/results_csv/competencia_x"}
+```
+
+o con un PDF local y su salida:
+
+```json
+{"pdf": "backend/data/raw/results_pdf/competencia_x.pdf", "out_dir": "backend/data/raw/results_csv/competencia_x", "competition_id": 1}
+```
+
 Cargar una carpeta generada por el parser:
 
 ```powershell
