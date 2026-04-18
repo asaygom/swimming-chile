@@ -79,6 +79,8 @@ Implementado en el repo:
 - Smoke real de descubrimiento contra portada FCHMN: el scraper filtra convocatorias y emite un manifest con PDF de resultados.
 - Las rutas relativas en manifests se resuelven desde la raiz del proyecto para evitar fallos al ejecutar tests o comandos desde subcarpetas.
 - El batch runner conserva `source_url` desde manifests y la entrega al pipeline durante `--load` para trazabilidad de `competition` y `source_document`.
+- Fallos tecnicos del parser en un documento de manifest quedan aislados como `failed` y no detienen el resto del manifest.
+- E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
 
 No implementado todavia:
 
@@ -112,4 +114,5 @@ Primer objetivo sugerido:
 - Ampliar pruebas controladas de manifest contra pocas URLs FCHMN antes de automatizar volumen.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Documentar comandos operativos reproducibles para discovery -> download -> batch.
+- Revisar PDFs descubiertos en portada como `resultados-1a-etapa.pdf`, que descargan correctamente pero no corresponden al layout HY-TEK soportado y quedan como `failed`.
 - No crear tablas nuevas sin una migracion explicita.

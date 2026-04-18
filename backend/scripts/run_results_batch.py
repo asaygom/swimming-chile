@@ -423,7 +423,25 @@ def write_manifest_summary_json(result: BatchManifestResult, summary_path: Path)
 
 def process_one(args: argparse.Namespace) -> BatchValidationResult:
     parse_command = build_parse_command(args) if args.pdf else None
-    input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
+    try:
+        input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
+    except subprocess.CalledProcessError as exc:
+        input_dir = Path(args.out_dir) if args.pdf else Path(args.input_dir)
+        return BatchValidationResult(
+            state="failed",
+            input_dir=str(input_dir),
+            source_url=getattr(args, "source_url", None),
+            counts={},
+            issues=[
+                BatchIssue(
+                    "error",
+                    "parser_failed",
+                    f"El parser fallo con codigo de salida {exc.returncode}.",
+                )
+            ],
+            metadata={},
+            commands={"parse": parse_command, "load": None},
+        )
     result = validate_input_dir(input_dir, args.debug_threshold, getattr(args, "source_url", None))
     result.commands["parse"] = parse_command
     result.commands["load"] = redact_command(build_load_command(args, input_dir)) if args.load else None

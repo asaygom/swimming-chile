@@ -1,6 +1,7 @@
 import sys
 from argparse import Namespace
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -363,6 +364,58 @@ def test_process_manifest_preserves_source_url_per_document():
 
     assert result.state == "validated"
     assert result.documents[0].source_url == source_url
+
+
+def test_process_manifest_marks_parser_failure_without_stopping_other_documents(monkeypatch):
+    manifest_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_batch_parser_failure_manifest.jsonl"
+    manifest_path.write_text(
+        "\n".join(
+            [
+                json.dumps(
+                    {
+                        "pdf": "backend/tests/fixtures/batch_runner/pdf_inputs/broken.pdf",
+                        "out_dir": "backend/tests/fixtures/batch_runner/missing_result",
+                    }
+                ),
+                json.dumps({"input_dir": "backend/tests/fixtures/batch_runner/valid"}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    def fake_run_parser(args):
+        raise subprocess.CalledProcessError(1, ["parse_results_pdf.py"])
+
+    monkeypatch.setattr(batch, "run_parser", fake_run_parser)
+    args = Namespace(
+        manifest=str(manifest_path),
+        input_dir=None,
+        pdf=None,
+        out_dir=None,
+        competition_id=None,
+        source_url=None,
+        default_source_id=1,
+        excel_name="parsed_results.xlsx",
+        load=False,
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user=None,
+        password=None,
+        schema="core",
+        truncate_staging=False,
+        debug_threshold=0.20,
+    )
+
+    try:
+        result = batch.process_manifest(args)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert result.state == "failed"
+    assert [document.state for document in result.documents] == ["failed", "validated"]
+    assert result.documents[0].issues[0].issue_key == "parser_failed"
 
 
 def test_read_manifest_entries_accepts_utf8_bom():

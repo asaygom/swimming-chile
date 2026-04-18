@@ -169,6 +169,8 @@ Batch runner:
 
 - Decide si un documento se debe procesar o saltar.
 - Ejecuta parser.
+- Si el parser falla para un documento del manifest, marca ese documento como
+  `failed` y continua con los demas.
 - Evalua compuertas.
 - Conserva `source_url` desde el manifest y la pasa al pipeline como
   `--competition-source-url` cuando se ejecuta `--load`.
