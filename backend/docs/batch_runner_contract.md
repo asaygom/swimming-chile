@@ -140,8 +140,15 @@ Scraper:
 - Descubre URLs.
 - Emite manifest JSONL con `source_url`, ruta local esperada del PDF y `out_dir`.
 - Mantiene la descarga de PDFs como paso separado y explicito.
-- Calcula checksum solo cuando el PDF exista localmente.
 - No parsea ni carga a DB.
+
+Downloader:
+
+- Lee un manifest JSONL con `source_url` y `pdf` o `pdf_path`.
+- Descarga cada PDF hacia su ruta local esperada.
+- No reemplaza PDFs existentes salvo `--overwrite`.
+- Calcula `pdf_sha256` para el resumen auditable cuando el PDF existe localmente.
+- No parsea, no valida CSVs y no carga a DB.
 
 Batch runner:
 
@@ -194,3 +201,5 @@ Primer scraper de apuntamiento:
   local.
 - Escribe un manifest JSONL para el batch runner.
 - No descarga PDFs, no parsea, no valida y no carga a core.
+- `backend/scripts/download_manifest_pdfs.py` descarga los PDFs declarados en el
+  manifest como paso separado y genera un resumen con checksum.

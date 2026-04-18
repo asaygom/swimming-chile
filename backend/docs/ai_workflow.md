@@ -71,6 +71,7 @@ Implementado en el repo:
 - Contrato minimo de Fase 4 para batch runner y compuertas en `backend/docs/batch_runner_contract.md`.
 - `backend/scripts/run_results_batch.py` puede validar `--input-dir`, ejecutar `--pdf` + `--out-dir` antes de validar y cargar con `--load` solo si el batch queda `validated`.
 - `backend/scripts/scrape_fchmn.py` puede descubrir enlaces PDF desde HTML local o URL y escribir un manifest JSONL sin descargar, parsear ni cargar.
+- `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
 
 No implementado todavia:
 
@@ -92,7 +93,7 @@ Luego revisa git status y los docs relevantes antes de proponer cambios.
 Continua segun la metodologia acordada: diagnostico, propuesta corta, patch minimo, tests, git status y propuesta de commit.
 No saltes fases del implementation_plan.md.
 Si hay cambios locales del usuario, respetalos y trabaja alrededor de ellos.
-Explica el donde, por que y para que de cada cambio.
+Explica el qué (what), el por qué (why), el donde (where) y lo aprendido (learned) de cada cambio.
 ```
 
 ## Siguiente paso sugerido
@@ -101,7 +102,7 @@ Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga
 
 Primer objetivo sugerido:
 
-- Agregar descarga explicita y controlada de PDFs desde `source_url` hacia la ruta `pdf` del manifest.
+- Encadenar manualmente manifest -> descarga -> batch runner con pocas URLs controladas.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Probar el scraper primero contra pocas URLs controladas.
 - No crear tablas nuevas sin una migracion explicita.
