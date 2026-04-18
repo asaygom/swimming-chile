@@ -83,6 +83,7 @@ def test_build_load_command_uses_pipeline_args():
         schema="core",
         default_source_id=7,
         competition_id=42,
+        source_url=None,
         truncate_staging=True,
     )
 
@@ -110,6 +111,28 @@ def test_build_load_command_uses_pipeline_args():
         "--competition-id",
         "42",
         "--truncate-staging",
+    ]
+
+
+def test_build_load_command_passes_source_url_to_pipeline_when_available():
+    args = Namespace(
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user="postgres",
+        password="secret",
+        schema="core",
+        default_source_id=7,
+        competition_id=42,
+        source_url="https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf",
+        truncate_staging=False,
+    )
+
+    command = batch.build_load_command(args, Path("backend/data/raw/results_csv/demo"))
+
+    assert command[-2:] == [
+        "--competition-source-url",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf",
     ]
 
 
@@ -225,6 +248,7 @@ def test_process_manifest_continues_across_valid_and_review_documents():
         pdf=None,
         out_dir=None,
         competition_id=None,
+        source_url=None,
         default_source_id=1,
         excel_name="parsed_results.xlsx",
         load=False,
@@ -265,6 +289,7 @@ def test_process_manifest_supports_pdf_entries_without_cross_document_contaminat
         pdf=None,
         out_dir=None,
         competition_id=None,
+        source_url=None,
         default_source_id=1,
         excel_name="parsed_results.xlsx",
         load=False,
@@ -302,6 +327,42 @@ def test_process_manifest_supports_pdf_entries_without_cross_document_contaminat
     ]
     assert result.documents[0].commands["parse"] is not None
     assert result.documents[1].commands["parse"] is not None
+
+
+def test_process_manifest_preserves_source_url_per_document():
+    manifest_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_batch_source_url_manifest.jsonl"
+    source_url = "https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf"
+    manifest_path.write_text(
+        json.dumps({"input_dir": "backend/tests/fixtures/batch_runner/valid", "source_url": source_url}) + "\n",
+        encoding="utf-8",
+    )
+    args = Namespace(
+        manifest=str(manifest_path),
+        input_dir=None,
+        pdf=None,
+        out_dir=None,
+        competition_id=None,
+        source_url=None,
+        default_source_id=1,
+        excel_name="parsed_results.xlsx",
+        load=False,
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user=None,
+        password=None,
+        schema="core",
+        truncate_staging=False,
+        debug_threshold=0.20,
+    )
+
+    try:
+        result = batch.process_manifest(args)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert result.state == "validated"
+    assert result.documents[0].source_url == source_url
 
 
 def test_read_manifest_entries_accepts_utf8_bom():

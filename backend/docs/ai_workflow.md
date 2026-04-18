@@ -78,6 +78,7 @@ Implementado en el repo:
 - Los manifests del scraper agrupan PDFs y CSVs por año bajo `results_pdf/fchmn/<año>/` y `results_csv/fchmn/<año>/`.
 - Smoke real de descubrimiento contra portada FCHMN: el scraper filtra convocatorias y emite un manifest con PDF de resultados.
 - Las rutas relativas en manifests se resuelven desde la raiz del proyecto para evitar fallos al ejecutar tests o comandos desde subcarpetas.
+- El batch runner conserva `source_url` desde manifests y la entrega al pipeline durante `--load` para trazabilidad de `competition` y `source_document`.
 
 No implementado todavia:
 
@@ -85,7 +86,7 @@ No implementado todavia:
 - Skills de `gentle-ai`. https://github.com/Gentleman-Programming/gentle-ai 
 - MCP externo para memoria.
 - Orquestacion multiagente.
-- Scraper o batch runner implementado con compuertas duras.
+- Persistencia explicita de estado de batch en tabla operativa propia.
 
 La metodologia del curso se esta aplicando manualmente: Plan Mode, SDD, contratos, tests, docs vivas y human-in-the-loop. Las herramientas Gentleman/Engram quedan como fase posterior, no como dependencia actual.
 
@@ -94,7 +95,7 @@ La metodologia del curso se esta aplicando manualmente: Plan Mode, SDD, contrato
 Usar este texto al iniciar una nueva conversacion:
 
 ```text
-Estamos trabajando en Natacion Chile. Lee primero implementation_plan.md y backend/docs/ai_workflow.md.
+Lee primero implementation_plan.md y backend/docs/ai_workflow.md.
 Luego revisa git status y los docs relevantes antes de proponer cambios.
 Continua segun la metodologia acordada: diagnostico, propuesta corta, patch minimo, tests, git status y propuesta de commit.
 No saltes fases del implementation_plan.md.
@@ -104,11 +105,11 @@ Explica el qué (what), el por qué (why), el donde (where) y lo aprendido (lear
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional y manifest local de multiples documentos. El manifest soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) antes del scraper.
+Fase 4 quedo iniciada con contrato, scraper de apuntamiento, descarga separada, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional y manifest local de multiples documentos. El manifest soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) y conserva `source_url` para trazabilidad.
 
 Primer objetivo sugerido:
 
-- Probar descarga y validacion del PDF descubierto automaticamente antes de automatizar.
+- Ampliar pruebas controladas de manifest contra pocas URLs FCHMN antes de automatizar volumen.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
-- Probar el scraper primero contra pocas URLs controladas.
+- Documentar comandos operativos reproducibles para discovery -> download -> batch.
 - No crear tablas nuevas sin una migracion explicita.

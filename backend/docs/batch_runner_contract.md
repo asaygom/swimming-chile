@@ -58,6 +58,8 @@ Cada entrada debe usar exactamente una de estas formas:
 Campos por entrada:
 
 - `input_dir`: carpeta ya parseada con CSVs operativos.
+- `source_url`: URL original del documento cuando exista; el downloader la usa
+  para descargar y el batch runner la conserva para trazabilidad al cargar.
 - `pdf`: PDF local a parsear antes de validar. `pdf_path` se acepta como alias
   compatible con el nombre conceptual del contrato.
 - `out_dir`: carpeta donde el parser escribira CSVs; requerido con `pdf` o
@@ -168,6 +170,8 @@ Batch runner:
 - Decide si un documento se debe procesar o saltar.
 - Ejecuta parser.
 - Evalua compuertas.
+- Conserva `source_url` desde el manifest y la pasa al pipeline como
+  `--competition-source-url` cuando se ejecuta `--load`.
 - Ejecuta pipeline solo si el lote esta validado.
 - Produce resumen auditable.
 

@@ -58,6 +58,7 @@ class BatchIssue:
 class BatchValidationResult:
     state: str
     input_dir: str
+    source_url: str | None
     counts: dict[str, int]
     issues: list[BatchIssue]
     metadata: dict[str, Any]
@@ -81,6 +82,7 @@ def parse_args() -> argparse.Namespace:
     input_group.add_argument("--manifest", help="Manifest JSONL con documentos a procesar uno a uno")
     parser.add_argument("--out-dir", help="Carpeta de salida requerida cuando se usa --pdf")
     parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
+    parser.add_argument("--source-url", help="URL original del documento para trazabilidad cuando exista.")
     parser.add_argument("--default-source-id", type=int, default=1, help="source_id por defecto que se pasara al parser")
     parser.add_argument("--excel-name", default="parsed_results.xlsx", help="Nombre del Excel consolidado que generara el parser")
     parser.add_argument("--load", action="store_true", help="Ejecuta run_pipeline_results.py solo si el batch queda validated.")
@@ -160,6 +162,7 @@ def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any
     item.pdf = resolve_manifest_path(entry.get("pdf") or entry.get("pdf_path"))
     item.out_dir = resolve_manifest_path(entry.get("out_dir"))
     item.competition_id = entry.get("competition_id", base_args.competition_id)
+    item.source_url = entry.get("source_url", getattr(base_args, "source_url", None))
     item.default_source_id = entry.get("default_source_id", base_args.default_source_id)
     item.excel_name = entry.get("excel_name", base_args.excel_name)
 
@@ -204,6 +207,8 @@ def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:
     ]
     if args.competition_id is not None:
         command.extend(["--competition-id", str(args.competition_id)])
+    if getattr(args, "source_url", None):
+        command.extend(["--competition-source-url", str(args.source_url)])
     if args.truncate_staging:
         command.append("--truncate-staging")
     return command
@@ -347,7 +352,7 @@ def validate_debug_ratio(input_dir: Path, parsed_rows: int, threshold: float, co
         )
 
 
-def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_THRESHOLD) -> BatchValidationResult:
+def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_THRESHOLD, source_url: str | None = None) -> BatchValidationResult:
     issues: list[BatchIssue] = []
     counts: dict[str, int] = {}
     data: dict[str, list[dict[str, str]]] = {}
@@ -356,6 +361,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
         return BatchValidationResult(
             state="failed",
             input_dir=str(input_dir),
+            source_url=source_url,
             counts=counts,
             issues=[BatchIssue("error", "input_dir_not_found", f"No existe la carpeta: {input_dir}.")],
             metadata={},
@@ -386,12 +392,14 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
     validate_debug_ratio(input_dir, parsed_result_rows, debug_threshold, counts, issues)
 
     state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"
-    return BatchValidationResult(state=state, input_dir=str(input_dir), counts=counts, issues=issues, metadata=metadata, commands={})
+    return BatchValidationResult(state=state, input_dir=str(input_dir), source_url=source_url, counts=counts, issues=issues, metadata=metadata, commands={})
 
 
 def print_text_summary(result: BatchValidationResult) -> None:
     print(f"Estado batch: {result.state}")
     print(f"Input dir: {result.input_dir}")
+    if result.source_url:
+        print(f"Source URL: {result.source_url}")
     print("Conteos:")
     for key in sorted(result.counts):
         print(f"  {key}: {result.counts[key]}")
@@ -416,7 +424,7 @@ def write_manifest_summary_json(result: BatchManifestResult, summary_path: Path)
 def process_one(args: argparse.Namespace) -> BatchValidationResult:
     parse_command = build_parse_command(args) if args.pdf else None
     input_dir = run_parser(args) if args.pdf else Path(args.input_dir)
-    result = validate_input_dir(input_dir, args.debug_threshold)
+    result = validate_input_dir(input_dir, args.debug_threshold, getattr(args, "source_url", None))
     result.commands["parse"] = parse_command
     result.commands["load"] = redact_command(build_load_command(args, input_dir)) if args.load else None
     if args.load and result.state == "validated":
