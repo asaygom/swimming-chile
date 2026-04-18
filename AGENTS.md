@@ -55,6 +55,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
   - carga a core explicita con `--load` protegida por compuertas
   - resumen auditable opcional con `--summary-json`
   - manifest JSONL local con multiples documentos antes del scraper
+  - entradas de manifest con `input_dir`, `pdf` o `pdf_path`
 
 ## Canon de datos
 ### event.gender
@@ -86,7 +87,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - `--load` solo debe ejecutar `run_pipeline_results.py` cuando el estado previo sea `validated`.
 - No guardar passwords en resumenes auditables; los comandos deben ir con password redactado.
 - Manifest procesa documentos uno a uno; un `requires_review` no debe contaminar otros documentos.
-- No implementar scraper FCHMN hasta cerrar primero batch runner con carga explicita y tests.
+- El scraper FCHMN debe emitir manifests JSONL y no debe parsear ni cargar a core.
 
 ## Archivos clave
 - `backend/scripts/parse_results_pdf.py`

@@ -118,6 +118,8 @@ o con un PDF local y su salida:
 {"pdf": "backend/data/raw/results_pdf/competencia_x.pdf", "out_dir": "backend/data/raw/results_csv/competencia_x", "competition_id": 1}
 ```
 
+`pdf_path` tambien se acepta como alias de `pdf` en manifests generados por otras herramientas.
+
 Cargar una carpeta generada por el parser:
 
 ```powershell

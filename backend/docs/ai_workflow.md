@@ -47,6 +47,15 @@ Orden actual del proyecto:
    - Resumir diagnostico, cambios y verificacion.
    - Proponer mensaje de commit.
 
+## Regla de sincronizacion documental
+
+Si cambia comportamiento o contrato:
+
+1. Actualizar tests.
+2. Actualizar el contrato tecnico correspondiente.
+3. Actualizar `README.md` si afecta uso humano.
+4. Actualizar `backend/docs/ai_workflow.md` y/o `AGENTS.md` si afecta metodologia, estado actual o siguiente paso.
+
 ## Estado metodologico actual
 
 Implementado en el repo:
@@ -87,11 +96,11 @@ Explica el donde, por que y para que de cada cambio.
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional y manifest local de multiples documentos. El siguiente paso es robustecer manifests con entradas PDF y formato estable antes del scraper.
+Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional y manifest local de multiples documentos. El manifest soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) antes del scraper.
 
 Primer objetivo sugerido:
 
-- Agregar pruebas de manifest con entradas `pdf` + `out_dir`.
-- Documentar formato estable del manifest.
-- Mantener scraper FCHMN fuera de alcance hasta probar manifest local.
+- Preparar el scraper FCHMN para emitir manifests JSONL sin cargar a core.
+- Mantener descarga, manifest, parseo, validacion y carga separados.
+- Probar el scraper primero contra pocas URLs controladas.
 - No crear tablas nuevas sin una migracion explicita.
