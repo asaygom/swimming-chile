@@ -144,6 +144,8 @@ Estas alertas se registran, pero no bloquean por defecto:
 Scraper:
 
 - Descubre URLs.
+- Filtra por defecto PDFs cuya URL contenga `resultado` para evitar convocatorias
+  u otros documentos no cargables.
 - Emite manifest JSONL con `source_url`, ruta local esperada del PDF y `out_dir`.
 - Mantiene la descarga de PDFs como paso separado y explicito.
 - No parsea ni carga a DB.

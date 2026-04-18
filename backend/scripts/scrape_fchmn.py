@@ -52,16 +52,19 @@ def read_html(args: argparse.Namespace) -> tuple[str, str]:
     return body, args.url
 
 
-def discover_pdf_urls(html: str, base_url: str) -> list[str]:
+def discover_pdf_urls(html: str, base_url: str, include_keywords: list[str] | None = None) -> list[str]:
     parser = PdfLinkParser()
     parser.feed(html)
 
     urls: list[str] = []
     seen: set[str] = set()
+    normalized_keywords = [keyword.lower() for keyword in include_keywords or []]
     for href in parser.hrefs:
         absolute_url = urljoin(base_url, href)
         path = urlparse(absolute_url).path.lower()
         if not path.endswith(".pdf") or absolute_url in seen:
+            continue
+        if normalized_keywords and not any(keyword in absolute_url.lower() for keyword in normalized_keywords):
             continue
         seen.add(absolute_url)
         urls.append(absolute_url)
@@ -128,6 +131,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-id", type=int)
     parser.add_argument("--default-source-id", type=int, default=1)
     parser.add_argument("--limit", type=int, default=sys.maxsize, help="Maximo de PDFs a incluir.")
+    parser.add_argument("--all-pdfs", action="store_true", help="Incluye PDFs que no parezcan resultados.")
+    parser.add_argument(
+        "--include-keyword",
+        action="append",
+        help="Keyword requerida en la URL del PDF. Por defecto: resultado. Puede repetirse.",
+    )
     parser.add_argument("--timeout-seconds", type=int, default=30, help="Timeout para --url.")
     parser.add_argument("--json", action="store_true", help="Imprime resumen como JSON.")
     return parser.parse_args()
@@ -136,7 +145,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     html, base_url = read_html(args)
-    urls = discover_pdf_urls(html, base_url)
+    include_keywords = [] if args.all_pdfs else (args.include_keyword or ["resultado"])
+    urls = discover_pdf_urls(html, base_url, include_keywords=include_keywords)
     entries = build_manifest_entries(args, urls)
     write_manifest(entries, Path(args.manifest))
 

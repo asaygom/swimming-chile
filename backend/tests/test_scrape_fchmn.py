@@ -13,15 +13,23 @@ if str(SCRIPTS_DIR) not in sys.path:
 import scrape_fchmn as scraper
 
 
-def test_discover_pdf_urls_resolves_relative_links_and_skips_duplicates():
+def test_discover_pdf_urls_resolves_relative_links_skips_duplicates_and_filters_results():
+    html = (FIXTURES_DIR / "fchmn_page.html").read_text(encoding="utf-8")
+
+    urls = scraper.discover_pdf_urls(html, "https://fchmn.cl/resultados/", include_keywords=["resultado"])
+
+    assert urls == [
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-ii-copa-chile-1.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-coppa-italia-master-2026.pdf",
+    ]
+
+
+def test_discover_pdf_urls_can_include_all_pdfs():
     html = (FIXTURES_DIR / "fchmn_page.html").read_text(encoding="utf-8")
 
     urls = scraper.discover_pdf_urls(html, "https://fchmn.cl/resultados/")
 
-    assert urls == [
-        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-ii-copa-chile-1.pdf",
-        "https://fchmn.cl/wp-content/uploads/2026/04/resultados-coppa-italia-master-2026.pdf",
-    ]
+    assert "https://fchmn.cl/wp-content/uploads/2026/04/convocatoria-xiii-copa-penamaster-2026.pdf" in urls
 
 
 def test_build_manifest_entries_uses_stable_local_paths():
@@ -35,7 +43,7 @@ def test_build_manifest_entries_uses_stable_local_paths():
     )
     urls = [
         "https://fchmn.cl/wp-content/uploads/2026/03/resultados-ii-copa-chile-1.pdf",
-        "https://fchmn.cl/wp-content/uploads/2026/04/resultados-coppa-italia-master-2026.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-coppa-italia-master-2026.pdf",
     ]
 
     entries = scraper.build_manifest_entries(args, urls)

@@ -74,7 +74,9 @@ Implementado en el repo:
 - `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
 - El contrato manual manifest -> descarga -> batch runner esta cubierto con fixture controlado, sin red real ni carga a core.
 - Smoke real controlado con `resultados-ii-copa-chile-1.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
+- Segundo smoke real controlado con `resultados-coppa-italia-master-2026.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
 - Los manifests del scraper agrupan PDFs y CSVs por año bajo `results_pdf/fchmn/<año>/` y `results_csv/fchmn/<año>/`.
+- Smoke real de descubrimiento contra portada FCHMN: el scraper filtra convocatorias y emite un manifest con PDF de resultados.
 
 No implementado todavia:
 
@@ -105,7 +107,7 @@ Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga
 
 Primer objetivo sugerido:
 
-- Repetir el flujo manual con una segunda URL real controlada antes de automatizar.
+- Probar descarga y validacion del PDF descubierto automaticamente antes de automatizar.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Probar el scraper primero contra pocas URLs controladas.
 - No crear tablas nuevas sin una migracion explicita.

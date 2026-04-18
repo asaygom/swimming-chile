@@ -87,6 +87,8 @@ python backend\scripts\scrape_fchmn.py `
 El scraper agrupa las rutas generadas por año: `results_pdf\fchmn\<año>\...` y
 `results_csv\fchmn\<año>\...`. Por defecto infiere el año desde la URL del PDF;
 usa `--year` cuando el año de competencia no coincida con la ruta publicada.
+Tambien filtra por defecto PDFs cuya URL contenga `resultado`; usa `--all-pdfs`
+solo para inspeccion manual.
 
 Descargar PDFs declarados en un manifest:
 
