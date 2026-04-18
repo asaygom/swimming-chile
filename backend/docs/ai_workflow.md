@@ -70,6 +70,7 @@ Implementado en el repo:
 - Validaciones persistidas como `validation_issue`.
 - Contrato minimo de Fase 4 para batch runner y compuertas en `backend/docs/batch_runner_contract.md`.
 - `backend/scripts/run_results_batch.py` puede validar `--input-dir`, ejecutar `--pdf` + `--out-dir` antes de validar y cargar con `--load` solo si el batch queda `validated`.
+- `backend/scripts/scrape_fchmn.py` puede descubrir enlaces PDF desde HTML local o URL y escribir un manifest JSONL sin descargar, parsear ni cargar.
 
 No implementado todavia:
 
@@ -100,7 +101,7 @@ Fase 4 quedo iniciada con contrato, parseo automatico previo a validacion, carga
 
 Primer objetivo sugerido:
 
-- Preparar el scraper FCHMN para emitir manifests JSONL sin cargar a core.
+- Agregar descarga explicita y controlada de PDFs desde `source_url` hacia la ruta `pdf` del manifest.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Probar el scraper primero contra pocas URLs controladas.
 - No crear tablas nuevas sin una migracion explicita.

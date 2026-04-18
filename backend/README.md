@@ -53,6 +53,7 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 
 - `scripts/parse_results_pdf.py`: parser de PDFs y generador de CSVs
 - `scripts/run_results_batch.py`: validador inicial de Fase 4 antes de cargar a core
+- `scripts/scrape_fchmn.py`: descubre enlaces PDF y escribe manifests JSONL sin descargar ni cargar
 - `scripts/run_pipeline_results.py`: carga CSVs a staging y core en PostgreSQL
 - `sql/schema.sql`: definicion de tablas core, staging, constraints e indices
 - `sql/analysis_queries.sql`: consultas analiticas de ejemplo
@@ -63,6 +64,18 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 - `docs/ai_workflow.md`: metodologia para trabajar con IA y retomar contexto entre conversaciones
 
 ## Comandos de referencia
+
+Descubrir PDFs desde HTML local y escribir un manifest JSONL:
+
+```powershell
+python backend\scripts\scrape_fchmn.py `
+  --html-file backend\data\raw\fchmn_paginas\resultados.html `
+  --base-url https://fchmn.cl/ `
+  --manifest backend\data\raw\manifests\fchmn_2026.jsonl `
+  --pdf-dir backend\data\raw\results_pdf\fchmn `
+  --out-dir-root backend\data\raw\results_csv\fchmn `
+  --default-source-id 1
+```
 
 Parsear un PDF:
 

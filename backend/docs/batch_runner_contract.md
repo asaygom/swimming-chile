@@ -138,8 +138,9 @@ Estas alertas se registran, pero no bloquean por defecto:
 Scraper:
 
 - Descubre URLs.
-- Descarga PDFs.
-- Calcula checksum.
+- Emite manifest JSONL con `source_url`, ruta local esperada del PDF y `out_dir`.
+- Mantiene la descarga de PDFs como paso separado y explicito.
+- Calcula checksum solo cuando el PDF exista localmente.
 - No parsea ni carga a DB.
 
 Batch runner:
@@ -186,3 +187,10 @@ Extender `backend/scripts/run_results_batch.py` para que:
 2. Escriba resumen agregado y por documento en formato estable.
 3. Mantenga scraper FCHMN separado del parseo, validacion y carga.
 4. Use estados persistentes cuando exista una tabla operativa de batch.
+
+Primer scraper de apuntamiento:
+
+- `backend/scripts/scrape_fchmn.py` descubre enlaces PDF desde una URL o HTML
+  local.
+- Escribe un manifest JSONL para el batch runner.
+- No descarga PDFs, no parsea, no valida y no carga a core.
