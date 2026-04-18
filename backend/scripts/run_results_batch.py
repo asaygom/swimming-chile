@@ -43,6 +43,7 @@ STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 DEFAULT_DEBUG_THRESHOLD = 0.20
 PARSER_SCRIPT = BACKEND_DIR / "scripts" / "parse_results_pdf.py"
 PIPELINE_SCRIPT = BACKEND_DIR / "scripts" / "run_pipeline_results.py"
+PROJECT_DIR = BACKEND_DIR.parent
 
 
 @dataclass
@@ -155,9 +156,9 @@ def read_manifest_entries(manifest_path: Path) -> list[dict[str, Any]]:
 def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any]) -> argparse.Namespace:
     item = argparse.Namespace(**vars(base_args))
     item.manifest = None
-    item.input_dir = entry.get("input_dir")
-    item.pdf = entry.get("pdf") or entry.get("pdf_path")
-    item.out_dir = entry.get("out_dir")
+    item.input_dir = resolve_manifest_path(entry.get("input_dir"))
+    item.pdf = resolve_manifest_path(entry.get("pdf") or entry.get("pdf_path"))
+    item.out_dir = resolve_manifest_path(entry.get("out_dir"))
     item.competition_id = entry.get("competition_id", base_args.competition_id)
     item.default_source_id = entry.get("default_source_id", base_args.default_source_id)
     item.excel_name = entry.get("excel_name", base_args.excel_name)
@@ -169,6 +170,15 @@ def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any
     if has_pdf and not item.out_dir:
         raise SystemExit("[ERROR] Cada entrada con pdf debe incluir out_dir.")
     return item
+
+
+def resolve_manifest_path(value: Any) -> str | None:
+    if not value:
+        return None
+    path = Path(str(value))
+    if path.is_absolute():
+        return str(path)
+    return str(PROJECT_DIR / path)
 
 
 def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:

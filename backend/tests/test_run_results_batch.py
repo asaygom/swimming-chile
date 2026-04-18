@@ -283,19 +283,19 @@ def test_process_manifest_supports_pdf_entries_without_cross_document_contaminat
     assert result.state == "requires_review"
     assert [document.state for document in result.documents] == ["validated", "requires_review"]
     assert [document.input_dir for document in result.documents] == [
-        str(Path("backend/tests/fixtures/batch_runner/valid")),
-        str(Path("backend/tests/fixtures/batch_runner/missing_result")),
+        str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/valid"),
+        str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/missing_result"),
     ]
     assert parsed == [
         {
-            "pdf": "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_a.pdf",
-            "out_dir": "backend/tests/fixtures/batch_runner/valid",
+            "pdf": str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_a.pdf"),
+            "out_dir": str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/valid"),
             "competition_id": 42,
             "default_source_id": 7,
         },
         {
-            "pdf": "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_b.pdf",
-            "out_dir": "backend/tests/fixtures/batch_runner/missing_result",
+            "pdf": str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/pdf_inputs/fixture_b.pdf"),
+            "out_dir": str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/missing_result"),
             "competition_id": 43,
             "default_source_id": 1,
         },

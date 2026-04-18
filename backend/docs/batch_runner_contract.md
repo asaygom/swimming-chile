@@ -72,6 +72,11 @@ Los manifests generados por el scraper deben agrupar `pdf` y `out_dir` por año:
 `backend/data/raw/results_csv/fchmn/<año>/...`. El año se infiere desde la URL
 del PDF cuando es posible y puede forzarse con `--year`.
 
+Las rutas relativas declaradas en `input_dir`, `pdf`, `pdf_path` y `out_dir` se
+resuelven desde la raiz del proyecto, no desde el directorio actual del proceso.
+Esto permite ejecutar tests y comandos desde subcarpetas sin cambiar el
+significado del manifest.
+
 Cada documento se procesa de forma aislada. Un documento en `requires_review`
 debe quedar reportado en el resumen del manifest, pero no debe impedir que los
 otros documentos del mismo manifest se validen con su propio estado.

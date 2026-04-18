@@ -11,6 +11,10 @@ from typing import Any, Callable
 from urllib.request import urlopen
 
 
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+PROJECT_DIR = BACKEND_DIR.parent
+
+
 @dataclass
 class DownloadResult:
     state: str
@@ -54,6 +58,13 @@ def sha256_bytes(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def resolve_manifest_path(value: Any) -> Path | None:
+    if not value:
+        return None
+    path = Path(str(value))
+    return path if path.is_absolute() else PROJECT_DIR / path
+
+
 def write_bytes_atomic(path: Path, content: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_name(f"{path.name}.download")
@@ -75,7 +86,8 @@ def download_one(
     if not pdf:
         return DownloadResult("failed", str(source_url), None, message="Falta pdf o pdf_path.")
 
-    pdf_path = Path(str(pdf))
+    pdf_path = resolve_manifest_path(pdf)
+    assert pdf_path is not None
     if pdf_path.exists() and not overwrite:
         content = pdf_path.read_bytes()
         return DownloadResult(

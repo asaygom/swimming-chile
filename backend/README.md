@@ -161,6 +161,8 @@ o con un PDF local y su salida:
 
 `pdf_path` tambien se acepta como alias de `pdf` en manifests generados por otras herramientas.
 Los manifests pueden estar en UTF-8 con o sin BOM.
+Las rutas relativas dentro del manifest se resuelven desde la raiz del proyecto,
+no desde la carpeta desde donde se ejecuta el comando.
 
 Cargar una carpeta generada por el parser:
 
