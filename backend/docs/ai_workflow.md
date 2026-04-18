@@ -9,6 +9,7 @@ Este documento permite retomar el proyecto en otra conversacion sin depender del
 - Politica de artefactos: `backend/docs/data_artifacts.md`.
 - Contratos del parser: `backend/docs/parser_contracts.md`.
 - Contrato del batch runner: `backend/docs/batch_runner_contract.md`.
+- Operacion Fase 4: `backend/docs/phase4_operations.md`.
 - Modelo vigente: `backend/docs/schema.md`.
 - Trazabilidad e idempotencia: `backend/docs/traceability_idempotency.md`.
 
@@ -81,6 +82,7 @@ Implementado en el repo:
 - El batch runner conserva `source_url` desde manifests y la entrega al pipeline durante `--load` para trazabilidad de `competition` y `source_document`.
 - Fallos tecnicos del parser en un documento de manifest quedan aislados como `failed` y no detienen el resto del manifest.
 - E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
+- Runbook operativo de Fase 4 en `backend/docs/phase4_operations.md` con comandos reproducibles para discovery, download y batch validation.
 
 No implementado todavia:
 
@@ -113,6 +115,5 @@ Primer objetivo sugerido:
 
 - Ampliar pruebas controladas de manifest contra pocas URLs FCHMN antes de automatizar volumen.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
-- Documentar comandos operativos reproducibles para discovery -> download -> batch.
 - Revisar PDFs descubiertos en portada como `resultados-1a-etapa.pdf`, que descargan correctamente pero no corresponden al layout HY-TEK soportado y quedan como `failed`.
 - No crear tablas nuevas sin una migracion explicita.
