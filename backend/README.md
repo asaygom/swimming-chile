@@ -65,6 +65,12 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 
 ## Comandos de referencia
 
+Instalar dependencias del backend:
+
+```powershell
+python -m pip install -r backend\requirements.txt
+```
+
 Descubrir PDFs desde HTML local y escribir un manifest JSONL:
 
 ```powershell

@@ -1,5 +1,5 @@
-pandas
-pdfplumber
-openpyxl
-psycopg[binary]
-pytest
+pandas>=3.0,<4
+pdfplumber>=0.11,<0.12
+openpyxl>=3.1,<4
+psycopg[binary]>=3.3,<4
+pytest>=9,<10
