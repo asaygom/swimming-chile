@@ -74,6 +74,7 @@ def test_run_results_validation_orchestrates_discovery_download_and_batch_valida
             path.unlink(missing_ok=True)
 
     assert result.state == "validated"
+    assert result.discovered_documents == 1
     assert result.download_state_counts == {"downloaded": 1}
     assert result.batch_state_counts == {"validated": 1}
     assert [Path(call[1]).name for call in calls] == [
@@ -94,7 +95,19 @@ def test_run_results_validation_stops_before_batch_when_download_fails(monkeypat
     def fake_run(command, check):
         calls.append(command)
         if command[1].endswith("scrape_fchmn.py"):
-            Path(command[command.index("--manifest") + 1]).write_text("", encoding="utf-8")
+            Path(command[command.index("--manifest") + 1]).write_text(
+                json.dumps(
+                    {
+                        "source_url": "https://fchmn.cl/resultados.pdf",
+                        "pdf": "demo.pdf",
+                        "out_dir": "demo",
+                        "competition_id": None,
+                        "default_source_id": 1,
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             return subprocess.CompletedProcess(command, 0)
         if command[1].endswith("download_manifest_pdfs.py"):
             Path(command[command.index("--summary-json") + 1]).write_text(
@@ -123,5 +136,46 @@ def test_run_results_validation_stops_before_batch_when_download_fails(monkeypat
             path.unlink(missing_ok=True)
 
     assert result.state == "failed"
+    assert result.discovered_documents == 1
     assert result.download_state_counts == {"failed": 1}
     assert [Path(call[1]).name for call in calls] == ["scrape_fchmn.py", "download_manifest_pdfs.py"]
+
+
+def test_run_results_validation_stops_when_discovery_finds_no_documents(monkeypatch):
+    calls = []
+    manifest_path = STAGING_DIR / "fchmn_results_validation_test-empty.jsonl"
+    download_summary_path = STAGING_DIR / "fchmn_results_validation_test-empty_download.json"
+    batch_summary_path = STAGING_DIR / "fchmn_results_validation_test-empty_batch.json"
+    for path in [manifest_path, download_summary_path, batch_summary_path]:
+        path.unlink(missing_ok=True)
+
+    def fake_run(command, check):
+        calls.append(command)
+        if command[1].endswith("scrape_fchmn.py"):
+            Path(command[command.index("--manifest") + 1]).write_text("", encoding="utf-8")
+            return subprocess.CompletedProcess(command, 0)
+        raise AssertionError("download and batch should not run without discovered documents")
+
+    monkeypatch.setattr(validation.subprocess, "run", fake_run)
+    args = validation.parse_args_from_list(
+        [
+            "--run-id",
+            "test-empty",
+            "--manifest-dir",
+            str(STAGING_DIR),
+            "--summary-dir",
+            str(STAGING_DIR),
+        ]
+    )
+
+    try:
+        result = validation.run_results_validation(args)
+    finally:
+        for path in [manifest_path, download_summary_path, batch_summary_path]:
+            path.unlink(missing_ok=True)
+
+    assert result.state == "failed"
+    assert result.discovered_documents == 0
+    assert result.download_state_counts == {}
+    assert result.batch_state_counts == {}
+    assert [Path(call[1]).name for call in calls] == ["scrape_fchmn.py"]

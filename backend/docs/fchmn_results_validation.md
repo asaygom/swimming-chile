@@ -108,6 +108,10 @@ El orquestador escribe:
 - descarga: `backend/data/raw/batch_summaries/fchmn_results_validation_<run_id>_download.json`
 - batch: `backend/data/raw/batch_summaries/fchmn_results_validation_<run_id>_batch.json`
 
+El resumen incluye `discovered_documents`. Si discovery no encuentra ningun PDF,
+el orquestador termina en `failed` antes de descargar o validar, porque un smoke
+sin documentos no entrega evidencia operativa.
+
 Usar este comando para monitoreo o smoke operativo. Para cargar a core, revisar
 primero el summary de batch y ejecutar `run_results_batch.py --load` como paso
 separado.

@@ -183,6 +183,8 @@ Orquestador de validacion FCHMN:
   validation.
 - No acepta ni pasa `--load`; la carga a core queda en un paso manual explicito.
 - Escribe manifest, resumen de descarga y resumen de batch en rutas auditables.
+- Reporta `discovered_documents` y falla antes de descargar si discovery no
+  encuentra documentos.
 - Termina con codigo distinto de cero si la cadena no queda `validated`.
 
 Batch runner:

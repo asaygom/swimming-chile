@@ -92,6 +92,7 @@ Implementado en el repo:
 - El batch runner conserva `source_url` desde manifests y la entrega al pipeline durante `--load` para trazabilidad de `competition` y `source_document`.
 - Fallos tecnicos del parser en un documento de manifest quedan aislados como `failed` y no detienen el resto del manifest.
 - `backend/scripts/run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin carga a core.
+- La automatizacion FCHMN reporta `discovered_documents` y falla temprano si discovery no encuentra PDFs, para evitar smokes falsamente sanos.
 - E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
 - Runbook de validacion automatizada FCHMN en `backend/docs/fchmn_results_validation.md` con comandos reproducibles para discovery, download y batch validation.
 - El fixture del scraper conserva candidatos de portada como `resultados-1a-etapa.pdf`; no se excluyen por keyword aunque el parser aun pueda marcarlos como `failed`.

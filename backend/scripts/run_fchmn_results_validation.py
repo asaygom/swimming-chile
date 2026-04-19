@@ -25,6 +25,7 @@ class FchmnResultsValidationResult:
     manifest_path: str
     download_summary_path: str
     batch_summary_path: str
+    discovered_documents: int
     return_codes: dict[str, int]
     download_state_counts: dict[str, int]
     batch_state_counts: dict[str, int]
@@ -131,9 +132,22 @@ def read_json_if_exists(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def count_manifest_entries(manifest_path: Path) -> int:
+    if not manifest_path.exists():
+        return 0
+    count = 0
+    with manifest_path.open("r", encoding="utf-8-sig") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if line and not line.startswith("#"):
+                count += 1
+    return count
+
+
 def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationResult:
     run_id, manifest_path, download_summary_path, batch_summary_path = build_output_paths(args)
     return_codes: dict[str, int] = {}
+    discovered_documents = 0
 
     scrape_result = subprocess.run(build_scrape_command(args, manifest_path), check=False)
     return_codes["scrape"] = scrape_result.returncode
@@ -145,6 +159,21 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
             str(manifest_path),
             str(download_summary_path),
             str(batch_summary_path),
+            discovered_documents,
+            return_codes,
+            {},
+            {},
+        )
+    discovered_documents = count_manifest_entries(manifest_path)
+    if discovered_documents == 0:
+        return FchmnResultsValidationResult(
+            "failed",
+            run_id,
+            args.url,
+            str(manifest_path),
+            str(download_summary_path),
+            str(batch_summary_path),
+            discovered_documents,
             return_codes,
             {},
             {},
@@ -161,6 +190,7 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
             str(manifest_path),
             str(download_summary_path),
             str(batch_summary_path),
+            discovered_documents,
             return_codes,
             download_summary.get("state_counts", {}),
             {},
@@ -176,6 +206,7 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
         str(manifest_path),
         str(download_summary_path),
         str(batch_summary_path),
+        discovered_documents,
         return_codes,
         download_summary.get("state_counts", {}),
         batch_summary.get("state_counts", {}),
@@ -193,6 +224,7 @@ def main() -> None:
         print(f"Manifest: {result.manifest_path}")
         print(f"Download summary: {result.download_summary_path}")
         print(f"Batch summary: {result.batch_summary_path}")
+        print(f"Documentos descubiertos: {result.discovered_documents}")
         print(f"Estados descarga: {result.download_state_counts}")
         print(f"Estados batch: {result.batch_state_counts}")
     if result.state != "validated":
