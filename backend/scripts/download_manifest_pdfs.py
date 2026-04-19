@@ -30,6 +30,7 @@ class DownloadResult:
 class DownloadManifestResult:
     state: str
     manifest_path: str
+    state_counts: dict[str, int]
     documents: list[DownloadResult]
 
 
@@ -138,6 +139,13 @@ def summarize_state(documents: list[DownloadResult]) -> str:
     return "skipped"
 
 
+def count_states(documents: list[DownloadResult]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for document in documents:
+        counts[document.state] = counts.get(document.state, 0) + 1
+    return counts
+
+
 def process_manifest(
     manifest_path: Path,
     timeout_seconds: int,
@@ -151,7 +159,7 @@ def process_manifest(
         download_one(entry, timeout_seconds=timeout_seconds, overwrite=overwrite, fetcher=fetcher)
         for entry in read_manifest_entries(manifest_path)
     ]
-    return DownloadManifestResult(summarize_state(documents), str(manifest_path), documents)
+    return DownloadManifestResult(summarize_state(documents), str(manifest_path), count_states(documents), documents)
 
 
 def write_summary_json(result: DownloadManifestResult, summary_path: Path) -> None:

@@ -74,6 +74,7 @@ Implementado en el repo:
 - `backend/scripts/scrape_fchmn.py` puede descubrir enlaces PDF desde HTML local o URL y escribir un manifest JSONL sin descargar, parsear ni cargar.
 - `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
 - Con `--overwrite`, `download_manifest_pdfs.py` reporta si un PDF fue `updated` por cambio de checksum o `unchanged` si el contenido remoto coincide con el local.
+- Los summaries de manifests de descarga y batch incluyen `state_counts` para auditoria agregada.
 - El contrato manual manifest -> descarga -> batch runner esta cubierto con fixture controlado, sin red real ni carga a core.
 - Smoke real controlado con `resultados-ii-copa-chile-1.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
 - Segundo smoke real controlado con `resultados-coppa-italia-master-2026.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
@@ -116,5 +117,5 @@ Primer objetivo sugerido:
 
 - Ampliar pruebas controladas de manifest contra pocas URLs FCHMN antes de automatizar volumen.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
-- Revisar PDFs descubiertos en portada como `resultados-1a-etapa.pdf`, que descargan correctamente pero no corresponden al layout HY-TEK soportado y quedan como `failed`.
+- Conservar como candidatos los PDFs de portada `resultados-1a-etapa.pdf` y similares: son de un Sudamericano Master en Brasil con formato pendiente de soporte, no ruido para excluir por keyword.
 - No crear tablas nuevas sin una migracion explicita.

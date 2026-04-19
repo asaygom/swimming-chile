@@ -69,6 +69,7 @@ class BatchValidationResult:
 class BatchManifestResult:
     state: str
     manifest_path: str
+    state_counts: dict[str, int]
     documents: list[BatchValidationResult]
 
 
@@ -462,6 +463,13 @@ def summarize_manifest_state(documents: list[BatchValidationResult], load_enable
     return "validated"
 
 
+def count_manifest_states(documents: list[BatchValidationResult]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for document in documents:
+        counts[document.state] = counts.get(document.state, 0) + 1
+    return counts
+
+
 def process_manifest(args: argparse.Namespace) -> BatchManifestResult:
     manifest_path = Path(args.manifest)
     if not manifest_path.exists() or not manifest_path.is_file():
@@ -473,13 +481,16 @@ def process_manifest(args: argparse.Namespace) -> BatchManifestResult:
         documents.append(process_one(item_args))
 
     state = summarize_manifest_state(documents, args.load)
-    return BatchManifestResult(state=state, manifest_path=str(manifest_path), documents=documents)
+    return BatchManifestResult(state=state, manifest_path=str(manifest_path), state_counts=count_manifest_states(documents), documents=documents)
 
 
 def print_manifest_summary(result: BatchManifestResult) -> None:
     print(f"Estado manifest: {result.state}")
     print(f"Manifest: {result.manifest_path}")
     print(f"Documentos: {len(result.documents)}")
+    print("Estados:")
+    for state, count in sorted(result.state_counts.items()):
+        print(f"  {state}: {count}")
     for index, document in enumerate(result.documents, start=1):
         print(f"  {index}. {document.state} - {document.input_dir}")
 

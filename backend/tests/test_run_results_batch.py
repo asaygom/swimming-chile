@@ -266,6 +266,7 @@ def test_process_manifest_continues_across_valid_and_review_documents():
     result = batch.process_manifest(args)
 
     assert result.state == "requires_review"
+    assert result.state_counts == {"validated": 1, "requires_review": 1}
     assert [document.state for document in result.documents] == ["validated", "requires_review"]
 
 
@@ -307,6 +308,7 @@ def test_process_manifest_supports_pdf_entries_without_cross_document_contaminat
     result = batch.process_manifest(args)
 
     assert result.state == "requires_review"
+    assert result.state_counts == {"validated": 1, "requires_review": 1}
     assert [document.state for document in result.documents] == ["validated", "requires_review"]
     assert [document.input_dir for document in result.documents] == [
         str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/valid"),
@@ -363,6 +365,7 @@ def test_process_manifest_preserves_source_url_per_document():
         manifest_path.unlink(missing_ok=True)
 
     assert result.state == "validated"
+    assert result.state_counts == {"validated": 1}
     assert result.documents[0].source_url == source_url
 
 
@@ -414,6 +417,7 @@ def test_process_manifest_marks_parser_failure_without_stopping_other_documents(
         manifest_path.unlink(missing_ok=True)
 
     assert result.state == "failed"
+    assert result.state_counts == {"failed": 1, "validated": 1}
     assert [document.state for document in result.documents] == ["failed", "validated"]
     assert result.documents[0].issues[0].issue_key == "parser_failed"
 
@@ -456,5 +460,6 @@ def test_main_writes_manifest_summary_json(monkeypatch):
             summary_path.unlink(missing_ok=True)
 
     assert payload["state"] == "requires_review"
+    assert payload["state_counts"] == {"validated": 1, "requires_review": 1}
     assert len(payload["documents"]) == 2
     assert [document["state"] for document in payload["documents"]] == ["validated", "requires_review"]

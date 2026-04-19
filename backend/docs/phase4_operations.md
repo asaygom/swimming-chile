@@ -57,6 +57,7 @@ Salida esperada:
 - `state`: `updated` con `--overwrite` cuando el checksum nuevo difiere del
   checksum local anterior.
 - `state`: `unchanged` con `--overwrite` cuando el checksum no cambia.
+- `state_counts`: cantidad de documentos por estado.
 - Por documento: bytes descargados y `pdf_sha256`.
 
 Usar `--overwrite` solo cuando se quiera reemplazar PDFs locales ya existentes.
@@ -78,6 +79,7 @@ backend\.venv\Scripts\python.exe backend\scripts\run_results_batch.py `
 Salida esperada para un batch sano:
 
 - manifest `state`: `validated`
+- `state_counts`: cantidad de documentos por estado
 - cada documento `state`: `validated`
 - `issues`: vacio
 - `debug_unparsed_lines`: bajo el umbral del contrato
@@ -108,10 +110,12 @@ Validacion controlada realizada contra `https://fchmn.cl/resultados/`:
 
 Ambos quedaron `validated` sin carga a core.
 
-## PDFs descubiertos en portada
+## PDFs descubiertos en portada con formato pendiente
 
 La portada `https://fchmn.cl/` puede publicar PDFs con `resultado` en la URL que
-no corresponden al layout HY-TEK soportado por el parser. Ejemplo observado:
+no corresponden al layout HY-TEK soportado actualmente por el parser. El caso
+observado corresponde a un Sudamericano Master realizado en Brasil, donde la
+publicacion cambio el formato de los resultados:
 
 - `resultados-1a-etapa.pdf`
 - `resultados-2a-etapa.pdf`
@@ -121,6 +125,10 @@ no corresponden al layout HY-TEK soportado por el parser. Ejemplo observado:
 
 Estos PDFs descargan correctamente, pero el batch runner debe marcarlos como
 `failed` si el parser no extrae filas. No se deben cargar a core.
+No deben excluirse por keyword: en futuras competencias, `etapa` puede ser parte
+de un resultado valido y este formato tambien deberia soportarse mas adelante.
+El camino correcto es conservarlos como candidatos y abrir soporte de parser con
+fixtures pequenos cuando se aborde ese layout.
 
 ## Carga a core
 

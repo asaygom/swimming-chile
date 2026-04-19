@@ -94,6 +94,12 @@ Por cada unidad procesada:
 - Evidencia de issues de validacion.
 - Carga a core solo si las compuertas lo permiten.
 
+Por cada manifest procesado:
+
+- Estado agregado del manifest.
+- `state_counts` con cantidad de documentos por estado.
+- Detalle por documento para auditoria.
+
 Los PDFs, CSVs completos y Excels generados siguen sin versionarse.
 
 ## Estados del batch
@@ -165,6 +171,7 @@ Downloader:
 - Calcula `pdf_sha256` para el resumen auditable cuando el PDF existe localmente.
 - Con `--overwrite`, compara el checksum anterior y el nuevo para reportar
   `updated` si cambio o `unchanged` si el contenido era identico.
+- Produce resumen de manifest con `state_counts`.
 - No parsea, no valida CSVs y no carga a DB.
 
 Batch runner:
@@ -177,7 +184,7 @@ Batch runner:
 - Conserva `source_url` desde el manifest y la pasa al pipeline como
   `--competition-source-url` cuando se ejecuta `--load`.
 - Ejecuta pipeline solo si el lote esta validado.
-- Produce resumen auditable.
+- Produce resumen auditable con `state_counts`.
 
 Parser:
 

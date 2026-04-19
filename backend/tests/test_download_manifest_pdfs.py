@@ -33,6 +33,7 @@ def test_process_manifest_downloads_pdf_and_reports_checksum():
 
     try:
         assert result.state == "downloaded"
+        assert result.state_counts == {"downloaded": 1}
         assert result.documents[0].state == "downloaded"
         assert result.documents[0].bytes == len(content)
         assert result.documents[0].pdf_sha256 == downloader.sha256_bytes(content)
@@ -62,6 +63,7 @@ def test_process_manifest_skips_existing_pdf_without_overwrite():
 
     try:
         assert result.state == "skipped"
+        assert result.state_counts == {"skipped": 1}
         assert result.documents[0].state == "skipped"
         assert result.documents[0].pdf_sha256 == downloader.sha256_bytes(existing)
         assert result.documents[0].previous_pdf_sha256 is None
@@ -192,6 +194,7 @@ def test_process_manifest_continues_when_one_download_fails():
 
     try:
         assert result.state == "failed"
+        assert result.state_counts == {"downloaded": 1, "failed": 1}
         assert [document.state for document in result.documents] == ["downloaded", "failed"]
         assert good_pdf_path.exists()
         assert not bad_pdf_path.exists()
