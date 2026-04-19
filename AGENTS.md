@@ -51,7 +51,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - El trabajo activo del proyecto esta en backend/data pipeline.
 - `frontend/` existe como area planificada para Fase 6, pero todavia no tiene implementacion activa ni reglas propias.
 - Cuando empiece trabajo real de frontend, crear documentacion especifica en `frontend/README.md` y, si hace falta, `frontend/AGENTS.md`.
-- El parser ya soporta layouts FCHMN tipo HY-TEK.
+- El parser ya soporta layouts FCHMN tipo HY-TEK y layout brasileno "Swim It Up" (Sudamericano Recife).
 - Soporta:
   - `LC Meter` y `SC Meter`
   - individuales y relevos
@@ -85,7 +85,8 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
   - summaries de manifests con `state_counts`
   - validacion automatizada FCHMN sin carga a core
   - E2E real desde `https://fchmn.cl/resultados/` validado sin cargar a core
-  - candidatos de portada `resultados-1a-etapa.pdf` y similares conservados para soporte futuro de nuevo formato
+  - soporte de layout brasileno "Swim It Up" con parser `0.1.12`
+  - regresion completa 23/23 validated sin romper PDFs HY-TEK previos
 
 ## Canon de datos
 ### event.gender
@@ -123,6 +124,8 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - `run_fchmn_results_validation.py` automatiza solo hasta batch validation; no debe cargar a core.
 - Mantener nombres de producto en scripts, docs operativos, tests y artefactos; evitar nombres transicionales como numeros de fase fuera del roadmap/metodologia.
 - Los PDFs con formato no soportado todavia no son ruido: conservarlos como candidatos y agregar soporte de parser con fixtures chicos cuando corresponda.
+- Competencias internacionales como los Sudamericano se parsean y validan pero no se cargan a core sin un filtro de ambito/federacion. El parser no decide que cargar; la compuerta de carga debe distinguir circuito local de internacional.
+- El proyecto es extensible a multiples fuentes de competencias (FCHMN, Fechida, etc.); la identidad de competencia debe soportar ese crecimiento.
 
 ## Archivos clave
 - `backend/scripts/parse_results_pdf.py`

@@ -109,6 +109,48 @@ def test_parse_event_header_in_english_and_spanish():
     assert relay_age_suffix.stroke == "medley_relay"
 
 
+def test_parse_brazil_event_header_and_age_group():
+    individual = parser.parse_brazil_event_header("1ª PROVA - 400 METROS MEDLEY FEMININO (13/04/2026)")
+    relay = parser.parse_brazil_event_header("35ª PROVA - REVEZAMENTO 4X50 METROS LIVRE MISTO (17/04/2026)")
+
+    assert individual.event_number == 1
+    assert individual.gender == "women"
+    assert individual.distance_m == 400
+    assert individual.stroke == "individual_medley"
+    assert relay.gender == "mixed"
+    assert relay.distance_label == "4x50"
+    assert relay.distance_m == 200
+    assert relay.stroke == "freestyle_relay"
+    assert parser.parse_brazil_age_group("FAIXA: 25 + ----") == "25+"
+
+
+def test_parse_brazil_result_row_from_columns():
+    ctx = parser.with_event_age_group(
+        parser.parse_brazil_event_header("1ª PROVA - 400 METROS MEDLEY FEMININO (13/04/2026)"),
+        "30+",
+    )
+    words = [
+        {"text": "2º", "x0": 63, "top": 10},
+        {"text": "133322", "x0": 94, "top": 10},
+        {"text": "ROSEMARY", "x0": 120, "top": 10},
+        {"text": "BADUÑA", "x0": 165, "top": 10},
+        {"text": "NÚÑEZ", "x0": 210, "top": 10},
+        {"text": "MASTER", "x0": 316, "top": 10},
+        {"text": "URUGUAY", "x0": 350, "top": 10},
+        {"text": "5:56.03", "x0": 412, "top": 10},
+        {"text": "0,00", "x0": 451, "top": 10},
+    ]
+
+    row = parser.parse_brazil_result_row(words, ctx, page_number=1, line_number=5)
+
+    assert row.athlete_name == "ROSEMARY BADUÑA NÚÑEZ"
+    assert row.club_name == "MASTER URUGUAY"
+    assert row.result_time_text == "5:56,03"
+    assert row.result_time_ms == "356030"
+    assert row.points == "0,00"
+    assert row.age_at_event is None
+
+
 def test_parse_individual_result_line_with_seed_fixture():
     fixture = load_fixture("individual_with_seed")
     row = parser.parse_result_line(
