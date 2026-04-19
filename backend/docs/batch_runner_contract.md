@@ -163,6 +163,8 @@ Downloader:
 - Descarga cada PDF hacia su ruta local esperada.
 - No reemplaza PDFs existentes salvo `--overwrite`.
 - Calcula `pdf_sha256` para el resumen auditable cuando el PDF existe localmente.
+- Con `--overwrite`, compara el checksum anterior y el nuevo para reportar
+  `updated` si cambio o `unchanged` si el contenido era identico.
 - No parsea, no valida CSVs y no carga a DB.
 
 Batch runner:

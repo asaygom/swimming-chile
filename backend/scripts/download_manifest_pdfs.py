@@ -22,6 +22,7 @@ class DownloadResult:
     pdf: str | None
     bytes: int = 0
     pdf_sha256: str | None = None
+    previous_pdf_sha256: str | None = None
     message: str | None = None
 
 
@@ -88,14 +89,14 @@ def download_one(
 
     pdf_path = resolve_manifest_path(pdf)
     assert pdf_path is not None
+    previous_sha256 = sha256_bytes(pdf_path.read_bytes()) if pdf_path.exists() else None
     if pdf_path.exists() and not overwrite:
-        content = pdf_path.read_bytes()
         return DownloadResult(
             "skipped",
             str(source_url),
             str(pdf_path),
-            bytes=len(content),
-            pdf_sha256=sha256_bytes(content),
+            bytes=pdf_path.stat().st_size,
+            pdf_sha256=previous_sha256,
             message="PDF existente; usa --overwrite para reemplazarlo.",
         )
 
@@ -104,12 +105,23 @@ def download_one(
         write_bytes_atomic(pdf_path, content)
     except Exception as exc:
         return DownloadResult("failed", str(source_url), str(pdf_path), message=str(exc))
+    new_sha256 = sha256_bytes(content)
+    state = "downloaded"
+    message = None
+    if previous_sha256 and previous_sha256 != new_sha256:
+        state = "updated"
+        message = "PDF reemplazado; checksum cambio."
+    elif previous_sha256 == new_sha256:
+        state = "unchanged"
+        message = "PDF reemplazado; checksum sin cambios."
     return DownloadResult(
-        "downloaded",
+        state,
         str(source_url),
         str(pdf_path),
         bytes=len(content),
-        pdf_sha256=sha256_bytes(content),
+        pdf_sha256=new_sha256,
+        previous_pdf_sha256=previous_sha256,
+        message=message,
     )
 
 
@@ -117,8 +129,12 @@ def summarize_state(documents: list[DownloadResult]) -> str:
     states = {document.state for document in documents}
     if "failed" in states:
         return "failed"
+    if "updated" in states:
+        return "updated"
     if "downloaded" in states:
         return "downloaded"
+    if "unchanged" in states:
+        return "unchanged"
     return "skipped"
 
 

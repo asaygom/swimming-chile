@@ -54,9 +54,14 @@ Salida esperada:
 - `state`: `skipped` cuando todos los PDFs ya existian y no se uso
   `--overwrite`.
 - `state`: `failed` si una descarga falla.
+- `state`: `updated` con `--overwrite` cuando el checksum nuevo difiere del
+  checksum local anterior.
+- `state`: `unchanged` con `--overwrite` cuando el checksum no cambia.
 - Por documento: bytes descargados y `pdf_sha256`.
 
 Usar `--overwrite` solo cuando se quiera reemplazar PDFs locales ya existentes.
+El resumen incluye `previous_pdf_sha256` cuando existia un PDF local antes del
+reemplazo.
 
 ## Batch validation sin carga
 
@@ -141,4 +146,3 @@ backend\.venv\Scripts\python.exe backend\scripts\run_results_batch.py `
 
 Los summaries auditables redactan el valor de `--password` en los comandos
 registrados.
-

@@ -73,6 +73,7 @@ Implementado en el repo:
 - `backend/scripts/run_results_batch.py` puede validar `--input-dir`, ejecutar `--pdf` + `--out-dir` antes de validar y cargar con `--load` solo si el batch queda `validated`.
 - `backend/scripts/scrape_fchmn.py` puede descubrir enlaces PDF desde HTML local o URL y escribir un manifest JSONL sin descargar, parsear ni cargar.
 - `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
+- Con `--overwrite`, `download_manifest_pdfs.py` reporta si un PDF fue `updated` por cambio de checksum o `unchanged` si el contenido remoto coincide con el local.
 - El contrato manual manifest -> descarga -> batch runner esta cubierto con fixture controlado, sin red real ni carga a core.
 - Smoke real controlado con `resultados-ii-copa-chile-1.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
 - Segundo smoke real controlado con `resultados-coppa-italia-master-2026.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.

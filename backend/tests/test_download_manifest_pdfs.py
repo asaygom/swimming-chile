@@ -64,6 +64,68 @@ def test_process_manifest_skips_existing_pdf_without_overwrite():
         assert result.state == "skipped"
         assert result.documents[0].state == "skipped"
         assert result.documents[0].pdf_sha256 == downloader.sha256_bytes(existing)
+        assert result.documents[0].previous_pdf_sha256 is None
+        assert pdf_path.read_bytes() == existing
+    finally:
+        pdf_path.unlink(missing_ok=True)
+
+
+def test_process_manifest_reports_updated_when_overwrite_changes_checksum():
+    manifest_path = STAGING_DIR / "test_download_updated_manifest.jsonl"
+    pdf_path = STAGING_DIR / "test_updated.pdf"
+    existing = b"%PDF-1.4\nold\n"
+    new_content = b"%PDF-1.4\nnew\n"
+    manifest_path.write_text(
+        json.dumps({"source_url": "https://fchmn.cl/resultados.pdf", "pdf": str(pdf_path)}) + "\n",
+        encoding="utf-8",
+    )
+    pdf_path.write_bytes(existing)
+
+    try:
+        result = downloader.process_manifest(
+            manifest_path,
+            timeout_seconds=5,
+            overwrite=True,
+            fetcher=lambda url, timeout: new_content,
+        )
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    try:
+        assert result.state == "updated"
+        assert result.documents[0].state == "updated"
+        assert result.documents[0].previous_pdf_sha256 == downloader.sha256_bytes(existing)
+        assert result.documents[0].pdf_sha256 == downloader.sha256_bytes(new_content)
+        assert pdf_path.read_bytes() == new_content
+    finally:
+        pdf_path.unlink(missing_ok=True)
+
+
+def test_process_manifest_reports_unchanged_when_overwrite_keeps_checksum():
+    manifest_path = STAGING_DIR / "test_download_unchanged_manifest.jsonl"
+    pdf_path = STAGING_DIR / "test_unchanged.pdf"
+    existing = b"%PDF-1.4\nsame\n"
+    manifest_path.write_text(
+        json.dumps({"source_url": "https://fchmn.cl/resultados.pdf", "pdf": str(pdf_path)}) + "\n",
+        encoding="utf-8",
+    )
+    pdf_path.write_bytes(existing)
+
+    try:
+        result = downloader.process_manifest(
+            manifest_path,
+            timeout_seconds=5,
+            overwrite=True,
+            fetcher=lambda url, timeout: existing,
+        )
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    try:
+        assert result.state == "unchanged"
+        assert result.documents[0].state == "unchanged"
+        assert result.documents[0].previous_pdf_sha256 == downloader.sha256_bytes(existing)
+        assert result.documents[0].pdf_sha256 == downloader.sha256_bytes(existing)
         assert pdf_path.read_bytes() == existing
     finally:
         pdf_path.unlink(missing_ok=True)
