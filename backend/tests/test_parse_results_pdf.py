@@ -151,6 +151,24 @@ def test_parse_individual_result_line_without_seed_fixture():
     assert row.points is None
 
 
+def test_parse_result_line_recovers_seed_time_before_status_result():
+    row = parser.parse_result_line(
+        "--- Cabrillana, Mariano 38 Club Sparta A C 49.33 DQ DQ",
+        individual_context(),
+        page_number=1,
+        line_number=12,
+        competition_year=2025,
+    )
+
+    assert row is not None
+    assert row.club_name == "Club Sparta A C"
+    assert row.seed_time_text == "49,33"
+    assert row.seed_time_ms == "49330"
+    assert row.result_time_text == "DQ"
+    assert row.result_time_ms is None
+    assert row.status == "dsq"
+
+
 def test_parse_relay_team_line_fixture():
     fixture = load_fixture("relay_team")
     row = parser.parse_relay_team_line(

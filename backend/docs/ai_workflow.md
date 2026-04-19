@@ -100,7 +100,8 @@ Implementado en el repo:
 - Exploracion ampliada desde `https://fchmn.cl/` (`fchmn_home_resultados_20260419`): discovery encontro 23 PDFs con `resultado`, download quedo `downloaded: 23` y batch validation separo `validated: 16`, `requires_review: 2`, `failed: 5`, sin usar `--load`.
 - Manifest listo para carga: `backend/data/raw/manifests/fchmn_home_validated_for_load_20260419.jsonl`, validado nuevamente como `validated: 16` sin issues. Excluye los 5 PDFs Sudamericano Recife con parser fallido y los 2 PDFs con `invalid_event_stroke`.
 - Carga a core ejecutada para `backend/data/raw/manifests/fchmn_home_validated_for_load_20260419.jsonl`: summary `backend/data/raw/batch_summaries/fchmn_home_validated_for_load_20260419_load.json` quedo `loaded: 16`, sin issues y con password redactado. Verificacion DB: 16 competencias esperadas presentes en `core.competition`.
-- Parser `0.1.10`: los 2 documentos `requires_review` por `invalid_event_stroke` (`resultados-v-copa-santiago-deporte-2025.pdf` y `resultados-xii-copa-penalolen-master-natacion-2025.pdf`) quedaron reparseados y revalidados como `validated` sin usar `--load`.
+- Parser `0.1.11`: los 2 documentos `requires_review` por `invalid_event_stroke` (`resultados-v-copa-santiago-deporte-2025.pdf` y `resultados-xii-copa-penalolen-master-natacion-2025.pdf`) quedaron reparseados y revalidados como `validated` sin usar `--load`. Tambien corrige filas donde un resultado tipo status dejaba el seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`.
+- Auditoria controlada de aliases FCHMN: se agregaron mappings manuales explicitos para candidatos obvios de clubes, incluyendo sufijos pegados (`Orinoco Swim 23`, `Estadio Español Master-ZZ`, `Master San Bernardo-NI`, `Manateam Swim-AN`) y typos/abreviaciones (`Club Dpto Constitucion`, `Club Koyaique`). Los tiempos pegados al nombre del club no se guardan como aliases: se corrigen en parser. Se dejaron fuera falsos positivos como `Estadio Israelita`/`Stadio Italiano`, `Aquateam`/`Manateam Swim` y `Polaris Puerto Varas`/`Puerto Varas`.
 - Runbook de validacion automatizada FCHMN en `backend/docs/fchmn_results_validation.md` con comandos reproducibles para discovery, download y batch validation.
 - El fixture del scraper conserva candidatos de portada como `resultados-1a-etapa.pdf`; no se excluyen por keyword aunque el parser aun pueda marcarlos como `failed`.
 
@@ -136,6 +137,6 @@ Proximo objetivo sugerido:
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Conservar como candidatos los PDFs de portada `resultados-1a-etapa.pdf` y similares: son de un Sudamericano Master en Brasil con formato pendiente de soporte, no ruido para excluir por keyword.
 - Cuando se decida ampliar soporte de parser, partir con fixture chico de esos candidatos de portada en vez de excluirlos del scraper.
-- Siguiente paso operativo: auditar aliases manuales de clubes desde `backend/data/reference/club_alias.csv` y los `club_alias_candidates.csv` generados, sin implementar matching probabilistico de atletas.
-- Despues de esa auditoria, abordar soporte de parser para los 5 PDFs Sudamericano Recife con fixtures chicos.
+- Siguiente paso operativo: decidir si se cargan explicitamente las 2 competencias revalidadas y/o se recargan competencias afectadas por nuevos aliases manuales. No hacerlo automaticamente.
+- Despues, abordar soporte de parser para los 5 PDFs Sudamericano Recife con fixtures chicos.
 - No crear tablas nuevas sin una migracion explicita.

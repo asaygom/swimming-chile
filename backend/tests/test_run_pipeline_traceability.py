@@ -71,3 +71,12 @@ def test_normalize_dataframe_derives_valid_status_from_result_time():
     assert normalized.loc[0, "result_time_text"] == "1:05,30"
     assert normalized.loc[0, "result_time_ms"] == "65300"
     assert normalized.loc[0, "status"] == "valid"
+
+
+def test_default_club_alias_csv_contains_audited_fchmn_mappings():
+    aliases = pipeline.load_club_aliases(str(pipeline.DEFAULT_CLUB_ALIAS_CSV))
+
+    assert pipeline.resolve_club_alias("Orinoco Swim 23", aliases) == "Orinoco Swim"
+    assert pipeline.resolve_club_alias("Estadio Español Master-ZZ", aliases) == "Estadio Español"
+    assert pipeline.resolve_club_alias("Manateam Swim-AN", aliases) == "Manateam Swim"
+    assert pipeline.resolve_club_alias("Natacion Neurodivergentes", aliases) == "Natacion Neurodivergente"

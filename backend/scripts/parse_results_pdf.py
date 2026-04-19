@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.10"
+PARSER_VERSION = "0.1.11"
 
 try:
     import pdfplumber
@@ -39,6 +39,10 @@ except ImportError as exc:  # pragma: no cover
 
 TIME_OR_STATUS_PATTERN = (
     r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ|DFS)"
+)
+TRAILING_TIME_OR_STATUS_RE = re.compile(
+    rf"^(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})$",
+    re.IGNORECASE,
 )
 DATE_DMY_RE = re.compile(r"(?P<day>\d{1,2})[-/](?P<month>\d{1,2})[-/](?P<year>\d{4})")
 COMPETITION_HEADER_WITH_DATE_RE = re.compile(
@@ -452,6 +456,14 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
 
     rank_raw = m.group("rank").strip()
     final_raw = normalize_string(m.group("final"))
+    seed_raw = normalize_string(m.group("seed")) if has_seed else None
+    team_raw = normalize_string(m.group("team"))
+    if has_seed and seed_raw and derive_result_time_ms(seed_raw) is None and team_raw:
+        # Algunos DQ/DNF dejan el seed pegado al club: "Club A 49.33 DQ DQ".
+        team_seed_match = TRAILING_TIME_OR_STATUS_RE.match(team_raw)
+        if team_seed_match:
+            team_raw = team_seed_match.group("team")
+            seed_raw = team_seed_match.group("seed")
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
     rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
@@ -459,7 +471,7 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
     if isinstance(normalized_final, str) and normalized_final.upper().startswith("X"):
         rank_position = None
 
-    seed_time_text = normalize_swim_time_text(m.group("seed")) if has_seed else None
+    seed_time_text = normalize_swim_time_text(seed_raw) if has_seed else None
     seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
     age_at_event = int(m.group("age"))
@@ -475,7 +487,7 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
         athlete_name=clean_extracted_text(m.group("name")),
         age_at_event=age_at_event,
         birth_year_estimated=birth_year_estimated,
-        club_name=clean_extracted_text(m.group("team")),
+        club_name=clean_extracted_text(team_raw),
         rank_position=rank_position,
         seed_time_text=seed_time_text,
         seed_time_ms=str(seed_time_ms) if seed_time_ms is not None else None,
