@@ -43,6 +43,7 @@ Tambien puede generar archivos de trazabilidad/debug:
 - `age_at_event` pertenece al resultado observado.
 - `birth_year_estimated = competition_year - age_at_event` cuando existe anio de competencia.
 - Las heuristicas propias del PDF viven en el parser; el pipeline solo debe hacer limpieza generica y carga.
+- El parser normaliza sufijos de categorias de edad pegados al estilo en encabezados HY-TEK, por ejemplo `Breast 40 a 99 años` o `Medley 120 a 159 años Relay`, sin cambiar el canon de `event.stroke`.
 
 ## Fixtures de prueba
 

@@ -62,6 +62,9 @@ def test_normalize_stroke_to_domain_canon():
     assert parser.normalize_stroke("Combinado") == "individual_medley"
     assert parser.normalize_stroke("Relevo Libre") == "freestyle_relay"
     assert parser.normalize_stroke("Relevo Combinado") == "medley_relay"
+    assert parser.normalize_stroke("Breast 40 a 99 años") == "breaststroke"
+    assert parser.normalize_stroke("Medley 120 a 159 años Relay") == "medley_relay"
+    assert parser.normalize_stroke("Medley 280 y mas años Relay") == "medley_relay"
 
 
 def test_swim_time_normalization_and_milliseconds():
@@ -93,12 +96,17 @@ def test_parse_event_header_in_english_and_spanish():
     english = parser.parse_event_header("Event 1 Women 35-39 100 LC Meter Free")
     spanish = parser.parse_event_header("Evento 2 Hombres 40-44 50 CP Metro Espalda")
     relay = parser.parse_event_header("Evento 3 Mixto 160-199 4x50 CP Metro Relevo Libre")
+    age_suffix = parser.parse_event_header("Event 4 Women 40-44 100 SC Meter Breast 40 a 99 años")
+    relay_age_suffix = parser.parse_event_header("Event 5 Mixed 120-159 200 LC Meter Medley 120 a 159 años Relay")
 
     assert english.event_name == "women 35-39 100 LC Meter freestyle"
     assert spanish.event_name == "men 40-44 50 SC Meter backstroke"
     assert relay.gender == "mixed"
     assert relay.distance_m == 200
     assert relay.stroke == "freestyle_relay"
+    assert age_suffix.event_name == "women 40-44 100 SC Meter breaststroke"
+    assert relay_age_suffix.distance_m == 200
+    assert relay_age_suffix.stroke == "medley_relay"
 
 
 def test_parse_individual_result_line_with_seed_fixture():

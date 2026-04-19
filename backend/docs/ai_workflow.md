@@ -96,6 +96,11 @@ Implementado en el repo:
 - `backend/scripts/run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin carga a core.
 - La automatizacion FCHMN reporta `discovered_documents` y falla temprano si discovery no encuentra PDFs, para evitar smokes falsamente sanos.
 - E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
+- Smoke real controlado `codex_controlled_20260419_limit3`: discovery encontro 2 PDFs, download quedo `downloaded: 2` y batch validation quedo `validated: 2`, sin usar `--load`.
+- Exploracion ampliada desde `https://fchmn.cl/` (`fchmn_home_resultados_20260419`): discovery encontro 23 PDFs con `resultado`, download quedo `downloaded: 23` y batch validation separo `validated: 16`, `requires_review: 2`, `failed: 5`, sin usar `--load`.
+- Manifest listo para carga: `backend/data/raw/manifests/fchmn_home_validated_for_load_20260419.jsonl`, validado nuevamente como `validated: 16` sin issues. Excluye los 5 PDFs Sudamericano Recife con parser fallido y los 2 PDFs con `invalid_event_stroke`.
+- Carga a core ejecutada para `backend/data/raw/manifests/fchmn_home_validated_for_load_20260419.jsonl`: summary `backend/data/raw/batch_summaries/fchmn_home_validated_for_load_20260419_load.json` quedo `loaded: 16`, sin issues y con password redactado. Verificacion DB: 16 competencias esperadas presentes en `core.competition`.
+- Parser `0.1.10`: los 2 documentos `requires_review` por `invalid_event_stroke` (`resultados-v-copa-santiago-deporte-2025.pdf` y `resultados-xii-copa-penalolen-master-natacion-2025.pdf`) quedaron reparseados y revalidados como `validated` sin usar `--load`.
 - Runbook de validacion automatizada FCHMN en `backend/docs/fchmn_results_validation.md` con comandos reproducibles para discovery, download y batch validation.
 - El fixture del scraper conserva candidatos de portada como `resultados-1a-etapa.pdf`; no se excluyen por keyword aunque el parser aun pueda marcarlos como `failed`.
 
@@ -126,9 +131,11 @@ Explica el qué (what), el por qué (why), el donde (where) y lo aprendido (lear
 
 Fase 4 quedo iniciada con contrato, scraper de apuntamiento, descarga separada, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional y manifest local de multiples documentos. El manifest soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) y conserva `source_url` para trazabilidad.
 
-Primer objetivo sugerido:
+Proximo objetivo sugerido:
 
-- Ampliar pruebas controladas de manifest contra pocas URLs FCHMN antes de automatizar volumen.
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Conservar como candidatos los PDFs de portada `resultados-1a-etapa.pdf` y similares: son de un Sudamericano Master en Brasil con formato pendiente de soporte, no ruido para excluir por keyword.
+- Cuando se decida ampliar soporte de parser, partir con fixture chico de esos candidatos de portada en vez de excluirlos del scraper.
+- Siguiente paso operativo: auditar aliases manuales de clubes desde `backend/data/reference/club_alias.csv` y los `club_alias_candidates.csv` generados, sin implementar matching probabilistico de atletas.
+- Despues de esa auditoria, abordar soporte de parser para los 5 PDFs Sudamericano Recife con fixtures chicos.
 - No crear tablas nuevas sin una migracion explicita.

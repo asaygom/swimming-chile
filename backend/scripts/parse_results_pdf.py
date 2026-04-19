@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# parser v0.1.9
 from __future__ import annotations
 
 import argparse
@@ -30,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.9"
+PARSER_VERSION = "0.1.10"
 
 try:
     import pdfplumber
@@ -299,8 +298,13 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
     value = normalize_string(value)
     if value is None:
         return None
-    # Limpieza propia del layout PDF: algunos encabezados pegan el sufijo de edad al estilo.
-    value = re.sub(r"\s+\d+\s+a(?:ñ|n)os\s+y\s+m[aá]s$", "", value, flags=re.IGNORECASE)
+    # Limpieza propia del layout PDF: algunos encabezados pegan categorias de edad al estilo.
+    value = re.sub(
+        r"\s+(?:(?:\d+\s+a\s+\d+|\d+\s+y\s+(?:m[aá]s|\d+)|\d+)\s+a(?:ñ|n)os|\d+\s+a(?:ñ|n)os\s+y\s+m[aá]s)(?=\s+relay$|$)",
+        "",
+        value,
+        flags=re.IGNORECASE,
+    )
     return normalize_domain_stroke(value)
 
 
@@ -971,7 +975,7 @@ def save_outputs(frames: Dict[str, pd.DataFrame], debug_df: pd.DataFrame, metada
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar. v0.1.9 modulariza normalizacion compartida de tiempos, generos, estilos y status."
+        description="Extrae resultados desde un PDF estilo FCHMN a archivos intermedios CSV/XLSX listos para revisar."
     )
     parser.add_argument("--pdf", required=True, help="Ruta al PDF de resultados")
     parser.add_argument("--out-dir", required=True, help="Carpeta de salida para CSV/XLSX")
