@@ -83,6 +83,7 @@ Implementado en el repo:
 - `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
 - Con `--overwrite`, `download_manifest_pdfs.py` reporta si un PDF fue `updated` por cambio de checksum o `unchanged` si el contenido remoto coincide con el local.
 - Los summaries de manifests de descarga y batch incluyen `state_counts` para auditoria agregada.
+- El batch runner marca como `failed` un manifest sin documentos; validar cero unidades no cuenta como batch sano.
 - El contrato manual manifest -> descarga -> batch runner esta cubierto con fixture controlado, sin red real ni carga a core.
 - Smoke real controlado con `resultados-ii-copa-chile-1.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
 - Segundo smoke real controlado con `resultados-coppa-italia-master-2026.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.

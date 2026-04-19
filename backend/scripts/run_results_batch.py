@@ -475,8 +475,12 @@ def process_manifest(args: argparse.Namespace) -> BatchManifestResult:
     if not manifest_path.exists() or not manifest_path.is_file():
         raise SystemExit(f"[ERROR] No existe el manifest: {manifest_path}")
 
+    entries = read_manifest_entries(manifest_path)
+    if not entries:
+        return BatchManifestResult("failed", str(manifest_path), {}, [])
+
     documents: list[BatchValidationResult] = []
-    for entry in read_manifest_entries(manifest_path):
+    for entry in entries:
         item_args = build_manifest_item_args(args, entry)
         documents.append(process_one(item_args))
 

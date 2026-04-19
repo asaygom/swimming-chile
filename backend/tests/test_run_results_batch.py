@@ -270,6 +270,39 @@ def test_process_manifest_continues_across_valid_and_review_documents():
     assert [document.state for document in result.documents] == ["validated", "requires_review"]
 
 
+def test_process_manifest_fails_when_manifest_has_no_documents():
+    manifest_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_batch_empty_manifest.jsonl"
+    manifest_path.write_text("\n# no documents\n", encoding="utf-8")
+    args = Namespace(
+        manifest=str(manifest_path),
+        input_dir=None,
+        pdf=None,
+        out_dir=None,
+        competition_id=None,
+        source_url=None,
+        default_source_id=1,
+        excel_name="parsed_results.xlsx",
+        load=False,
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user=None,
+        password=None,
+        schema="core",
+        truncate_staging=False,
+        debug_threshold=0.20,
+    )
+
+    try:
+        result = batch.process_manifest(args)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert result.state == "failed"
+    assert result.state_counts == {}
+    assert result.documents == []
+
+
 def test_process_manifest_supports_pdf_entries_without_cross_document_contamination(monkeypatch):
     parsed = []
 

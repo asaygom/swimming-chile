@@ -102,6 +102,8 @@ Por cada manifest procesado:
 - Estado agregado del manifest.
 - `state_counts` con cantidad de documentos por estado.
 - Detalle por documento para auditoria.
+- Un manifest sin documentos queda `failed`; validar cero unidades no entrega
+  evidencia operativa.
 
 Los PDFs, CSVs completos y Excels generados siguen sin versionarse.
 
