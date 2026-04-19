@@ -21,6 +21,7 @@ def test_discover_pdf_urls_resolves_relative_links_skips_duplicates_and_filters_
     assert urls == [
         "https://fchmn.cl/wp-content/uploads/2026/03/resultados-ii-copa-chile-1.pdf",
         "https://fchmn.cl/wp-content/uploads/2026/03/resultados-coppa-italia-master-2026.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/04/resultados-1a-etapa.pdf",
     ]
 
 

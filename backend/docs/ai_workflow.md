@@ -94,6 +94,7 @@ Implementado en el repo:
 - `backend/scripts/run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin carga a core.
 - E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
 - Runbook de validacion automatizada FCHMN en `backend/docs/fchmn_results_validation.md` con comandos reproducibles para discovery, download y batch validation.
+- El fixture del scraper conserva candidatos de portada como `resultados-1a-etapa.pdf`; no se excluyen por keyword aunque el parser aun pueda marcarlos como `failed`.
 
 No implementado todavia:
 
