@@ -5,7 +5,7 @@ Este documento permite retomar el proyecto en otra conversacion sin depender del
 ## Fuentes de verdad
 
 - Hoja de ruta: `implementation_plan.md`.
-- Reglas del proyecto: `AGENTS.md` cuando este disponible en el entorno local.
+- Reglas operativas para agentes: `AGENTS.md`.
 - Politica de artefactos: `backend/docs/data_artifacts.md`.
 - Contratos del parser: `backend/docs/parser_contracts.md`.
 - Contrato del batch runner: `backend/docs/batch_runner_contract.md`.
@@ -16,6 +16,13 @@ Este documento permite retomar el proyecto en otra conversacion sin depender del
 ## Principio central
 
 El aprendizaje con IA debe avanzar junto con el plan real del proyecto. Cada sesion debe empujar una fase del producto y explicar el donde, por que y para que de los cambios.
+
+`AGENTS.md` y este documento se complementan:
+
+- `AGENTS.md`: reglas cortas e imperativas para actuar dentro del repo.
+- `backend/docs/ai_workflow.md`: memoria metodologica, continuidad entre conversaciones, estado extendido y siguiente paso.
+- Los contratos tecnicos viven en docs especificas como `parser_contracts.md`, `batch_runner_contract.md` o `traceability_idempotency.md`.
+- Evitar duplicar detalles largos entre documentos; enlazar o resumir cuando baste.
 
 Orden actual del proyecto:
 
@@ -55,7 +62,8 @@ Si cambia comportamiento o contrato:
 1. Actualizar tests.
 2. Actualizar el contrato tecnico correspondiente.
 3. Actualizar `README.md` si afecta uso humano.
-4. Actualizar `AGENTS.md` y `backend/docs/ai_workflow.md` si afecta metodologia, estado actual, comandos operativos, archivos clave o siguiente paso.
+4. Actualizar `AGENTS.md` solo si cambia una regla operativa para agentes.
+5. Actualizar `backend/docs/ai_workflow.md` si cambia metodologia, handoff, estado extendido o siguiente paso sugerido.
 
 ## Estado metodologico actual
 

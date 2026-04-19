@@ -1,5 +1,10 @@
 # Proyecto: Natación Chile - FCHMN
 
+## Rol de este archivo
+`AGENTS.md` contiene reglas operativas para agentes que trabajan en este repositorio. Debe ser corto, imperativo y orientado a ejecucion.
+
+Para metodologia, continuidad entre conversaciones y estado extendido, leer `backend/docs/ai_workflow.md`. No usar este archivo como changelog largo.
+
 ## Objetivo
 Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y cargarlos a PostgreSQL.
 
@@ -43,6 +48,9 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
    - Es la automatizacion segura actual; la carga a core sigue siendo explicita y separada.
 
 ## Estado actual
+- El trabajo activo del proyecto esta en backend/data pipeline.
+- `frontend/` existe como area planificada para Fase 6, pero todavia no tiene implementacion activa ni reglas propias.
+- Cuando empiece trabajo real de frontend, crear documentacion especifica en `frontend/README.md` y, si hace falta, `frontend/AGENTS.md`.
 - El parser ya soporta layouts FCHMN tipo HY-TEK.
 - Soporta:
   - `LC Meter` y `SC Meter`
@@ -137,5 +145,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - Mantener compatibilidad con los PDFs ya validados.
 - No saltar fases del `implementation_plan.md`.
 - En Fase 4, mantener descarga, parseo, validacion y carga separadas.
-- Si cambia comportamiento, estado actual, archivos clave, comandos operativos o metodologia, actualizar `AGENTS.md` y `backend/docs/ai_workflow.md` en la misma sesion.
+- Si cambia una regla operativa para agentes, actualizar `AGENTS.md`.
+- Si cambia metodologia, estado extendido, handoff o siguiente paso sugerido, actualizar `backend/docs/ai_workflow.md`.
+- Si cambia comportamiento tecnico, actualizar tests y el contrato tecnico correspondiente antes de resumir.
 - Despues de ejecutar cambios siempre revisar git status y proponer commit
