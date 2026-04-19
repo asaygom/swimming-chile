@@ -174,6 +174,14 @@ Downloader:
 - Produce resumen de manifest con `state_counts`.
 - No parsea, no valida CSVs y no carga a DB.
 
+Orquestador de validacion FCHMN:
+
+- `backend/scripts/run_fchmn_results_validation.py` encadena scraper, downloader y batch
+  validation.
+- No acepta ni pasa `--load`; la carga a core queda en un paso manual explicito.
+- Escribe manifest, resumen de descarga y resumen de batch en rutas auditables.
+- Termina con codigo distinto de cero si la cadena no queda `validated`.
+
 Batch runner:
 
 - Decide si un documento se debe procesar o saltar.

@@ -52,7 +52,8 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 ## Estructura
 
 - `scripts/parse_results_pdf.py`: parser de PDFs y generador de CSVs
-- `scripts/run_results_batch.py`: validador inicial de Fase 4 antes de cargar a core
+- `scripts/run_results_batch.py`: valida salidas del parser antes de cargar a core
+- `scripts/run_fchmn_results_validation.py`: orquesta discovery, descarga y validacion FCHMN sin cargar a core
 - `scripts/scrape_fchmn.py`: descubre enlaces PDF y escribe manifests JSONL sin descargar ni cargar
 - `scripts/download_manifest_pdfs.py`: descarga PDFs declarados en un manifest sin parsear ni cargar
 - `scripts/run_pipeline_results.py`: carga CSVs a staging y core en PostgreSQL
@@ -60,7 +61,8 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 - `sql/analysis_queries.sql`: consultas analiticas de ejemplo
 - `docs/schema.md`: documentacion logica del modelo vigente
 - `docs/parser_contracts.md`: contratos de entrada/salida del parser PDF
-- `docs/batch_runner_contract.md`: contrato de Fase 4 para batch runner y compuertas
+- `docs/batch_runner_contract.md`: contrato del batch runner y compuertas
+- `docs/fchmn_results_validation.md`: runbook de validacion automatizada FCHMN
 - `docs/data_artifacts.md`: politica de versionado de datos, raw, staging y fixtures
 - `docs/ai_workflow.md`: metodologia para trabajar con IA y retomar contexto entre conversaciones
 
@@ -140,7 +142,7 @@ python backend\scripts\run_results_batch.py `
   --summary-json backend\data\raw\batch_summaries\fchmn_2026.json
 ```
 
-Flujo manual recomendado de Fase 4:
+Flujo manual recomendado de validacion FCHMN:
 
 1. Descubrir enlaces y escribir manifest con `scrape_fchmn.py`.
 2. Descargar PDFs del manifest con `download_manifest_pdfs.py`.

@@ -1,6 +1,6 @@
-# Operacion Fase 4: discovery -> download -> batch validation
+# Validacion automatizada de resultados FCHMN
 
-Este runbook documenta la cadena operativa controlada de Fase 4. Mantiene
+Este runbook documenta la cadena operativa controlada para resultados FCHMN. Mantiene
 separadas las responsabilidades: descubrir URLs, descargar PDFs, parsear,
 validar y cargar a core solo cuando se pida explicitamente.
 
@@ -88,6 +88,29 @@ Salida esperada para un batch sano:
 Si el parser falla para un documento, ese documento queda `failed` con issue
 `parser_failed` y el resto del manifest continua. Si una compuerta bloquea, el
 documento queda `requires_review`.
+
+## Automatizacion segura sin carga
+
+Este comando encadena discovery, download y batch validation. No carga a core y
+falla si el resultado final no queda `validated`.
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\run_fchmn_results_validation.py `
+  --url https://fchmn.cl/resultados/ `
+  --run-id fchmn_resultados_YYYYMMDD `
+  --limit 5 `
+  --json
+```
+
+El orquestador escribe:
+
+- manifest: `backend/data/raw/manifests/fchmn_results_validation_<run_id>.jsonl`
+- descarga: `backend/data/raw/batch_summaries/fchmn_results_validation_<run_id>_download.json`
+- batch: `backend/data/raw/batch_summaries/fchmn_results_validation_<run_id>_batch.json`
+
+Usar este comando para monitoreo o smoke operativo. Para cargar a core, revisar
+primero el summary de batch y ejecutar `run_results_batch.py --load` como paso
+separado.
 
 ## E2E real validado
 

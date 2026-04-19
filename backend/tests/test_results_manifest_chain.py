@@ -16,8 +16,8 @@ import run_results_batch as batch
 
 
 def test_manifest_download_then_batch_validation_chain(monkeypatch):
-    manifest_path = STAGING_DIR / "test_phase4_chain_manifest.jsonl"
-    pdf_path = STAGING_DIR / "test_phase4_chain.pdf"
+    manifest_path = STAGING_DIR / "test_results_chain_manifest.jsonl"
+    pdf_path = STAGING_DIR / "test_results_chain.pdf"
     parser_seen = []
     pdf_bytes = b"%PDF-1.4\nchain fixture\n"
     manifest_path.write_text(

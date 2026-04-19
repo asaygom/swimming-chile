@@ -9,7 +9,7 @@ Este documento permite retomar el proyecto en otra conversacion sin depender del
 - Politica de artefactos: `backend/docs/data_artifacts.md`.
 - Contratos del parser: `backend/docs/parser_contracts.md`.
 - Contrato del batch runner: `backend/docs/batch_runner_contract.md`.
-- Operacion Fase 4: `backend/docs/phase4_operations.md`.
+- Validacion automatizada FCHMN: `backend/docs/fchmn_results_validation.md`.
 - Modelo vigente: `backend/docs/schema.md`.
 - Trazabilidad e idempotencia: `backend/docs/traceability_idempotency.md`.
 
@@ -55,7 +55,7 @@ Si cambia comportamiento o contrato:
 1. Actualizar tests.
 2. Actualizar el contrato tecnico correspondiente.
 3. Actualizar `README.md` si afecta uso humano.
-4. Actualizar `backend/docs/ai_workflow.md` y/o `AGENTS.md` si afecta metodologia, estado actual o siguiente paso.
+4. Actualizar `AGENTS.md` y `backend/docs/ai_workflow.md` si afecta metodologia, estado actual, comandos operativos, archivos clave o siguiente paso.
 
 ## Estado metodologico actual
 
@@ -83,8 +83,9 @@ Implementado en el repo:
 - Las rutas relativas en manifests se resuelven desde la raiz del proyecto para evitar fallos al ejecutar tests o comandos desde subcarpetas.
 - El batch runner conserva `source_url` desde manifests y la entrega al pipeline durante `--load` para trazabilidad de `competition` y `source_document`.
 - Fallos tecnicos del parser en un documento de manifest quedan aislados como `failed` y no detienen el resto del manifest.
+- `backend/scripts/run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin carga a core.
 - E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
-- Runbook operativo de Fase 4 en `backend/docs/phase4_operations.md` con comandos reproducibles para discovery, download y batch validation.
+- Runbook de validacion automatizada FCHMN en `backend/docs/fchmn_results_validation.md` con comandos reproducibles para discovery, download y batch validation.
 
 No implementado todavia:
 
