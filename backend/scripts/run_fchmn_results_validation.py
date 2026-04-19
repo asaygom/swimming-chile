@@ -15,6 +15,10 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 SCRAPER_SCRIPT = BACKEND_DIR / "scripts" / "scrape_fchmn.py"
 DOWNLOADER_SCRIPT = BACKEND_DIR / "scripts" / "download_manifest_pdfs.py"
 BATCH_SCRIPT = BACKEND_DIR / "scripts" / "run_results_batch.py"
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from natacion_chile.manifest import count_jsonl_manifest_entries
 
 
 @dataclass
@@ -133,15 +137,7 @@ def read_json_if_exists(path: Path) -> dict[str, Any]:
 
 
 def count_manifest_entries(manifest_path: Path) -> int:
-    if not manifest_path.exists():
-        return 0
-    count = 0
-    with manifest_path.open("r", encoding="utf-8-sig") as handle:
-        for raw_line in handle:
-            line = raw_line.strip()
-            if line and not line.startswith("#"):
-                count += 1
-    return count
+    return count_jsonl_manifest_entries(manifest_path)
 
 
 def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationResult:

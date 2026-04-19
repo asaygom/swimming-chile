@@ -13,6 +13,10 @@ from urllib.request import urlopen
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 PROJECT_DIR = BACKEND_DIR.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from natacion_chile.manifest import read_jsonl_manifest_entries
 
 
 @dataclass
@@ -35,20 +39,7 @@ class DownloadManifestResult:
 
 
 def read_manifest_entries(manifest_path: Path) -> list[dict[str, Any]]:
-    entries: list[dict[str, Any]] = []
-    with manifest_path.open("r", encoding="utf-8-sig") as handle:
-        for line_number, raw_line in enumerate(handle, start=1):
-            line = raw_line.strip()
-            if not line or line.startswith("#"):
-                continue
-            try:
-                entry = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise SystemExit(f"[ERROR] Manifest JSONL invalido en linea {line_number}: {exc}") from exc
-            if not isinstance(entry, dict):
-                raise SystemExit(f"[ERROR] Manifest linea {line_number} debe ser un objeto JSON.")
-            entries.append(entry)
-    return entries
+    return read_jsonl_manifest_entries(manifest_path)
 
 
 def fetch_url_bytes(url: str, timeout_seconds: int) -> bytes:
@@ -155,9 +146,13 @@ def process_manifest(
     if not manifest_path.exists() or not manifest_path.is_file():
         raise SystemExit(f"[ERROR] No existe el manifest: {manifest_path}")
 
+    entries = read_manifest_entries(manifest_path)
+    if not entries:
+        return DownloadManifestResult("failed", str(manifest_path), {}, [])
+
     documents = [
         download_one(entry, timeout_seconds=timeout_seconds, overwrite=overwrite, fetcher=fetcher)
-        for entry in read_manifest_entries(manifest_path)
+        for entry in entries
     ]
     return DownloadManifestResult(summarize_state(documents), str(manifest_path), count_states(documents), documents)
 

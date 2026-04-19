@@ -57,6 +57,7 @@ Salida esperada:
 - `state`: `updated` con `--overwrite` cuando el checksum nuevo difiere del
   checksum local anterior.
 - `state`: `unchanged` con `--overwrite` cuando el checksum no cambia.
+- `state`: `failed` si el manifest no contiene documentos.
 - `state_counts`: cantidad de documentos por estado.
 - Por documento: bytes descargados y `pdf_sha256`.
 

@@ -171,6 +171,8 @@ Scraper:
 Downloader:
 
 - Lee un manifest JSONL con `source_url` y `pdf` o `pdf_path`.
+- Usa la misma lectura JSONL que el batch runner y falla si el manifest no
+  contiene documentos.
 - Descarga cada PDF hacia su ruta local esperada.
 - No reemplaza PDFs existentes salvo `--overwrite`.
 - Calcula `pdf_sha256` para el resumen auditable cuando el PDF existe localmente.

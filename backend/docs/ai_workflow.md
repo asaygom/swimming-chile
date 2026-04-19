@@ -82,6 +82,7 @@ Implementado en el repo:
 - `backend/scripts/scrape_fchmn.py` puede descubrir enlaces PDF desde HTML local o URL y escribir un manifest JSONL sin descargar, parsear ni cargar.
 - `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
 - Con `--overwrite`, `download_manifest_pdfs.py` reporta si un PDF fue `updated` por cambio de checksum o `unchanged` si el contenido remoto coincide con el local.
+- Downloader, batch runner y orquestador FCHMN comparten la lectura JSONL de manifests desde `backend/natacion_chile/manifest.py`.
 - Los summaries de manifests de descarga y batch incluyen `state_counts` para auditoria agregada.
 - El batch runner marca como `failed` un manifest sin documentos; validar cero unidades no cuenta como batch sano.
 - El contrato manual manifest -> descarga -> batch runner esta cubierto con fixture controlado, sin red real ni carga a core.

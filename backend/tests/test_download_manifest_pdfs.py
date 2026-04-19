@@ -150,6 +150,20 @@ def test_process_manifest_marks_entries_without_source_url_as_failed():
     assert result.documents[0].message == "Falta source_url."
 
 
+def test_process_manifest_fails_when_manifest_has_no_documents():
+    manifest_path = STAGING_DIR / "test_download_empty_manifest.jsonl"
+    manifest_path.write_text("\n# no documents\n", encoding="utf-8")
+
+    try:
+        result = downloader.process_manifest(manifest_path, timeout_seconds=5)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert result.state == "failed"
+    assert result.state_counts == {}
+    assert result.documents == []
+
+
 def test_read_manifest_accepts_utf8_bom():
     manifest_path = STAGING_DIR / "test_download_bom_manifest.jsonl"
     manifest_path.write_text(
