@@ -88,16 +88,17 @@ def infer_year_from_url(url: str) -> str:
 
 def build_manifest_entries(args: argparse.Namespace, urls: list[str]) -> list[ManifestEntry]:
     entries: list[ManifestEntry] = []
-    slug_counts: dict[str, int] = {}
+    slug_counts: dict[tuple[str, str], int] = {}
     pdf_dir = Path(args.pdf_dir)
     out_dir_root = Path(args.out_dir_root)
 
     for url in urls[: args.limit]:
         slug = slugify_pdf_url(url)
         year = str(args.year) if args.year else infer_year_from_url(url)
-        slug_counts[slug] = slug_counts.get(slug, 0) + 1
-        if slug_counts[slug] > 1:
-            slug = f"{slug}-{slug_counts[slug]}"
+        slug_key = (year, slug)
+        slug_counts[slug_key] = slug_counts.get(slug_key, 0) + 1
+        if slug_counts[slug_key] > 1:
+            slug = f"{slug}-{slug_counts[slug_key]}"
         entries.append(
             ManifestEntry(
                 source_url=url,

@@ -73,6 +73,9 @@ Los manifests generados por el scraper deben agrupar `pdf` y `out_dir` por año:
 `backend/data/raw/results_pdf/fchmn/<año>/...` y
 `backend/data/raw/results_csv/fchmn/<año>/...`. El año se infiere desde la URL
 del PDF cuando es posible y puede forzarse con `--year`.
+Si dos PDFs generan el mismo slug, el scraper solo agrega sufijos dentro del
+mismo año/carpeta destino; el mismo nombre puede repetirse en años distintos sin
+colisionar.
 
 Las rutas relativas declaradas en `input_dir`, `pdf`, `pdf_path` y `out_dir` se
 resuelven desde la raiz del proyecto, no desde el directorio actual del proceso.

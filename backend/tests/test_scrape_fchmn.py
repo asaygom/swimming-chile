@@ -80,6 +80,35 @@ def test_build_manifest_entries_can_override_year():
     assert entries[0].out_dir == str(Path("backend/data/raw/results_csv/fchmn/2025/resultados-ii-copa-chile-1"))
 
 
+def test_build_manifest_entries_deduplicates_same_slug_only_within_year():
+    args = Namespace(
+        pdf_dir="backend/data/raw/results_pdf/fchmn",
+        out_dir_root="backend/data/raw/results_csv/fchmn",
+        year=None,
+        competition_id=None,
+        default_source_id=1,
+        limit=10,
+    )
+    urls = [
+        "https://fchmn.cl/wp-content/uploads/2025/03/resultados-finales.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-finales.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/04/resultados-finales.pdf",
+    ]
+
+    entries = scraper.build_manifest_entries(args, urls)
+
+    assert [entry.pdf for entry in entries] == [
+        str(Path("backend/data/raw/results_pdf/fchmn/2025/resultados-finales.pdf")),
+        str(Path("backend/data/raw/results_pdf/fchmn/2026/resultados-finales.pdf")),
+        str(Path("backend/data/raw/results_pdf/fchmn/2026/resultados-finales-2.pdf")),
+    ]
+    assert [entry.out_dir for entry in entries] == [
+        str(Path("backend/data/raw/results_csv/fchmn/2025/resultados-finales")),
+        str(Path("backend/data/raw/results_csv/fchmn/2026/resultados-finales")),
+        str(Path("backend/data/raw/results_csv/fchmn/2026/resultados-finales-2")),
+    ]
+
+
 def test_write_manifest_emits_jsonl():
     args = Namespace(
         pdf_dir="backend/data/raw/results_pdf/fchmn",
