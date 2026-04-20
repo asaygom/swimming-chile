@@ -67,53 +67,32 @@ Si cambia comportamiento o contrato:
 
 ## Estado metodologico actual
 
-Implementado en el repo:
+Estado vigente:
 
-- Plan del proyecto versionado.
-- Politica de datos y artefactos.
-- Contratos del parser.
-- Tests unitarios y fixtures chicos.
-- Trazabilidad e idempotencia inicial en schema, migracion y pipeline.
-- Trazabilidad e idempotencia validadas contra PostgreSQL local con recarga real de `coppa_italia_2026`.
-- Modularizacion controlada inicial: normalizacion compartida de tiempos, generos, estilos y status en `backend/natacion_chile/domain/normalization.py`.
-- Validaciones persistidas como `validation_issue`.
-- Contrato minimo de Fase 4 para batch runner y compuertas en `backend/docs/batch_runner_contract.md`.
-- `backend/scripts/run_results_batch.py` puede validar `--input-dir`, ejecutar `--pdf` + `--out-dir` antes de validar y cargar con `--load` solo si el batch queda `validated`.
-- `backend/scripts/scrape_fchmn.py` puede descubrir enlaces PDF desde HTML local o URL y escribir un manifest JSONL sin descargar, parsear ni cargar.
-- `backend/scripts/download_manifest_pdfs.py` puede descargar PDFs declarados en un manifest desde `source_url` hacia `pdf`/`pdf_path`, con `--overwrite` explicito y resumen con checksum.
-- Con `--overwrite`, `download_manifest_pdfs.py` reporta si un PDF fue `updated` por cambio de checksum o `unchanged` si el contenido remoto coincide con el local.
-- Downloader, batch runner y orquestador FCHMN comparten la lectura JSONL de manifests desde `backend/natacion_chile/manifest.py`.
-- Los summaries de manifests de descarga y batch incluyen `state_counts` para auditoria agregada.
-- El batch runner marca como `failed` un manifest sin documentos; validar cero unidades no cuenta como batch sano.
-- El contrato manual manifest -> descarga -> batch runner esta cubierto con fixture controlado, sin red real ni carga a core.
-- Smoke real controlado con `resultados-ii-copa-chile-1.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
-- Segundo smoke real controlado con `resultados-coppa-italia-master-2026.pdf`: descarga, parseo y validacion quedaron `validated` sin cargar a core.
-- Los manifests del scraper agrupan PDFs y CSVs por año bajo `results_pdf/fchmn/<año>/` y `results_csv/fchmn/<año>/`.
-- Smoke real de descubrimiento contra portada FCHMN: el scraper filtra convocatorias y emite un manifest con PDF de resultados.
-- Las rutas relativas en manifests se resuelven desde la raiz del proyecto para evitar fallos al ejecutar tests o comandos desde subcarpetas.
-- El batch runner conserva `source_url` desde manifests y la entrega al pipeline durante `--load` para trazabilidad de `competition` y `source_document`.
-- Fallos tecnicos del parser en un documento de manifest quedan aislados como `failed` y no detienen el resto del manifest.
-- `backend/scripts/run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin carga a core.
-- `scrape_fchmn.py` y `run_fchmn_results_validation.py` soportan `--crawl-pages` para inventariar la paginacion WordPress de FCHMN, deduplicando PDFs entre paginas y manteniendo descarga, parseo, validacion y carga separados.
-- Inventario historico paginado 2026-04-20: `backend/data/raw/manifests/fchmn_historical_discovery_20260420.jsonl` descubrio 108 PDFs de resultados deduplicados entre 2013 y 2026 desde la portada FCHMN con `--crawl-pages 10 --limit 200`, sin descargar ni cargar en esa corrida. Distribucion por URL: 2013=1, 2015=8, 2016=3, 2017=2, 2018=17, 2019=10, 2022=11, 2023=15, 2024=17, 2025=15, 2026=9. Correccion de alcance: Coppa Italia es copa del circuito FCHMN organizada por Stadio Italiano de Santiago, no competencia internacional. Copa Cordillera tambien es organizada por FCHMN, con etapa Chile en Santiago y etapa Argentina en Mendoza; requiere modelar sede/ambito, pero no debe excluirse por nombre. La clasificacion automatica por palabras de URL fue solo diagnostico exploratorio y no sirve como compuerta de carga.
-- Validaciones exploratorias 2026-04-20 sin carga: portada full `fchmn_home_inventory_full_20260420` quedo `validated: 23`; pagina 2 full `fchmn_page2_inventory_full_20260420` quedo `validated: 14`, `requires_review: 3`, `failed: 4`; Nacional 2026 `fchmn_nacional_2026_inventory_20260420` quedo `validated: 1`.
-- La automatizacion FCHMN reporta `discovered_documents` y falla temprano si discovery no encuentra PDFs, para evitar smokes falsamente sanos.
-- E2E real controlado desde `https://fchmn.cl/resultados/`: discovery -> download -> batch validation quedo `validated` para `resultados-coppa-italia-master-2026.pdf` y `resultados-ii-copa-chile.pdf`, sin cargar a core.
-- Smoke real controlado `codex_controlled_20260419_limit3`: discovery encontro 2 PDFs, download quedo `downloaded: 2` y batch validation quedo `validated: 2`, sin usar `--load`.
-- Exploracion ampliada desde `https://fchmn.cl/` (`fchmn_home_resultados_20260419`): discovery encontro 23 PDFs con `resultado`, download quedo `downloaded: 23` y batch validation separo `validated: 16`, `requires_review: 2`, `failed: 5`, sin usar `--load`.
-- Manifest listo para carga: `backend/data/raw/manifests/fchmn_home_validated_for_load_20260419.jsonl`, validado nuevamente como `validated: 16` sin issues. Excluye los 5 PDFs Sudamericano Recife con parser fallido y los 2 PDFs con `invalid_event_stroke`.
-- Carga a core ejecutada para `backend/data/raw/manifests/fchmn_home_validated_for_load_20260419.jsonl`: summary `backend/data/raw/batch_summaries/fchmn_home_validated_for_load_20260419_load.json` quedo `loaded: 16`, sin issues y con password redactado. Verificacion DB: 16 competencias esperadas presentes en `core.competition`.
-- Parser `0.1.11`: los 2 documentos `requires_review` por `invalid_event_stroke` (`resultados-v-copa-santiago-deporte-2025.pdf` y `resultados-xii-copa-penalolen-master-natacion-2025.pdf`) quedaron reparseados y revalidados como `validated` sin usar `--load`. Tambien corrige filas donde un resultado tipo status dejaba el seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`.
-- Regresion FCHMN amplia con parser `0.1.11`: `backend/data/raw/manifests/fchmn_home_resultados_20260419.jsonl` quedo en `validated: 18`, `failed: 5`, `requires_review: 0`, sin usar `--load`. Summary: `backend/data/raw/batch_summaries/fchmn_home_resultados_20260419_parser_011_regression.json`. Los 5 `failed` siguen siendo `resultados-1a-etapa.pdf` a `resultados-5a-etapa.pdf` por layout Recife pendiente.
-- Auditoria controlada de aliases FCHMN: se agregaron mappings manuales explicitos para candidatos obvios de clubes, incluyendo sufijos pegados (`Orinoco Swim 23`, `Estadio Español Master-ZZ`, `Master San Bernardo-NI`, `Manateam Swim-AN`) y typos/abreviaciones (`Club Dpto Constitucion`, `Club Koyaique`). Los tiempos pegados al nombre del club no se guardan como aliases: se corrigen en parser. Se dejaron fuera falsos positivos como `Estadio Israelita`/`Stadio Italiano`, `Aquateam`/`Manateam Swim` y `Polaris Puerto Varas`/`Puerto Varas`.
-- Runbook de validacion automatizada FCHMN en `backend/docs/fchmn_results_validation.md` con comandos reproducibles para discovery, download y batch validation.
-- El fixture del scraper conserva candidatos de portada como `resultados-1a-etapa.pdf`; no se excluyen por keyword aunque el parser aun pueda marcarlos como `failed`.
-- Parser `0.1.12`: soporte de layout brasileno "Swim It Up" para PDFs Sudamericano Recife (`resultados-1a-etapa.pdf` a `resultados-5a-etapa.pdf`). Deteccion automatica por watermark `Sistemas de Natação Swim It Up`. Incluye headers de evento en portugues, franjas etarias (`FAIXA: 25+`), resultados individuales y relevos por columnas de posicion, y fechas formato `13 a 17/04/2026`. Se agrego `club_name` a `ParsedRelayTeamRow` para soportar el club separado del equipo en relevos brasileños.
-- Regresion FCHMN amplia con parser `0.1.12`: `backend/data/raw/manifests/fchmn_home_resultados_20260419.jsonl` quedo en `validated: 23`, `failed: 0`, `requires_review: 0`, sin usar `--load`. Summary: `backend/data/raw/batch_summaries/regression_parser_012.json`. Los 5 PDFs Recife que antes fallaban ahora parsean correctamente. Los 18 PDFs HY-TEK previos siguen sin regresion.
-- El pipeline de carga ya respeta `relay_team.club_name` cuando el parser lo entrega y conserva la inferencia desde `club.csv` solo como fallback. Esto permite transformar relevos cuyo club viene separado del nombre del equipo, incluso si `club.csv` viene vacio.
-- Decision de identidad de competencias: el parser parsea resultados publicados por FCHMN sin decidir carga. La compuerta de carga debe distinguir circuito/federacion/ambito con mas precision que una keyword en el nombre: Coppa Italia pertenece al circuito FCHMN local; Copa Cordillera pertenece a FCHMN pero tiene etapa Chile y etapa Argentina; Sudamericanos publicados por FCHMN pueden requerir scope internacional. Esto evita contaminar `club` y `athlete` con entidades fuera del objetivo de cada carga sin excluir competencias validas del circuito por nombre. El proyecto se diseña extensible a multiples fuentes de competencias (FCHMN, Fechida, etc.).
-- Discovery FCHMN multi-fuente: `scrape_fchmn.py` y `run_fchmn_results_validation.py` aceptan varias opciones `--url` para consolidar paginas especificas de menu, resultados, sudamericanos y nacionales en un unico manifest deduplicado, manteniendo discovery, descarga, parseo, validacion y carga separados.
-- Compuerta inicial de carga por scope: `run_results_batch.py --load` exige `competition_scope=fchmn_local` por defecto, o el valor definido por `--required-competition-scope`. Documentos sin scope curado o con scope distinto quedan `requires_review` y no ejecutan `run_pipeline_results.py`.
+- Fase activa: Fase 4, scraper y batch runner con compuertas de calidad.
+- La hoja de ruta, reglas operativas, politica de artefactos, contratos, schema y runbook FCHMN estan versionados como fuentes de verdad.
+- El parser soporta resultados FCHMN tipo HY-TEK y layout brasileno "Swim It Up"; genera CSVs operativos, raw/debug y `metadata.json`.
+- El pipeline carga `club`, `event`, `athlete`, `result`, `relay_result` y `relay_result_member`, y registra trazabilidad e issues de validacion.
+- La normalizacion compartida de tiempos, generos, estilos y status vive en `backend/natacion_chile/domain/normalization.py`.
+- Discovery, descarga, parseo, validacion y carga estan separados: `scrape_fchmn.py`, `download_manifest_pdfs.py`, `run_results_batch.py`, `run_fchmn_results_validation.py` y `run_pipeline_results.py`.
+- Los manifests JSONL aceptan `input_dir`, `pdf` o `pdf_path`, conservan `source_url`, resuelven rutas relativas desde la raiz del proyecto y procesan documentos de forma aislada.
+- `run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin aceptar ni pasar `--load`.
+- `scrape_fchmn.py` y `run_fchmn_results_validation.py` soportan `--crawl-pages` y multiples `--url` para consolidar fuentes FCHMN en un manifest deduplicado.
+- `run_results_batch.py --load` solo ejecuta el pipeline si el documento esta `validated` y su `competition_scope` coincide con el scope requerido (`fchmn_local` por defecto).
+
+Decisiones vigentes:
+
+- El parser parsea PDFs publicados; no decide si un documento se carga a core.
+- La compuerta de carga debe distinguir circuito, federacion, ambito, sede o etapa con datos curados, no con keywords automaticas.
+- Coppa Italia pertenece al circuito FCHMN local; Copa Cordillera requiere modelar sede/etapa; Sudamericanos pueden validarse, pero no cargarse a core sin scope adecuado.
+- Un documento `failed` o `requires_review` no debe contaminar otros documentos del manifest ni cargarse a core.
+- Los PDFs con formato no soportado son candidatos a soporte futuro, no ruido descartable.
+
+Evidencia historica:
+
+- La evidencia auditable de discovery, descarga, validacion, regresiones y cargas previas vive en `backend/data/raw/batch_summaries/` y `backend/data/raw/manifests/`.
+- El runbook `backend/docs/fchmn_results_validation.md` conserva los comandos reproducibles y los resultados exploratorios relevantes.
+- La regresion amplia con parser `0.1.12` dejo `backend/data/raw/batch_summaries/regression_parser_012.json` como evidencia principal de compatibilidad HY-TEK + Swim It Up.
 
 No implementado todavia:
 
