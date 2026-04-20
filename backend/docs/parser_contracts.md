@@ -7,6 +7,7 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
 - Fuente principal: PDF de resultados FCHMN/HY-TEK.
 - El parser recibe un archivo PDF y parametros operativos como `--out-dir`, `--competition-id` y `--default-source-id`.
 - Los layouts soportados incluyen encabezados de evento en ingles y espanol, cursos `LC/SC Meter` y `CL/CP/CC Metro`, resultados individuales y relevos.
+- Desde parser `0.1.12`, tambien se soporta el layout brasileno "Swim It Up" detectado por watermark `Sistemas de Natacao Swim It Up`, con headers de evento en portugues, franjas etarias `FAIXA`, fechas tipo `13 a 17/04/2026`, individuales y relevos por columnas.
 
 ## Salidas operativas
 
@@ -42,6 +43,7 @@ Tambien puede generar archivos de trazabilidad/debug:
 - `seed_time_ms` y `result_time_ms` se derivan cuando el tiempo es comparable.
 - `age_at_event` pertenece al resultado observado.
 - `birth_year_estimated = competition_year - age_at_event` cuando existe anio de competencia.
+- `relay_team.csv` puede incluir `club_name`. Cuando existe, representa el club observado del equipo de relevo y debe preservarse hacia la carga; cuando falta o viene vacio, el pipeline puede inferir el club desde `club.csv` y `relay_team_name`.
 - Las heuristicas propias del PDF viven en el parser; el pipeline solo debe hacer limpieza generica y carga.
 - El parser normaliza sufijos de categorias de edad pegados al estilo en encabezados HY-TEK, por ejemplo `Breast 40 a 99 años` o `Medley 120 a 159 años Relay`, sin cambiar el canon de `event.stroke`.
 - Si una fila con resultado tipo status deja el tiempo de seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`, el parser debe separar `club_name = Club Sparta A C`, `seed_time_text = 49,33` y `result_time_text = DQ`.

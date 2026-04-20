@@ -107,6 +107,7 @@ Implementado en el repo:
 - El fixture del scraper conserva candidatos de portada como `resultados-1a-etapa.pdf`; no se excluyen por keyword aunque el parser aun pueda marcarlos como `failed`.
 - Parser `0.1.12`: soporte de layout brasileno "Swim It Up" para PDFs Sudamericano Recife (`resultados-1a-etapa.pdf` a `resultados-5a-etapa.pdf`). Deteccion automatica por watermark `Sistemas de Natação Swim It Up`. Incluye headers de evento en portugues, franjas etarias (`FAIXA: 25+`), resultados individuales y relevos por columnas de posicion, y fechas formato `13 a 17/04/2026`. Se agrego `club_name` a `ParsedRelayTeamRow` para soportar el club separado del equipo en relevos brasileños.
 - Regresion FCHMN amplia con parser `0.1.12`: `backend/data/raw/manifests/fchmn_home_resultados_20260419.jsonl` quedo en `validated: 23`, `failed: 0`, `requires_review: 0`, sin usar `--load`. Summary: `backend/data/raw/batch_summaries/regression_parser_012.json`. Los 5 PDFs Recife que antes fallaban ahora parsean correctamente. Los 18 PDFs HY-TEK previos siguen sin regresion.
+- El pipeline de carga ya respeta `relay_team.club_name` cuando el parser lo entrega y conserva la inferencia desde `club.csv` solo como fallback. Esto permite transformar relevos cuyo club viene separado del nombre del equipo, incluso si `club.csv` viene vacio.
 - Decision de identidad de competencias: las competencias internacionales (Sudamericano Recife, Copa Argentina, Coppa Italia, etc.) se parsean y validan pero no se cargan a core hasta que exista un mecanismo de filtro por ambito/federacion. El parser no debe decidir que cargar; la compuerta de carga debe tener un flag que distinga competencias del circuito local (FCHMN, Fechida futuro) de internacionales. Esto evita contaminar `club` y `athlete` con entidades que no participan regularmente en el ecosistema chileno. El proyecto se diseña extensible a multiples fuentes de competencias (FCHMN, Fechida, etc.).
 
 No implementado todavia:
@@ -139,6 +140,7 @@ Fase 4 quedo iniciada con contrato, scraper de apuntamiento, descarga separada, 
 Proximo objetivo sugerido:
 
 - Mantener descarga, manifest, parseo, validacion y carga separados.
-- Cargar explicitamente las 2 competencias revalidadas con parser `0.1.11` (`resultados-v-copa-santiago-deporte-2025.pdf` y `resultados-xii-copa-penalolen-master-natacion-2025.pdf`) y/o recargar competencias afectadas por nuevos aliases manuales. No hacerlo automaticamente.
 - Diseñar mecanismo de filtro por ambito de competencia antes de cargar competencias internacionales (Sudamericano Recife, Copa Argentina, Coppa Italia). Opciones: flag `--scope` en batch runner, campo `competition_scope` en manifest/metadata, o lista de circuitos conocidos (FCHMN local, internacional, Fechida futuro).
+- Preparar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga y validacion post-load.
+- Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

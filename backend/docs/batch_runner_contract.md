@@ -212,6 +212,7 @@ Parser:
 Pipeline:
 
 - Hace limpieza generica y carga.
+- Al transformar `relay_team.csv` + `relay_swimmer.csv`, usa `relay_team.club_name` cuando venga informado y conserva la inferencia desde `club.csv` solo como fallback compatible.
 - Registra `source_document`, `load_run` y `validation_issue`.
 - No debe implementar heuristicas agresivas del PDF.
 

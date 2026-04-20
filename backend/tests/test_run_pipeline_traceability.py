@@ -80,3 +80,51 @@ def test_default_club_alias_csv_contains_audited_fchmn_mappings():
     assert pipeline.resolve_club_alias("Estadio Español Master-ZZ", aliases) == "Estadio Español"
     assert pipeline.resolve_club_alias("Manateam Swim-AN", aliases) == "Manateam Swim"
     assert pipeline.resolve_club_alias("Natacion Neurodivergentes", aliases) == "Natacion Neurodivergente"
+
+
+def test_transform_parser_relay_outputs_prefers_relay_team_club_name_with_empty_club_csv():
+    relay_team_df = pd.DataFrame(
+        [
+            {
+                "event_name": "Mixed 200 SC Meter Medley Relay",
+                "club_name": "Associacao Master",
+                "relay_team_name": "Equipe A",
+                "rank_position": "1",
+                "seed_time_text": None,
+                "seed_time_ms": None,
+                "result_time_text": "2:05.10",
+                "result_time_ms": "125100",
+                "points": "18",
+                "status": "valid",
+                "source_id": "1",
+                "page_number": "3",
+                "line_number": "42",
+            }
+        ]
+    )
+    relay_swimmer_df = pd.DataFrame(
+        [
+            {
+                "event_name": "Mixed 200 SC Meter Medley Relay",
+                "relay_team_name": "Equipe A",
+                "leg_order": "1",
+                "swimmer_name": "Nadador Uno",
+                "gender": "male",
+                "age_at_event": "35",
+                "birth_year_estimated": "1991",
+                "page_number": "3",
+                "line_number": "43",
+            }
+        ]
+    )
+    club_df = pd.DataFrame(columns=pipeline.EXPECTED_COLUMNS["club"])
+
+    transformed = pipeline.transform_parser_relay_outputs(
+        relay_team_df,
+        relay_swimmer_df,
+        club_df,
+        default_source_id=1,
+    )
+
+    assert transformed["relay_result"].loc[0, "club_name"] == "Associacao Master"
+    assert transformed["relay_result_member"].loc[0, "club_name"] == "Associacao Master"

@@ -444,7 +444,16 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
     if missing_swimmer:
         fail(f"Faltan columnas {missing_swimmer} en relay_swimmer.csv")
 
-    relay_team_df["club_name"] = relay_team_df["relay_team_name"].map(lambda x: infer_relay_club_name(x, club_names))
+    if "club_name" in relay_team_df.columns:
+        explicit_club_names = relay_team_df["club_name"].map(clean_extracted_text)
+    else:
+        explicit_club_names = pd.Series([None] * len(relay_team_df), index=relay_team_df.index, dtype=object)
+    inferred_club_names = relay_team_df["relay_team_name"].map(lambda x: infer_relay_club_name(x, club_names))
+    relay_team_df["club_name"] = explicit_club_names.combine_first(inferred_club_names)
+    relay_club_by_team = {
+        (normalize_match_text(row.get("event_name")), normalize_match_text(row.get("relay_team_name"))): row.get("club_name")
+        for _, row in relay_team_df.iterrows()
+    }
     relay_team_df["lane"] = None
     relay_team_df["heat_number"] = None
     relay_team_df["points"] = relay_team_df.get("points")
@@ -456,7 +465,11 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
         ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"]
     ]
 
-    relay_swimmer_df["club_name"] = relay_swimmer_df["relay_team_name"].map(lambda x: infer_relay_club_name(x, club_names))
+    relay_swimmer_df["club_name"] = relay_swimmer_df.apply(
+        lambda row: relay_club_by_team.get((normalize_match_text(row.get("event_name")), normalize_match_text(row.get("relay_team_name"))))
+        or infer_relay_club_name(row.get("relay_team_name"), club_names),
+        axis=1,
+    )
     relay_swimmer_df["athlete_name"] = relay_swimmer_df["swimmer_name"]
     relay_member_df = relay_swimmer_df[
         ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"]

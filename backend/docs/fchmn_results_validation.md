@@ -138,12 +138,21 @@ Validacion controlada realizada contra `https://fchmn.cl/resultados/`:
 
 Ambos quedaron `validated` sin carga a core.
 
-## PDFs descubiertos en portada con formato pendiente
+## Regresion parser 0.1.12
 
-La portada `https://fchmn.cl/` puede publicar PDFs con `resultado` en la URL que
-no corresponden al layout HY-TEK soportado actualmente por el parser. El caso
-observado corresponde a un Sudamericano Master realizado en Brasil, donde la
-publicacion cambio el formato de los resultados:
+El parser `0.1.12` agrega soporte para el layout brasileno "Swim It Up" observado
+en el Sudamericano Recife. La regresion amplia FCHMN quedo documentada en:
+
+- `backend/data/raw/batch_summaries/regression_parser_012.json`
+
+Resultado esperado de esa evidencia:
+
+- `state`: `validated`
+- `state_counts.validated`: 23
+- `failed`: 0
+- `requires_review`: 0
+- Los 18 PDFs HY-TEK previos siguen validados.
+- Los 5 PDFs Recife que antes fallaban ahora quedan validados:
 
 - `resultados-1a-etapa.pdf`
 - `resultados-2a-etapa.pdf`
@@ -151,12 +160,8 @@ publicacion cambio el formato de los resultados:
 - `resultados-4a-etapa.pdf`
 - `resultados-5a-etapa.pdf`
 
-Estos PDFs descargan correctamente, pero el batch runner debe marcarlos como
-`failed` si el parser no extrae filas. No se deben cargar a core.
-No deben excluirse por keyword: en futuras competencias, `etapa` puede ser parte
-de un resultado valido y este formato tambien deberia soportarse mas adelante.
-El camino correcto es conservarlos como candidatos y abrir soporte de parser con
-fixtures pequenos cuando se aborde ese layout.
+Esto es validacion sin carga. Las competencias internacionales siguen sin
+cargarse a core hasta definir compuerta de scope/federacion.
 
 ## Carga a core
 
