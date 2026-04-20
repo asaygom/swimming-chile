@@ -128,6 +128,25 @@ automaticamente el scope de carga. Antes de cualquier `--load`, congelar un
 manifest curado que excluya documentos `requires_review`/`failed` y agregue
 `competition_scope` por documento.
 
+## Manifest congelado para carga
+
+Despues de revisar un summary de batch, generar un archivo de URLs curadas con
+una `source_url` local por linea. Luego crear el manifest congelado:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\freeze_validated_manifest.py `
+  --batch-summary backend\data\raw\batch_summaries\fchmn_resultados_e2e_YYYYMMDD_batch.json `
+  --manifest backend\data\raw\manifests\fchmn_resultados_e2e_YYYYMMDD_frozen_local.jsonl `
+  --competition-scope fchmn_local `
+  --allow-source-url-file backend\data\raw\manifests\fchmn_resultados_e2e_YYYYMMDD_allowed_urls.txt `
+  --json
+```
+
+El freezer no descarga, no parsea, no valida y no carga. Solo copia documentos
+`validated`, excluye `requires_review`/`failed` y agrega `competition_scope`.
+Usar `--allow-all-validated` solo si todos los documentos `validated` del summary
+ya fueron curados manualmente como locales.
+
 Para inventario historico desde la portada WordPress, usar paginacion explicita:
 
 ```powershell

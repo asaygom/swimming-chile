@@ -47,6 +47,13 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
    - No acepta ni pasa `--load`.
    - Es la automatizacion segura actual; la carga a core sigue siendo explicita y separada.
 
+7. `backend/scripts/freeze_validated_manifest.py`
+   - Lee summaries de batch validation.
+   - Genera manifests congelados solo con documentos `validated`.
+   - Excluye documentos `requires_review` y `failed`.
+   - Agrega `competition_scope` curado.
+   - No descarga, no parsea, no valida CSVs ni carga a core.
+
 ## Estado actual
 - El trabajo activo del proyecto esta en backend/data pipeline.
 - `frontend/` existe como area planificada para Fase 6, pero todavia no tiene implementacion activa ni reglas propias.
@@ -133,11 +140,13 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - `backend/scripts/download_manifest_pdfs.py`
 - `backend/scripts/run_results_batch.py`
 - `backend/scripts/run_fchmn_results_validation.py`
+- `backend/scripts/freeze_validated_manifest.py`
 - `backend/scripts/run_pipeline_results.py`
 - `backend/sql/schema.sql`
 - `backend/docs/schema.md`
 - `backend/docs/batch_runner_contract.md`
 - `backend/docs/fchmn_results_validation.md`
+- `backend/docs/pre_load_checklist.md`
 - `backend/docs/ai_workflow.md`
 
 ## Forma de trabajar
@@ -152,3 +161,4 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - Si cambia metodologia, estado extendido, handoff o siguiente paso sugerido, actualizar `backend/docs/ai_workflow.md`.
 - Si cambia comportamiento tecnico, actualizar tests y el contrato tecnico correspondiente antes de resumir.
 - Despues de ejecutar cambios siempre revisar git status y proponer commit
+- Antes de una primera carga o full reload, seguir `backend/docs/pre_load_checklist.md`.

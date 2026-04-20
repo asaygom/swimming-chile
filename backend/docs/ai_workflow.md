@@ -10,6 +10,7 @@ Este documento permite retomar el proyecto en otra conversacion sin depender del
 - Contratos del parser: `backend/docs/parser_contracts.md`.
 - Contrato del batch runner: `backend/docs/batch_runner_contract.md`.
 - Validacion automatizada FCHMN: `backend/docs/fchmn_results_validation.md`.
+- Checklist pre-carga/full reload: `backend/docs/pre_load_checklist.md`.
 - Modelo vigente: `backend/docs/schema.md`.
 - Trazabilidad e idempotencia: `backend/docs/traceability_idempotency.md`.
 
@@ -77,6 +78,7 @@ Estado vigente:
 - Discovery, descarga, parseo, validacion y carga estan separados: `scrape_fchmn.py`, `download_manifest_pdfs.py`, `run_results_batch.py`, `run_fchmn_results_validation.py` y `run_pipeline_results.py`.
 - Los manifests JSONL aceptan `input_dir`, `pdf` o `pdf_path`, conservan `source_url`, resuelven rutas relativas desde la raiz del proyecto y procesan documentos de forma aislada.
 - `run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin aceptar ni pasar `--load`.
+- `freeze_validated_manifest.py` genera manifests congelados desde summaries de batch, incluyendo solo documentos `validated` y agregando `competition_scope` curado.
 - `scrape_fchmn.py` y `run_fchmn_results_validation.py` soportan `--crawl-pages` y multiples `--url` para consolidar fuentes FCHMN en un manifest deduplicado.
 - `run_results_batch.py --load` solo ejecuta el pipeline si el documento esta `validated` y su `competition_scope` coincide con el scope requerido (`fchmn_local` por defecto).
 
@@ -92,6 +94,7 @@ Evidencia historica:
 
 - La evidencia auditable de discovery, descarga, validacion, regresiones y cargas previas vive en `backend/data/raw/batch_summaries/` y `backend/data/raw/manifests/`.
 - El runbook `backend/docs/fchmn_results_validation.md` conserva los comandos reproducibles y los resultados exploratorios relevantes.
+- El checklist `backend/docs/pre_load_checklist.md` ordena backup, wipe controlado, carga y validacion post-load antes de una primera carga o full reload.
 - La regresion amplia con parser `0.1.12` dejo `backend/data/raw/batch_summaries/regression_parser_012.json` como evidencia principal de compatibilidad HY-TEK + Swim It Up.
 
 No implementado todavia:
@@ -125,8 +128,7 @@ Proximo objetivo sugerido:
 
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Consolidar un manifest historico deduplicado desde fuentes FCHMN especificas, incluyendo paginas de menu, sudamericanos y nacionales.
-- Curar `competition_scope` por documento y congelar un manifest solo con documentos locales validados.
-- Excluir documentos `requires_review` y `failed` del manifest congelado para carga.
-- Preparar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga y validacion post-load.
+- Curar `competition_scope` por documento y congelar un manifest solo con documentos locales validados usando lista explicita de `source_url`.
+- Ejecutar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga y validacion post-load.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

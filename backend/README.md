@@ -56,6 +56,7 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 - `scripts/run_fchmn_results_validation.py`: orquesta discovery, descarga y validacion FCHMN sin cargar a core
 - `scripts/scrape_fchmn.py`: descubre enlaces PDF y escribe manifests JSONL sin descargar ni cargar
 - `scripts/download_manifest_pdfs.py`: descarga PDFs declarados en un manifest sin parsear ni cargar
+- `scripts/freeze_validated_manifest.py`: genera manifests congelados solo con documentos validados y scope curado
 - `scripts/run_pipeline_results.py`: carga CSVs a staging y core en PostgreSQL
 - `sql/schema.sql`: definicion de tablas core, staging, constraints e indices
 - `sql/analysis_queries.sql`: consultas analiticas de ejemplo
@@ -63,6 +64,7 @@ Convertir PDFs de resultados en datos consultables en PostgreSQL, manteniendo un
 - `docs/parser_contracts.md`: contratos de entrada/salida del parser PDF
 - `docs/batch_runner_contract.md`: contrato del batch runner y compuertas
 - `docs/fchmn_results_validation.md`: runbook de validacion automatizada FCHMN
+- `docs/pre_load_checklist.md`: checklist de backup, wipe y validacion post-load antes de cargas controladas
 - `docs/data_artifacts.md`: politica de versionado de datos, raw, staging y fixtures
 - `docs/ai_workflow.md`: metodologia para trabajar con IA y retomar contexto entre conversaciones
 
@@ -153,6 +155,16 @@ Flujo manual recomendado de validacion FCHMN:
    `competition_scope=fchmn_local`.
 5. Agregar `--load` solo cuando el resumen del batch quede `validated`.
 
+Para congelar un manifest desde un summary de batch:
+
+```powershell
+python backend\scripts\freeze_validated_manifest.py `
+  --batch-summary backend\data\raw\batch_summaries\fchmn_2026_batch.json `
+  --manifest backend\data\raw\manifests\fchmn_2026_frozen_local.jsonl `
+  --competition-scope fchmn_local `
+  --allow-source-url-file backend\data\raw\manifests\fchmn_2026_allowed_urls.txt
+```
+
 Cada linea del manifest debe ser un objeto JSON con una carpeta parseada:
 
 ```json
@@ -168,6 +180,7 @@ o con un PDF local y su salida:
 Para carga a core, agregar `competition_scope` por documento. Por defecto
 `--load` exige `competition_scope=fchmn_local`; documentos sin scope o con scope
 distinto quedan `requires_review`.
+Antes de una primera carga o full reload, seguir `docs/pre_load_checklist.md`.
 
 `pdf_path` tambien se acepta como alias de `pdf` en manifests generados por otras herramientas.
 Los manifests pueden estar en UTF-8 con o sin BOM.

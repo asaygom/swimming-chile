@@ -218,6 +218,17 @@ Batch runner:
   `requires_review`.
 - Produce resumen auditable con `state_counts`.
 
+Manifest freezer:
+
+- `backend/scripts/freeze_validated_manifest.py` lee un summary JSON de
+  `run_results_batch.py` y escribe un manifest JSONL congelado.
+- Incluye solo documentos con estado `validated`.
+- Excluye documentos `failed` y `requires_review`.
+- Agrega `competition_scope` curado a cada entrada incluida.
+- Requiere una lista curada de `source_url` permitidas, salvo que se use
+  `--allow-all-validated` de forma explicita.
+- No descarga, no parsea, no valida CSVs y no carga a DB.
+
 Parser:
 
 - Contiene heuristicas PDF.
