@@ -175,6 +175,12 @@ Inventario exploratorio del 2026-04-20:
 - Validaciones parciales sin carga: portada full `validated: 23`; pagina 2 full
   `validated: 14`, `requires_review: 3`, `failed: 4`; Nacional 2026
   `validated: 1`.
+- Para auditorias de brechas, tratar como evidencia principal el discovery
+  historico deduplicado, los summaries `*_download.json` con checksums, los
+  summaries `*_batch.json` revisados y las regresiones amplias del parser.
+  Corridas `scratch`, probes, smoke tests y rechecks puntuales son evidencia
+  exploratoria: conservarlas mientras ayuden a diagnosticar, pero no usarlas
+  como manifest canonico ni como autorizacion de carga.
 - El barrido paginado de portada es una herramienta one-shot para backfill
   historico. Para operacion futura se espera monitorear resultados recientes y
   cambios de checksum, sin recorrer todo el historico en cada corrida.

@@ -120,6 +120,27 @@ Si hay cambios locales del usuario, respetalos y trabaja alrededor de ellos.
 Explica el qué (what), el por qué (why), el donde (where) y lo aprendido (learned) de cada cambio.
 ```
 
+## Handoff para auditoria de brechas
+
+Usar este texto cuando se retome la preparacion de carga historica:
+
+```text
+Lee primero implementation_plan.md, backend/docs/ai_workflow.md,
+backend/docs/fchmn_results_validation.md y backend/docs/pre_load_checklist.md.
+No cargues a core.
+Primero audita que documentos ya estan descubiertos, descargados, parseados y
+validados. Compara manifests en backend/data/raw/manifests/, summaries en
+backend/data/raw/batch_summaries/, PDFs locales y carpetas CSV parseadas.
+Identifica brechas por documento: missing_download, missing_parse,
+missing_validation, requires_review, failed, validated_local_candidate,
+validated_non_local_candidate.
+No uses keywords como compuerta final de carga; solo como pista diagnostica.
+Entrega primero un diagnostico y una tabla/resumen de brechas antes de proponer
+descargas, reparseos o manifests congelados.
+Respeta la separacion Fase 4: discovery, download, parse, validation, freeze y
+load son pasos distintos. No uses --load.
+```
+
 ## Siguiente paso sugerido
 
 Fase 4 quedo iniciada con contrato, scraper de apuntamiento, descarga separada, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional y manifest local de multiples documentos. El manifest soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) y conserva `source_url` para trazabilidad.

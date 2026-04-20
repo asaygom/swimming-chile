@@ -20,6 +20,8 @@ PostgreSQL es la fuente final de verdad para datos consultables. Los CSVs, Excel
 - PDFs descargados desde FCHMN u otras fuentes.
 - CSVs completos generados desde PDFs reales.
 - Excels consolidados generados por el parser.
+- Manifests, summaries y reportes reales generados durante discovery, descarga,
+  validacion o carga.
 - Dumps de base de datos.
 - Archivos `.env`, secretos, credenciales o configuraciones locales.
 - Caches de Python, pytest, virtualenvs y artefactos temporales.
@@ -37,6 +39,33 @@ PostgreSQL es la fuente final de verdad para datos consultables. Los CSVs, Excel
 ## Politica para CSVs
 
 Los CSVs operativos son efimeros. Sirven para conectar parser, revision manual y pipeline, pero deben poder regenerarse desde fuentes raw o desde fixtures controlados. Si un CSV se usa en tests, debe ser minimo y representar un caso especifico, no una competencia completa.
+
+## Politica para manifests y summaries
+
+Los manifests y summaries reales son artefactos locales auditables. Conviene
+mantenerlos durante Fase 4 porque documentan que fue descubierto, descargado,
+parseado, validado o cargado, pero no todos tienen el mismo estatus operativo.
+
+Clasificar mentalmente cada artefacto antes de usarlo:
+
+- Canonico: evidencia estable para auditoria o backfill historico, como
+  discoveries historicos deduplicados, summaries de descarga con checksums,
+  summaries de batch validation revisados, regresiones amplias del parser y
+  manifests congelados curados.
+- Exploratorio: corridas `scratch`, probes, smoke tests con `--limit`, rechecks
+  puntuales y manifests/summaries producidos mientras se ajustaba el flujo.
+- Carga: summaries de `load` previos son evidencia historica de carga, pero no
+  autorizan nuevas cargas ni reemplazan un manifest congelado con
+  `competition_scope` curado.
+
+No borrar artefactos exploratorios durante una auditoria activa. Primero cerrar
+una foto canonica con discovery, download summary, batch summary y brechas por
+documento; despues se puede archivar o limpiar scratch/probes si ya no aportan
+trazabilidad.
+
+Los nombres deben dejar claro el rol del artefacto. Preferir prefijos como
+`fchmn_historical_*`, `fchmn_results_validation_*`, `regression_*`,
+`scratch_*` o `*_probe` antes que nombres ambiguos.
 
 ## Politica para fixtures
 
