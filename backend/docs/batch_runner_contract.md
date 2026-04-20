@@ -165,6 +165,10 @@ Scraper:
 - Filtra por defecto PDFs cuya URL contenga `resultado` para evitar convocatorias
   u otros documentos no cargables.
 - Emite manifest JSONL con `source_url`, ruta local esperada del PDF y `out_dir`.
+- Puede recorrer paginas WordPress con `--crawl-pages`, deduplicando URLs de PDF
+  entre paginas y deteniendose cuando una pagina paginada devuelve 404.
+  Este modo es para backfill historico one-shot; la automatizacion recurrente
+  debe enfocarse en resultados recientes y cambios de checksum.
 - Mantiene la descarga de PDFs como paso separado y explicito.
 - No parsea ni carga a DB.
 

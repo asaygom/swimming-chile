@@ -33,6 +33,33 @@ def test_discover_pdf_urls_can_include_all_pdfs():
     assert "https://fchmn.cl/wp-content/uploads/2026/04/convocatoria-xiii-copa-penamaster-2026.pdf" in urls
 
 
+def test_wordpress_page_url_builds_paginated_urls_from_home():
+    assert scraper.wordpress_page_url("https://fchmn.cl/", 1) == "https://fchmn.cl/"
+    assert scraper.wordpress_page_url("https://fchmn.cl/", 2) == "https://fchmn.cl/page/2/"
+
+
+def test_merge_discovered_pdf_urls_deduplicates_across_pages():
+    page_one = """
+    <a href="/wp-content/uploads/2026/03/resultados-a.pdf">A</a>
+    <a href="/wp-content/uploads/2026/03/resultados-b.pdf">B</a>
+    """
+    page_two = """
+    <a href="/wp-content/uploads/2026/03/resultados-b.pdf">B duplicado</a>
+    <a href="/wp-content/uploads/2026/03/resultados-c.pdf">C</a>
+    """
+
+    urls = scraper.merge_discovered_pdf_urls(
+        [(page_one, "https://fchmn.cl/"), (page_two, "https://fchmn.cl/page/2/")],
+        include_keywords=["resultado"],
+    )
+
+    assert urls == [
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-a.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-b.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-c.pdf",
+    ]
+
+
 def test_build_manifest_entries_uses_stable_local_paths():
     args = Namespace(
         pdf_dir="backend/data/raw/results_pdf/fchmn",

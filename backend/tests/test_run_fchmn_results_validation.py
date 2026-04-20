@@ -77,6 +77,8 @@ def test_run_results_validation_orchestrates_discovery_download_and_batch_valida
     assert result.discovered_documents == 1
     assert result.download_state_counts == {"downloaded": 1}
     assert result.batch_state_counts == {"validated": 1}
+    scrape_call = calls[0]
+    assert scrape_call[scrape_call.index("--crawl-pages") + 1] == "1"
     assert [Path(call[1]).name for call in calls] == [
         "scrape_fchmn.py",
         "download_manifest_pdfs.py",

@@ -42,6 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--url", default="https://fchmn.cl/resultados/", help="Pagina FCHMN desde donde descubrir PDFs.")
     parser.add_argument("--run-id", help="Identificador estable para nombres de manifest y summaries.")
     parser.add_argument("--limit", type=int, default=5, help="Maximo de PDFs a descubrir.")
+    parser.add_argument("--crawl-pages", type=int, default=1, help="Cantidad maxima de paginas WordPress a recorrer desde --url.")
     parser.add_argument("--year", type=int, help="Año para agrupar PDFs/CSVs; si falta, se infiere desde cada URL.")
     parser.add_argument("--competition-id", type=int)
     parser.add_argument("--default-source-id", type=int, default=1)
@@ -90,6 +91,8 @@ def build_scrape_command(args: argparse.Namespace, manifest_path: Path) -> list[
         args.out_dir_root,
         "--limit",
         str(args.limit),
+        "--crawl-pages",
+        str(args.crawl_pages),
         "--default-source-id",
         str(args.default_source_id),
         "--json",

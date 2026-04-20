@@ -10,7 +10,8 @@ from dataclasses import asdict, dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urljoin, urlparse
+from urllib.error import HTTPError
+from urllib.parse import unquote, urljoin, urlparse, urlunparse
 from urllib.request import urlopen
 
 
@@ -39,6 +40,12 @@ class PdfLinkParser(HTMLParser):
                 self.hrefs.append(value)
 
 
+def read_url_html(url: str, timeout_seconds: int) -> str:
+    with urlopen(url, timeout=timeout_seconds) as response:
+        encoding = response.headers.get_content_charset() or "utf-8"
+        return response.read().decode(encoding, errors="replace")
+
+
 def read_html(args: argparse.Namespace) -> tuple[str, str]:
     if args.html_file:
         html_path = Path(args.html_file)
@@ -46,10 +53,18 @@ def read_html(args: argparse.Namespace) -> tuple[str, str]:
             raise SystemExit(f"[ERROR] No existe el HTML: {html_path}")
         return html_path.read_text(encoding="utf-8"), args.base_url
 
-    with urlopen(args.url, timeout=args.timeout_seconds) as response:
-        encoding = response.headers.get_content_charset() or "utf-8"
-        body = response.read().decode(encoding, errors="replace")
-    return body, args.url
+    return read_url_html(args.url, args.timeout_seconds), args.url
+
+
+def wordpress_page_url(start_url: str, page_number: int) -> str:
+    if page_number <= 1:
+        return start_url
+    parsed = urlparse(start_url)
+    base_path = re.sub(r"/page/\d+/?$", "/", parsed.path or "/")
+    if not base_path.endswith("/"):
+        base_path = f"{base_path}/"
+    page_path = urljoin(base_path, f"page/{page_number}/")
+    return urlunparse((parsed.scheme, parsed.netloc, page_path, "", "", ""))
 
 
 def discover_pdf_urls(html: str, base_url: str, include_keywords: list[str] | None = None) -> list[str]:
@@ -69,6 +84,31 @@ def discover_pdf_urls(html: str, base_url: str, include_keywords: list[str] | No
         seen.add(absolute_url)
         urls.append(absolute_url)
     return urls
+
+
+def merge_discovered_pdf_urls(pages: list[tuple[str, str]], include_keywords: list[str] | None = None) -> list[str]:
+    urls: list[str] = []
+    seen: set[str] = set()
+    for html, base_url in pages:
+        for url in discover_pdf_urls(html, base_url, include_keywords=include_keywords):
+            if url in seen:
+                continue
+            seen.add(url)
+            urls.append(url)
+    return urls
+
+
+def read_paginated_html(args: argparse.Namespace) -> list[tuple[str, str]]:
+    pages: list[tuple[str, str]] = []
+    for page_number in range(1, args.crawl_pages + 1):
+        page_url = wordpress_page_url(args.url, page_number)
+        try:
+            pages.append((read_url_html(page_url, args.timeout_seconds), page_url))
+        except HTTPError as exc:
+            if exc.code == 404 and page_number > 1:
+                break
+            raise
+    return pages
 
 
 def slugify_pdf_url(url: str) -> str:
@@ -132,6 +172,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-id", type=int)
     parser.add_argument("--default-source-id", type=int, default=1)
     parser.add_argument("--limit", type=int, default=sys.maxsize, help="Maximo de PDFs a incluir.")
+    parser.add_argument("--crawl-pages", type=int, default=1, help="Cantidad maxima de paginas WordPress a recorrer desde --url.")
     parser.add_argument("--all-pdfs", action="store_true", help="Incluye PDFs que no parezcan resultados.")
     parser.add_argument(
         "--include-keyword",
@@ -145,9 +186,17 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    html, base_url = read_html(args)
     include_keywords = [] if args.all_pdfs else (args.include_keyword or ["resultado"])
-    urls = discover_pdf_urls(html, base_url, include_keywords=include_keywords)
+    if args.html_file and args.crawl_pages != 1:
+        raise SystemExit("[ERROR] --crawl-pages solo se puede usar con --url.")
+    if args.crawl_pages < 1:
+        raise SystemExit("[ERROR] --crawl-pages debe ser mayor o igual a 1.")
+
+    if args.crawl_pages > 1:
+        urls = merge_discovered_pdf_urls(read_paginated_html(args), include_keywords=include_keywords)
+    else:
+        html, base_url = read_html(args)
+        urls = discover_pdf_urls(html, base_url, include_keywords=include_keywords)
     entries = build_manifest_entries(args, urls)
     write_manifest(entries, Path(args.manifest))
 

@@ -117,6 +117,41 @@ Usar este comando para monitoreo o smoke operativo. Para cargar a core, revisar
 primero el summary de batch y ejecutar `run_results_batch.py --load` como paso
 separado.
 
+Para inventario historico desde la portada WordPress, usar paginacion explicita:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\run_fchmn_results_validation.py `
+  --url https://fchmn.cl/ `
+  --run-id fchmn_historical_inventory_YYYYMMDD `
+  --crawl-pages 7 `
+  --limit 200 `
+  --json
+```
+
+`--crawl-pages` recorre `https://fchmn.cl/`, luego `/page/2/`, etc.; deduplica
+PDFs entre paginas y se detiene si una pagina paginada devuelve 404. Sigue sin
+cargar a core.
+
+Inventario exploratorio del 2026-04-20:
+
+- `backend/data/raw/manifests/fchmn_historical_discovery_20260420.jsonl`
+  descubrio 108 PDFs deduplicados entre 2013 y 2026.
+- Discovery por ano desde URL: 2013=1, 2015=8, 2016=3, 2017=2, 2018=17,
+  2019=10, 2022=11, 2023=15, 2024=17, 2025=15, 2026=9.
+- La clasificacion por nombre de URL fue solo exploratoria y no debe usarse como
+  compuerta: Coppa Italia es parte del circuito FCHMN y Copa Cordillera es
+  organizada por FCHMN, aunque tenga etapa Chile y etapa Argentina. La compuerta
+  real debe modelar circuito/federacion/ambito/sede con datos curados.
+- Validaciones parciales sin carga: portada full `validated: 23`; pagina 2 full
+  `validated: 14`, `requires_review: 3`, `failed: 4`; Nacional 2026
+  `validated: 1`.
+- El barrido paginado de portada es una herramienta one-shot para backfill
+  historico. Para operacion futura se espera monitorear resultados recientes y
+  cambios de checksum, sin recorrer todo el historico en cada corrida.
+- Fuentes historicas aun omitidas del discovery paginado: `https://fchmn.cl/sudamericanos-master/`
+  y paginas de campeonatos nacionales, por ejemplo
+  `https://fchmn.cl/campeonatos-nacionales-master/ii-campeonato-nacional-master-2007/`.
+
 ## E2E real validado
 
 Validacion controlada realizada contra `https://fchmn.cl/resultados/`:
