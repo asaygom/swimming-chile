@@ -171,6 +171,8 @@ def test_main_does_not_load_when_batch_requires_review(monkeypatch):
             "postgres",
             "--password",
             "secret",
+            "--competition-scope",
+            "fchmn_local",
         ],
     )
 
@@ -200,12 +202,94 @@ def test_main_loads_only_after_validated_batch(monkeypatch):
             "postgres",
             "--password",
             "secret",
+            "--competition-scope",
+            "fchmn_local",
         ],
     )
 
     batch.main()
 
     assert called["load"] is True
+
+
+def test_main_does_not_load_without_required_competition_scope(monkeypatch):
+    called = {"load": False}
+
+    def fake_run_pipeline(args, input_dir):
+        called["load"] = True
+
+    monkeypatch.setattr(batch, "run_pipeline", fake_run_pipeline)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_results_batch.py",
+            "--input-dir",
+            str(FIXTURES_DIR / "valid"),
+            "--load",
+            "--user",
+            "postgres",
+            "--password",
+            "secret",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        batch.main()
+
+    assert excinfo.value.code == 1
+    assert called["load"] is False
+
+
+def test_process_manifest_uses_competition_scope_per_document_for_load(monkeypatch):
+    manifest_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_batch_scope_manifest.jsonl"
+    manifest_path.write_text(
+        "\n".join(
+            [
+                json.dumps({"input_dir": "backend/tests/fixtures/batch_runner/valid", "competition_scope": "fchmn_local"}),
+                json.dumps({"input_dir": "backend/tests/fixtures/batch_runner/valid", "competition_scope": "international"}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    loaded = []
+
+    def fake_run_pipeline(args, input_dir):
+        loaded.append(str(input_dir))
+
+    monkeypatch.setattr(batch, "run_pipeline", fake_run_pipeline)
+    args = Namespace(
+        manifest=str(manifest_path),
+        input_dir=None,
+        pdf=None,
+        out_dir=None,
+        competition_id=None,
+        source_url=None,
+        competition_scope=None,
+        required_competition_scope="fchmn_local",
+        default_source_id=1,
+        excel_name="parsed_results.xlsx",
+        load=True,
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user="postgres",
+        password="secret",
+        schema="core",
+        truncate_staging=False,
+        debug_threshold=0.20,
+    )
+
+    try:
+        result = batch.process_manifest(args)
+    finally:
+        manifest_path.unlink(missing_ok=True)
+
+    assert result.state == "requires_review"
+    assert result.state_counts == {"loaded": 1, "requires_review": 1}
+    assert loaded == [str(BACKEND_DIR.parent / "backend/tests/fixtures/batch_runner/valid")]
+    assert result.documents[1].issues[-1].issue_key == "competition_scope_not_allowed"
 
 
 def test_main_writes_summary_json_with_redacted_load_command(monkeypatch):

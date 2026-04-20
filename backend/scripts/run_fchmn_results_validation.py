@@ -25,7 +25,7 @@ from natacion_chile.manifest import count_jsonl_manifest_entries
 class FchmnResultsValidationResult:
     state: str
     run_id: str
-    source_url: str
+    source_urls: list[str]
     manifest_path: str
     download_summary_path: str
     batch_summary_path: str
@@ -39,7 +39,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Orquesta discovery -> download -> batch validation de resultados FCHMN sin cargar a core."
     )
-    parser.add_argument("--url", default="https://fchmn.cl/resultados/", help="Pagina FCHMN desde donde descubrir PDFs.")
+    parser.add_argument(
+        "--url",
+        action="append",
+        default=None,
+        help="Pagina FCHMN desde donde descubrir PDFs. Puede repetirse para consolidar discovery multi-fuente.",
+    )
     parser.add_argument("--run-id", help="Identificador estable para nombres de manifest y summaries.")
     parser.add_argument("--limit", type=int, default=5, help="Maximo de PDFs a descubrir.")
     parser.add_argument("--crawl-pages", type=int, default=1, help="Cantidad maxima de paginas WordPress a recorrer desde --url.")
@@ -81,8 +86,6 @@ def build_scrape_command(args: argparse.Namespace, manifest_path: Path) -> list[
     command = [
         sys.executable,
         str(SCRAPER_SCRIPT),
-        "--url",
-        args.url,
         "--manifest",
         str(manifest_path),
         "--pdf-dir",
@@ -97,11 +100,17 @@ def build_scrape_command(args: argparse.Namespace, manifest_path: Path) -> list[
         str(args.default_source_id),
         "--json",
     ]
+    for source_url in source_urls(args):
+        command.extend(["--url", source_url])
     if args.year is not None:
         command.extend(["--year", str(args.year)])
     if args.competition_id is not None:
         command.extend(["--competition-id", str(args.competition_id)])
     return command
+
+
+def source_urls(args: argparse.Namespace) -> list[str]:
+    return args.url or ["https://fchmn.cl/resultados/"]
 
 
 def build_download_command(args: argparse.Namespace, manifest_path: Path, summary_path: Path) -> list[str]:
@@ -154,7 +163,7 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
         return FchmnResultsValidationResult(
             "failed",
             run_id,
-            args.url,
+            source_urls(args),
             str(manifest_path),
             str(download_summary_path),
             str(batch_summary_path),
@@ -168,7 +177,7 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
         return FchmnResultsValidationResult(
             "failed",
             run_id,
-            args.url,
+            source_urls(args),
             str(manifest_path),
             str(download_summary_path),
             str(batch_summary_path),
@@ -185,7 +194,7 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
         return FchmnResultsValidationResult(
             download_summary.get("state", "failed"),
             run_id,
-            args.url,
+            source_urls(args),
             str(manifest_path),
             str(download_summary_path),
             str(batch_summary_path),
@@ -201,7 +210,7 @@ def run_results_validation(args: argparse.Namespace) -> FchmnResultsValidationRe
     return FchmnResultsValidationResult(
         batch_summary.get("state", "failed" if batch_result.returncode else "validated"),
         run_id,
-        args.url,
+        source_urls(args),
         str(manifest_path),
         str(download_summary_path),
         str(batch_summary_path),
@@ -220,6 +229,7 @@ def main() -> None:
     else:
         print(f"Estado validacion FCHMN: {result.state}")
         print(f"Run id: {result.run_id}")
+        print(f"URLs fuente: {result.source_urls}")
         print(f"Manifest: {result.manifest_path}")
         print(f"Download summary: {result.download_summary_path}")
         print(f"Batch summary: {result.batch_summary_path}")

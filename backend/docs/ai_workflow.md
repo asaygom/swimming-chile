@@ -112,6 +112,8 @@ Implementado en el repo:
 - Regresion FCHMN amplia con parser `0.1.12`: `backend/data/raw/manifests/fchmn_home_resultados_20260419.jsonl` quedo en `validated: 23`, `failed: 0`, `requires_review: 0`, sin usar `--load`. Summary: `backend/data/raw/batch_summaries/regression_parser_012.json`. Los 5 PDFs Recife que antes fallaban ahora parsean correctamente. Los 18 PDFs HY-TEK previos siguen sin regresion.
 - El pipeline de carga ya respeta `relay_team.club_name` cuando el parser lo entrega y conserva la inferencia desde `club.csv` solo como fallback. Esto permite transformar relevos cuyo club viene separado del nombre del equipo, incluso si `club.csv` viene vacio.
 - Decision de identidad de competencias: el parser parsea resultados publicados por FCHMN sin decidir carga. La compuerta de carga debe distinguir circuito/federacion/ambito con mas precision que una keyword en el nombre: Coppa Italia pertenece al circuito FCHMN local; Copa Cordillera pertenece a FCHMN pero tiene etapa Chile y etapa Argentina; Sudamericanos publicados por FCHMN pueden requerir scope internacional. Esto evita contaminar `club` y `athlete` con entidades fuera del objetivo de cada carga sin excluir competencias validas del circuito por nombre. El proyecto se diseña extensible a multiples fuentes de competencias (FCHMN, Fechida, etc.).
+- Discovery FCHMN multi-fuente: `scrape_fchmn.py` y `run_fchmn_results_validation.py` aceptan varias opciones `--url` para consolidar paginas especificas de menu, resultados, sudamericanos y nacionales en un unico manifest deduplicado, manteniendo discovery, descarga, parseo, validacion y carga separados.
+- Compuerta inicial de carga por scope: `run_results_batch.py --load` exige `competition_scope=fchmn_local` por defecto, o el valor definido por `--required-competition-scope`. Documentos sin scope curado o con scope distinto quedan `requires_review` y no ejecutan `run_pipeline_results.py`.
 
 No implementado todavia:
 
@@ -143,8 +145,9 @@ Fase 4 quedo iniciada con contrato, scraper de apuntamiento, descarga separada, 
 Proximo objetivo sugerido:
 
 - Mantener descarga, manifest, parseo, validacion y carga separados.
-- Diseñar mecanismo de filtro por circuito/federacion/ambito antes de cargar. Opciones: flag `--scope` en batch runner, campo `competition_scope` en manifest/metadata, sede/etapa para competencias mixtas como Copa Cordillera, o lista curada de competencias FCHMN locales.
+- Consolidar un manifest historico deduplicado desde fuentes FCHMN especificas, incluyendo paginas de menu, sudamericanos y nacionales.
+- Curar `competition_scope` por documento y congelar un manifest solo con documentos locales validados.
+- Excluir documentos `requires_review` y `failed` del manifest congelado para carga.
 - Preparar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga y validacion post-load.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
-- Consolidar un manifest historico deduplicado desde fuentes FCHMN. El crawler paginado de portada es one-shot para backfill historico; para operacion futura probablemente basta monitorear paginas recientes/resultados y cambios de checksum. Fuentes historicas aun omitidas: `https://fchmn.cl/sudamericanos-master/` y paginas de campeonatos nacionales como `https://fchmn.cl/campeonatos-nacionales-master/ii-campeonato-nacional-master-2007/`.
 - No crear tablas nuevas sin una migracion explicita.

@@ -53,7 +53,8 @@ def read_html(args: argparse.Namespace) -> tuple[str, str]:
             raise SystemExit(f"[ERROR] No existe el HTML: {html_path}")
         return html_path.read_text(encoding="utf-8"), args.base_url
 
-    return read_url_html(args.url, args.timeout_seconds), args.url
+    source_url = args.url[0]
+    return read_url_html(source_url, args.timeout_seconds), source_url
 
 
 def wordpress_page_url(start_url: str, page_number: int) -> str:
@@ -100,14 +101,15 @@ def merge_discovered_pdf_urls(pages: list[tuple[str, str]], include_keywords: li
 
 def read_paginated_html(args: argparse.Namespace) -> list[tuple[str, str]]:
     pages: list[tuple[str, str]] = []
-    for page_number in range(1, args.crawl_pages + 1):
-        page_url = wordpress_page_url(args.url, page_number)
-        try:
-            pages.append((read_url_html(page_url, args.timeout_seconds), page_url))
-        except HTTPError as exc:
-            if exc.code == 404 and page_number > 1:
-                break
-            raise
+    for source_url in args.url:
+        for page_number in range(1, args.crawl_pages + 1):
+            page_url = wordpress_page_url(source_url, page_number)
+            try:
+                pages.append((read_url_html(page_url, args.timeout_seconds), page_url))
+            except HTTPError as exc:
+                if exc.code == 404 and page_number > 1:
+                    break
+                raise
     return pages
 
 
@@ -163,7 +165,7 @@ def parse_args() -> argparse.Namespace:
     )
     source_group = parser.add_mutually_exclusive_group(required=True)
     source_group.add_argument("--html-file", help="HTML local ya descargado para descubrir enlaces PDF.")
-    source_group.add_argument("--url", help="URL de una pagina FCHMN desde donde descubrir enlaces PDF.")
+    source_group.add_argument("--url", action="append", help="URL de una pagina FCHMN desde donde descubrir enlaces PDF. Puede repetirse.")
     parser.add_argument("--base-url", default="https://fchmn.cl/", help="Base URL para resolver enlaces relativos de --html-file.")
     parser.add_argument("--manifest", required=True, help="Ruta del manifest JSONL a escribir.")
     parser.add_argument("--pdf-dir", default=str(BACKEND_DIR / "data" / "raw" / "results_pdf" / "fchmn"))
@@ -194,6 +196,9 @@ def main() -> None:
 
     if args.crawl_pages > 1:
         urls = merge_discovered_pdf_urls(read_paginated_html(args), include_keywords=include_keywords)
+    elif args.url:
+        pages = [(read_url_html(source_url, args.timeout_seconds), source_url) for source_url in args.url]
+        urls = merge_discovered_pdf_urls(pages, include_keywords=include_keywords)
     else:
         html, base_url = read_html(args)
         urls = discover_pdf_urls(html, base_url, include_keywords=include_keywords)

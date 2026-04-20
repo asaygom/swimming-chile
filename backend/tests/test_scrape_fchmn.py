@@ -60,6 +60,48 @@ def test_merge_discovered_pdf_urls_deduplicates_across_pages():
     ]
 
 
+def test_repeated_url_sources_are_merged_without_duplicate_pdfs(monkeypatch):
+    html_by_url = {
+        "https://fchmn.cl/resultados/": """
+        <a href="/wp-content/uploads/2026/03/resultados-a.pdf">A</a>
+        <a href="/wp-content/uploads/2026/03/resultados-b.pdf">B</a>
+        """,
+        "https://fchmn.cl/sudamericanos-master/": """
+        <a href="/wp-content/uploads/2026/03/resultados-b.pdf">B</a>
+        <a href="/wp-content/uploads/2026/03/resultados-c.pdf">C</a>
+        """,
+    }
+
+    monkeypatch.setattr(scraper, "read_url_html", lambda url, timeout_seconds: html_by_url[url])
+    manifest_path = BACKEND_DIR / "data" / "staging" / "csv" / "test_scraper_multi_url_manifest.jsonl"
+    manifest_path.unlink(missing_ok=True)
+    args = [
+        "scrape_fchmn.py",
+        "--url",
+        "https://fchmn.cl/resultados/",
+        "--url",
+        "https://fchmn.cl/sudamericanos-master/",
+        "--manifest",
+        str(manifest_path),
+        "--pdf-dir",
+        "backend/data/raw/results_pdf/fchmn",
+        "--out-dir-root",
+        "backend/data/raw/results_csv/fchmn",
+    ]
+    monkeypatch.setattr(sys, "argv", args)
+
+    try:
+        scraper.main()
+        entries = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines()]
+    finally:
+        manifest_path.unlink(missing_ok=True)
+    assert [entry["source_url"] for entry in entries] == [
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-a.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-b.pdf",
+        "https://fchmn.cl/wp-content/uploads/2026/03/resultados-c.pdf",
+    ]
+
+
 def test_build_manifest_entries_uses_stable_local_paths():
     args = Namespace(
         pdf_dir="backend/data/raw/results_pdf/fchmn",

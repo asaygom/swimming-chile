@@ -91,6 +91,8 @@ El scraper agrupa las rutas generadas por año: `results_pdf\fchmn\<año>\...` y
 usa `--year` cuando el año de competencia no coincida con la ruta publicada.
 Tambien filtra por defecto PDFs cuya URL contenga `resultado`; usa `--all-pdfs`
 solo para inspeccion manual.
+Cuando se usa `--url`, puede repetirse para consolidar paginas FCHMN en un solo
+manifest deduplicado, por ejemplo resultados, sudamericanos y nacionales.
 
 Descargar PDFs declarados en un manifest:
 
@@ -147,7 +149,9 @@ Flujo manual recomendado de validacion FCHMN:
 1. Descubrir enlaces y escribir manifest con `scrape_fchmn.py`.
 2. Descargar PDFs del manifest con `download_manifest_pdfs.py`.
 3. Parsear y validar el mismo manifest con `run_results_batch.py`.
-4. Agregar `--load` solo cuando el resumen del batch quede `validated`.
+4. Congelar un manifest curado solo con documentos locales validados y
+   `competition_scope=fchmn_local`.
+5. Agregar `--load` solo cuando el resumen del batch quede `validated`.
 
 Cada linea del manifest debe ser un objeto JSON con una carpeta parseada:
 
@@ -160,6 +164,10 @@ o con un PDF local y su salida:
 ```json
 {"pdf": "backend/data/raw/results_pdf/competencia_x.pdf", "out_dir": "backend/data/raw/results_csv/competencia_x", "competition_id": 1}
 ```
+
+Para carga a core, agregar `competition_scope` por documento. Por defecto
+`--load` exige `competition_scope=fchmn_local`; documentos sin scope o con scope
+distinto quedan `requires_review`.
 
 `pdf_path` tambien se acepta como alias de `pdf` en manifests generados por otras herramientas.
 Los manifests pueden estar en UTF-8 con o sin BOM.

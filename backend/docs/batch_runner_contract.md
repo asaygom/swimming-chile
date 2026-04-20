@@ -66,6 +66,9 @@ Campos por entrada:
   `pdf_path`.
 - `competition_id`: opcional si viene por CLI; el valor de la entrada tiene
   prioridad sobre el valor global.
+- `competition_scope`: opcional en validacion; requerido para cargar a core. La
+  primera compuerta implementada permite `--load` solo cuando el scope curado
+  coincide con `fchmn_local` por defecto.
 - `default_source_id`: opcional; hereda el valor global cuando no se declara.
 - `excel_name`: opcional; hereda el valor global cuando no se declara.
 
@@ -139,6 +142,8 @@ Bloquean la carga y dejan el lote en `requires_review`:
 - `debug_unparsed_lines.csv` supera el umbral permitido.
 - Hay valores fuera del canon documentado para genero, estilo o status.
 - Hay filas de resultado sin `event_name` o sin identidad observable de atleta/equipo.
+- Se intenta cargar con `--load` sin `competition_scope=fchmn_local` o sin el
+  scope requerido por `--required-competition-scope`.
 
 Umbral inicial:
 
@@ -190,6 +195,8 @@ Orquestador de validacion FCHMN:
 - `backend/scripts/run_fchmn_results_validation.py` encadena scraper, downloader y batch
   validation.
 - No acepta ni pasa `--load`; la carga a core queda en un paso manual explicito.
+- Acepta varias opciones `--url` para consolidar discovery desde paginas de menu,
+  resultados y nacionales en un unico manifest deduplicado.
 - Escribe manifest, resumen de descarga y resumen de batch en rutas auditables.
 - Reporta `discovered_documents` y falla antes de descargar si discovery no
   encuentra documentos.
@@ -205,6 +212,10 @@ Batch runner:
 - Conserva `source_url` desde el manifest y la pasa al pipeline como
   `--competition-source-url` cuando se ejecuta `--load`.
 - Ejecuta pipeline solo si el lote esta validado.
+- Si se usa `--load`, exige que cada documento tenga un `competition_scope`
+  curado que coincida con `--required-competition-scope` (`fchmn_local` por
+  defecto). Los documentos sin scope o con scope distinto quedan
+  `requires_review`.
 - Produce resumen auditable con `state_counts`.
 
 Parser:

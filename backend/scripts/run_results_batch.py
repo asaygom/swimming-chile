@@ -43,6 +43,7 @@ STROKES = {
 STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 
 DEFAULT_DEBUG_THRESHOLD = 0.20
+DEFAULT_REQUIRED_COMPETITION_SCOPE = "fchmn_local"
 PARSER_SCRIPT = BACKEND_DIR / "scripts" / "parse_results_pdf.py"
 PIPELINE_SCRIPT = BACKEND_DIR / "scripts" / "run_pipeline_results.py"
 PROJECT_DIR = BACKEND_DIR.parent
@@ -61,6 +62,7 @@ class BatchValidationResult:
     state: str
     input_dir: str
     source_url: str | None
+    competition_scope: str | None
     counts: dict[str, int]
     issues: list[BatchIssue]
     metadata: dict[str, Any]
@@ -86,6 +88,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", help="Carpeta de salida requerida cuando se usa --pdf")
     parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
     parser.add_argument("--source-url", help="URL original del documento para trazabilidad cuando exista.")
+    parser.add_argument("--competition-scope", help="Ambito curado del documento; requerido para cargar a core.")
+    parser.add_argument(
+        "--required-competition-scope",
+        default=DEFAULT_REQUIRED_COMPETITION_SCOPE,
+        help="Ambito requerido para permitir --load. Por defecto: fchmn_local.",
+    )
     parser.add_argument("--default-source-id", type=int, default=1, help="source_id por defecto que se pasara al parser")
     parser.add_argument("--excel-name", default="parsed_results.xlsx", help="Nombre del Excel consolidado que generara el parser")
     parser.add_argument("--load", action="store_true", help="Ejecuta run_pipeline_results.py solo si el batch queda validated.")
@@ -153,6 +161,8 @@ def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any
     item.out_dir = resolve_manifest_path(entry.get("out_dir"))
     item.competition_id = entry.get("competition_id", base_args.competition_id)
     item.source_url = entry.get("source_url", getattr(base_args, "source_url", None))
+    item.competition_scope = entry.get("competition_scope", getattr(base_args, "competition_scope", None))
+    item.required_competition_scope = getattr(base_args, "required_competition_scope", DEFAULT_REQUIRED_COMPETITION_SCOPE)
     item.default_source_id = entry.get("default_source_id", base_args.default_source_id)
     item.excel_name = entry.get("excel_name", base_args.excel_name)
 
@@ -352,6 +362,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
             state="failed",
             input_dir=str(input_dir),
             source_url=source_url,
+            competition_scope=None,
             counts=counts,
             issues=[BatchIssue("error", "input_dir_not_found", f"No existe la carpeta: {input_dir}.")],
             metadata={},
@@ -382,7 +393,16 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
     validate_debug_ratio(input_dir, parsed_result_rows, debug_threshold, counts, issues)
 
     state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"
-    return BatchValidationResult(state=state, input_dir=str(input_dir), source_url=source_url, counts=counts, issues=issues, metadata=metadata, commands={})
+    return BatchValidationResult(
+        state=state,
+        input_dir=str(input_dir),
+        source_url=source_url,
+        competition_scope=None,
+        counts=counts,
+        issues=issues,
+        metadata=metadata,
+        commands={},
+    )
 
 
 def print_text_summary(result: BatchValidationResult) -> None:
@@ -390,6 +410,8 @@ def print_text_summary(result: BatchValidationResult) -> None:
     print(f"Input dir: {result.input_dir}")
     if result.source_url:
         print(f"Source URL: {result.source_url}")
+    if result.competition_scope:
+        print(f"Competition scope: {result.competition_scope}")
     print("Conteos:")
     for key in sorted(result.counts):
         print(f"  {key}: {result.counts[key]}")
@@ -421,6 +443,7 @@ def process_one(args: argparse.Namespace) -> BatchValidationResult:
             state="failed",
             input_dir=str(input_dir),
             source_url=getattr(args, "source_url", None),
+            competition_scope=getattr(args, "competition_scope", None),
             counts={},
             issues=[
                 BatchIssue(
@@ -433,12 +456,31 @@ def process_one(args: argparse.Namespace) -> BatchValidationResult:
             commands={"parse": parse_command, "load": None},
         )
     result = validate_input_dir(input_dir, args.debug_threshold, getattr(args, "source_url", None))
+    result.competition_scope = getattr(args, "competition_scope", None)
     result.commands["parse"] = parse_command
     result.commands["load"] = redact_command(build_load_command(args, input_dir)) if args.load else None
+    apply_load_scope_gate(result, args)
     if args.load and result.state == "validated":
         run_pipeline(args, input_dir)
         result.state = "loaded"
     return result
+
+
+def apply_load_scope_gate(result: BatchValidationResult, args: argparse.Namespace) -> None:
+    if not args.load:
+        return
+    required_scope = getattr(args, "required_competition_scope", DEFAULT_REQUIRED_COMPETITION_SCOPE)
+    competition_scope = getattr(args, "competition_scope", None)
+    if not required_scope or competition_scope == required_scope:
+        return
+    result.issues.append(
+        BatchIssue(
+            "error",
+            "competition_scope_not_allowed",
+            f"--load requiere competition_scope={required_scope}; recibido: {competition_scope or 'sin_scope'}.",
+        )
+    )
+    result.state = "requires_review"
 
 
 def summarize_manifest_state(documents: list[BatchValidationResult], load_enabled: bool) -> str:

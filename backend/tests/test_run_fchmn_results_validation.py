@@ -74,6 +74,7 @@ def test_run_results_validation_orchestrates_discovery_download_and_batch_valida
             path.unlink(missing_ok=True)
 
     assert result.state == "validated"
+    assert result.source_urls == ["https://fchmn.cl/resultados/"]
     assert result.discovered_documents == 1
     assert result.download_state_counts == {"downloaded": 1}
     assert result.batch_state_counts == {"validated": 1}
@@ -84,6 +85,71 @@ def test_run_results_validation_orchestrates_discovery_download_and_batch_valida
         "download_manifest_pdfs.py",
         "run_results_batch.py",
     ]
+
+
+def test_run_results_validation_passes_multiple_discovery_urls_to_scraper(monkeypatch):
+    calls = []
+    manifest_path = STAGING_DIR / "fchmn_results_validation_test-multi-url.jsonl"
+    download_summary_path = STAGING_DIR / "fchmn_results_validation_test-multi-url_download.json"
+    batch_summary_path = STAGING_DIR / "fchmn_results_validation_test-multi-url_batch.json"
+    for path in [manifest_path, download_summary_path, batch_summary_path]:
+        path.unlink(missing_ok=True)
+
+    def fake_run(command, check):
+        calls.append(command)
+        if command[1].endswith("scrape_fchmn.py"):
+            Path(command[command.index("--manifest") + 1]).write_text(
+                json.dumps(
+                    {
+                        "source_url": "https://fchmn.cl/resultados.pdf",
+                        "pdf": "demo.pdf",
+                        "out_dir": "demo",
+                        "competition_id": None,
+                        "default_source_id": 1,
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        elif command[1].endswith("download_manifest_pdfs.py"):
+            Path(command[command.index("--summary-json") + 1]).write_text(
+                json.dumps({"state": "downloaded", "state_counts": {"downloaded": 1}, "documents": []}),
+                encoding="utf-8",
+            )
+        elif command[1].endswith("run_results_batch.py"):
+            Path(command[command.index("--summary-json") + 1]).write_text(
+                json.dumps({"state": "validated", "state_counts": {"validated": 1}, "documents": []}),
+                encoding="utf-8",
+            )
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(validation.subprocess, "run", fake_run)
+    args = validation.parse_args_from_list(
+        [
+            "--url",
+            "https://fchmn.cl/resultados/",
+            "--url",
+            "https://fchmn.cl/sudamericanos-master/",
+            "--run-id",
+            "test-multi-url",
+            "--manifest-dir",
+            str(STAGING_DIR),
+            "--summary-dir",
+            str(STAGING_DIR),
+        ]
+    )
+
+    try:
+        result = validation.run_results_validation(args)
+    finally:
+        for path in [manifest_path, download_summary_path, batch_summary_path]:
+            path.unlink(missing_ok=True)
+
+    assert result.source_urls == ["https://fchmn.cl/resultados/", "https://fchmn.cl/sudamericanos-master/"]
+    scrape_call = calls[0]
+    assert scrape_call.count("--url") == 2
+    assert "https://fchmn.cl/resultados/" in scrape_call
+    assert "https://fchmn.cl/sudamericanos-master/" in scrape_call
 
 
 def test_run_results_validation_stops_before_batch_when_download_fails(monkeypatch):

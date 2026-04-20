@@ -21,6 +21,7 @@ emite un manifest JSONL local. No descarga, no parsea y no carga.
 ```powershell
 backend\.venv\Scripts\python.exe backend\scripts\scrape_fchmn.py `
   --url https://fchmn.cl/resultados/ `
+  --url https://fchmn.cl/sudamericanos-master/ `
   --manifest backend\data\raw\manifests\fchmn_resultados_e2e_YYYYMMDD.jsonl `
   --pdf-dir backend\data\raw\results_pdf\fchmn_resultados_e2e `
   --out-dir-root backend\data\raw\results_csv\fchmn_resultados_e2e `
@@ -34,6 +35,10 @@ Salida esperada:
 - `documents`: cantidad de PDFs incluidos en el manifest
 - manifest JSONL con `source_url`, `pdf`, `out_dir`, `competition_id` y
   `default_source_id`
+
+`--url` puede repetirse para consolidar paginas especificas de menu,
+sudamericanos o campeonatos nacionales en un solo manifest deduplicado. El
+scraper sigue sin descargar, parsear ni cargar.
 
 ## Download separado
 
@@ -98,6 +103,7 @@ falla si el resultado final no queda `validated`.
 ```powershell
 backend\.venv\Scripts\python.exe backend\scripts\run_fchmn_results_validation.py `
   --url https://fchmn.cl/resultados/ `
+  --url https://fchmn.cl/sudamericanos-master/ `
   --run-id fchmn_resultados_YYYYMMDD `
   --limit 5 `
   --json
@@ -116,6 +122,11 @@ sin documentos no entrega evidencia operativa.
 Usar este comando para monitoreo o smoke operativo. Para cargar a core, revisar
 primero el summary de batch y ejecutar `run_results_batch.py --load` como paso
 separado.
+
+La automatizacion segura acepta varias opciones `--url`, pero no etiqueta
+automaticamente el scope de carga. Antes de cualquier `--load`, congelar un
+manifest curado que excluya documentos `requires_review`/`failed` y agregue
+`competition_scope` por documento.
 
 Para inventario historico desde la portada WordPress, usar paginacion explicita:
 
@@ -222,3 +233,13 @@ backend\.venv\Scripts\python.exe backend\scripts\run_results_batch.py `
 
 Los summaries auditables redactan el valor de `--password` en los comandos
 registrados.
+
+La carga requiere una compuerta de scope curado:
+
+```json
+{"pdf": "backend/data/raw/results_pdf/fchmn/2026/resultados-ii-copa-chile.pdf", "out_dir": "backend/data/raw/results_csv/fchmn/2026/resultados-ii-copa-chile", "competition_scope": "fchmn_local"}
+```
+
+Por defecto `run_results_batch.py --load` solo carga documentos con
+`competition_scope=fchmn_local`. Documentos sin scope o con scope distinto quedan
+`requires_review` y no ejecutan el pipeline.
