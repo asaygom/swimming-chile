@@ -142,6 +142,20 @@ backend\.venv\Scripts\python.exe backend\scripts\freeze_validated_manifest.py `
   --json
 ```
 
+Si la curacion se apoya en varias evidencias de validacion, repetir
+`--batch-summary` para consolidarlas en un unico manifest congelado. La
+allow-list sigue siendo explicita y el freezer deduplica por `source_url`:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\freeze_validated_manifest.py `
+  --batch-summary backend\data\raw\batch_summaries\summary_a.json `
+  --batch-summary backend\data\raw\batch_summaries\summary_b.json `
+  --manifest backend\data\raw\manifests\fchmn_resultados_YYYYMMDD_frozen_local.jsonl `
+  --competition-scope fchmn_local `
+  --allow-source-url-file backend\data\raw\manifests\fchmn_resultados_YYYYMMDD_allowed_urls.txt `
+  --json
+```
+
 El freezer no descarga, no parsea, no valida y no carga. Solo copia documentos
 `validated`, excluye `requires_review`/`failed` y agrega `competition_scope`.
 Usar `--allow-all-validated` solo si todos los documentos `validated` del summary
@@ -236,9 +250,10 @@ backend\.venv\Scripts\python.exe backend\scripts\audit_fchmn_artifacts.py `
   - `fchmn_historical_2022_2026_blockers_20260421.json`: 14 documentos
     bloqueados que deben resolverse antes de considerar el rango 2022-2026
     completo.
-  - Siguiente foco: resolver los 8 `requires_review` y 6 `failed` del rango
-    2022-2026 inspeccionando PDF/debug, agregando fixtures chicos y revalidando
-    sin `--load`.
+  - Los 14 bloqueados iniciales fueron resueltos despues con el parser `0.1.13`;
+    ver `scratch_2022_2026_blockers_recheck_20260421_v3.json`.
+  - El cierre de scope no debe usar solo el CSV inicial: tambien debe incorporar
+    los documentos desbloqueados por el recheck v3.
   - Los formatos pre-2022 quedan como backlog legacy y no deben bloquear el
     cierre operativo inicial de Fase 4.
 - El barrido paginado de portada es una herramienta one-shot para backfill
@@ -316,6 +331,36 @@ Evidencia sin carga:
 
 Los Sudamericanos siguen siendo flujo separado de scope; que validen no autoriza
 carga al manifest local principal.
+
+## Scope congelado 2022-2026 sin carga
+
+Curacion operativa del 2026-04-21:
+
+- allow-list local:
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_allowed_urls_20260421.txt`
+- manifest local congelado:
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl`
+- validacion local sin carga:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260421.json`
+- resultado local esperado: `state_counts.validated = 61`
+
+La allow-list local incluye los candidatos locales validados, las etapas
+Copa Cordillera / Dual Internacional Argentina como circuito master FCHMN, y los
+documentos locales desbloqueados en `scratch_2022_2026_blockers_recheck_20260421_v3.json`.
+
+Flujo Sudamericano separado:
+
+- allow-list Sudamericano:
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_sudamericano_allowed_urls_20260421.txt`
+- manifest Sudamericano:
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl`
+- validacion Sudamericano sin carga:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_sudamericano_validation_20260421.json`
+- resultado Sudamericano esperado: `state_counts.validated = 6`
+
+Estos manifests fueron congelados desde allow-lists explicitas de `source_url`.
+No descargan, no parsean de nuevo, no cargan a core y no sustituyen el checklist
+pre-carga.
 
 ## Carga a core
 

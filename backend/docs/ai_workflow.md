@@ -103,6 +103,13 @@ Evidencia historica:
 - Al 2026-04-21, el cierre operativo de Fase 4 se acoto a formatos 2022-2026. La foto `fchmn_historical_2022_2026_focus_audit_20260421.json` contiene 67 documentos: 46 `validated_local_candidate`, 7 `validated_non_local_candidate`, 8 `requires_review` y 6 `failed`. Los formatos pre-2022 quedan como backlog legacy. Dentro de los 7 `validated_non_local_candidate`, las dos Copa Argentina / Dual Internacional corresponden al circuito master FCHMN y deben reclasificarse manualmente como cargables si el scope curado lo confirma; los 5 Sudamericanos Recife deben revisarse en flujo separado.
 - `fchmn_historical_2022_2026_available_for_scope_review_20260421.csv` lista las 53 competencias/documentos validados disponibles para curar scope (`fchmn_local` u otro). Es insumo de revision humana, no compuerta final automatica. Al clasificar, tratar Copa Cordillera / Dual Internacional como circuito master FCHMN, no como exclusion no-local automatica.
 - Al 2026-04-21, el parser `0.1.13` resolvio los 14 bloqueados 2022-2026 sin carga a core. La evidencia final es `scratch_2022_2026_blockers_recheck_20260421_v3.json` con `state_counts.validated = 14`. Los cambios cubren Quadathlon, HY-TEK multi-columna, variantes de encabezado/canon y omision de parciales/splits. Los Sudamericanos validados siguen fuera del manifest local principal hasta curar scope separado.
+- Al 2026-04-21, se congelo el scope operativo 2022-2026 sin carga a core:
+  `fchmn_historical_2022_2026_frozen_local_20260421.jsonl` incluye 61
+  documentos con `competition_scope=fchmn_local`, usando allow-list explicita de
+  `source_url` y sumando los documentos locales desbloqueados en el recheck v3.
+  `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` separa 6
+  documentos con `competition_scope=sudamericano_master`. Las validaciones
+  posteriores quedaron `validated`: local 61/61 y Sudamericano 6/6.
 
 No implementado todavia:
 
@@ -131,24 +138,38 @@ Fase activa: Fase 4. No cargues a core ni uses --load salvo pedido explicito.
 
 Retoma desde la auditoria historica 2022-2026:
 - focus audit: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_focus_audit_20260421.json
-- blockers: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_blockers_20260421.json
+- blockers resueltos: backend/data/raw/batch_summaries/scratch_2022_2026_blockers_recheck_20260421_v3.json
 - scope review CSV: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_available_for_scope_review_20260421.csv
+- manifest local congelado: backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl
+- validacion local congelada: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260421.json
+- manifest Sudamericano separado: backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl
+- validacion Sudamericano separada: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_sudamericano_validation_20260421.json
 
 Contexto vigente:
 - El cierre operativo inicial se acoto a formatos 2022-2026.
 - Los formatos pre-2022 quedan como backlog legacy.
+- Los 14 bloqueados 2022-2026 ya quedaron validated sin --load con parser
+  0.1.13: Quadathlon, HY-TEK multi-columna, variantes de encabezado/canon y
+  omision de parciales/splits.
+- La evidencia final del recheck de bloqueados es
+  scratch_2022_2026_blockers_recheck_20260421_v3.json con
+  state_counts.validated = 14.
+- El freezer ya consolida multiples batch summaries con allow-list explicita de
+  source_url y deduplica por source_url.
+- El manifest local congelado quedo validado sin --load con
+  state_counts.validated = 61 y competition_scope=fchmn_local.
 - Copa Cordillera / Dual Internacional pertenece al circuito master FCHMN,
-  incluyendo etapa Argentina; no excluir por sede argentina.
+  incluyendo etapa Argentina; quedo incluida en el manifest local congelado.
 - Sudamericanos deben tratarse como flujo separado y no mezclarse
-  automaticamente con el manifest local principal.
+  automaticamente con el manifest local principal; quedaron validados por
+  separado con state_counts.validated = 6 y competition_scope=sudamericano_master.
 - No usar keywords como compuerta final de carga.
 
 Siguiente tarea:
-Resolver primero los 14 bloqueados 2022-2026: 8 requires_review y 6 failed.
-Para cada familia, inspeccionar PDF/debug, agregar fixture chico si corresponde,
-ajustar parser/canon de bajo riesgo y revalidar solo el lote afectado sin
---load. Despues auditar las competencias validadas disponibles en el scope
-review CSV para clasificar scope fchmn_local u otro antes de congelar manifests.
+Preparar una posible carga explicita del manifest local congelado siguiendo
+backend/docs/pre_load_checklist.md: revisar evidencia, backup, alcance de wipe
+si aplica, comandos y validaciones post-load. No cargar a core ni usar --load
+salvo pedido explicito. Mantener Sudamericanos en flujo separado.
 ```
 
 ## Siguiente paso sugerido
@@ -160,8 +181,8 @@ Proximo objetivo sugerido:
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Usar la auditoria de brechas como punto de control canonico antes de nuevas acciones.
 - Usar como evidencia de cierre de bloqueadores 2022-2026 el summary `scratch_2022_2026_blockers_recheck_20260421_v3.json`, generado sin `--load`.
-- Curar manualmente cuales `validated_local_candidate` pertenecen efectivamente a `fchmn_local`; no usar la categoria diagnostica como compuerta final.
-- Curar `competition_scope` por documento y congelar un manifest solo con documentos locales validados usando lista explicita de `source_url`.
+- Usar como manifest local congelado inicial `fchmn_historical_2022_2026_frozen_local_20260421.jsonl`, validado sin `--load` con 61 documentos.
+- Mantener los Sudamericanos en `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` como flujo separado; no mezclarlos automaticamente con el manifest local principal.
 - Ejecutar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga, carga explicita con `--load` y validacion post-load.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

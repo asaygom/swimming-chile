@@ -42,6 +42,24 @@ def write_summary(path: Path) -> None:
     )
 
 
+def write_summary_with_url(path: Path, source_url: str) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "state": "validated",
+                "documents": [
+                    {
+                        "state": "validated",
+                        "input_dir": f"backend/data/raw/results_csv/{path.stem}",
+                        "source_url": source_url,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_freeze_validated_manifest_requires_explicit_curation():
     summary_path = STAGING_DIR / "test_freeze_requires_curation_summary.json"
     manifest_path = STAGING_DIR / "test_freeze_requires_curation_manifest.jsonl"
@@ -118,6 +136,36 @@ def test_freeze_validated_manifest_can_explicitly_include_all_validated_document
     assert [entry["source_url"] for entry in entries] == [
         "https://fchmn.cl/local-a.pdf",
         "https://fchmn.cl/international-b.pdf",
+    ]
+
+
+def test_freeze_validated_manifests_consolidates_multiple_summaries():
+    summary_a_path = STAGING_DIR / "test_freeze_multi_a_summary.json"
+    summary_b_path = STAGING_DIR / "test_freeze_multi_b_summary.json"
+    manifest_path = STAGING_DIR / "test_freeze_multi_manifest.jsonl"
+    write_summary_with_url(summary_a_path, "https://fchmn.cl/local-a.pdf")
+    write_summary_with_url(summary_b_path, "https://fchmn.cl/local-b.pdf")
+
+    try:
+        result = freezer.freeze_validated_manifests(
+            [summary_a_path, summary_b_path],
+            manifest_path,
+            "fchmn_local",
+            default_source_id=1,
+            allowed_source_urls={"https://fchmn.cl/local-a.pdf", "https://fchmn.cl/local-b.pdf"},
+        )
+        entries = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines()]
+    finally:
+        summary_a_path.unlink(missing_ok=True)
+        summary_b_path.unlink(missing_ok=True)
+        manifest_path.unlink(missing_ok=True)
+
+    assert result.state == "frozen"
+    assert result.included_documents == 2
+    assert result.batch_summary_paths == [str(summary_a_path), str(summary_b_path)]
+    assert [entry["source_url"] for entry in entries] == [
+        "https://fchmn.cl/local-a.pdf",
+        "https://fchmn.cl/local-b.pdf",
     ]
 
 

@@ -12,6 +12,7 @@ from typing import Any
 class FreezeManifestResult:
     state: str
     batch_summary_path: str
+    batch_summary_paths: list[str]
     manifest_path: str
     included_documents: int
     skipped_documents: int
@@ -64,35 +65,64 @@ def freeze_validated_manifest(
     allowed_source_urls: set[str],
     allow_all_validated: bool = False,
 ) -> FreezeManifestResult:
+    return freeze_validated_manifests(
+        [batch_summary_path],
+        manifest_path,
+        competition_scope,
+        default_source_id,
+        allowed_source_urls,
+        allow_all_validated=allow_all_validated,
+    )
+
+
+def freeze_validated_manifests(
+    batch_summary_paths: list[Path],
+    manifest_path: Path,
+    competition_scope: str,
+    default_source_id: int,
+    allowed_source_urls: set[str],
+    allow_all_validated: bool = False,
+) -> FreezeManifestResult:
     if not competition_scope:
         raise SystemExit("[ERROR] --competition-scope es requerido.")
     if not allowed_source_urls and not allow_all_validated:
         raise SystemExit("[ERROR] Entrega --allow-source-url-file o usa --allow-all-validated de forma explicita.")
+    if not batch_summary_paths:
+        raise SystemExit("[ERROR] Entrega al menos un --batch-summary.")
 
-    summary = read_json(batch_summary_path)
-    documents = summary.get("documents")
-    if not isinstance(documents, list):
-        raise SystemExit("[ERROR] El summary no contiene documents como lista.")
-
+    batch_summary_path_strings = [str(path) for path in batch_summary_paths]
     entries: list[dict[str, Any]] = []
     skipped = 0
-    for document in documents:
-        if not isinstance(document, dict):
-            skipped += 1
-            continue
-        if document.get("state") != "validated":
-            skipped += 1
-            continue
-        source_url = document.get("source_url")
-        if not allow_all_validated and source_url not in allowed_source_urls:
-            skipped += 1
-            continue
-        entries.append(build_manifest_entry(document, competition_scope, default_source_id))
+    seen_source_urls: set[str] = set()
+    for batch_summary_path in batch_summary_paths:
+        summary = read_json(batch_summary_path)
+        documents = summary.get("documents")
+        if not isinstance(documents, list):
+            raise SystemExit(f"[ERROR] El summary no contiene documents como lista: {batch_summary_path}")
+
+        for document in documents:
+            if not isinstance(document, dict):
+                skipped += 1
+                continue
+            if document.get("state") != "validated":
+                skipped += 1
+                continue
+            source_url = document.get("source_url")
+            if not allow_all_validated and source_url not in allowed_source_urls:
+                skipped += 1
+                continue
+            if source_url and source_url in seen_source_urls:
+                skipped += 1
+                continue
+            if source_url:
+                seen_source_urls.add(source_url)
+            entries.append(build_manifest_entry(document, competition_scope, default_source_id))
 
     if not entries:
         return FreezeManifestResult(
             "failed",
-            str(batch_summary_path),
+            batch_summary_path_strings[0],
+            batch_summary_path_strings,
             str(manifest_path),
             included_documents=0,
             skipped_documents=skipped,
@@ -104,7 +134,8 @@ def freeze_validated_manifest(
     manifest_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return FreezeManifestResult(
         "frozen",
-        str(batch_summary_path),
+        batch_summary_path_strings[0],
+        batch_summary_path_strings,
         str(manifest_path),
         included_documents=len(entries),
         skipped_documents=skipped,
@@ -116,7 +147,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Genera un manifest JSONL congelado solo con documentos validated y scope curado."
     )
-    parser.add_argument("--batch-summary", required=True, help="Summary JSON generado por run_results_batch.py.")
+    parser.add_argument(
+        "--batch-summary",
+        required=True,
+        action="append",
+        help="Summary JSON generado por run_results_batch.py. Puede repetirse para consolidar evidencias curadas.",
+    )
     parser.add_argument("--manifest", required=True, help="Manifest JSONL congelado a escribir.")
     parser.add_argument("--competition-scope", required=True, help="Scope curado que se agregara a cada documento incluido.")
     parser.add_argument("--default-source-id", type=int, default=1)
@@ -135,8 +171,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    result = freeze_validated_manifest(
-        Path(args.batch_summary),
+    result = freeze_validated_manifests(
+        [Path(path) for path in args.batch_summary],
         Path(args.manifest),
         args.competition_scope,
         args.default_source_id,
