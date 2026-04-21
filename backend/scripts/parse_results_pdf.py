@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.12"
+PARSER_VERSION = "0.1.13"
 
 try:
     import pdfplumber
@@ -38,7 +38,7 @@ except ImportError as exc:  # pragma: no cover
 
 
 TIME_OR_STATUS_PATTERN = (
-    r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?|\d{1,3}(?:[\.,]\d+)?|NT|NS|DNS|DNF|DQ|DSQ|DFS)"
+    r"(?:X)?(?:\d{1,2}:\d{2}:\d{2}(?:[\.,]\d+)?|\d{1,3}:\d{2}(?:[\.,]\d+)?[A-Z]?|\d{1,3}'\d{2}'\d{1,2}|\d{1,3}(?:[\.,']\d+)?|NT|NS|DNS|DNF|DQ|DSQ|DFS)"
 )
 TRAILING_TIME_OR_STATUS_RE = re.compile(
     rf"^(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})$",
@@ -59,17 +59,32 @@ EVENT_HEADER_RE = re.compile(
 )
 
 SPANISH_EVENT_HEADER_RE = re.compile(
-    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC)\s+Metro\s+(?P<stroke>.+?)\)?$",
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metros?\s+(?P<stroke>.+?)\)?$",
     re.IGNORECASE,
 )
 
 SPANISH_RELAY_EVENT_HEADER_RE = re.compile(
-    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+x\d+)\s+(?P<course>CL|CP|CC)\s+Metro\s+Relevo\s+(?P<stroke>.+?)\)?$",
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+x\d+)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metros?\s+Relevo\s+(?P<stroke>.+?)\)?$",
     re.IGNORECASE,
 )
 
 SPANISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE = re.compile(
     r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Mixto)\s+(?P<distance_raw>\d+)\s+(?P<course>CL|CP|CC)\s+Metro\s+\d+x\d+\s+(?P<stroke>comb|libre)\s+(?P<age_group>\d+\s+a(?:ñ|n)os)\s+Relevo\)?$",
+    re.IGNORECASE,
+)
+
+HASH_EVENT_HEADER_RE = re.compile(
+    r"^\#(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+Meter\s+(?P<stroke>.+?)$",
+    re.IGNORECASE,
+)
+
+COMBINED_EVENT_HEADER_RE = re.compile(
+    r"^(?P<gender>Women|Men|Mujeres|Hombres|Damas|Varones)\s+(?P<age_group>.+?)\s+Quadathlon$",
+    re.IGNORECASE,
+)
+
+COMBINED_TIME_TOKEN_RE = re.compile(
+    r"^(?:X)?(?:\d{1,3}[:']\d{2}(?:[\.,']\d{1,2})?|\d{1,3}[\.,']\d{1,2}|NT|NS|DNS|DNF|DQ|DSQ|DFS|-)$",
     re.IGNORECASE,
 )
 
@@ -115,18 +130,24 @@ HEADER_SKIP_PATTERNS = [
     re.compile(r"^Results\s*-", re.IGNORECASE),
     re.compile(r"^Resultados\s*$", re.IGNORECASE),
     re.compile(r"^Resultados\s*-", re.IGNORECASE),
+    re.compile(r"^(?:Combined Events|Eventos combinados)$", re.IGNORECASE),
     re.compile(r"^Name\s+Age\s+Team\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Name\s+Age\s+Team\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Team\s+Relay\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
+    re.compile(r"^Nombre\s+Edad\s+Equipo\s+Seed\s+Time\s+Finals\s+Time(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+para\s+Sembrado\s*Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Equipo\s+Relevo\s+Tiempo\s+para\s+Sembrado\s*Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
+    re.compile(r"^Place\s+Name\s+Team\s+Total\s+50FLY\s+50BK\s+50BR\s+50FR$", re.IGNORECASE),
+    re.compile(r"^Lugar\s+Nombre\s+Equipo\s+Total\s+50FLY\s+50BK\s+50BR\s+50FR$", re.IGNORECASE),
     re.compile(r"^Estadio ", re.IGNORECASE),
     re.compile(r"^Page\s+\d+$", re.IGNORECASE),
     re.compile(r"^P[aá]gina\s+\d+$", re.IGNORECASE),
     re.compile(r"^.+\s+-\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}$", re.IGNORECASE),
     re.compile(r"^.+\s+-\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}\s+(?:a|to)\s+\d{1,2}[-/]\d{1,2}[-/]\d{4}$", re.IGNORECASE),
     re.compile(r"^\(?(?:Combined\s+Team\s+Scores|Scores\s+-|Puntajes\s+-)", re.IGNORECASE),
+    re.compile(r"^R\.[MS]\.:", re.IGNORECASE),
+    re.compile(r"^(?:\d{1,3}(?::\d{2})?[\.,]\d+\s+)+\d{1,3}(?::\d{2})?[\.,]\d+$", re.IGNORECASE),
     re.compile(r"^(?:Women|Men|Mujeres|Hombres)\s+-\s+.*(?:Team\s+Rankings|Lugar\s+por\s+Equipo)", re.IGNORECASE),
     re.compile(r"^\d+\.\s+.+\s+\d+(?:[\.,]\d+)?(?:\s+\d+\.\s+.+\s+\d+(?:[\.,]\d+)?)?$", re.IGNORECASE),
     # Líneas explicativas HY-TEK para DQ/DNF; el resultado ya queda en la fila del nadador.
@@ -476,7 +497,8 @@ def should_skip_line(line: str) -> bool:
 
 
 def parse_event_header(line: str) -> Optional[EventContext]:
-    candidate = line.strip()
+    candidate = clean_extracted_text(line.strip()) or line.strip()
+    candidate = re.sub(r"^E\s+vento\b", "Evento", candidate, flags=re.IGNORECASE)
     m = EVENT_HEADER_RE.match(candidate)
     if not m:
         m = SPANISH_EVENT_HEADER_RE.match(candidate)
@@ -485,8 +507,11 @@ def parse_event_header(line: str) -> Optional[EventContext]:
     if not m:
         m = SPANISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE.match(candidate)
     if not m:
+        m = HASH_EVENT_HEADER_RE.match(candidate)
+    if not m:
         return None
-    course_code = normalize_course_code(m.group("course")) or m.group("course").upper()
+    course_raw = m.groupdict().get("course") or "SC"
+    course_code = normalize_course_code(course_raw) or course_raw.upper()
     stroke_raw = m.group("stroke")
     if m.re is SPANISH_RELAY_EVENT_HEADER_RE:
         stroke_raw = f"relevo {stroke_raw}"
@@ -501,6 +526,106 @@ def parse_event_header(line: str) -> Optional[EventContext]:
         course_code=course_code,
         stroke=normalize_stroke(stroke_raw),
     )
+
+
+def parse_combined_event_header(line: str, event_number: int) -> Optional[EventContext]:
+    candidate = normalize_string(line)
+    if candidate is None:
+        return None
+    m = COMBINED_EVENT_HEADER_RE.match(candidate)
+    if not m:
+        return None
+    return EventContext(
+        event_number=event_number,
+        gender=normalize_event_gender(m.group("gender")),
+        age_group=m.group("age_group").strip(),
+        distance_label="50",
+        distance_m=50,
+        course_code="LC",
+        stroke="quadathlon",
+    )
+
+
+def is_combined_time_token(value: str) -> bool:
+    return bool(COMBINED_TIME_TOKEN_RE.match(value.strip()))
+
+
+def parse_combined_result_line(line: str, ctx: EventContext, page_number: int, line_number: int, competition_year: Optional[int]) -> List[ParsedResultRow]:
+    tokens = line.strip().split()
+    if len(tokens) < 6:
+        return []
+
+    time_tokens: List[str] = []
+    while tokens and is_combined_time_token(tokens[-1]):
+        time_tokens.insert(0, tokens.pop())
+    if len(time_tokens) < 4:
+        return []
+
+    split_times = time_tokens[-4:]
+    if len(time_tokens) > 4:
+        total_token = time_tokens[-5]
+        if total_token == "-":
+            pass
+
+    rank_position: Optional[str] = None
+    if tokens and re.fullmatch(r"\d+", tokens[0]):
+        rank_position = tokens.pop(0)
+
+    age_at_event: Optional[int] = None
+    if len(tokens) >= 3 and re.fullmatch(r"\d{1,3}", tokens[-2]):
+        age_at_event = int(tokens[-2])
+        club_name = tokens[-1]
+        name_tokens = tokens[:-2]
+    elif len(tokens) >= 2:
+        club_name = tokens[-1]
+        name_tokens = tokens[:-1]
+    else:
+        return []
+
+    athlete_name = clean_extracted_text(" ".join(name_tokens))
+    club_name = clean_extracted_text(club_name)
+    if not athlete_name or not club_name:
+        return []
+
+    birth_year_estimated = (competition_year - age_at_event) if (competition_year is not None and age_at_event is not None) else None
+    strokes = ["butterfly", "backstroke", "breaststroke", "freestyle"]
+    rows: List[ParsedResultRow] = []
+    for offset, (stroke, raw_time) in enumerate(zip(strokes, split_times), start=1):
+        if raw_time == "-":
+            continue
+        result_time_text = normalize_swim_time_text(raw_time)
+        result_time_ms = derive_result_time_ms(result_time_text)
+        status = "valid" if result_time_ms is not None else normalize_result_status(None, result_time_text)
+        event_ctx = EventContext(
+            event_number=ctx.event_number * 10 + offset,
+            gender=ctx.gender,
+            age_group=ctx.age_group,
+            distance_label="50",
+            distance_m=50,
+            course_code=ctx.course_code,
+            stroke=stroke,
+        )
+        rows.append(
+            ParsedResultRow(
+                page_number=page_number,
+                line_number=line_number,
+                event_number=event_ctx.event_number,
+                event_name=clean_extracted_text(event_ctx.event_name),
+                athlete_name=athlete_name,
+                age_at_event=age_at_event,
+                birth_year_estimated=birth_year_estimated,
+                club_name=club_name,
+                rank_position=rank_position,
+                seed_time_text=None,
+                seed_time_ms=None,
+                result_time_text=result_time_text,
+                result_time_ms=str(result_time_ms) if result_time_ms is not None else None,
+                status=status,
+                points=None,
+                raw_line=line.strip(),
+            )
+        )
+    return rows
 
 
 
@@ -885,6 +1010,129 @@ def extract_text_lines(pdf_path: Path) -> List[Tuple[int, List[str]]]:
     return pages
 
 
+def looks_like_hytek_multicolumn(pages: List[Tuple[int, List[str]]]) -> bool:
+    probe_lines = [line for _, lines in pages[:2] for line in lines]
+    has_hash_events = any(re.search(r"#\d+\s+(?:Women|Men|Mixed)\s+\d", line) for line in probe_lines)
+    has_mixed_columns = any(len(re.findall(r"#\d+\s+(?:Women|Men|Mixed)", line)) > 1 for line in probe_lines)
+    return has_hash_events and has_mixed_columns
+
+
+def parse_hytek_multicolumn_pdf(pdf_path: Path):
+    text_pages = extract_text_lines(pdf_path)
+    stats = ParseStats(pages_read=len(text_pages))
+    rows: List[ParsedResultRow] = []
+    relay_team_rows: List[ParsedRelayTeamRow] = []
+    relay_swimmer_rows: List[ParsedRelaySwimmerRow] = []
+    debug_rows: List[Dict[str, Optional[str]]] = []
+
+    competition_name: Optional[str] = None
+    results_label: Optional[str] = None
+    competition_start_date: Optional[str] = None
+    competition_end_date: Optional[str] = None
+    for _, lines in text_pages[:2]:
+        for line in lines:
+            if competition_name is None:
+                competition_name, competition_start_date, competition_end_date = parse_competition_header(line)
+            if results_label is None and line.lower().startswith("results"):
+                results_label = line
+
+    competition_year = derive_competition_year(
+        {
+            "competition_start_date": competition_start_date,
+            "competition_end_date": competition_end_date,
+            "competition_name": competition_name,
+            "results_label": results_label,
+        },
+        pdf_path,
+    )
+    current_events: Dict[int, Optional[EventContext]] = {0: None, 1: None, 2: None}
+    last_relay_team_names: Dict[int, Optional[str]] = {0: None, 1: None, 2: None}
+    column_ranges = [(0, 205), (205, 405), (405, 620)]
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_index, page in enumerate(pdf.pages, start=1):
+            words = page.extract_words(x_tolerance=1.5, y_tolerance=3, keep_blank_chars=False)
+            for line_number, word_row in enumerate(group_words_by_row(words), start=1):
+                for column_index, (left, right) in enumerate(column_ranges):
+                    segment = words_to_text([word for word in word_row if left <= float(word["x0"]) < right])
+                    if not segment:
+                        continue
+                    line = segment.strip()
+                    if should_skip_line(line):
+                        stats.lines_skipped += 1
+                        continue
+
+                    if line.startswith("(") and line.endswith(")"):
+                        line = line[1:-1].strip()
+
+                    event = parse_event_header(line)
+                    if event is not None:
+                        current_events[column_index] = event
+                        last_relay_team_names[column_index] = None
+                        stats.event_headers_found += 1
+                        continue
+
+                    current_event = current_events[column_index]
+                    if current_event is None:
+                        stats.lines_skipped += 1
+                        continue
+
+                    if current_event.is_relay:
+                        relay_team = parse_relay_team_line(line, current_event, page_index, line_number)
+                        if relay_team is not None:
+                            relay_team_rows.append(relay_team)
+                            last_relay_team_names[column_index] = relay_team.relay_team_name
+                            stats.relay_team_rows_found += 1
+                            continue
+
+                        relay_swimmers = parse_relay_swimmer_line(
+                            line,
+                            current_event,
+                            page_index,
+                            line_number,
+                            last_relay_team_names[column_index],
+                            competition_year,
+                        )
+                        if relay_swimmers:
+                            relay_swimmer_rows.extend(relay_swimmers)
+                            stats.relay_swimmer_rows_found += len(relay_swimmers)
+                            continue
+                    else:
+                        parsed = parse_result_line(line, current_event, page_index, line_number, competition_year)
+                        if parsed is not None:
+                            rows.append(parsed)
+                            stats.result_rows_found += 1
+                            continue
+
+                    if re.match(r"^(?:\*?\d+|---)\b", line):
+                        stats.lines_unparsed += 1
+                        debug_rows.append(
+                            {
+                                "page_number": page_index,
+                                "line_number": line_number,
+                                "event_name_context": current_event.event_name,
+                                "raw_line": line,
+                                "reason": "unparsed_multicolumn_line",
+                            }
+                        )
+                    else:
+                        stats.lines_skipped += 1
+
+    reconcile_relay_swimmers_with_individuals(rows, relay_team_rows, relay_swimmer_rows)
+    debug_df = pd.DataFrame(debug_rows, columns=["page_number", "line_number", "event_name_context", "raw_line", "reason"])
+    metadata = {
+        "pdf_name": pdf_path.name,
+        "pdf_sha256": compute_file_sha256(pdf_path),
+        "parser_version": PARSER_VERSION,
+        "competition_name": competition_name,
+        "competition_start_date": competition_start_date,
+        "competition_end_date": competition_end_date,
+        "results_label": results_label,
+        "competition_year": competition_year,
+    }
+    return rows, relay_team_rows, relay_swimmer_rows, debug_df, stats, metadata
+
+
 def compute_file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as fh:
@@ -1036,8 +1284,12 @@ def parse_pdf(pdf_path: Path):
     pages = extract_text_lines(pdf_path)
     if any("Sistemas de Natação Swim It Up" in line for _, lines in pages[:2] for line in lines):
         return parse_brazil_pdf(pdf_path)
+    if looks_like_hytek_multicolumn(pages):
+        return parse_hytek_multicolumn_pdf(pdf_path)
     stats = ParseStats(pages_read=len(pages))
     current_event: Optional[EventContext] = None
+    current_combined_event: Optional[EventContext] = None
+    combined_event_counter = 9000
     rows: List[ParsedResultRow] = []
     relay_team_rows: List[ParsedRelayTeamRow] = []
     relay_swimmer_rows: List[ParsedRelaySwimmerRow] = []
@@ -1079,9 +1331,18 @@ def parse_pdf(pdf_path: Path):
                 stats.lines_skipped += 1
                 continue
 
+            combined_event = parse_combined_event_header(line, combined_event_counter)
+            if combined_event is not None:
+                current_event = None
+                current_combined_event = combined_event
+                combined_event_counter += 1
+                stats.event_headers_found += 4
+                continue
+
             event = parse_event_header(line)
             if event is not None:
                 current_event = event
+                current_combined_event = None
                 last_relay_team_name = None
                 stats.event_headers_found += 1
                 continue
@@ -1091,9 +1352,29 @@ def parse_pdf(pdf_path: Path):
                 event = parse_event_header(inner)
                 if event is not None:
                     current_event = event
+                    current_combined_event = None
                     last_relay_team_name = None
                     stats.event_headers_found += 1
                     continue
+
+            if current_combined_event is not None:
+                combined_rows = parse_combined_result_line(line, current_combined_event, page_number, idx, competition_year)
+                if combined_rows:
+                    rows.extend(combined_rows)
+                    stats.result_rows_found += len(combined_rows)
+                    continue
+
+                stats.lines_unparsed += 1
+                debug_rows.append(
+                    {
+                        "page_number": page_number,
+                        "line_number": idx,
+                        "event_name_context": current_combined_event.event_name,
+                        "raw_line": line,
+                        "reason": "unparsed_combined_event_line",
+                    }
+                )
+                continue
 
             if current_event is None:
                 stats.lines_skipped += 1

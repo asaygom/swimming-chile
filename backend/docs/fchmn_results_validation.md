@@ -294,6 +294,29 @@ Resultado esperado de esa evidencia:
 Esto es validacion sin carga. Las competencias internacionales siguen sin
 cargarse a core hasta definir compuerta de scope/federacion.
 
+## Resolucion blockers 2022-2026 parser 0.1.13
+
+El parser `0.1.13` agrega soporte de bajo riesgo para los 14 bloqueados del foco
+operativo 2022-2026:
+
+- planillas `Quadathlon`, convertidas a cuatro pruebas 50m canonicas;
+- encabezados HY-TEK con `Damas`/`Varones`, `Metros`, `Comb. Ind.` y sufijos de
+  record en tiempos;
+- variantes de relevo como `4x50 comb`, `combinado relay`, `libre relay` y
+  `crol relay`;
+- OCR `E vento` en encabezados;
+- parciales/splits HY-TEK omitidos como lineas auxiliares;
+- layout HY-TEK multi-columna observado en `resultados-iii-copa-lqblo.pdf`.
+
+Evidencia sin carga:
+
+- manifest temporal: `backend/data/raw/manifests/scratch_2022_2026_blockers_recheck_20260421.jsonl`
+- summary final: `backend/data/raw/batch_summaries/scratch_2022_2026_blockers_recheck_20260421_v3.json`
+- resultado esperado: `state_counts.validated = 14`
+
+Los Sudamericanos siguen siendo flujo separado de scope; que validen no autoriza
+carga al manifest local principal.
+
 ## Carga a core
 
 La carga a core queda fuera del smoke de discovery. Solo se ejecuta con

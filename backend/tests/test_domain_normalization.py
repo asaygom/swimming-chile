@@ -19,6 +19,8 @@ from natacion_chile.domain.normalization import (
 def test_gender_normalization_uses_domain_canons():
     assert normalize_event_gender("Women") == "women"
     assert normalize_event_gender("Hombres") == "men"
+    assert normalize_event_gender("Damas") == "women"
+    assert normalize_event_gender("Varones") == "men"
     assert normalize_event_gender("Mixto") == "mixed"
     assert normalize_athlete_gender("W") == "female"
     assert normalize_athlete_gender("Mujer") == "female"
@@ -33,6 +35,9 @@ def test_stroke_normalization_uses_domain_canons():
     assert normalize_stroke("Combinado") == "individual_medley"
     assert normalize_stroke("Relevo Libre") == "freestyle_relay"
     assert normalize_stroke("Relevo Combinado") == "medley_relay"
+    assert normalize_stroke("Estilo Libre Novicios") == "freestyle"
+    assert normalize_stroke("4x50 Comb 200 a 239") == "medley_relay"
+    assert normalize_stroke("4x50 Crol") == "freestyle_relay"
 
 
 def test_result_status_normalization_maps_explicit_statuses():
@@ -52,6 +57,8 @@ def test_normalize_swim_time_text_and_milliseconds():
     assert derive_result_time_ms("1:05.30") == 65300
     assert normalize_swim_time_text("1:02:03.45") == "62:03,45"
     assert derive_result_time_ms("1:02:03.45") == 3723450
+    assert normalize_swim_time_text("4:55.44S") == "4:55,44"
+    assert normalize_swim_time_text("2'40'12") == "2:40,12"
 
 
 def test_time_statuses_do_not_get_milliseconds():

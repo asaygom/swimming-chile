@@ -102,6 +102,7 @@ Evidencia historica:
 - La lista `fchmn_historical_validated_local_candidates_20260420.txt` es diagnostica y no reemplaza una allow-list curada para freeze/load.
 - Al 2026-04-21, el cierre operativo de Fase 4 se acoto a formatos 2022-2026. La foto `fchmn_historical_2022_2026_focus_audit_20260421.json` contiene 67 documentos: 46 `validated_local_candidate`, 7 `validated_non_local_candidate`, 8 `requires_review` y 6 `failed`. Los formatos pre-2022 quedan como backlog legacy. Dentro de los 7 `validated_non_local_candidate`, las dos Copa Argentina / Dual Internacional corresponden al circuito master FCHMN y deben reclasificarse manualmente como cargables si el scope curado lo confirma; los 5 Sudamericanos Recife deben revisarse en flujo separado.
 - `fchmn_historical_2022_2026_available_for_scope_review_20260421.csv` lista las 53 competencias/documentos validados disponibles para curar scope (`fchmn_local` u otro). Es insumo de revision humana, no compuerta final automatica. Al clasificar, tratar Copa Cordillera / Dual Internacional como circuito master FCHMN, no como exclusion no-local automatica.
+- Al 2026-04-21, el parser `0.1.13` resolvio los 14 bloqueados 2022-2026 sin carga a core. La evidencia final es `scratch_2022_2026_blockers_recheck_20260421_v3.json` con `state_counts.validated = 14`. Los cambios cubren Quadathlon, HY-TEK multi-columna, variantes de encabezado/canon y omision de parciales/splits. Los Sudamericanos validados siguen fuera del manifest local principal hasta curar scope separado.
 
 No implementado todavia:
 
@@ -158,8 +159,7 @@ Proximo objetivo sugerido:
 
 - Mantener descarga, manifest, parseo, validacion y carga separados.
 - Usar la auditoria de brechas como punto de control canonico antes de nuevas acciones.
-- Resolver primero los documentos 2022-2026 `failed` o `requires_review`; priorizar `fchmn_historical_2022_2026_blockers_20260421.json` antes que backlog pre-2022.
-- En la proxima sesion, continuar con revision de parse para los 14 bloqueados 2022-2026: 8 `requires_review` y 6 `failed`. Para cada familia, inspeccionar PDF/debug, agregar fixture chico si corresponde, ajustar parser/canon de bajo riesgo y revalidar solo el lote afectado sin `--load`.
+- Usar como evidencia de cierre de bloqueadores 2022-2026 el summary `scratch_2022_2026_blockers_recheck_20260421_v3.json`, generado sin `--load`.
 - Curar manualmente cuales `validated_local_candidate` pertenecen efectivamente a `fchmn_local`; no usar la categoria diagnostica como compuerta final.
 - Curar `competition_scope` por documento y congelar un manifest solo con documentos locales validados usando lista explicita de `source_url`.
 - Ejecutar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga, carga explicita con `--load` y validacion post-load.

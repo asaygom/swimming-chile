@@ -8,6 +8,7 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
 - El parser recibe un archivo PDF y parametros operativos como `--out-dir`, `--competition-id` y `--default-source-id`.
 - Los layouts soportados incluyen encabezados de evento en ingles y espanol, cursos `LC/SC Meter` y `CL/CP/CC Metro`, resultados individuales y relevos.
 - Desde parser `0.1.12`, tambien se soporta el layout brasileno "Swim It Up" detectado por watermark `Sistemas de Natacao Swim It Up`, con headers de evento en portugues, franjas etarias `FAIXA`, fechas tipo `13 a 17/04/2026`, individuales y relevos por columnas.
+- Desde parser `0.1.13`, tambien se soportan PDFs HY-TEK con resultados en multiples columnas (`#1 Women...`) y planillas `Quadathlon`; estas ultimas se normalizan como cuatro pruebas canonicas 50m (`butterfly`, `backstroke`, `breaststroke`, `freestyle`) y no introducen un stroke nuevo.
 
 ## Salidas operativas
 
@@ -46,6 +47,7 @@ Tambien puede generar archivos de trazabilidad/debug:
 - `relay_team.csv` puede incluir `club_name`. Cuando existe, representa el club observado del equipo de relevo y debe preservarse hacia la carga; cuando falta o viene vacio, el pipeline puede inferir el club desde `club.csv` y `relay_team_name`.
 - Las heuristicas propias del PDF viven en el parser; el pipeline solo debe hacer limpieza generica y carga.
 - El parser normaliza sufijos de categorias de edad pegados al estilo en encabezados HY-TEK, por ejemplo `Breast 40 a 99 años` o `Medley 120 a 159 años Relay`, sin cambiar el canon de `event.stroke`.
+- El parser puede omitir parciales/splits de carrera en `debug_unparsed_lines.csv` cuando no son filas de resultado; esto evita bloquear la validacion por lineas auxiliares de HY-TEK.
 - Si una fila con resultado tipo status deja el tiempo de seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`, el parser debe separar `club_name = Club Sparta A C`, `seed_time_text = 49,33` y `result_time_text = DQ`.
 
 ## Fixtures de prueba

@@ -67,6 +67,10 @@ def test_normalize_stroke_to_domain_canon():
     assert parser.normalize_stroke("Medley 280 y mas años Relay") == "medley_relay"
 
 
+    assert parser.normalize_stroke("Estilo Libre Pre Master - Master") == "freestyle"
+    assert parser.normalize_stroke("4x50 Mts Combinado") == "medley_relay"
+
+
 def test_swim_time_normalization_and_milliseconds():
     assert parser.normalize_swim_time_text("35.40") == "35,40"
     assert parser.derive_result_time_ms("35.40") == 35400
@@ -99,6 +103,10 @@ def test_parse_event_header_in_english_and_spanish():
     age_suffix = parser.parse_event_header("Event 4 Women 40-44 100 SC Meter Breast 40 a 99 años")
     relay_age_suffix = parser.parse_event_header("Event 5 Mixed 120-159 200 LC Meter Medley 120 a 159 años Relay")
 
+    sudamericano = parser.parse_event_header("Evento 1 Damas 18-24 400 SC Metros Comb. Ind.")
+    compact = parser.parse_event_header("#1 Women 18-24 100 Meter IM")
+    ocr_spaced = parser.parse_event_header("E vento 5 Mujeres 25-29 50 CC Metro Estilo Libre Pre Master - Master")
+
     assert english.event_name == "women 35-39 100 LC Meter freestyle"
     assert spanish.event_name == "men 40-44 50 SC Meter backstroke"
     assert relay.gender == "mixed"
@@ -107,6 +115,33 @@ def test_parse_event_header_in_english_and_spanish():
     assert age_suffix.event_name == "women 40-44 100 SC Meter breaststroke"
     assert relay_age_suffix.distance_m == 200
     assert relay_age_suffix.stroke == "medley_relay"
+    assert sudamericano.gender == "women"
+    assert sudamericano.stroke == "individual_medley"
+    assert compact.course_code == "SC"
+    assert compact.stroke == "individual_medley"
+    assert ocr_spaced.stroke == "freestyle"
+
+
+def test_parse_combined_quadathlon_line_as_four_canon_events():
+    ctx = parser.parse_combined_event_header("Mujeres 25-29 Quadathlon", event_number=9000)
+    rows = parser.parse_combined_result_line(
+        "1 Albornoz, Javiera 27 LOZAD 2:27,10 33,96 34,80 46,97 31,37",
+        ctx,
+        page_number=1,
+        line_number=11,
+        competition_year=2024,
+    )
+
+    assert [row.event_name for row in rows] == [
+        "women 25-29 50 LC Meter butterfly",
+        "women 25-29 50 LC Meter backstroke",
+        "women 25-29 50 LC Meter breaststroke",
+        "women 25-29 50 LC Meter freestyle",
+    ]
+    assert rows[0].athlete_name == "Albornoz, Javiera"
+    assert rows[0].age_at_event == 27
+    assert rows[0].birth_year_estimated == 1997
+    assert rows[-1].result_time_text == "31,37"
 
 
 def test_parse_brazil_event_header_and_age_group():
