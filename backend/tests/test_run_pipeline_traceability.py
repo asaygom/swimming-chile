@@ -90,6 +90,15 @@ def test_default_club_alias_csv_contains_audited_fchmn_mappings():
     assert pipeline.resolve_club_alias("Estadio Español Master-ZZ", aliases) == "Estadio Español"
     assert pipeline.resolve_club_alias("Manateam Swim-AN", aliases) == "Manateam Swim"
     assert pipeline.resolve_club_alias("Natacion Neurodivergentes", aliases) == "Natacion Neurodivergente"
+    assert pipeline.resolve_club_alias("Venimos por la Natacioén", aliases) == "Venimos por la Natacion"
+    assert pipeline.resolve_club_alias("Master San Bernanrdo", aliases) == "Master San Bernardo"
+    assert pipeline.resolve_club_alias("Toninas Swm Team", aliases) == "Toninas Swim Team"
+    assert pipeline.resolve_club_alias("Camayo Copiapo", aliases) == "Camaygo Copiapo"
+    assert pipeline.resolve_club_alias("Condictrios Team", aliases) == "Condrictios Team"
+    assert pipeline.resolve_club_alias("Salmon Swim", aliases) == "Salmón Swim"
+    assert pipeline.resolve_club_alias("Squadra Proswim", aliases) == "Squadra Pro Swim"
+    assert pipeline.resolve_club_alias("Santiago Deportes", aliases) == "Santiago Deporte"
+    assert pipeline.resolve_club_alias("GOURA", aliases) == "Goura Swim Team"
 
 
 def test_transform_parser_relay_outputs_prefers_relay_team_club_name_with_empty_club_csv():
@@ -138,3 +147,21 @@ def test_transform_parser_relay_outputs_prefers_relay_team_club_name_with_empty_
 
     assert transformed["relay_result"].loc[0, "club_name"] == "Associacao Master"
     assert transformed["relay_result_member"].loc[0, "club_name"] == "Associacao Master"
+
+
+def test_insert_core_athlete_deduplicates_staging_by_normalized_identity():
+    class Cursor:
+        def __init__(self):
+            self.statements = []
+
+        def execute(self, statement, params=None):
+            self.statements.append((statement, params))
+
+    cursor = Cursor()
+
+    pipeline.insert_core_athlete(cursor, "core", 1)
+
+    insert_statements = [statement for statement, _ in cursor.statements if "INSERT INTO core.athlete" in statement]
+    assert len(insert_statements) == 2
+    assert all("SELECT DISTINCT ON" in statement for statement in insert_statements)
+    assert all("athlete_key" in statement for statement in insert_statements)

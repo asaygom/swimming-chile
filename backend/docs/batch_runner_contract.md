@@ -246,6 +246,9 @@ Pipeline:
 
 - Hace limpieza generica y carga.
 - Al transformar `relay_team.csv` + `relay_swimmer.csv`, usa `relay_team.club_name` cuando venga informado y conserva la inferencia desde `club.csv` solo como fallback compatible.
+- Deduplica atletas dentro de cada carga por nombre normalizado, genero, año de
+  nacimiento y club observado para evitar variantes OCR/acento equivalentes en
+  un mismo `INSERT`.
 - Persiste `--competition-scope` en `competition.competition_scope` cuando crea
   o reutiliza una competencia.
 - Registra `source_document`, `load_run` y `validation_issue`.

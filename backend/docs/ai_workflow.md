@@ -121,6 +121,12 @@ Evidencia historica:
   de resultados, usar una limpieza quirurgica que preserve esas filas. Esa
   limpieza operacional ya se ejecuto manualmente y no se conserva como script
   versionado.
+- Despues de la primera carga explicita del manifest local congelado se
+  detectaron duplicados de identidad observada en `athlete` y variantes/errores
+  de club. El patch en curso deduplica atletas por identidad normalizada dentro
+  de cada carga y amplia `club_alias.csv` con correcciones curadas de alta
+  confianza. La base ya cargada requiere backup, limpieza quirurgica y recarga
+  explicita para reflejar estas correcciones.
 
 No implementado todavia:
 
@@ -200,8 +206,8 @@ Proximo objetivo sugerido:
 - La limpieza quirurgica previa a carga ya fue ejecutada manualmente; verificar
   primero que staging/resultados/trazabilidad quedaron limpios y que calendario
   planificado/pool se preservaron.
-- Preparar la carga explicita del manifest local congelado con `--load`,
-  `--truncate-staging`, summary auditable y validacion post-load; no ejecutarla
-  sin pedido explicito.
+- Para repetir la carga del manifest local congelado, hacer backup, aplicar la
+  limpieza quirurgica preservando `pool` y competencias planificadas, ejecutar
+  `--load` con `--truncate-staging`, y validar duplicados post-load.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

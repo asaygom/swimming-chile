@@ -182,3 +182,39 @@ Club Dep Natacion Araucania,Club Natacion Araucania,abreviatura detectada en aud
 Club Koyaique,Koy Aike,typo detectado en auditoria FCHMN 2026
 Fullmar Viña,Fullmar,alias detectado en auditoria FCHMN 2025
 Fullmar Vina,Fullmar,alias sin tilde detectado en auditoria FCHMN 2025
+Club Dep Natación Colina,Club de Natacion Colina,abreviatura detectada en auditoria historica 2022-2026
+Club Natacioén Colina,Club de Natacion Colina,tilde mal extraida detectada en auditoria historica 2022-2026
+Venimos por la Natacioén,Venimos por la Natacion,tilde mal extraida detectada en auditoria historica 2022-2026
+Energyswim Concepcion,Energy Swim Concepcion,alias sin espacio detectado en auditoria historica 2022-2026
+Master San Bernanrdo,Master San Bernardo,typo detectado en auditoria historica 2022-2026
+Toninas Swm Team,Toninas Swim Team,typo detectado en auditoria historica 2022-2026
+Camaygo Copiap,Camaygo Copiapo,club truncado detectado en auditoria historica 2022-2026
+Camayo Copiapo,Camaygo Copiapo,typo detectado en auditoria historica 2022-2026
+Millahre Natación Master,Millarhe Natacion Master,typo detectado en auditoria historica 2022-2026
+Condictrios Team,Condrictios Team,typo detectado en auditoria historica 2022-2026
+Club Delfines DE Villa Alemana,Delfines de Villa Alemana,prefijo club detectado en auditoria historica 2022-2026
+Club Delfines de Villa Alemana,Delfines de Villa Alemana,prefijo club detectado en auditoria historica 2022-2026
+Club Delfines DE Las Condes,Delfines de las Condes,prefijo club detectado en auditoria historica 2022-2026
+Club Delfines de Las Condes,Delfines de las Condes,prefijo club detectado en auditoria historica 2022-2026
+GOLDE,Golden,club truncado detectado en auditoria historica 2022-2026
+Club Millarhe Natacion Master,Millarhe Natacion Master,prefijo club detectado en auditoria historica 2022-2026
+Club Natacion Master Recoleta,Natacion Master Recoleta,prefijo club detectado en auditoria historica 2022-2026
+Club Master San Bernardo,Master San Bernardo,prefijo club detectado en auditoria historica 2022-2026
+Club Tiburones de Curico,Tiburones de Curico,prefijo club detectado en auditoria historica 2022-2026
+Orinocoswim23,Orinoco Swim,sufijo numerico y espacio omitido detectados en auditoria historica 2022-2026
+Salmon Swim,Salmón Swim,alias sin tilde detectado en auditoria historica 2022-2026
+Salmón Swim,Salmón Swim,canonical
+Squadra Proswim,Squadra Pro Swim,espacio omitido detectado en auditoria historica 2022-2026
+Squadra Pro Swim,Squadra Pro Swim,canonical
+Santiago Deportes,Santiago Deporte,plural alternativo detectado en auditoria historica 2022-2026
+Santiago Deporte,Santiago Deporte,canonical
+Smart Swim Team-Chile,Smart Swim Team,sufijo pais detectado en auditoria historica 2022-2026
+Smart Swim Team,Smart Swim Team,canonical
+Stade Frances,Stade Francais,alias sin cedilla detectado en auditoria historica 2022-2026
+Stade Francais,Stade Francais,canonical
+Aquamaster Ņuble,Aquamaster Ñuble,ene mal extraida detectada en auditoria historica 2022-2026
+Aquamaster Ñuble,Aquamaster Ñuble,canonical
+GOURA,Goura Swim Team,abreviatura detectada en auditoria historica 2022-2026
+MILLA,Millarhe Natacion Master,abreviatura detectada en auditoria historica 2022-2026
+MPROV,Master Providencia,abreviatura detectada en auditoria historica 2022-2026
+NUMAS,Ñuñoa Master,abreviatura detectada en auditoria historica 2022-2026

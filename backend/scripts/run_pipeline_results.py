@@ -971,34 +971,54 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
 
     cur.execute(f"""
         INSERT INTO {fqtn(schema, 'athlete')} (full_name, gender, birth_year, club_id, source_id)
-        SELECT DISTINCT TRIM(a.full_name), LOWER(NULLIF(TRIM(a.gender), '')),
-               NULLIF(TRIM(a.birth_year), '')::INTEGER, c.id,
-               COALESCE(NULLIF(TRIM(a.source_id), '')::BIGINT, %s)
-        FROM {fqtn(schema, 'stg_athlete')} a
-        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('a.club_name')} = {club_match_key_sql('c.name')}
-        WHERE NULLIF(TRIM(a.full_name), '') IS NOT NULL
+        SELECT s.full_name, s.gender, s.birth_year, s.club_id, s.source_id
+        FROM (
+            SELECT DISTINCT ON (
+                {club_match_key_sql('a.full_name')},
+                LOWER(NULLIF(TRIM(a.gender), '')),
+                NULLIF(TRIM(a.birth_year), '')::INTEGER,
+                c.id
+            )
+                   TRIM(a.full_name) AS full_name,
+                   LOWER(NULLIF(TRIM(a.gender), '')) AS gender,
+                   NULLIF(TRIM(a.birth_year), '')::INTEGER AS birth_year,
+                   c.id AS club_id,
+                   COALESCE(NULLIF(TRIM(a.source_id), '')::BIGINT, %s) AS source_id,
+                   {club_match_key_sql('a.full_name')} AS athlete_key
+            FROM {fqtn(schema, 'stg_athlete')} a
+            LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('a.club_name')} = {club_match_key_sql('c.name')}
+            WHERE NULLIF(TRIM(a.full_name), '') IS NOT NULL
+            -- El parser puede producir variantes OCR/acento del mismo atleta en una carga.
+            ORDER BY {club_match_key_sql('a.full_name')},
+                     LOWER(NULLIF(TRIM(a.gender), '')) NULLS FIRST,
+                     NULLIF(TRIM(a.birth_year), '')::INTEGER NULLS FIRST,
+                     c.id NULLS FIRST,
+                     LENGTH(TRIM(a.full_name)),
+                     TRIM(a.full_name)
+        ) s
+        WHERE s.athlete_key IS NOT NULL
           AND NOT EXISTS (
               SELECT 1 FROM {fqtn(schema, 'athlete')} at
-              WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(a.full_name))
+              WHERE {club_match_key_sql('at.full_name')} = s.athlete_key
                 AND (
-                    LOWER(NULLIF(TRIM(a.gender), '')) IS NULL
+                    s.gender IS NULL
                     OR at.gender IS NULL
-                    OR at.gender = LOWER(NULLIF(TRIM(a.gender), ''))
+                    OR at.gender = s.gender
                 )
                 AND (
                     (
-                        NULLIF(TRIM(a.birth_year), '') IS NOT NULL
+                        s.birth_year IS NOT NULL
                         AND (
-                            at.birth_year = NULLIF(TRIM(a.birth_year), '')::INTEGER
+                            at.birth_year = s.birth_year
                             OR (
                                 at.birth_year IS NULL
-                                AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                                AND ((at.club_id IS NULL AND s.club_id IS NULL) OR at.club_id = s.club_id)
                             )
                         )
                     )
                     OR (
-                        NULLIF(TRIM(a.birth_year), '') IS NULL
-                        AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                        s.birth_year IS NULL
+                        AND ((at.club_id IS NULL AND s.club_id IS NULL) OR at.club_id = s.club_id)
                     )
                 )
           );
@@ -1006,33 +1026,53 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
 
     cur.execute(f"""
         INSERT INTO {fqtn(schema, 'athlete')} (full_name, gender, birth_year, club_id, source_id)
-        SELECT DISTINCT TRIM(m.athlete_name), LOWER(NULLIF(TRIM(m.gender), '')),
-               NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER, c.id, %s
-        FROM {fqtn(schema, 'stg_relay_result_member')} m
-        LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
-        WHERE NULLIF(TRIM(m.athlete_name), '') IS NOT NULL
+        SELECT s.full_name, s.gender, s.birth_year, s.club_id, %s
+        FROM (
+            SELECT DISTINCT ON (
+                {club_match_key_sql('m.athlete_name')},
+                LOWER(NULLIF(TRIM(m.gender), '')),
+                NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER,
+                c.id
+            )
+                   TRIM(m.athlete_name) AS full_name,
+                   LOWER(NULLIF(TRIM(m.gender), '')) AS gender,
+                   NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER AS birth_year,
+                   c.id AS club_id,
+                   {club_match_key_sql('m.athlete_name')} AS athlete_key
+            FROM {fqtn(schema, 'stg_relay_result_member')} m
+            LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
+            WHERE NULLIF(TRIM(m.athlete_name), '') IS NOT NULL
+            -- Mismo criterio que individuales: no duplicar variantes crudas del atleta.
+            ORDER BY {club_match_key_sql('m.athlete_name')},
+                     LOWER(NULLIF(TRIM(m.gender), '')) NULLS FIRST,
+                     NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER NULLS FIRST,
+                     c.id NULLS FIRST,
+                     LENGTH(TRIM(m.athlete_name)),
+                     TRIM(m.athlete_name)
+        ) s
+        WHERE s.athlete_key IS NOT NULL
           AND NOT EXISTS (
               SELECT 1 FROM {fqtn(schema, 'athlete')} at
-              WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+              WHERE {club_match_key_sql('at.full_name')} = s.athlete_key
                 AND (
-                    LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
+                    s.gender IS NULL
                     OR at.gender IS NULL
-                    OR at.gender = LOWER(NULLIF(TRIM(m.gender), ''))
+                    OR at.gender = s.gender
                 )
                 AND (
                     (
-                        NULLIF(TRIM(m.birth_year_estimated), '') IS NOT NULL
+                        s.birth_year IS NOT NULL
                         AND (
-                            at.birth_year = NULLIF(TRIM(m.birth_year_estimated), '')::INTEGER
+                            at.birth_year = s.birth_year
                             OR (
                                 at.birth_year IS NULL
-                                AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                                AND ((at.club_id IS NULL AND s.club_id IS NULL) OR at.club_id = s.club_id)
                             )
                         )
                     )
                     OR (
-                        NULLIF(TRIM(m.birth_year_estimated), '') IS NULL
-                        AND ((at.club_id IS NULL AND c.id IS NULL) OR at.club_id = c.id)
+                        s.birth_year IS NULL
+                        AND ((at.club_id IS NULL AND s.club_id IS NULL) OR at.club_id = s.club_id)
                     )
                 )
           );
