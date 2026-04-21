@@ -113,8 +113,14 @@ Evidencia historica:
   `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` separa 6
   documentos con `competition_scope=sudamericano_master`. Las validaciones
   posteriores quedaron `validated`: local 61/61 y Sudamericano 6/6.
-- Antes de una carga, aplicar `backend/sql/migrations/002_competition_scope.sql`
-  para que el scope curado quede persistido en `core.competition`.
+- La migracion `backend/sql/migrations/002_competition_scope.sql` ya fue aplicada
+  antes de continuar hacia la carga, por lo que `core.competition` puede
+  persistir el scope curado.
+- La base contiene calendario planificado FCHMN 2026 en `competition` sin
+  eventos cargados y datos de `pool` fuera del alcance actual. Para una recarga
+  de resultados, usar una limpieza quirurgica que preserve esas filas. Esa
+  limpieza operacional ya se ejecuto manualmente y no se conserva como script
+  versionado.
 
 No implementado todavia:
 
@@ -171,10 +177,13 @@ Contexto vigente:
 - No usar keywords como compuerta final de carga.
 
 Siguiente tarea:
-Preparar una posible carga explicita del manifest local congelado siguiendo
-backend/docs/pre_load_checklist.md: revisar evidencia, backup, alcance de wipe
-si aplica, comandos y validaciones post-load. No cargar a core ni usar --load
-salvo pedido explicito. Mantener Sudamericanos en flujo separado.
+Verificar el estado post-limpieza de la base antes de cargar: staging vacio,
+tablas de resultados/trazabilidad previa limpias, `pool` intacta y calendario
+planificado FCHMN preservado en `competition`. Luego preparar la carga explicita
+del manifest local congelado siguiendo backend/docs/pre_load_checklist.md:
+comando con `--load`, `--truncate-staging`, summary auditable y validaciones
+post-load. No cargar a core ni usar --load salvo pedido explicito. Mantener
+Sudamericanos en flujo separado.
 ```
 
 ## Siguiente paso sugerido
@@ -188,6 +197,11 @@ Proximo objetivo sugerido:
 - Usar como evidencia de cierre de bloqueadores 2022-2026 el summary `scratch_2022_2026_blockers_recheck_20260421_v3.json`, generado sin `--load`.
 - Usar como manifest local congelado inicial `fchmn_historical_2022_2026_frozen_local_20260421.jsonl`, validado sin `--load` con 61 documentos.
 - Mantener los Sudamericanos en `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` como flujo separado; no mezclarlos automaticamente con el manifest local principal.
-- Ejecutar checklist de wipe/full reload antes de una carga completa: backup, manifest congelado, checksums, orden de carga, carga explicita con `--load` y validacion post-load.
+- La limpieza quirurgica previa a carga ya fue ejecutada manualmente; verificar
+  primero que staging/resultados/trazabilidad quedaron limpios y que calendario
+  planificado/pool se preservaron.
+- Preparar la carga explicita del manifest local congelado con `--load`,
+  `--truncate-staging`, summary auditable y validacion post-load; no ejecutarla
+  sin pedido explicito.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

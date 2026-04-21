@@ -54,6 +54,10 @@ Ejecutar wipe solo si se busca una recarga completa y el backup ya fue verificad
 - No borrar tablas operativas si se necesita conservar auditoria historica.
 - Documentar el SQL exacto antes de ejecutarlo.
 - Preferir transaccion manual con conteos antes/despues.
+- Para recargar resultados FCHMN preservando calendario planificado y piscinas,
+  hacer una limpieza quirurgica ad hoc: conservar competencias sin eventos, no
+  tocar `pool`, limpiar staging/trazabilidad/resultados previos y ejecutar solo
+  despues de backup verificado.
 
 Orden orientativo si se hace wipe de datos core cargables:
 
