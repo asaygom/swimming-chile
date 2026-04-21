@@ -172,6 +172,12 @@ Inventario exploratorio del 2026-04-20:
   compuerta: Coppa Italia es parte del circuito FCHMN y Copa Cordillera es
   organizada por FCHMN, aunque tenga etapa Chile y etapa Argentina. La compuerta
   real debe modelar circuito/federacion/ambito/sede con datos curados.
+- Decision curada posterior: Copa Cordillera / Dual Internacional pertenece al
+  circuito master FCHMN aunque una etapa sea Argentina. Los documentos
+  `resultados-copa-argentina.pdf` y `resultados-etapa-argentina.pdf` no deben
+  excluirse por sede argentina; deben cargarse solo si el manifest congelado los
+  marca con scope curado adecuado. Los Sudamericanos se mantienen como flujo
+  separado.
 - Validaciones parciales sin carga: portada full `validated: 23`; pagina 2 full
   `validated: 14`, `requires_review: 3`, `failed: 4`; Nacional 2026
   `validated: 1`.
@@ -181,6 +187,60 @@ Inventario exploratorio del 2026-04-20:
   Corridas `scratch`, probes, smoke tests y rechecks puntuales son evidencia
   exploratoria: conservarlas mientras ayuden a diagnosticar, pero no usarlas
   como manifest canonico ni como autorizacion de carga.
+- La auditoria local de brechas puede reproducirse sin red y sin carga a core:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_fchmn_artifacts.py `
+  --focus-manifest backend\data\raw\manifests\fchmn_historical_discovery_20260420.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_gap_audit_YYYYMMDD.json `
+  --json
+```
+
+  El script solo lee manifests, summaries, PDFs locales y carpetas CSV. Clasifica
+  documentos como `missing_download`, `missing_parse`, `missing_validation`,
+  `requires_review`, `failed`, `validated_local_candidate` o
+  `validated_non_local_candidate`. La separacion local/no-local es diagnostica;
+  la compuerta final de carga sigue requiriendo `competition_scope` curado.
+- Auditoria y descarga historica del 2026-04-20:
+  - `fchmn_historical_gap_audit_20260420.json`: 108 documentos; 64
+    `missing_download`, 4 `failed`, 3 `requires_review`, 30
+    `validated_local_candidate`, 7 `validated_non_local_candidate`.
+  - `fchmn_historical_missing_download_20260420.jsonl`: manifest derivado solo
+    para los 64 documentos faltantes de descarga. No es manifest de carga.
+  - `fchmn_historical_missing_download_20260420_download.json`: 64 PDFs
+    descargados con checksum. No parsea ni carga.
+  - `fchmn_historical_missing_download_20260420_batch.json`: parseo y validacion
+    sin carga de esos 64 PDFs; `validated: 16`, `requires_review: 24`,
+    `failed: 24`.
+  - `fchmn_historical_gap_audit_after_batch_20260420.json`: foto consolidada del
+    historico; `validated_local_candidate: 46`,
+    `validated_non_local_candidate: 7`, `requires_review: 27`, `failed: 28`.
+  - `fchmn_historical_blockers_20260420.json`: clasificacion diagnostica de
+    bloqueadores para priorizar soporte de parser y revision de canon.
+  - `fchmn_historical_validated_local_candidates_20260420.txt`: lista
+    diagnostica de candidatos locales validados; no es allow-list final para
+    `freeze_validated_manifest.py`.
+- Foco operativo 2022-2026 definido el 2026-04-21:
+  - El año de carpeta inferido desde URL WordPress representa la ruta
+    `/uploads/<year>/`, no necesariamente el año de competencia.
+  - `fchmn_historical_2022_2026_focus_20260421.jsonl`: 67 documentos del
+    inventario historico con ruta de carga WordPress 2022-2026.
+  - `fchmn_historical_2022_2026_focus_audit_20260421.json`: 46
+    `validated_local_candidate`, 7 `validated_non_local_candidate`, 8
+    `requires_review` y 6 `failed`.
+  - `fchmn_historical_2022_2026_available_for_scope_review_20260421.csv`:
+    53 documentos validados disponibles para curar scope manualmente.
+    Incluye dos documentos de Copa Cordillera / Dual Internacional inicialmente
+    diagnosticados como no-locales por pista de nombre; deben revisarse como
+    circuito master FCHMN, no excluirse automaticamente.
+  - `fchmn_historical_2022_2026_blockers_20260421.json`: 14 documentos
+    bloqueados que deben resolverse antes de considerar el rango 2022-2026
+    completo.
+  - Siguiente foco: resolver los 8 `requires_review` y 6 `failed` del rango
+    2022-2026 inspeccionando PDF/debug, agregando fixtures chicos y revalidando
+    sin `--load`.
+  - Los formatos pre-2022 quedan como backlog legacy y no deben bloquear el
+    cierre operativo inicial de Fase 4.
 - El barrido paginado de portada es una herramienta one-shot para backfill
   historico. Para operacion futura se espera monitorear resultados recientes y
   cambios de checksum, sin recorrer todo el historico en cada corrida.
