@@ -209,6 +209,8 @@ def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:
         command.extend(["--competition-id", str(args.competition_id)])
     if getattr(args, "source_url", None):
         command.extend(["--competition-source-url", str(args.source_url)])
+    if getattr(args, "competition_scope", None):
+        command.extend(["--competition-scope", str(args.competition_scope)])
     if args.truncate_staging:
         command.append("--truncate-staging")
     return command

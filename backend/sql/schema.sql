@@ -108,6 +108,9 @@ CREATE TABLE competition (
     competition_type TEXT CHECK (
         competition_type IN ('national', 'regional', 'master', 'open', 'school', 'other')
     ),
+    competition_scope TEXT CHECK (
+        competition_scope IS NULL OR competition_scope ~ '^[a-z][a-z0-9_]*$'
+    ),
     course_type TEXT CHECK (
         course_type IN ('scm', 'lcm', 'unknown')
     ),
@@ -428,6 +431,7 @@ CREATE INDEX idx_pool_region_city ON pool(region, city);
 
 CREATE INDEX idx_competition_pool_id ON competition(pool_id);
 CREATE INDEX idx_competition_source_id ON competition(source_id);
+CREATE INDEX idx_competition_scope ON competition(competition_scope);
 CREATE INDEX idx_competition_start_date ON competition(start_date);
 CREATE INDEX idx_competition_season_year ON competition(season_year);
 

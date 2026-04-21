@@ -4,6 +4,7 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 SCHEMA_SQL = BACKEND_DIR / "sql" / "schema.sql"
 MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "001_traceability_idempotency.sql"
+COMPETITION_SCOPE_MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "002_competition_scope.sql"
 
 
 def normalized_sql(path: Path) -> str:
@@ -30,6 +31,13 @@ def test_schema_keeps_idempotency_unique_indexes():
         assert f"create unique index {index_name}" in sql
 
 
+def test_schema_declares_competition_scope():
+    sql = normalized_sql(SCHEMA_SQL)
+
+    assert "competition_scope text check" in sql
+    assert "create index idx_competition_scope on competition(competition_scope)" in sql
+
+
 def test_migration_keeps_phase_2_tables_and_unique_indexes():
     sql = normalized_sql(MIGRATION_SQL)
 
@@ -40,5 +48,16 @@ def test_migration_keeps_phase_2_tables_and_unique_indexes():
         "create unique index if not exists ux_source_document_checksum_sha256",
         "create unique index if not exists ux_result_observed_identity",
         "create unique index if not exists ux_relay_result_observed_identity",
+    ]:
+        assert sql_fragment in sql
+
+
+def test_competition_scope_migration_adds_column_constraint_and_index():
+    sql = normalized_sql(COMPETITION_SCOPE_MIGRATION_SQL)
+
+    for sql_fragment in [
+        "alter table competition add column if not exists competition_scope text",
+        "add constraint chk_competition_scope check",
+        "create index if not exists idx_competition_scope on competition(competition_scope)",
     ]:
         assert sql_fragment in sql

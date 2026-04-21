@@ -68,7 +68,9 @@ Campos por entrada:
   prioridad sobre el valor global.
 - `competition_scope`: opcional en validacion; requerido para cargar a core. La
   primera compuerta implementada permite `--load` solo cuando el scope curado
-  coincide con `fchmn_local` por defecto.
+  coincide con `fchmn_local` por defecto. El valor se persiste en
+  `competition.competition_scope` al cargar para permitir filtros posteriores
+  por circuito/ambito curado.
 - `default_source_id`: opcional; hereda el valor global cuando no se declara.
 - `excel_name`: opcional; hereda el valor global cuando no se declara.
 
@@ -211,6 +213,8 @@ Batch runner:
 - Evalua compuertas.
 - Conserva `source_url` desde el manifest y la pasa al pipeline como
   `--competition-source-url` cuando se ejecuta `--load`.
+- Conserva `competition_scope` desde el manifest y la pasa al pipeline como
+  `--competition-scope` cuando se ejecuta `--load`.
 - Ejecuta pipeline solo si el lote esta validado.
 - Si se usa `--load`, exige que cada documento tenga un `competition_scope`
   curado que coincida con `--required-competition-scope` (`fchmn_local` por
@@ -242,6 +246,8 @@ Pipeline:
 
 - Hace limpieza generica y carga.
 - Al transformar `relay_team.csv` + `relay_swimmer.csv`, usa `relay_team.club_name` cuando venga informado y conserva la inferencia desde `club.csv` solo como fallback compatible.
+- Persiste `--competition-scope` en `competition.competition_scope` cuando crea
+  o reutiliza una competencia.
 - Registra `source_document`, `load_run` y `validation_issue`.
 - No debe implementar heuristicas agresivas del PDF.
 

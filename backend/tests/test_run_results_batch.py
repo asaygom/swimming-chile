@@ -126,14 +126,17 @@ def test_build_load_command_passes_source_url_to_pipeline_when_available():
         default_source_id=7,
         competition_id=42,
         source_url="https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf",
+        competition_scope="fchmn_local",
         truncate_staging=False,
     )
 
     command = batch.build_load_command(args, Path("backend/data/raw/results_csv/demo"))
 
-    assert command[-2:] == [
+    assert command[-4:] == [
         "--competition-source-url",
         "https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf",
+        "--competition-scope",
+        "fchmn_local",
     ]
 
 

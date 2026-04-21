@@ -135,6 +135,20 @@ Valores esperados:
 - `lcm`
 - `unknown`
 
+### 6.6 `competition.competition_type` y `competition.competition_scope`
+
+`competition_type` describe el tipo deportivo general de la competencia, por
+ejemplo `master`, `open` o `school`.
+
+`competition_scope` describe el circuito o ambito curado usado para filtrar
+cargas y analitica. No reemplaza a `source_id`: un sitio fuente como FCHMN puede
+publicar competencias locales y tambien documentos internacionales. El valor
+debe usar `snake_case` simple, por ejemplo:
+
+- `fchmn_local`
+- `sudamericano_master`
+- `fechida_local`
+
 ## 7. Resumen de entidades core
 
 ### 7.1 `source`
@@ -263,6 +277,7 @@ Campos principales:
 - `pool_id`
 - `organizer`
 - `competition_type`
+- `competition_scope`
 - `course_type`
 - `status`
 - `source_id`

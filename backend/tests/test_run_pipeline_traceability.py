@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = BACKEND_DIR / "scripts"
@@ -43,6 +44,15 @@ def test_derive_source_document_name_falls_back_to_input_dir():
     args = argparse.Namespace(excel=None, input_dir="backend/data/raw/results_csv/demo")
 
     assert pipeline.derive_source_document_name(args, {}) == "demo"
+
+
+def test_normalize_competition_scope_accepts_snake_case():
+    assert pipeline.normalize_competition_scope("fchmn_local") == "fchmn_local"
+
+
+def test_normalize_competition_scope_rejects_free_text():
+    with pytest.raises(SystemExit):
+        pipeline.normalize_competition_scope("FCHMN Local")
 
 
 def test_normalize_dataframe_derives_valid_status_from_result_time():

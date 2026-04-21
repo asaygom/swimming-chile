@@ -82,6 +82,9 @@ Estado vigente:
 - `audit_fchmn_artifacts.py` audita brechas locales de Fase 4 cruzando manifests, summaries, PDFs y carpetas CSV sin descargar, parsear ni cargar a core.
 - `scrape_fchmn.py` y `run_fchmn_results_validation.py` soportan `--crawl-pages` y multiples `--url` para consolidar fuentes FCHMN en un manifest deduplicado.
 - `run_results_batch.py --load` solo ejecuta el pipeline si el documento esta `validated` y su `competition_scope` coincide con el scope requerido (`fchmn_local` por defecto).
+- `competition_type` clasifica el tipo deportivo general; `competition_scope`
+  clasifica el circuito/ambito curado para filtros de carga y analitica. El
+  scope del manifest se persiste en `competition.competition_scope`.
 
 Decisiones vigentes:
 
@@ -110,6 +113,8 @@ Evidencia historica:
   `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` separa 6
   documentos con `competition_scope=sudamericano_master`. Las validaciones
   posteriores quedaron `validated`: local 61/61 y Sudamericano 6/6.
+- Antes de una carga, aplicar `backend/sql/migrations/002_competition_scope.sql`
+  para que el scope curado quede persistido en `core.competition`.
 
 No implementado todavia:
 

@@ -368,6 +368,9 @@ La carga a core queda fuera del smoke de discovery. Solo se ejecuta con
 `--load`, despues de revisar que el batch este `validated` y con credenciales
 proporcionadas para esa corrida.
 
+Antes de cargar, aplicar `backend/sql/migrations/002_competition_scope.sql` si
+la base existente aun no tiene `competition.competition_scope`.
+
 Plantilla:
 
 ```powershell

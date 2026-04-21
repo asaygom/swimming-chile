@@ -20,6 +20,9 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
 - Confirmar que los documentos candidatos estan `validated`.
 - Revisar que el batch summary no tenga issues bloqueantes.
 - Revisar que el scope local no dependa de keywords automaticas.
+- Confirmar que la base tiene aplicada la migracion
+  `backend/sql/migrations/002_competition_scope.sql`, para persistir
+  `competition.competition_scope` antes de cargar.
 
 ## 2. Manifest congelado
 
@@ -71,6 +74,8 @@ Revisar dependencias reales en `backend/sql/schema.sql` antes de ejecutar.
 - Escribir `--summary-json` en `backend/data/raw/batch_summaries/`.
 - Confirmar que el summary de carga queda `loaded`.
 - Confirmar que los comandos registrados tienen password redactado.
+- Confirmar que `--competition-scope` fue pasado al pipeline desde el manifest
+  congelado.
 
 ## 6. Validacion post-load
 
@@ -88,6 +93,7 @@ Validar trazabilidad:
 
 - `source_document.checksum_sha256` presente cuando hubo PDF.
 - `source_document.source_url` presente cuando venia desde manifest.
+- `competition.competition_scope` coincide con el scope curado del manifest.
 - `load_run.input_dir` apunta a la carpeta parseada esperada.
 - `load_run.parser_version` coincide con `metadata.json`.
 
