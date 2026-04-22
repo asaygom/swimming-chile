@@ -147,8 +147,14 @@ Evidencia historica:
   solo atletas compartidos entre competencias distintas del mismo ano, excluye
   solapes dentro de una misma competencia y encontro 79 pares candidatos con al
   menos 2 atleta-anos compartidos, 40 conflictos intra-competencia excluidos y
-  90 grupos de aliases con multiples variantes raw; revisar primero
-  `fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v2_cross_competition.csv`.
+  90 grupos de aliases con multiples variantes raw. Tras aplicar 30 aliases
+  seguros desde esa bandeja curada, expandir 7 relaciones hacia canonicals ya
+  existentes, aplicar las 6 relaciones restantes curadas por el usuario y
+  colapsar aliases que apuntaban a canonicals antiguos, la corrida
+  `v7_collapsed_canonical_groups` bajo a 31 pares candidatos, mantuvo 40
+  conflictos intra-competencia excluidos y dejo 96 grupos de aliases con
+  multiples variantes raw; revisar primero
+  `fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v7_collapsed_canonical_groups.csv`.
 
 No implementado todavia:
 

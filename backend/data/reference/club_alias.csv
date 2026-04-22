@@ -1,21 +1,23 @@
 alias_name,canonical_name,notes
-Africa Natacion,Africa Natacion,grupo fuerte africa aplicado desde auditoria 2022-2026
 Afri,Africa Natacion,codigo de equipo detectado en layout abreviado HY-TEK
+Africa Natacion,Africa Natacion,grupo fuerte africa aplicado desde auditoria 2022-2026
 AFRIN,Africa Natacion,codigo de equipo detectado en layout abreviado HY-TEK
 Club Africa Natacion,Africa Natacion,grupo fuerte africa aplicado desde auditoria 2022-2026
 AGUIL,Aguila Natacion,codigo de equipo detectado en layout abreviado HY-TEK
 Aguila Natacion,Aguila Natacion,grupo fuerte aguila aplicado desde auditoria 2022-2026
+Aqgula Natacion,Aguila Natacion,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=10; cross=5
 Club Aguila Natación,Aguila Natacion,grupo fuerte aguila aplicado desde auditoria 2022-2026
 Amarus,Amarus,canonical
 Club Deportivo Amarus,Amarus,alias detectado en auditoria historica de PDFs
 Andes,Andes Club,grupo fuerte andes aplicado desde auditoria 2022-2026
 Andes Club,Andes Club,grupo fuerte andes aplicado desde auditoria 2022-2026
+Andes Talleres,Andes Talleres Sport Club,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=8; cross=1
 Aquamaster Chillan,Aquamaster Chillan,canonical
 Club Aquamaster Chillan,Aquamaster Chillan,alias detectado en PDFs historicos
 Aquamaster Ñuble,Aquamaster Ñuble,canonical
 Aquamaster Ņuble,Aquamaster Ñuble,ene mal extraida detectada en auditoria historica 2022-2026
-Asociacion Deportiva Patagonia,Asociacion Deportiva Patagonia,canonical
 Asoc Dep Local Patagonia,Asociacion Deportiva Patagonia,abreviaciones
+Asociacion Deportiva Patagonia,Asociacion Deportiva Patagonia,canonical
 PATAG,Asociacion Deportiva Patagonia,codigo de equipo detectado en layout abreviado HY-TEK
 Bswim,Bswim,grupo fuerte bswim aplicado desde auditoria 2022-2026
 Club Bswim,Bswim,grupo fuerte bswim aplicado desde auditoria 2022-2026
@@ -24,6 +26,7 @@ Camaygo Copiapo,Camaygo Copiapo,canonical
 Camaygo Master Copiapó,Camaygo Copiapo,alias detectado en auditoria historica de PDFs
 Camayo Copiapo,Camaygo Copiapo,typo detectado en auditoria historica 2022-2026
 Club Camaygo Copiapo,Camaygo Copiapo,grupo fuerte camaygo copiapo aplicado desde auditoria 2022-2026
+Copiapo Swim,Camaygo Copiapo,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=1
 Carabineros,Carabineros de Chile,alias detectado en PDFs historicos
 Carabineros DE Chile,Carabineros de Chile,alias de mayusculas detectado en PDFs historicos
 Carabineros de Chile,Carabineros de Chile,canonical
@@ -32,6 +35,7 @@ Chungungo Swim Team,Chungungo Swim Team,grupo fuerte chungungo aplicado desde au
 100 por Ciento Swim,Cien por Ciento Swim,alias detectado entre competencias 2026
 Cien por Ciento Swim,Cien por Ciento Swim,canonical
 Amateur Natacion Talca,Club Amateur Natacion Talca,alias detectado en PDFs historicos
+Club Amateur Natacion,Club Amateur Natacion Talca,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=14; cross=4
 Club Amateur Natacion Talca,Club Amateur Natacion Talca,canonical
 Club Natacion Amateur Talca,Club Amateur Natacion Talca,alias detectado en PDFs historicos
 TALCA,Club Amateur Natacion Talca,codigo de equipo detectado en layout abreviado HY-TEK
@@ -41,6 +45,7 @@ Azul Natacion Mendoza,Club Azul Natacion Mendoza,alias detectado entre competenc
 Club Azul Natacion Mendoza,Club Azul Natacion Mendoza,canonical
 Chicureo,Club Chicureo,grupo fuerte chicureo aplicado desde auditoria 2022-2026
 Club Chicureo,Club Chicureo,grupo fuerte chicureo aplicado desde auditoria 2022-2026
+Centro Acuatico Colina,Club de Natacion Colina,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=6; cross=11
 Club de Natacion Colina,Club de Natacion Colina,canonical
 Club Dep Natación Colina,Club de Natacion Colina,abreviatura detectada en auditoria historica 2022-2026
 Club Natacioén Colina,Club de Natacion Colina,tilde mal extraida detectada en auditoria historica 2022-2026
@@ -49,20 +54,27 @@ COLIN,Club de Natacion Colina,codigo de equipo detectado en layout abreviado HY-
 Colina,Club de Natacion Colina,grupo fuerte colina aplicado desde auditoria 2022-2026
 Master Natacioán Colina,Club de Natacion Colina,alias con tilde mal extraida detectado en PDFs historicos
 Master Natacion Colina,Club de Natacion Colina,alias detectado en PDFs historicos
+Club D de Nat de Constitucion,Club de Natacion Constitucion,abreviatura detectada
 Club DE Natacion Constitucion,Club de Natacion Constitucion,alias de mayusculas detectado en PDFs historicos
 Club de Natacion Constitucion,Club de Natacion Constitucion,canonical
-Club D de Nat de Constitucion,Club de Natacion Constitucion,abreviatura detectada
 Club Dpto Constitucion,Club de Natacion Constitucion,abreviatura detectada en auditoria FCHMN 2025
 Club Natacion Constitucion,Club de Natacion Constitucion,alias detectado en PDFs historicos
 Club de Natacion Mako´s,Club de Natacion Makos,apostrofe detectado en auditoria historica 2022-2026
 Club DE Natacion Makos,Club de Natacion Makos,mayusculas de preposicion detectadas en auditoria historica 2022-2026
 Club Natacion Makos,Club de Natacion Makos,prefijo abreviado detectado en auditoria historica 2022-2026
 Makos,Club de Natacion Makos,alias corto detectado en auditoria historica 2022-2026
+Makos Viña del Mar,Club de Natacion Makos,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=11; cross=4
+Club Deportivo Mayor,Club Deportivo Mayor,canonical
+Estadio Mayor,Club Deportivo Mayor,curated athlete-year cross-competition relation; shared=6; cross=6; remapped from previous canonical Estadio Mayor
+Estadio Mayor Master,Club Deportivo Mayor,alias detectado en auditoria historica de PDFs; canonical group collapsed from Estadio Mayor
+Master Mayor,Club Deportivo Mayor,alias detectado en auditoria historica de PDFs
 CD Universidad Catolica,Club Deportivo UC,alias detectado en PDFs historicos
 CDUC,Club Deportivo UC,codigo de equipo detectado en layout abreviado HY-TEK
 Club Deportivo UC,Club Deportivo UC,canonical
 Club Dpto Universidad Catolica,Club Deportivo UC,abreviatura dpto detectada en auditoria historica 2022-2026
 Club Universidad Catolica Mas,Club Deportivo UC,master truncado detectado en auditoria historica 2022-2026
+uc Master,Club Deportivo UC,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=4
+UCMAS,Club Deportivo UC,curated athlete-year cross-competition relation; shared=17; cross=16
 Universidad Catolica,Club Deportivo UC,alias detectado en PDFs historicos
 Universidad Catolica Master,Club Deportivo UC,alias detectado en PDFs historicos
 Club Deportivo U San Sebastian,Club Deportivo Universidad San Sebastian,abreviatura detectada en auditoria historica 2022-2026
@@ -71,17 +83,22 @@ Club Dpto Univ San Sebastian,Club Deportivo Universidad San Sebastian,abreviatur
 Club H20,Club H2o,alias detectado en PDFs historicos
 Club H2o,Club H2o,alias detectado en PDFs historicos
 H2o,Club H2o,canonical
+Club El Libertador,Club Libertador,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=5; cross=9
 Club Libertador,Club Libertador,grupo fuerte libertador aplicado desde auditoria 2022-2026
-Libertador,Club Libertador,grupo fuerte libertador aplicado desde auditoria 2022-2026
 LIBER,Club Libertador,codigo de equipo detectado en layout abreviado HY-TEK
+Libertado,Club Libertador,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=7
+Libertador,Club Libertador,grupo fuerte libertador aplicado desde auditoria 2022-2026
 Club DE Natacion Araucania,Club Natacion Araucania,alias de mayusculas detectado en PDFs historicos
 Club Dep Natacion Araucania,Club Natacion Araucania,abreviatura detectada en auditoria FCHMN 2025
 Club Natacion Araucania,Club Natacion Araucania,canonical
 Club Natacion Ufro,Club Natacion Ufro,grupo fuerte ufro aplicado desde auditoria 2022-2026
 Natacion Master Ufro,Club Natacion Ufro,grupo fuerte ufro aplicado desde auditoria 2022-2026
+Club R,Club Recrear,curated athlete-year cross-competition relation; shared=9; cross=10
+Club RC,Club Recrear,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=6; cross=4
 Club Recrear,Club Recrear,grupo fuerte recrear aplicado desde auditoria 2022-2026
-Recrear,Club Recrear,grupo fuerte recrear aplicado desde auditoria 2022-2026
 RECRE,Club Recrear,codigo de equipo detectado en layout abreviado HY-TEK
+Recrear,Club Recrear,grupo fuerte recrear aplicado desde auditoria 2022-2026
+Sparta Social Club,Club Sparta A C,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=3; cross=1
 Club Condrictios Team,Condrictios Team,grupo fuerte condrictios aplicado desde auditoria 2022-2026
 Condictrios Team,Condrictios Team,typo detectado en auditoria historica 2022-2026
 Condrictios Team,Condrictios Team,canonical
@@ -91,8 +108,8 @@ Club CS Maipu,CS Maipu,grupo fuerte cs maipu aplicado desde auditoria 2022-2026
 Club Natacion CS Maipu,CS Maipu,grupo fuerte cs maipu aplicado desde auditoria 2022-2026
 CS Maipu,CS Maipu,canonical
 CSMAI,CS Maipu,codigo de equipo detectado en layout abreviado HY-TEK
-Natacion CS Maipu,CS Maipu,alias detectado en PDFs historicos
 MAIPU,CS Maipu,codigo de equipo detectado en layout abreviado HY-TEK
+Natacion CS Maipu,CS Maipu,alias detectado en PDFs historicos
 Club Delfines DE Las Condes,Delfines de las Condes,prefijo club detectado en auditoria historica 2022-2026
 Club Delfines de Las Condes,Delfines de las Condes,prefijo club detectado en auditoria historica 2022-2026
 DELFI,Delfines de las Condes,codigo de equipo detectado en layout abreviado HY-TEK
@@ -103,22 +120,24 @@ Club Delfines de Villa Alemana,Delfines de Villa Alemana,prefijo club detectado 
 Delfines DE Villa Alemana,Delfines de Villa Alemana,alias de mayusculas detectado en PDFs historicos
 Delfines de Villa Alemana,Delfines de Villa Alemana,canonical
 Delfines Villa Alemana,Delfines de Villa Alemana,alias detectado en PDFs historicos
+Delfines Viña Alemana,Delfines de Villa Alemana,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=11; cross=4
 DELVA,Delfines de Villa Alemana,codigo de equipo detectado en layout abreviado HY-TEK
+Vitacura Deportes,Deportes Vitacura,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=2; cross=2
 Club Efecto Peruga,Efecto Peruga,grupo fuerte efecto peruga aplicado desde auditoria 2022-2026
 EFECT,Efecto Peruga,codigo de equipo detectado en layout abreviado HY-TEK
 Efecto Peruga,Efecto Peruga,grupo fuerte efecto peruga aplicado desde auditoria 2022-2026
 EFESP,Efecto Peruga,codigo de equipo detectado en layout abreviado HY-TEK
 PERU,Efecto Peruga,codigo de equipo detectado en layout abreviado HY-TEK
-ELITE,Elite Sports,grupo fuerte elite aplicado desde auditoria 2022-2026
-Elite Swim,Elite Sports,grupo fuerte elite aplicado desde auditoria 2022-2026
 Club Elite Sport,Elite Sports,singular detectado en auditoria historica 2022-2026
 Club Elite Sports,Elite Sports,prefijo club detectado en auditoria historica 2022-2026
+ELITE,Elite Sports,grupo fuerte elite aplicado desde auditoria 2022-2026
 ELITE Sports,Elite Sports,codigo de equipo detectado en layout abreviado HY-TEK
+Elite Swim,Elite Sports,grupo fuerte elite aplicado desde auditoria 2022-2026
+Club Energy Swim Concepcioán,Energy Swim,alias con tilde mal extraida detectado en PDFs historicos; canonical group collapsed from Energy Swim Concepcion
 Energy Swim,Energy Swim,canonical
+Energy Swim Concepcion,Energy Swim,curated athlete-year cross-competition relation; shared=7; cross=18; remapped from previous canonical Energy Swim Concepcion
 Energyswim,Energy Swim,alias sin espacio detectado en PDFs historicos
-Club Energy Swim Concepcioán,Energy Swim Concepcion,alias con tilde mal extraida detectado en PDFs historicos
-Energy Swim Concepcion,Energy Swim Concepcion,canonical
-Energyswim Concepcion,Energy Swim Concepcion,alias sin espacio detectado en auditoria historica 2022-2026
+Energyswim Concepcion,Energy Swim,alias sin espacio detectado en auditoria historica 2022-2026; canonical group collapsed from Energy Swim Concepcion
 Club Estadio Español,Estadio Español,prefijo club detectado en auditoria historica 2022-2026
 Club Estadio Español Master,Estadio Español,prefijo club y master detectados en auditoria historica 2022-2026
 EE MA,Estadio Español,codigo de equipo detectado en layout abreviado HY-TEK
@@ -131,17 +150,17 @@ Estadio Español Master-ZZ,Estadio Español,sufijo de equipo pegado al club dete
 EISRA,Estadio Israelita,codigo de equipo detectado en layout abreviado HY-TEK
 Estadio Istaerlita,Estadio Israelita,canonical - posible error de tipeo en la coppa italia 2026
 ISRA,Estadio Israelita,codigo de equipo detectado en layout abreviado HY-TEK
-Estadio Mayor,Estadio Mayor,canonical
-Estadio Mayor Master,Estadio Mayor,alias detectado en auditoria historica de PDFs
 Club Deportivo Fullmar,Fullmar Viña del Mar,alias detectado en auditoria historica de PDFs
+Club Fullmar de Viña del mar,Fullmar Viña del Mar,grupo fuerte fullmar vina mar aplicado desde auditoria 2022-2026
+FMAR,Fullmar Viña del Mar,codigo de equipo detectado en layout abreviado HY-TEK
+Full Mar Viña del Mar,Fullmar Viña del Mar,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=19
+FULLM,Fullmar Viña del Mar,codigo de equipo detectado en layout abreviado HY-TEK
+Fullman Chile,Fullmar Viña del Mar,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=9
 Fullmar,Fullmar Viña del Mar,canonical
 Fullmar Chile,Fullmar Viña del Mar,alias detectado en auditoria historica de PDFs
 Fullmar Viña,Fullmar Viña del Mar,alias detectado en auditoria FCHMN 2025
 Fullmar Vina,Fullmar Viña del Mar,alias sin tilde detectado en auditoria FCHMN 2025
-Club Fullmar de Viña del mar,Fullmar Viña del Mar,grupo fuerte fullmar vina mar aplicado desde auditoria 2022-2026
 Fullmar Viña del Mar,Fullmar Viña del Mar,grupo fuerte fullmar vina mar aplicado desde auditoria 2022-2026
-FMAR,Fullmar Viña del Mar,codigo de equipo detectado en layout abreviado HY-TEK
-FULLM,Fullmar Viña del Mar,codigo de equipo detectado en layout abreviado HY-TEK
 Club Golden,Golden,prefijo club detectado en auditoria historica 2022-2026
 Club Golden Swim,Golden,prefijo club detectado en auditoria historica 2022-2026
 GOLDE,Golden,club truncado detectado en auditoria historica 2022-2026
@@ -151,6 +170,7 @@ Golden Swim Team,Golden,alias detectado en PDFs historicos
 Club Goura Swim Team,Goura Swim Team,grupo fuerte goura aplicado desde auditoria 2022-2026
 GOURA,Goura Swim Team,abreviatura detectada en auditoria historica 2022-2026
 Goura Swim Team,Goura Swim Team,grupo fuerte goura aplicado desde auditoria 2022-2026
+Gst,Goura Swim Team,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=6
 Green Club,Green Club,canonical
 Green Club Natacion Master,Green Club,alias detectado en PDFs historicos
 IRON,Iron Swim Master,grupo fuerte iron aplicado desde auditoria 2022-2026
@@ -170,11 +190,11 @@ LOZAD,Lozada Swim Team,codigo de equipo detectado en layout abreviado HY-TEK
 Lozada,Lozada Swim Team,nombre abreviado detectado en auditoria historica 2022-2026
 Lozada Swim,Lozada Swim Team,nombre abreviado detectado en auditoria historica 2022-2026
 Club Manateam,Manateam Swim,grupo fuerte manateam aplicado desde auditoria 2022-2026
+MANAT,Manateam Swim,codigo de equipo detectado en layout abreviado HY-TEK
 Manateam,Manateam Swim,grupo fuerte manateam aplicado desde auditoria 2022-2026
 Manateam Swim,Manateam Swim,canonical
-Manateam Swim Team,Manateam Swim,alias detectado en PDFs historicos
 Manateam Swim-AN,Manateam Swim,sufijo de equipo pegado al club detectado en auditoria FCHMN 2025
-MANAT,Manateam Swim,codigo de equipo detectado en layout abreviado HY-TEK
+Manateam Swim Team,Manateam Swim,alias detectado en PDFs historicos
 ACONC,Master Aconcagua,codigo de equipo detectado en layout abreviado HY-TEK
 Aconcagua Master,Master Aconcagua,alias detectado en auditoria historica de PDFs
 Club Master Aconcagua,Master Aconcagua,grupo fuerte aconcagua aplicado desde auditoria 2022-2026
@@ -195,14 +215,12 @@ Club Deportivo Mast Magallanes,Master Magallanes,master truncado detectado en au
 Club Master Magallanes,Master Magallanes,prefijo club detectado en auditoria historica 2022-2026
 Club Deportivo Manquehue,Master Manquehue,alias detectado en auditoria historica de PDFs
 Club Manquehue,Master Manquehue,grupo fuerte manquehue aplicado desde auditoria 2022-2026
+MANQ,Master Manquehue,codigo de equipo detectado en layout abreviado HY-TEK
 Manquehue,Master Manquehue,grupo fuerte manquehue aplicado desde auditoria 2022-2026
 Manquehue Master,Master Manquehue,grupo fuerte manquehue aplicado desde auditoria 2022-2026
 Master Manquehue,Master Manquehue,canonical
-MANQ,Master Manquehue,codigo de equipo detectado en layout abreviado HY-TEK
 Mantarrayas Arica,Master Mantarrayas Arica,alias detectado en auditoria historica de PDFs
 Master Mantarrayas Arica,Master Mantarrayas Arica,canonical
-Club Deportivo Mayor,Club Deportivo Mayor,canonical
-Master Mayor,Club Deportivo Mayor,alias detectado en auditoria historica de PDFs
 Master Ñuble,Master Ñuble,canonical
 Team Master Ñuble,Master Ñuble,alias detectado en auditoria historica de PDFs
 Club Master Providencia,Master Providencia,grupo fuerte providencia aplicado desde auditoria 2022-2026
@@ -213,32 +231,42 @@ Club Master San Bernardo,Master San Bernardo,prefijo club detectado en auditoria
 Master San Bernanrdo,Master San Bernardo,typo detectado en auditoria historica 2022-2026
 Master San Bernardo,Master San Bernardo,canonical
 Master San Bernardo-NI,Master San Bernardo,sufijo de equipo pegado al club detectado en auditoria FCHMN 2025
+MSBDO,Master San Bernardo,codigo de equipo sin eñe detectado en layout abreviado HY-TEK
+Natación Master San Bdo,Master San Bernardo,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=68; cross=11
 Natacion Master San Bernardo,Master San Bernardo,alias detectado en PDFs historicos
 san Bernardo,Master San Bernardo,grupo fuerte san bernardo aplicado desde auditoria 2022-2026
-MSBDO,Master San Bernardo,codigo de equipo sin eñe detectado en layout abreviado HY-TEK
 SANBE,Master San Bernardo,codigo de equipo sin eñe detectado en layout abreviado HY-TEK
-Master Natacion U de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
-Master U de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
 Club DE Natacion Master U Chil,Master Universidad de Chile,alias detectado en PDFs historicos
 Club Master Natacion Uch,Master Universidad de Chile,alias detectado en PDFs historicos
+Club Universidad de Chile Mast,Master Universidad de Chile,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=22; cross=8
+Master Natacion U de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
+Master U de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
 Master Univ de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
 Master Universidad de Chile,Master Universidad de Chile,canonical
-Natacion Master U de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
 MUCH,Master Universidad de Chile,codigo de equipo detectado en layout abreviado HY-TEK
+Natacion Master U de Chile,Master Universidad de Chile,alias detectado en PDFs historicos
 NMUCH,Master Universidad de Chile,codigo de equipo detectado en layout abreviado HY-TEK
 Universidad DE Chile Master,Master Universidad de Chile,alias detectado en PDFs historicos
 Universidad de Chile Master,Master Universidad de Chile,alias detectado en PDFs historicos
+Natación Master Viña Eliana Bu,Master Viña,athlete-year cross-competition candidate; direct canonical after curated candidate review
 Club de Natación Master Viña,Master Viña,alias con tilde normalizada detectado en auditoria historica de PDFs
 Master Viña,Master Viña,canonical
+Master Vina Eliana Busch,Master Viña,athlete-year cross-competition candidate; expanded existing alias group from Master Viña; shared=5; cross=3
+Natacion Master Viña Eliana B,Master Viña,athlete-year cross-competition candidate; expanded existing alias group from Master Viña; shared=8; cross=3
+Natacion Master Viña Eliana BU,Master Viña,athlete-year cross-competition candidate; expanded existing alias group from Master Viña; shared=5; cross=3
+Deportes Vitacura,Master Vitacura,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=6; cross=5
 Master Vitacura,Master Vitacura,canonical
 Master Vitacura Swim,Master Vitacura,alias detectado entre competencias 2026
 Vitacura,Master Vitacura,alias detectado en auditoria historica de PDFs
+Club Deportivo Maule Sport,Maule Sport,athlete-year cross-competition candidate; expanded existing alias group from Maule Sport; shared=3; cross=2
 Club Maule Sport,Maule Sport,grupo fuerte maule sport aplicado desde auditoria 2022-2026
 Maule Sport,Maule Sport,grupo fuerte maule sport aplicado desde auditoria 2022-2026
+Maule Sport Deporte,Maule Sport,athlete-year cross-competition candidate; expanded existing alias group from Maule Sport; shared=4; cross=1
 Club Mayor Coquimbo,Mayor Coquimbo,alias detectado en auditoria historica de PDFs
 Mayor Coquimbo,Mayor Coquimbo,canonical
 MCOQU,Mayor Coquimbo,codigo de equipo detectado en layout abreviado HY-TEK
 Club MillaRhe,Millarhe Natacion Master,grupo fuerte millarhe aplicado desde auditoria 2022-2026
+Club MillaRhe de Natación Mast,Millarhe Natacion Master,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=7
 Club Millarhe Natacion Master,Millarhe Natacion Master,prefijo club detectado en auditoria historica 2022-2026
 MILLA,Millarhe Natacion Master,abreviatura detectada en auditoria historica 2022-2026
 Millahre Natación Master,Millarhe Natacion Master,typo detectado en auditoria historica 2022-2026
@@ -248,16 +276,18 @@ Millarhe Natacion Master,Millarhe Natacion Master,canonical
 Millarhe Natacioón Master,Millarhe Natacion Master,alias con tilde mal extraida detectado en PDFs historicos
 Club DE Natacion Graneros,Natacion Graneros,grupo fuerte graneros aplicado desde auditoria 2022-2026
 Club Natacion Graneros,Natacion Graneros,grupo fuerte graneros aplicado desde auditoria 2022-2026
-Natacion Graneros,Natacion Graneros,grupo fuerte graneros aplicado desde auditoria 2022-2026
+Clud de Natacion Graneros,Natacion Graneros,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=2; cross=6
 GRANE,Natacion Graneros,codigo de equipo detectado en layout abreviado HY-TEK
+Natacion Graneros,Natacion Graneros,grupo fuerte graneros aplicado desde auditoria 2022-2026
 NGRAN,Natacion Graneros,codigo de equipo detectado en layout abreviado HY-TEK
+Natación Lo Prado,Natacion Lo Prado,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=7; cross=1
 Club de Natación Los Lagos,Natacion Los Lagos,alias con tilde normalizada detectado en auditoria historica de PDFs
 Club Los Lagos,Natacion Los Lagos,alias detectado en auditoria historica de PDFs
 Club Natacion Los Lagos,Natacion Los Lagos,grupo fuerte lagos aplicado desde auditoria 2022-2026
+CNLAG,Natacion Los Lagos,codigo de equipo detectado en layout abreviado HY-TEK
 LAGOS,Natacion Los Lagos,grupo fuerte lagos aplicado desde auditoria 2022-2026
 Master Los Lagos,Natacion Los Lagos,grupo fuerte lagos aplicado desde auditoria 2022-2026
 Natacion Los Lagos,Natacion Los Lagos,canonical
-CNLAG,Natacion Los Lagos,codigo de equipo detectado en layout abreviado HY-TEK
 Club DE Natacion Buin,Natacion Master Buin,grupo fuerte buin aplicado desde auditoria 2022-2026
 Club Master Natacioán Buin,Natacion Master Buin,alias con tilde mal extraida detectado en PDFs historicos
 Club Master Natacion Buin,Natacion Master Buin,alias detectado en PDFs historicos
@@ -273,16 +303,17 @@ Club Master Recoleta,Natacion Master Recoleta,grupo fuerte recoleta aplicado des
 Club Natacion Master Recoleta,Natacion Master Recoleta,prefijo club detectado en auditoria historica 2022-2026
 Master Recoelta,Natacion Master Recoleta,typo detectado en PDFs historicos
 Master Recoleta,Natacion Master Recoleta,alias detectado en PDFs historicos
+MRECO,Natacion Master Recoleta,codigo de equipo detectado en layout abreviado HY-TEK
 Natacioán Master Recoleta,Natacion Master Recoleta,alias con tilde mal extraida detectado en PDFs historicos
 Natacion Master Recoleta,Natacion Master Recoleta,canonical
 Natacion Recoleta,Natacion Master Recoleta,alias detectado en PDFs historicos
 Natacioón Master Recoleta,Natacion Master Recoleta,alias con tilde mal extraida detectado en PDFs historicos
 NRECO,Natacion Master Recoleta,codigo de equipo detectado en layout abreviado HY-TEK
 RECOL,Natacion Master Recoleta,codigo de equipo detectado en layout abreviado HY-TEK
-MRECO,Natacion Master Recoleta,codigo de equipo detectado en layout abreviado HY-TEK
 Natacion Neurodivergente,Natacion Neurodivergente,canonical
 Natacion Neurodivergentes,Natacion Neurodivergente,plural alternativo detectado en auditoria FCHMN 2025
 Neurodivergente,Natacion Neurodivergente,alias detectado en PDFs historicos
+Club Nautilius,Nautilus Viña Del Mar,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=2; cross=1
 Numancia,Numancia,grupo fuerte numancia aplicado desde auditoria 2022-2026
 Numancia Master,Numancia,grupo fuerte numancia aplicado desde auditoria 2022-2026
 Club Natacioán Ñuñoa Master,Ñuñoa Master,alias con tilde mal extraida detectado en Copa Nunoa Master 2025
@@ -302,14 +333,16 @@ Orinoco Swim Team,Orinoco Swim,alias detectado entre competencias 2026
 Orinocoswim23,Orinoco Swim,sufijo numerico y espacio omitido detectados en auditoria historica 2022-2026
 Club Pato Cornejo,Pato Cornejo,alias detectado en auditoria historica de PDFs
 Pato Cornejo,Pato Cornejo,canonical
-Pdi,Pdi,grupo fuerte pdi aplicado desde auditoria 2022-2026
-Pdi Natacion,Pdi,grupo fuerte pdi aplicado desde auditoria 2022-2026
+Escuela Pdi,Escuela PDI,athlete-year cross-competition candidate; expanded existing alias group from Pdi; shared=30; cross=2
+Pdi,Escuela PDI,grupo fuerte pdi aplicado desde auditoria 2022-2026
+Pdi Natacion,Escuela PDI,grupo fuerte pdi aplicado desde auditoria 2022-2026
+Pdro Aguirre Cerda,Pedro Aguirre Cerda,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=3; cross=3
 Club Peñalolen Master,Peñalolen Master,grupo fuerte penalolen aplicado desde auditoria 2022-2026
 Master Peñalolen,Peñalolen Master,alias detectado en PDFs historicos
+PEMAS,Peñalolen Master,codigo de equipo detectado en layout abreviado HY-TEK
 Penalolen Master,Peñalolen Master,alias sin eñe detectado entre competencias 2026
 Peñalolen Master,Peñalolen Master,canonical
 Penanolen Master,Peñalolen Master,typo detectado en PDFs historicos
-PEMAS,Peñalolen Master,codigo de equipo detectado en layout abreviado HY-TEK
 Master Puerto Varas,Puerto Varas,alias detectado en auditoria historica de PDFs
 Puerto Varas,Puerto Varas,canonical
 Rama de Natacioán El Bosque,Rama Natacion El Bosque,alias con tilde mal extraida detectado en PDFs historicos
@@ -317,9 +350,10 @@ Rama de Natación El Bosque,Rama Natacion El Bosque,alias con tilde normalizada 
 Rama el Bosque,Rama Natacion El Bosque,alias detectado en PDFs historicos
 Rama Natacion El Bosque,Rama Natacion El Bosque,canonical
 Club Salmon Swim,Salmón Swim,grupo fuerte salmon aplicado desde auditoria 2022-2026
+SALMO,Salmón Swim,codigo de equipo detectado en layout abreviado HY-TEK
 Salmon Swim,Salmón Swim,alias sin tilde detectado en auditoria historica 2022-2026
 Salmón Swim,Salmón Swim,canonical
-SALMO,Salmón Swim,codigo de equipo detectado en layout abreviado HY-TEK
+Salomon Swim,Salmón Swim,athlete-year cross-competition candidate; canonical_has_much_more_alias_support; shared=7; cross=8
 Club Santiago Deporte,Santiago Deporte,grupo fuerte santiago deporte aplicado desde auditoria 2022-2026
 Santiago Deporte,Santiago Deporte,canonical
 Santiago Deportes,Santiago Deporte,plural alternativo detectado en auditoria historica 2022-2026
@@ -329,22 +363,23 @@ Club Smart Swim Team,Smart Swim Team,grupo fuerte smart aplicado desde auditoria
 SMART,Smart Swim Team,grupo fuerte smart aplicado desde auditoria 2022-2026
 Smart Swim Team,Smart Swim Team,canonical
 Smart Swim Team-Chile,Smart Swim Team,sufijo pais detectado en auditoria historica 2022-2026
+SQUAD,Squadra Pro Swim,codigo de equipo detectado en layout abreviado HY-TEK
 Squadra Pro Swim,Squadra Pro Swim,canonical
 Squadra Proswim,Squadra Pro Swim,espacio omitido detectado en auditoria historica 2022-2026
-SQUAD,Squadra Pro Swim,codigo de equipo detectado en layout abreviado HY-TEK
 Stade Francais,Stade Francais,canonical
 Stade Frances,Stade Francais,alias sin cedilla detectado en auditoria historica 2022-2026
+Stade Francias,Stade Francais,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=7; cross=6
 Club Stadio Italiano Master,Stadio Italiano,grupo fuerte stadio italiano aplicado desde auditoria 2022-2026
 SIMAS,Stadio Italiano,codigo de equipo sin eñe detectado en layout abreviado HY-TEK
 Stadio Italiano,Stadio Italiano,canonical
 Stadio Italiano Master,Stadio Italiano,canonical
 Club Tiburones Curico,Tiburones de Curico,grupo fuerte tiburones curico aplicado desde auditoria 2022-2026
 Club Tiburones de Curico,Tiburones de Curico,prefijo club detectado en auditoria historica 2022-2026
+TIBUC,Tiburones de Curico,codigo de equipo detectado en layout abreviado HY-TEK
+TIBUR,Tiburones de Curico,codigo de equipo detectado en layout abreviado HY-TEK
 Tiburones Curico,Tiburones de Curico,alias detectado en PDFs historicos
 Tiburones DE Curico,Tiburones de Curico,alias de mayusculas detectado en PDFs historicos
 Tiburones de Curico,Tiburones de Curico,canonical
-TIBUC,Tiburones de Curico,codigo de equipo detectado en layout abreviado HY-TEK
-TIBUR,Tiburones de Curico,codigo de equipo detectado en layout abreviado HY-TEK
 Club las Toninas de Aysen,Toninas de Aysen,grupo fuerte toninas aysen aplicado desde auditoria 2022-2026
 Club Toninas De Aysen,Toninas de Aysen,alias detectado en PDFs historicos
 Toninas Aysen,Toninas de Aysen,alias detectado en PDFs historicos
@@ -352,11 +387,13 @@ Toninas de Aysen,Toninas de Aysen,canonical
 Toninas,Toninas Swim Team,alias detectado en auditoria historica de PDFs
 Toninas Swim Team,Toninas Swim Team,canonical
 Toninas Swm Team,Toninas Swim Team,typo detectado en auditoria historica 2022-2026
+Triton Master,Triton Master Temuco,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=11; cross=1
 Club Tritones,Tritones,grupo fuerte tritones aplicado desde auditoria 2022-2026
 Tritones,Tritones,grupo fuerte tritones aplicado desde auditoria 2022-2026
 Club Universidad DE Concepcion,Universidad de Concepcion,grupo fuerte universidad concepcion aplicado desde auditoria 2022-2026
-Universidad de Concepcion,Universidad de Concepcion,grupo fuerte universidad concepcion aplicado desde auditoria 2022-2026
 UDECO,Universidad de Concepcion,codigo de equipo detectado en layout abreviado HY-TEK
+Universidad de Concepcion,Universidad de Concepcion,grupo fuerte universidad concepcion aplicado desde auditoria 2022-2026
+Club Unlimiti,Unlimit Chile,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=3; cross=1
 Venimos por la Natacioán,Venimos por la Natacion,alias con tilde mal extraida detectado en PDFs historicos
 Venimos por la Natacioén,Venimos por la Natacion,tilde mal extraida detectada en auditoria historica 2022-2026
 Venimos por la Natacion,Venimos por la Natacion,canonical
@@ -364,7 +401,9 @@ Club DE Nat Vergara Monardes,Vergara Monardes,alias de mayusculas detectado en a
 Clun Vergara Monardes,Vergara Monardes,typo detectado en PDFs historicos
 Natacion Vergara Monardes,Vergara Monardes,alias detectado en PDFs historicos
 Vergara Monardes,Vergara Monardes,canonical
+Viluswim,Vilu Swim,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=2; cross=3
 Club Weyelfe,Weyelfe Master,alias detectado en auditoria historica de PDFs
 Weyelfe Master,Weyelfe Master,canonical
 Club Deportivo Workout,Workout,alias detectado en auditoria historica de PDFs
 Workout,Workout,canonical
+Workout Villa Alemana,Workout,athlete-year cross-competition candidate; expanded existing alias group from Workout; shared=9; cross=2

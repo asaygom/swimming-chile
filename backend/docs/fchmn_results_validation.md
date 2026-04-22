@@ -427,6 +427,64 @@ Evidencia inicial sin carga del 2026-04-22 sobre el manifest local congelado:
   grupos de aliases con multiples variantes raw y 0
   `missing_athlete_csv_documents`.
 
+Despues de curar manualmente la bandeja de candidatos y aplicar solo aliases
+sin conflicto existente ni alias duplicado dentro de la propuesta:
+
+- propuesta intermedia:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_from_athlete_year_candidates_proposal_20260422.csv`
+- reporte de aplicacion:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_from_athlete_year_candidates_applied_20260422.csv`
+- aliases agregados a `backend/data/reference/club_alias.csv`: 30
+- filas no aplicadas: 10 por conflicto con alias existente y 8 por alias
+  duplicado dentro de la propuesta; no se sobrescribieron decisiones previas.
+- nueva auditoria:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v3_after_alias_apply.json`
+- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 45 pares
+  candidatos, 40 conflictos intra-competencia excluidos, 99 grupos de aliases
+  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
+
+Correccion posterior: las filas inicialmente omitidas por "alias existente" no
+debían descartarse por defecto. Si un lado del par ya era alias canonico, se
+sumo el otro nombre al mismo grupo canonical existente sin cambiar la decision
+previa:
+
+- reporte:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_existing_alias_expanded_20260422.csv`
+- aliases adicionales agregados: 7
+- fusiones de canonicals aun no aplicadas por conflicto real: `Energy Swim`
+  con `Energy Swim Concepcion`, `Estadio Mayor` con `Club Deportivo Mayor` y
+  `Master Viña` con `Natación Master Viña Eliana Bu`.
+- nueva auditoria:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v4_existing_alias_expanded.json`
+- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 36 pares
+  candidatos, 40 conflictos intra-competencia excluidos, 99 grupos de aliases
+  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
+
+Despues de que el usuario dejo en la bandeja `v4_existing_alias_expanded` solo
+las relaciones que debian considerarse, se aplicaron esas fusiones curadas a
+`club_alias.csv`, incluyendo un ajuste directo para evitar alias transitivo en
+`Master Viña`:
+
+- reporte:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_v4_curated_applied_20260422.csv`
+- nueva auditoria:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v6_final_curated_aliases.json`
+- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 33 pares
+  candidatos, 40 conflictos intra-competencia excluidos, 97 grupos de aliases
+  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
+
+Finalmente se colapsaron aliases que aun apuntaban a canonicals antiguos tras
+las fusiones curadas (`Energy Swim Concepcion`, `Estadio Mayor` y el grupo
+intermedio de `Master Viña`):
+
+- reporte:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_canonical_group_collapsed_20260422.csv`
+- nueva auditoria:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v7_collapsed_canonical_groups.json`
+- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 31 pares
+  candidatos, 40 conflictos intra-competencia excluidos, 96 grupos de aliases
+  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
+
 ## Scope congelado 2022-2026 sin carga
 
 Curacion operativa del 2026-04-21:
