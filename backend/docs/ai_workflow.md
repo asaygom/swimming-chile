@@ -135,8 +135,10 @@ Evidencia historica:
 - La curacion incremental de `club_alias.csv` debe seguir siendo explicita y
   revisable. Tras ordenar el archivo por `canonical_name`, aplicar aliases
   curados actuales, aplicar los 42 grupos fuertes como aliases explicitos y
-  conservar `A84` como codigo fuente, la simulacion local del manifest congelado
-  baja a 293 filas esperadas en `core.club`, sin grupos fuertes pendientes.
+  conservar `A84` como codigo fuente, la simulacion local vigente del manifest
+  congelado baja a 258 filas esperadas en `core.club`, sin grupos fuertes
+  pendientes y con 12 codigos/abreviaturas pendientes. La evidencia vigente es
+  `fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v5_user_aliases.json`.
 
 No implementado todavia:
 

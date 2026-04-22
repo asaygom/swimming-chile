@@ -368,8 +368,17 @@ Auditoria posterior de `core.club` esperado sin carga:
 - al aplicar como aliases explicitos los 42 grupos fuertes de duplicados
   logicos, la simulacion baja a 293 filas esperadas en `core.club` y quedan
   0 grupos fuertes pendientes;
-- quedan 41 codigos/abreviaturas por curar;
+- tras la curacion adicional manual de `club_alias.csv`, la foto vigente baja a
+  258 filas esperadas en `core.club`, mantiene 0 grupos fuertes pendientes y
+  deja 12 codigos/abreviaturas por curar;
 - `A84` se conserva como codigo fuente porque asi aparece en los PDFs revisados.
+
+Evidencia vigente:
+
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v5_user_aliases.json`
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_after_current_aliases_20260422_v5_user_aliases.csv`
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_strong_duplicate_groups_after_current_aliases_20260422_v5_user_aliases.csv`
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_unresolved_codes_after_current_aliases_20260422_v5_user_aliases.csv`
 
 ## Scope congelado 2022-2026 sin carga
 
