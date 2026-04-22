@@ -380,6 +380,53 @@ Evidencia vigente:
 - `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_strong_duplicate_groups_after_current_aliases_20260422_v5_user_aliases.csv`
 - `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_unresolved_codes_after_current_aliases_20260422_v5_user_aliases.csv`
 
+## Auditoria de clubes por atleta-ano
+
+El detector de grupos fuertes de `core.club` esperado usa similitud de nombres
+y aliases ya aplicados. Un resultado de 0 grupos fuertes pendientes no prueba
+que no existan relaciones semanticas pendientes; solo indica que esa compuerta
+no encontro mas pares con sus reglas actuales.
+
+Para revisar relaciones adicionales y validar aliases ya aplicados, usar la
+auditoria por atleta-ano. Esta auditoria cruza `athlete.csv` de cada documento
+del manifest, aplica `club_alias.csv` y reporta:
+
+- pares de clubes canonicos distintos donde el mismo atleta aparece en mas de
+  un club dentro del mismo ano de competencia;
+- grupos de aliases ya colapsados que conservan evidencia de variantes raw y
+  atletas compartidos.
+
+Ejemplo sin carga:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_club_athlete_year_overlap.py `
+  --manifest backend\data\raw\manifests\fchmn_historical_2022_2026_frozen_local_20260421.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_club_athlete_year_overlap_YYYYMMDD.json `
+  --candidate-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_YYYYMMDD.csv `
+  --alias-evidence-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_club_athlete_year_overlap_alias_evidence_YYYYMMDD.csv `
+  --min-shared-athletes 2 `
+  --json
+```
+
+La salida es evidencia para revision humana. Un atleta puede cambiar de club
+entre anos; por eso la comparacion se limita al mismo `competition_year`. La
+evidencia positiva exige competencias distintas del mismo ano; si dos clubes
+aparecen para el mismo atleta dentro del mismo `source_url`, el auditor lo
+cuenta como conflicto intra-competencia excluido, no como relacion de alias.
+
+Evidencia inicial sin carga del 2026-04-22 sobre el manifest local congelado:
+
+- summary:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v2_cross_competition.json`
+- candidatos pendientes:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v2_cross_competition.csv`
+- evidencia de aliases aplicados:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_alias_evidence_20260422_v2_cross_competition.csv`
+- resultado: 61 documentos, 23271 observaciones de atleta, 79 pares candidatos
+  con `--min-shared-athletes 2`, 40 conflictos intra-competencia excluidos, 90
+  grupos de aliases con multiples variantes raw y 0
+  `missing_athlete_csv_documents`.
+
 ## Scope congelado 2022-2026 sin carga
 
 Curacion operativa del 2026-04-21:

@@ -139,6 +139,16 @@ Evidencia historica:
   congelado baja a 258 filas esperadas en `core.club`, sin grupos fuertes
   pendientes y con 12 codigos/abreviaturas pendientes. La evidencia vigente es
   `fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v5_user_aliases.json`.
+- "Sin grupos fuertes pendientes" solo describe la compuerta por similitud de
+  nombre vigente. Para detectar relaciones no capturadas por esa regla y validar
+  aliases ya aplicados, usar `backend/scripts/audit_club_athlete_year_overlap.py`,
+  que cruza atletas por ano de competencia sin cargar a core. La corrida
+  corregida `v2_cross_competition` del 2026-04-22 cuenta como evidencia positiva
+  solo atletas compartidos entre competencias distintas del mismo ano, excluye
+  solapes dentro de una misma competencia y encontro 79 pares candidatos con al
+  menos 2 atleta-anos compartidos, 40 conflictos intra-competencia excluidos y
+  90 grupos de aliases con multiples variantes raw; revisar primero
+  `fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v2_cross_competition.csv`.
 
 No implementado todavia:
 
