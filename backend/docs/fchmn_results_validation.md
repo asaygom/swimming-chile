@@ -362,42 +362,24 @@ no con fuzzy automatico.
 
 ## Correccion parser 0.1.16 para nombres de atletas/relevos
 
-El parser `0.1.16` corrige dos familias detectadas por
-`audit_athlete_names.py` despues de la curacion de clubes:
-
-- nadadores de relevo con marcador del siguiente integrante pegado a la edad
-  anterior, por ejemplo `W340)` tratado como `W34 4)`;
-- artefactos OCR simples dentro del nombre de atleta, como `Fajardo |, Keytheen`,
-  `Malvacias|, Erika` y `Hermosilla1, Yasna`.
-
-La limpieza de nombres es intencionalmente estrecha: no elimina numeros escritos
-como parte de la fuente despues de la coma, por ejemplo `Rojas, 2`, para no
-romper futuras competencias infantiles con edades de uno o dos digitos.
+El parser `0.1.16` corrige artefactos OCR acotados en nombres de atletas y
+nadadores de relevo. Las reglas nuevas solo aplican cuando hay evidencia de
+layout o respaldo de pruebas individuales del mismo club/genero/edad; no
+reescriben texto fuente como `Rojas, 2`.
 
 Evidencia sin carga:
 
 - scratch parser:
   `backend/data/raw/results_csv/scratch_parser_016_athlete_audit_20260422/`
-- auditoria previa con parser 0.1.15 y overrides:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v2_parser015_overrides.json`
-  con 32 filas sospechosas;
-- auditoria posterior al fix de relevos:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v4_relay_parser_fix_plus_uc.json`
-  con 17 filas sospechosas;
-- auditoria vigente con parser 0.1.16:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v5_parser016_name_cleanup.json`
-  con 10 filas sospechosas.
-- auditoria posterior a reconciliacion por nombre sin digitos + evidencia de
-  edad/individuales:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`
-  con 5 filas sospechosas.
-- auditoria posterior a validar visualmente `Rivas, Mª Delfina` y normalizarla
-  como `Rivas, Maria Delfina`:
+- auditoria vigente:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`
-  con 2 filas sospechosas.
+- review CSV vigente:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v8_rivas_verified.csv`
+- resultado: 61 documentos, 15 overrides scratch, 97342 observaciones de
+  nombres y 2 filas sospechosas restantes, ambas de `Rojas, 2`.
 
-Las 2 filas restantes corresponden al mismo caso `Rojas, 2`, escrito asi en la
-fuente, y se conservan sin limpieza automatica.
+Las filas `Rojas, 2` se conservan sin limpieza automatica porque corresponden
+al texto fuente.
 
 Auditoria posterior de `core.club` esperado sin carga:
 
@@ -453,82 +435,21 @@ evidencia positiva exige competencias distintas del mismo año; si dos clubes
 aparecen para el mismo atleta dentro del mismo `source_url`, el auditor lo
 cuenta como conflicto intra-competencia excluido, no como relacion de alias.
 
-Evidencia inicial sin carga del 2026-04-22 sobre el manifest local congelado:
+Evidencia vigente sin carga:
 
-- summary:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v2_cross_competition.json`
-- candidatos pendientes:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v2_cross_competition.csv`
-- evidencia de aliases aplicados:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_alias_evidence_20260422_v2_cross_competition.csv`
-- resultado: 61 documentos, 23271 observaciones de atleta, 79 pares candidatos
-  con `--min-shared-athletes 2`, 40 conflictos intra-competencia excluidos, 90
-  grupos de aliases con multiples variantes raw y 0
-  `missing_athlete_csv_documents`.
-
-Despues de curar manualmente la bandeja de candidatos y aplicar solo aliases
-sin conflicto existente ni alias duplicado dentro de la propuesta:
-
-- propuesta intermedia:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_from_athlete_year_candidates_proposal_20260422.csv`
-- reporte de aplicacion:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_from_athlete_year_candidates_applied_20260422.csv`
-- aliases agregados a `backend/data/reference/club_alias.csv`: 30
-- filas no aplicadas: 10 por conflicto con alias existente y 8 por alias
-  duplicado dentro de la propuesta; no se sobrescribieron decisiones previas.
-- nueva auditoria:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v3_after_alias_apply.json`
-- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 45 pares
-  candidatos, 40 conflictos intra-competencia excluidos, 99 grupos de aliases
-  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
-
-Correccion posterior: las filas inicialmente omitidas por "alias existente" no
-debían descartarse por defecto. Si un lado del par ya era alias canonico, se
-sumo el otro nombre al mismo grupo canonical existente sin cambiar la decision
-previa:
-
-- reporte:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_existing_alias_expanded_20260422.csv`
-- aliases adicionales agregados: 7
-- fusiones de canonicals aun no aplicadas por conflicto real: `Energy Swim`
-  con `Energy Swim Concepcion`, `Estadio Mayor` con `Club Deportivo Mayor` y
-  `Master Viña` con `Natación Master Viña Eliana Bu`.
-- nueva auditoria:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v4_existing_alias_expanded.json`
-- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 36 pares
-  candidatos, 40 conflictos intra-competencia excluidos, 99 grupos de aliases
-  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
-
-Despues de que el usuario dejo en la bandeja `v4_existing_alias_expanded` solo
-las relaciones que debian considerarse, se aplicaron esas fusiones curadas a
-`club_alias.csv`, incluyendo un ajuste directo para evitar alias transitivo en
-`Master Viña`:
-
-- reporte:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_v4_curated_applied_20260422.csv`
-- nueva auditoria:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v6_final_curated_aliases.json`
-- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 33 pares
-  candidatos, 40 conflictos intra-competencia excluidos, 97 grupos de aliases
-  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
-
-Finalmente se colapsaron aliases que aun apuntaban a canonicals antiguos tras
-las fusiones curadas (`Energy Swim Concepcion`, `Estadio Mayor` y el grupo
-intermedio de `Master Viña`):
-
-- reporte:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_alias_canonical_group_collapsed_20260422.csv`
-- nueva auditoria:
+- summary final:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v7_collapsed_canonical_groups.json`
-- resultado actualizado: 61 documentos, 23271 observaciones de atleta, 31 pares
-  candidatos, 40 conflictos intra-competencia excluidos, 96 grupos de aliases
-  con multiples variantes raw y 0 `missing_athlete_csv_documents`.
+- candidates CSV final:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v7_collapsed_canonical_groups.csv`
+- resultado: 61 documentos, 23271 observaciones de atleta, 31 pares candidatos,
+  40 conflictos intra-competencia excluidos, 96 grupos de aliases con multiples
+  variantes raw y 0 `missing_athlete_csv_documents`.
 
 Revision humana posterior: esos 31 pares candidatos no deben aplicarse como
-aliases. La primera revision confirmo que no tienen relacion nominal suficiente
-entre clubes y que representan cambios de club de atletas dentro del mismo año,
-no duplicados de `core.club`. Mantenerlos omitidos salvo que aparezca nueva
-evidencia externa o una correccion de parser/fuente que cambie el diagnostico.
+aliases. La revision confirmo que no tienen relacion nominal suficiente entre
+clubes y que representan cambios de club de atletas dentro del mismo año, no
+duplicados de `core.club`. Mantenerlos omitidos salvo nueva evidencia externa o
+una correccion de parser/fuente que cambie el diagnostico.
 
 La simulacion de `core.club` esperado, recalculada despues de esas curaciones
 contra el manifest local congelado y los overrides scratch del parser 0.1.15,
@@ -572,40 +493,7 @@ carpetas apuntadas por el manifest congelado, usar `--override-input-dir`
 repetido por `source_url` para medir la condicion actual sin mezclar errores ya
 corregidos.
 
-Evidencia inicial del 2026-04-22 sobre el manifest local congelado:
-
-- baseline manifest actual:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v1_current_manifest.json`
-- review CSV baseline:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v1_current_manifest.csv`
-- resultado baseline: 61 documentos, 97210 observaciones de nombres y 38 filas
-  sospechosas.
-
-Con overrides scratch del parser 0.1.15 para Copa UC 2022, LQBLO 2023,
-Torneo Apertura 2022 y Copa Ñuñoa 2024:
-
-- summary:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v2_parser015_overrides.json`
-- review CSV:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v2_parser015_overrides.csv`
-- resultado: 61 documentos, 4 overrides usados, 97321 observaciones de nombres
-  y 32 filas sospechosas.
-
-Clasificacion vigente:
-
-- el parser 0.1.15 ya elimina los nombres OCR con letras separadas observados en
-  LQBLO 2023;
-- quedan 22 sospechas en `relay_swimmer`, principalmente segmentos donde el OCR
-  pega el marcador del siguiente nadador al genero/edad anterior;
-- quedan 5 sospechas en resultados individuales/athlete: `Fajardo |, Keytheen`,
-  `Hermosilla1, Yasna`, `Malvacias|, Erika`, `Rojas,` y
-  `Rivas, Mª Del(cid:976)ina`;
-- `Rojas,` viene de la linea fuente `Rojas, 2`, donde el `2` es parte del nombre
-  escrito en el PDF, pero no debe confundirse con futuras competencias infantiles
-  donde edades de uno o dos digitos son validas.
-
-Tras el parser `0.1.16` y la reconciliacion por nombre sin digitos respaldada
-por edades/individuales, la auditoria vigente es:
+Evidencia vigente sin carga:
 
 - summary:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`

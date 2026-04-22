@@ -158,18 +158,10 @@ Evidencia historica:
   corresponden a cambios de club; no deben reabrirse salvo nueva evidencia
   externa o correccion de parser/fuente.
 - Antes de recargar core, auditar nombres de atletas con
-  `backend/scripts/audit_athlete_names.py`. El parser `0.1.16` corrige relevos
-  donde el OCR pega el marcador del siguiente nadador al genero/edad anterior
-  (`W340)` -> `W34 4)`) y limpia artefactos simples de nombres como `|` antes
-  de coma o digitos pegados al apellido antes de coma, sin reescribir casos
-  fuente como `Rojas, 2`. Tambien reconcilia relevos con nombres OCR deformados
-  quitando digitos solo como clave auxiliar cuando hay evidencia de
-  edad/individuales del mismo club y genero. Tras validar visualmente `Rivas,
-  Mª Delfina`, normalizarla como `Rivas, Maria Delfina`, la evidencia vigente es
-  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`:
-  61 documentos, 15 overrides scratch, 97342 observaciones de nombres y 2 filas
-  sospechosas restantes, ambas del mismo caso fuente `Rojas, 2`, que se conserva
-  sin limpieza automatica.
+  `backend/scripts/audit_athlete_names.py`. Evidencia vigente:
+  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`,
+  con 2 filas sospechosas restantes, ambas del caso fuente `Rojas, 2`, que se
+  conserva sin limpieza automatica.
 
 No implementado todavia:
 
