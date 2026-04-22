@@ -387,11 +387,14 @@ Evidencia sin carga:
 - auditoria vigente con parser 0.1.16:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v5_parser016_name_cleanup.json`
   con 10 filas sospechosas.
+- auditoria posterior a reconciliacion por nombre sin digitos + evidencia de
+  edad/individuales:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`
+  con 5 filas sospechosas.
 
-Las 10 filas restantes requieren revision contra fuente antes de automatizar:
-incluyen `Rojas, 2` como texto fuente, `Rivas, Mª Del(cid:976)ina` por glifo PDF
-no resuelto y relevos donde el OCR inserta digitos dentro del nombre del
-siguiente nadador (`B6u5stos`, `A6g5uirre`, `P6a8saríán`, etc.).
+Las 5 filas restantes requieren revision contra fuente antes de automatizar:
+incluyen `Rojas, 2` como texto fuente y `Rivas, Mª Del(cid:976)ina` por glifo PDF
+no resuelto.
 
 Auditoria posterior de `core.club` esperado sin carga:
 
@@ -598,14 +601,15 @@ Clasificacion vigente:
   escrito en el PDF, pero no debe confundirse con futuras competencias infantiles
   donde edades de uno o dos digitos son validas.
 
-Tras el parser `0.1.16`, la auditoria vigente es:
+Tras el parser `0.1.16` y la reconciliacion por nombre sin digitos respaldada
+por edades/individuales, la auditoria vigente es:
 
 - summary:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v5_parser016_name_cleanup.json`
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`
 - review CSV:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v5_parser016_name_cleanup.csv`
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v7_digitless_age_reconcile.csv`
 - resultado: 61 documentos, 15 overrides scratch, 97337 observaciones de
-  nombres y 10 filas sospechosas restantes.
+  nombres y 5 filas sospechosas restantes.
 
 ## Scope congelado 2022-2026 sin carga
 

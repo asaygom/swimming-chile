@@ -13,7 +13,9 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
   pegados a genero/edad, por ejemplo `W340)` como `W34 4)`, y los nombres de
   atleta limpian artefactos simples de layout como `|` antes de coma o digitos
   pegados al apellido antes de coma, sin reescribir sufijos fuente como
-  `Rojas, 2`.
+  `Rojas, 2`. Para relevos con nombres OCR deformados por digitos incrustados,
+  la reconciliacion puede usar una clave sin digitos solo si hay evidencia de
+  edad y prueba individual compatible dentro del mismo club/genero.
 
 ## Salidas operativas
 

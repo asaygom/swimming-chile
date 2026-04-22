@@ -42,6 +42,18 @@ def relay_context():
     )
 
 
+def relay_women_context():
+    return parser.EventContext(
+        event_number=3,
+        gender="women",
+        age_group="240-279",
+        distance_label="4x50",
+        distance_m=200,
+        course_code="SC",
+        stroke="freestyle_relay",
+    )
+
+
 def test_normalize_event_gender_to_competition_canon():
     assert parser.normalize_event_gender("Women") == "women"
     assert parser.normalize_event_gender("Hombres") == "men"
@@ -392,6 +404,111 @@ def test_parse_relay_swimmer_line_splits_marker_deformed_with_extra_digit():
     assert rows[0].age_at_event == 26
     assert rows[1].swimmer_name == "Brain, Cynthia"
     assert rows[1].age_at_event == 60
+
+
+def test_parse_relay_swimmer_line_splits_marker_embedded_after_name():
+    rows = parser.parse_relay_swimmer_line(
+        "1) Carvajal Illanes, Avelina W66 2) Schwarzemberg, Maríáa Angeálica3 W) P6a8saríán, Claudia W59 4) Valdivia, Adriana W60",
+        relay_women_context(),
+        page_number=5,
+        line_number=8,
+        relay_team_name="Peñalolen Master B",
+        competition_year=2023,
+    )
+
+    assert [row.leg_order for row in rows] == [1, 2, 3, 4]
+    assert rows[1].swimmer_name == "Schwarzemberg, Maríá Angeálica"
+    assert rows[2].swimmer_name == "P6a8saríán, Claudia"
+    assert rows[2].age_at_event == 59
+
+
+def test_reconcile_relay_swimmers_uses_digitless_name_with_age_evidence():
+    relay_team = parser.ParsedRelayTeamRow(
+        page_number=5,
+        line_number=7,
+        event_number=3,
+        event_name=relay_women_context().event_name,
+        relay_team_name="Peñalolen Master B",
+        club_name="Peñalolen Master",
+        rank_position="1",
+        seed_time_text=None,
+        seed_time_ms=None,
+        result_time_text="2:30,00",
+        result_time_ms="150000",
+        status="valid",
+        points=None,
+        raw_line="1 Peñalolen Master B 2:30,00",
+    )
+    individual_rows = [
+        parser.ParsedResultRow(
+            page_number=1,
+            line_number=1,
+            event_number=1,
+            event_name="women 65-69 50 SC Meter freestyle",
+            athlete_name="Schwarzemberg, Maríá Angeálica",
+            age_at_event=68,
+            birth_year_estimated=1955,
+            club_name="Peñalolen Master",
+            rank_position="1",
+            seed_time_text=None,
+            seed_time_ms=None,
+            result_time_text="40,00",
+            result_time_ms="40000",
+            status="valid",
+            points=None,
+            raw_line="",
+        ),
+        parser.ParsedResultRow(
+            page_number=1,
+            line_number=2,
+            event_number=1,
+            event_name="women 55-59 50 SC Meter freestyle",
+            athlete_name="Pasaríán, Claudia",
+            age_at_event=59,
+            birth_year_estimated=1964,
+            club_name="Peñalolen Master",
+            rank_position="1",
+            seed_time_text=None,
+            seed_time_ms=None,
+            result_time_text="41,00",
+            result_time_ms="41000",
+            status="valid",
+            points=None,
+            raw_line="",
+        ),
+    ]
+    relay_swimmers = parser.parse_relay_swimmer_line(
+        "1) Carvajal Illanes, Avelina W66 2) Schwarzemberg, Maríáa Angeálica3 W) P6a8saríán, Claudia W59 4) Valdivia, Adriana W60",
+        relay_women_context(),
+        page_number=5,
+        line_number=8,
+        relay_team_name="Peñalolen Master B",
+        competition_year=2023,
+    )
+
+    parser.reconcile_relay_swimmers_with_individuals(individual_rows, [relay_team], relay_swimmers)
+
+    assert relay_swimmers[1].swimmer_name == "Schwarzemberg, Maríá Angeálica"
+    assert relay_swimmers[1].age_at_event == 68
+    assert relay_swimmers[2].swimmer_name == "Pasaríán, Claudia"
+    assert relay_swimmers[2].age_at_event == 59
+
+
+def test_parse_relay_swimmer_line_recovers_leg_marker_inside_age():
+    rows = parser.parse_relay_swimmer_line(
+        "1) Muñoz, Maria Olga W69 2) Ferrando, Nestor Alberto Domi M3)8 M3 aimone, Nicolasa W35 4) Le Cerf, Patricio M35",
+        relay_context(),
+        page_number=6,
+        line_number=51,
+        relay_team_name="Orinocoswim23 A",
+        competition_year=2025,
+    )
+
+    assert [row.leg_order for row in rows] == [1, 2, 3, 4]
+    assert rows[1].swimmer_name == "Ferrando, Nestor Alberto Domi"
+    assert rows[1].age_at_event == 38
+    assert rows[2].swimmer_name == "Maimone, Nicolasa"
+    assert rows[2].age_at_event == 35
 
 
 def test_build_output_frames_from_minimal_parsed_rows():

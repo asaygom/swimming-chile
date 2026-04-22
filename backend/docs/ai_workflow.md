@@ -162,11 +162,13 @@ Evidencia historica:
   donde el OCR pega el marcador del siguiente nadador al genero/edad anterior
   (`W340)` -> `W34 4)`) y limpia artefactos simples de nombres como `|` antes
   de coma o digitos pegados al apellido antes de coma, sin reescribir casos
-  fuente como `Rojas, 2`. La evidencia vigente es
-  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v5_parser016_name_cleanup.json`:
-  61 documentos, 15 overrides scratch, 97337 observaciones de nombres y 10
-  filas sospechosas restantes. Esas 10 requieren revision contra fuente antes
-  de automatizar nuevas correcciones.
+  fuente como `Rojas, 2`. Tambien reconcilia relevos con nombres OCR deformados
+  quitando digitos solo como clave auxiliar cuando hay evidencia de
+  edad/individuales del mismo club y genero. La evidencia vigente es
+  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`:
+  61 documentos, 15 overrides scratch, 97342 observaciones de nombres y 5 filas
+  sospechosas restantes. Esas 5 requieren revision contra fuente antes de
+  automatizar nuevas correcciones.
 
 No implementado todavia:
 

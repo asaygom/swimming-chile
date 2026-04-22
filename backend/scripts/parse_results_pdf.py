@@ -132,6 +132,7 @@ RELAY_SWIMMER_EMBEDDED_NEXT_RE = re.compile(
     r"^(?P<name>.+?)\s+(?P<gender>[WM])(?P<age>\d{2})(?:\d\)|\)\s*\d)\s*(?P<next_name>.+?)(?:\s+(?P<next_gender>[WM])(?P<next_age>\d{1,3})\)?)?$",
     re.IGNORECASE,
 )
+LETTER_CHARS = "A-Za-zÁÉÍÓÚÜÑáéíóúüñ"
 
 HEADER_SKIP_PATTERNS = [
     re.compile(r"HY-TEK'?S MEET MANAGER", re.IGNORECASE),
@@ -836,8 +837,39 @@ def split_embedded_relay_swimmer(segment: str, expected_next_leg: int) -> Option
     return first_name, first_gender, first_age, next_name, next_gender, next_age
 
 
+def normalize_embedded_relay_markers(line: str) -> str:
+    # OCR can inject the next leg marker inside the previous swimmer age/name:
+    # "Angeálica3 W) P6a8saríán" means "... W68 3) Pasaríán".
+    line = re.sub(
+        rf"(?<=[{LETTER_CHARS}])(?P<leg>[1-4])\s*\)\s*(?P<gender>[WM])\s+",
+        r" \g<leg>) ",
+        line,
+        flags=re.IGNORECASE,
+    )
+    line = re.sub(
+        rf"(?<=[{LETTER_CHARS}])(?P<leg>[1-4])\s+(?P<gender>[WM])\)\s+",
+        r" \g<leg>) ",
+        line,
+        flags=re.IGNORECASE,
+    )
+    line = re.sub(
+        rf"(?P<gender>[WM])(?P<age_tens>\d)(?P<leg>[1-4])\)(?P<age_ones>\d)\s+(?P<next_initial>[WM])\d?\s*(?=[{LETTER_CHARS}])",
+        r"\g<gender>\g<age_tens>\g<age_ones> \g<leg>) \g<next_initial>",
+        line,
+        flags=re.IGNORECASE,
+    )
+    line = re.sub(
+        rf"(?P<gender>[WM])(?P<age_tens>\d)\)(?P<age_ones>\d)\s+(?P<next_initial>[WM])(?P<leg>[1-4])\s+(?=[{LETTER_CHARS}])",
+        r"\g<gender>\g<age_tens>\g<age_ones> \g<leg>) \g<next_initial>",
+        line,
+        flags=re.IGNORECASE,
+    )
+    return line
+
+
 def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, line_number: int, relay_team_name: Optional[str], competition_year: Optional[int]) -> List[ParsedRelaySwimmerRow]:
     stripped = line.strip()
+    stripped = normalize_embedded_relay_markers(stripped)
     # pdfplumber a veces pega la edad del nadador anterior con el siguiente tramo: "W394)" -> "W39 4)".
     stripped = RELAY_SWIMMER_STUCK_LEG_RE.sub(r"\g<age_marker> ", stripped)
     # En líneas largas también puede deformar el marcador, por ejemplo "4F)."; segmentar evita fusionar nadadores.
@@ -1040,13 +1072,15 @@ def normalize_match_text(value: Optional[str]) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+def normalize_match_text_without_digits(value: Optional[str]) -> str:
+    normalized = normalize_match_text(value)
+    normalized = re.sub(r"\d+", "", normalized)
+    return re.sub(r"\s+", " ", normalized).strip()
 
-def name_match_score(left: Optional[str], right: Optional[str]) -> float:
-    left_norm = normalize_match_text(left)
-    right_norm = normalize_match_text(right)
+
+def score_from_normalized_names(left_norm: str, right_norm: str) -> float:
     if not left_norm or not right_norm:
         return 0.0
-
     ratio = SequenceMatcher(None, left_norm, right_norm).ratio()
     left_tokens = {tok for tok in left_norm.split() if len(tok) > 1 and not any(ch.isdigit() for ch in tok)}
     right_tokens = {tok for tok in right_norm.split() if len(tok) > 1 and not any(ch.isdigit() for ch in tok)}
@@ -1054,6 +1088,23 @@ def name_match_score(left: Optional[str], right: Optional[str]) -> float:
     if left_tokens and right_tokens:
         token_score = len(left_tokens & right_tokens) / max(len(left_tokens), len(right_tokens))
     return (ratio * 0.65) + (token_score * 0.35)
+
+
+
+def name_match_score(left: Optional[str], right: Optional[str]) -> float:
+    left_norm = normalize_match_text(left)
+    right_norm = normalize_match_text(right)
+    if not left_norm or not right_norm:
+        return 0.0
+
+    score = score_from_normalized_names(left_norm, right_norm)
+    if re.search(r"\d", left_norm + right_norm):
+        digitless_score = score_from_normalized_names(
+            normalize_match_text_without_digits(left),
+            normalize_match_text_without_digits(right),
+        )
+        score = max(score, digitless_score - 0.03)
+    return score
 
 
 
