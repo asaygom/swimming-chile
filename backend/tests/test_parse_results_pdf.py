@@ -97,6 +97,7 @@ def test_swim_time_normalization_and_milliseconds():
 def test_clean_athlete_name_removes_layout_artifacts_without_source_suffix():
     assert parser.clean_athlete_name("Fajardo |, Keytheen") == "Fajardo, Keytheen"
     assert parser.clean_athlete_name("Hermosilla1, Yasna") == "Hermosilla, Yasna"
+    assert parser.clean_athlete_name("Rivas, Mª Del(cid:976)ina") == "Rivas, Maria Delfina"
     assert parser.clean_athlete_name("Rojas, 2") == "Rojas, 2"
 
 

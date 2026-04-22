@@ -391,10 +391,13 @@ Evidencia sin carga:
   edad/individuales:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`
   con 5 filas sospechosas.
+- auditoria posterior a validar visualmente `Rivas, Mª Delfina` y normalizarla
+  como `Rivas, Maria Delfina`:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`
+  con 2 filas sospechosas.
 
-Las 5 filas restantes requieren revision contra fuente antes de automatizar:
-incluyen `Rojas, 2` como texto fuente y `Rivas, Mª Del(cid:976)ina` por glifo PDF
-no resuelto.
+Las 2 filas restantes corresponden al mismo caso `Rojas, 2`, escrito asi en la
+fuente, y se conservan sin limpieza automatica.
 
 Auditoria posterior de `core.club` esperado sin carga:
 
@@ -605,11 +608,11 @@ Tras el parser `0.1.16` y la reconciliacion por nombre sin digitos respaldada
 por edades/individuales, la auditoria vigente es:
 
 - summary:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`
 - review CSV:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v7_digitless_age_reconcile.csv`
-- resultado: 61 documentos, 15 overrides scratch, 97337 observaciones de
-  nombres y 5 filas sospechosas restantes.
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v8_rivas_verified.csv`
+- resultado: 61 documentos, 15 overrides scratch, 97342 observaciones de
+  nombres y 2 filas sospechosas restantes, ambas de `Rojas, 2`.
 
 ## Scope congelado 2022-2026 sin carga
 

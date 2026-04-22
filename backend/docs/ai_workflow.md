@@ -164,11 +164,12 @@ Evidencia historica:
   de coma o digitos pegados al apellido antes de coma, sin reescribir casos
   fuente como `Rojas, 2`. Tambien reconcilia relevos con nombres OCR deformados
   quitando digitos solo como clave auxiliar cuando hay evidencia de
-  edad/individuales del mismo club y genero. La evidencia vigente es
-  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v7_digitless_age_reconcile.json`:
-  61 documentos, 15 overrides scratch, 97342 observaciones de nombres y 5 filas
-  sospechosas restantes. Esas 5 requieren revision contra fuente antes de
-  automatizar nuevas correcciones.
+  edad/individuales del mismo club y genero. Tras validar visualmente `Rivas,
+  Mª Delfina`, normalizarla como `Rivas, Maria Delfina`, la evidencia vigente es
+  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`:
+  61 documentos, 15 overrides scratch, 97342 observaciones de nombres y 2 filas
+  sospechosas restantes, ambas del mismo caso fuente `Rojas, 2`, que se conserva
+  sin limpieza automatica.
 
 No implementado todavia:
 

@@ -326,6 +326,8 @@ def clean_athlete_name(value: str | None) -> str | None:
     value = clean_extracted_text(value)
     if value is None:
         return None
+    value = value.replace("Mª", "Maria")
+    value = value.replace("(cid:976)", "f")
     # OCR/layout artifacts observed inside names, not source-authored suffixes
     # like "Rojas, 2".
     value = re.sub(r"\s*\|\s*(?=,)", "", value)
