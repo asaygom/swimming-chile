@@ -82,6 +82,12 @@ def test_swim_time_normalization_and_milliseconds():
     assert parser.derive_result_time_ms("DNS") is None
 
 
+def test_clean_athlete_name_removes_layout_artifacts_without_source_suffix():
+    assert parser.clean_athlete_name("Fajardo |, Keytheen") == "Fajardo, Keytheen"
+    assert parser.clean_athlete_name("Hermosilla1, Yasna") == "Hermosilla, Yasna"
+    assert parser.clean_athlete_name("Rojas, 2") == "Rojas, 2"
+
+
 def test_compute_file_sha256():
     expected = hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest()
 
@@ -350,6 +356,42 @@ def test_parse_relay_swimmer_line_fixture():
     assert rows[0].gender == "male"
     assert rows[0].age_at_event == 35
     assert rows[0].birth_year_estimated == 1991
+
+
+def test_parse_relay_swimmer_line_splits_embedded_next_marker_after_age():
+    rows = parser.parse_relay_swimmer_line(
+        "3) Chamorro M, Alejandra Leonor W340) Levrini, Aldo M42",
+        relay_context(),
+        page_number=4,
+        line_number=10,
+        relay_team_name="CDUC A",
+        competition_year=2024,
+    )
+
+    assert [row.leg_order for row in rows] == [3, 4]
+    assert rows[0].swimmer_name == "Chamorro M, Alejandra Leonor"
+    assert rows[0].gender == "female"
+    assert rows[0].age_at_event == 34
+    assert rows[1].swimmer_name == "Levrini, Aldo"
+    assert rows[1].gender == "male"
+    assert rows[1].age_at_event == 42
+
+
+def test_parse_relay_swimmer_line_splits_marker_deformed_with_extra_digit():
+    rows = parser.parse_relay_swimmer_line(
+        "1) Campos Carrasco, Alejandrina W26)0 Brain, Cynthia W60 3) Pasarin, Claudia W60 4) Valdivia, Adriana W61",
+        relay_context(),
+        page_number=5,
+        line_number=38,
+        relay_team_name="Peñalolen Master A",
+        competition_year=2024,
+    )
+
+    assert [row.leg_order for row in rows] == [1, 2, 3, 4]
+    assert rows[0].swimmer_name == "Campos Carrasco, Alejandrina"
+    assert rows[0].age_at_event == 26
+    assert rows[1].swimmer_name == "Brain, Cynthia"
+    assert rows[1].age_at_event == 60
 
 
 def test_build_output_frames_from_minimal_parsed_rows():

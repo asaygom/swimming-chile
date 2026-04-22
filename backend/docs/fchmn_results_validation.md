@@ -360,6 +360,39 @@ Estos PDFs siguen usando codigos abreviados de equipo en el resultado fuente.
 Los codigos deben resolverse con aliases curados antes de una recarga a core,
 no con fuzzy automatico.
 
+## Correccion parser 0.1.16 para nombres de atletas/relevos
+
+El parser `0.1.16` corrige dos familias detectadas por
+`audit_athlete_names.py` despues de la curacion de clubes:
+
+- nadadores de relevo con marcador del siguiente integrante pegado a la edad
+  anterior, por ejemplo `W340)` tratado como `W34 4)`;
+- artefactos OCR simples dentro del nombre de atleta, como `Fajardo |, Keytheen`,
+  `Malvacias|, Erika` y `Hermosilla1, Yasna`.
+
+La limpieza de nombres es intencionalmente estrecha: no elimina numeros escritos
+como parte de la fuente despues de la coma, por ejemplo `Rojas, 2`, para no
+romper futuras competencias infantiles con edades de uno o dos digitos.
+
+Evidencia sin carga:
+
+- scratch parser:
+  `backend/data/raw/results_csv/scratch_parser_016_athlete_audit_20260422/`
+- auditoria previa con parser 0.1.15 y overrides:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v2_parser015_overrides.json`
+  con 32 filas sospechosas;
+- auditoria posterior al fix de relevos:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v4_relay_parser_fix_plus_uc.json`
+  con 17 filas sospechosas;
+- auditoria vigente con parser 0.1.16:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v5_parser016_name_cleanup.json`
+  con 10 filas sospechosas.
+
+Las 10 filas restantes requieren revision contra fuente antes de automatizar:
+incluyen `Rojas, 2` como texto fuente, `Rivas, Mª Del(cid:976)ina` por glifo PDF
+no resuelto y relevos donde el OCR inserta digitos dentro del nombre del
+siguiente nadador (`B6u5stos`, `A6g5uirre`, `P6a8saríán`, etc.).
+
 Auditoria posterior de `core.club` esperado sin carga:
 
 - despues del fix de parser para `20 Escuela...`, ordenar `club_alias.csv` por
@@ -564,6 +597,15 @@ Clasificacion vigente:
 - `Rojas,` viene de la linea fuente `Rojas, 2`, donde el `2` es parte del nombre
   escrito en el PDF, pero no debe confundirse con futuras competencias infantiles
   donde edades de uno o dos digitos son validas.
+
+Tras el parser `0.1.16`, la auditoria vigente es:
+
+- summary:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v5_parser016_name_cleanup.json`
+- review CSV:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v5_parser016_name_cleanup.csv`
+- resultado: 61 documentos, 15 overrides scratch, 97337 observaciones de
+  nombres y 10 filas sospechosas restantes.
 
 ## Scope congelado 2022-2026 sin carga
 

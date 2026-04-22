@@ -9,6 +9,11 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
 - Los layouts soportados incluyen encabezados de evento en ingles y espanol, cursos `LC/SC Meter` y `CL/CP/CC Metro`, resultados individuales y relevos.
 - Desde parser `0.1.12`, tambien se soporta el layout brasileno "Swim It Up" detectado por watermark `Sistemas de Natacao Swim It Up`, con headers de evento en portugues, franjas etarias `FAIXA`, fechas tipo `13 a 17/04/2026`, individuales y relevos por columnas.
 - Desde parser `0.1.13`, tambien se soportan PDFs HY-TEK con resultados en multiples columnas (`#1 Women...`) y planillas `Quadathlon`; estas ultimas se normalizan como cuatro pruebas canonicas 50m (`butterfly`, `backstroke`, `breaststroke`, `freestyle`) y no introducen un stroke nuevo.
+- Desde parser `0.1.16`, los nadadores de relevo toleran marcadores OCR
+  pegados a genero/edad, por ejemplo `W340)` como `W34 4)`, y los nombres de
+  atleta limpian artefactos simples de layout como `|` antes de coma o digitos
+  pegados al apellido antes de coma, sin reescribir sufijos fuente como
+  `Rojas, 2`.
 
 ## Salidas operativas
 

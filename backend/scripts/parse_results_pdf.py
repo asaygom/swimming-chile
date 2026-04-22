@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.15"
+PARSER_VERSION = "0.1.16"
 
 try:
     import pdfplumber
@@ -126,6 +126,10 @@ RELAY_SWIMMER_LEG_MARKER_RE = re.compile(
 
 RELAY_SWIMMER_SEGMENT_RE = re.compile(
     r"^(?P<name>.+?)(?:\s+(?P<gender>[WM])?(?P<age>\d{1,3})\)?)?$",
+    re.IGNORECASE,
+)
+RELAY_SWIMMER_EMBEDDED_NEXT_RE = re.compile(
+    r"^(?P<name>.+?)\s+(?P<gender>[WM])(?P<age>\d{2})(?:\d\)|\)\s*\d)\s*(?P<next_name>.+?)(?:\s+(?P<next_gender>[WM])(?P<next_age>\d{1,3})\)?)?$",
     re.IGNORECASE,
 )
 
@@ -314,6 +318,18 @@ def clean_extracted_text(value: str | None) -> str | None:
     # espacios múltiples
     value = re.sub(r"\s+", " ", value).strip()
 
+    return value if value else None
+
+
+def clean_athlete_name(value: str | None) -> str | None:
+    value = clean_extracted_text(value)
+    if value is None:
+        return None
+    # OCR/layout artifacts observed inside names, not source-authored suffixes
+    # like "Rojas, 2".
+    value = re.sub(r"\s*\|\s*(?=,)", "", value)
+    value = re.sub(r"(?<=[A-Za-zÁÉÍÓÚÜÑáéíóúüñ])\d+(?=,\s*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ])", "", value)
+    value = re.sub(r"\s+", " ", value).strip()
     return value if value else None
 
 
@@ -588,7 +604,7 @@ def parse_combined_result_line(line: str, ctx: EventContext, page_number: int, l
     else:
         return []
 
-    athlete_name = clean_extracted_text(" ".join(name_tokens))
+    athlete_name = clean_athlete_name(" ".join(name_tokens))
     club_name = clean_extracted_text(club_name)
     if not athlete_name or not club_name:
         return []
@@ -717,7 +733,7 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
         line_number=line_number,
         event_number=ctx.event_number,
         event_name=clean_extracted_text(ctx.event_name),
-        athlete_name=clean_extracted_text(m.group("name")),
+        athlete_name=clean_athlete_name(m.group("name")),
         age_at_event=age_at_event,
         birth_year_estimated=birth_year_estimated,
         club_name=clean_extracted_text(team_raw),
@@ -773,6 +789,53 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
 
 
 
+def build_relay_swimmer_row(
+    ctx: EventContext,
+    page_number: int,
+    line_number: int,
+    relay_team_name: Optional[str],
+    competition_year: Optional[int],
+    leg_order: int,
+    swimmer_name: str,
+    gender_raw: str,
+    age_at_event: Optional[int],
+    raw_line: str,
+) -> ParsedRelaySwimmerRow:
+    birth_year_estimated = (competition_year - age_at_event) if (competition_year is not None and age_at_event is not None) else None
+    return ParsedRelaySwimmerRow(
+        page_number=page_number,
+        line_number=line_number,
+        event_number=ctx.event_number,
+        event_name=ctx.event_name,
+        relay_team_name=relay_team_name,
+        leg_order=leg_order,
+        swimmer_name=swimmer_name.strip(),
+        gender=normalize_athlete_gender(gender_raw),
+        age_at_event=age_at_event,
+        birth_year_estimated=birth_year_estimated,
+        raw_line=raw_line,
+    )
+
+
+def split_embedded_relay_swimmer(segment: str, expected_next_leg: int) -> Optional[Tuple[str, str, Optional[int], str, str, Optional[int]]]:
+    if expected_next_leg > 4:
+        return None
+    m = RELAY_SWIMMER_EMBEDDED_NEXT_RE.match(segment)
+    if not m:
+        return None
+    first_name = clean_athlete_name(m.group("name"))
+    next_name = clean_athlete_name(m.group("next_name"))
+    if not first_name or not next_name:
+        return None
+    if "," not in next_name and len(next_name.split()) < 2:
+        return None
+    first_gender = (m.group("gender") or "").upper()
+    next_gender = (m.group("next_gender") or "").upper()
+    first_age = int(m.group("age")) if m.group("age") else None
+    next_age = int(m.group("next_age")) if m.group("next_age") else None
+    return first_name, first_gender, first_age, next_name, next_gender, next_age
+
+
 def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, line_number: int, relay_team_name: Optional[str], competition_year: Optional[int]) -> List[ParsedRelaySwimmerRow]:
     stripped = line.strip()
     # pdfplumber a veces pega la edad del nadador anterior con el siguiente tramo: "W394)" -> "W39 4)".
@@ -786,29 +849,59 @@ def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, lin
     for index, marker in enumerate(markers):
         next_start = markers[index + 1].start() if index + 1 < len(markers) else len(stripped)
         segment = stripped[marker.end():next_start].strip()
+        leg_order = int(marker.group("leg"))
+        embedded = split_embedded_relay_swimmer(segment, leg_order + 1)
+        if embedded:
+            first_name, first_gender, first_age, next_name, next_gender, next_age = embedded
+            swimmers.append(
+                build_relay_swimmer_row(
+                    ctx,
+                    page_number,
+                    line_number,
+                    relay_team_name,
+                    competition_year,
+                    leg_order,
+                    first_name,
+                    first_gender or ctx.gender or "",
+                    first_age,
+                    stripped,
+                )
+            )
+            swimmers.append(
+                build_relay_swimmer_row(
+                    ctx,
+                    page_number,
+                    line_number,
+                    relay_team_name,
+                    competition_year,
+                    leg_order + 1,
+                    next_name,
+                    next_gender or ctx.gender or "",
+                    next_age,
+                    stripped,
+                )
+            )
+            continue
         m = RELAY_SWIMMER_SEGMENT_RE.match(segment)
         if not m:
             continue
-        swimmer_name = clean_extracted_text(m.group("name"))
+        swimmer_name = clean_athlete_name(m.group("name"))
         if not swimmer_name:
             continue
         gender_raw = (m.group("gender") or ctx.gender or "").upper()
         age_at_event = int(m.group("age")) if m.group("age") else None
-        birth_year_estimated = (competition_year - age_at_event) if (competition_year is not None and age_at_event is not None) else None
         swimmers.append(
-            ParsedRelaySwimmerRow(
-                page_number=page_number,
-                line_number=line_number,
-                event_number=ctx.event_number,
-                event_name=ctx.event_name,
-                relay_team_name=relay_team_name,
-                leg_order=int(marker.group("leg")),
-                swimmer_name=swimmer_name.strip(),
-                #swimmer_name=m.group("name").strip(),
-                gender=normalize_athlete_gender(gender_raw),
-                age_at_event=age_at_event,
-                birth_year_estimated=birth_year_estimated,
-                raw_line=stripped,
+            build_relay_swimmer_row(
+                ctx,
+                page_number,
+                line_number,
+                relay_team_name,
+                competition_year,
+                leg_order,
+                swimmer_name,
+                gender_raw,
+                age_at_event,
+                stripped,
             )
         )
     return swimmers
@@ -841,7 +934,7 @@ def parse_brazil_result_row(words: List[dict], ctx: EventContext, page_number: i
     if len(words) < 3 or not re.fullmatch(r"\d+", str(words[1].get("text", ""))):
         return None
 
-    athlete_name = words_to_text(row_words_between(words, 120, 316))
+    athlete_name = clean_athlete_name(words_to_text(row_words_between(words, 120, 316)))
     club_name = words_to_text(row_words_between(words, 316, 412))
     result_raw = words_to_text(row_words_between(words, 412, 450)) or None
     points_raw = words_to_text(row_words_between(words, 450, 472)) or None
