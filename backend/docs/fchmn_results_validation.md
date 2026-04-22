@@ -380,7 +380,7 @@ Evidencia vigente:
 - `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_strong_duplicate_groups_after_current_aliases_20260422_v5_user_aliases.csv`
 - `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_unresolved_codes_after_current_aliases_20260422_v5_user_aliases.csv`
 
-## Auditoria de clubes por atleta-ano
+## Auditoria de clubes por atleta-año
 
 El detector de grupos fuertes de `core.club` esperado usa similitud de nombres
 y aliases ya aplicados. Un resultado de 0 grupos fuertes pendientes no prueba
@@ -388,11 +388,11 @@ que no existan relaciones semanticas pendientes; solo indica que esa compuerta
 no encontro mas pares con sus reglas actuales.
 
 Para revisar relaciones adicionales y validar aliases ya aplicados, usar la
-auditoria por atleta-ano. Esta auditoria cruza `athlete.csv` de cada documento
+auditoria por atleta-año. Esta auditoria cruza `athlete.csv` de cada documento
 del manifest, aplica `club_alias.csv` y reporta:
 
 - pares de clubes canonicos distintos donde el mismo atleta aparece en mas de
-  un club dentro del mismo ano de competencia;
+  un club dentro del mismo año de competencia;
 - grupos de aliases ya colapsados que conservan evidencia de variantes raw y
   atletas compartidos.
 
@@ -409,8 +409,8 @@ backend\.venv\Scripts\python.exe backend\scripts\audit_club_athlete_year_overlap
 ```
 
 La salida es evidencia para revision humana. Un atleta puede cambiar de club
-entre anos; por eso la comparacion se limita al mismo `competition_year`. La
-evidencia positiva exige competencias distintas del mismo ano; si dos clubes
+entre años; por eso la comparacion se limita al mismo `competition_year`. La
+evidencia positiva exige competencias distintas del mismo año; si dos clubes
 aparecen para el mismo atleta dentro del mismo `source_url`, el auditor lo
 cuenta como conflicto intra-competencia excluido, no como relacion de alias.
 
@@ -484,6 +484,32 @@ intermedio de `Master Viña`):
 - resultado actualizado: 61 documentos, 23271 observaciones de atleta, 31 pares
   candidatos, 40 conflictos intra-competencia excluidos, 96 grupos de aliases
   con multiples variantes raw y 0 `missing_athlete_csv_documents`.
+
+Revision humana posterior: esos 31 pares candidatos no deben aplicarse como
+aliases. La primera revision confirmo que no tienen relacion nominal suficiente
+entre clubes y que representan cambios de club de atletas dentro del mismo año,
+no duplicados de `core.club`. Mantenerlos omitidos salvo que aparezca nueva
+evidencia externa o una correccion de parser/fuente que cambie el diagnostico.
+
+La simulacion de `core.club` esperado, recalculada despues de esas curaciones
+contra el manifest local congelado y los overrides scratch del parser 0.1.15,
+quedo inicialmente en 221 filas. Tras resolver codigos puntuales (`NAUTI`,
+`UCM`, `UCMAU`, `UC Maule` y `Magal`) y aplicar variantes revisadas manualmente
+como `Aquamacul`, `Club Deportivo Aleman de Valp`, `Club Dpto Recreativo`,
+`Club Deportivo Ufro`, `Club Recrear Macul`, `Elite Sports Management`,
+`Millahire`, `Nautilus Master`, `Salmoán Swim`, `Smart Swin Team`, `Smartswim`
+y `Sve Hamburg`, queda en:
+
+- summary:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v10_manual_review_aliases.json`
+- `expected_core_club_rows_after_core_match_key`: 199
+- `unresolved_code_like_clubs`: 13 por heuristica amplia; esta lista mezcla
+  codigos reales pendientes con nombres cortos validos, por lo que debe
+  revisarse manualmente antes de aplicar aliases.
+- Pares aun separados por requerir evidencia adicional o decision humana:
+  `Acuaótico Cordillera`/`Acuaticos`, `Master del Ñielol`/`Ñielol Sin
+  Fronteras`, `Club Panguipulli`/`Pangu`, y
+  `Patagonia`/`Patagonia Kumen Coyhaique`.
 
 ## Scope congelado 2022-2026 sin carga
 

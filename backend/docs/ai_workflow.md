@@ -136,9 +136,9 @@ Evidencia historica:
   revisable. Tras ordenar el archivo por `canonical_name`, aplicar aliases
   curados actuales, aplicar los 42 grupos fuertes como aliases explicitos y
   conservar `A84` como codigo fuente, la simulacion local vigente del manifest
-  congelado baja a 258 filas esperadas en `core.club`, sin grupos fuertes
-  pendientes y con 12 codigos/abreviaturas pendientes. La evidencia vigente es
-  `fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v5_user_aliases.json`.
+  congelado bajo a 199 filas esperadas en `core.club` despues de la curacion por
+  atleta-ano y la revision manual de variantes logicas. La evidencia vigente es
+  `fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v10_manual_review_aliases.json`.
 - "Sin grupos fuertes pendientes" solo describe la compuerta por similitud de
   nombre vigente. Para detectar relaciones no capturadas por esa regla y validar
   aliases ya aplicados, usar `backend/scripts/audit_club_athlete_year_overlap.py`,
@@ -153,8 +153,10 @@ Evidencia historica:
   colapsar aliases que apuntaban a canonicals antiguos, la corrida
   `v7_collapsed_canonical_groups` bajo a 31 pares candidatos, mantuvo 40
   conflictos intra-competencia excluidos y dejo 96 grupos de aliases con
-  multiples variantes raw; revisar primero
-  `fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v7_collapsed_canonical_groups.csv`.
+  multiples variantes raw. Esos 31 pares fueron revisados manualmente y se
+  descartan como insumo de alias porque no tienen relacion nominal suficiente y
+  corresponden a cambios de club; no deben reabrirse salvo nueva evidencia
+  externa o correccion de parser/fuente.
 
 No implementado todavia:
 
