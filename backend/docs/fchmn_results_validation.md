@@ -332,6 +332,45 @@ Evidencia sin carga:
 Los Sudamericanos siguen siendo flujo separado de scope; que validen no autoriza
 carga al manifest local principal.
 
+## Correccion parser 0.1.15 para clubes abreviados/multicolumna
+
+El parser `0.1.15` corrige problemas detectados despues de la primera carga del
+manifest local congelado:
+
+- layout HY-TEK a dos columnas observado en `resultados-copa-uc-master.pdf`,
+  que antes podia fusionar dos resultados en un solo `club_name`;
+- lineas OCR fragmentadas en HY-TEK multicolumna, por ejemplo letras separadas
+  en nombres/equipos y tiempos;
+- fragmentos de encabezado HY-TEK partidos por columna que antes quedaban como
+  lineas no parseadas.
+- edad adulta duplicada/parcialmente segmentada antes del club, observada como
+  `Rojas, 2 20 Escuela de Suboficiales del Ej`, que ahora conserva el club
+  limpio sin resolverlo por alias.
+
+Evidencia sin carga en scratch:
+
+- `resultados-copa-uc-master.pdf`: `validated`, `debug_unparsed_lines = 0`,
+  `club = 32`;
+- `resultados-torneo-apertura-master-2022.pdf`: `validated`,
+  `debug_unparsed_lines = 0`, `club = 38`;
+- `resultados-iii-copa-lqblo.pdf`: `validated`, `debug_unparsed_lines = 0`,
+  `club = 16`.
+
+Estos PDFs siguen usando codigos abreviados de equipo en el resultado fuente.
+Los codigos deben resolverse con aliases curados antes de una recarga a core,
+no con fuzzy automatico.
+
+Auditoria posterior de `core.club` esperado sin carga:
+
+- despues del fix de parser para `20 Escuela...`, ordenar `club_alias.csv` por
+  `canonical_name` y aplicar los aliases curados actuales, la simulacion del
+  manifest local congelado baja a 356 filas esperadas en `core.club`;
+- al aplicar como aliases explicitos los 42 grupos fuertes de duplicados
+  logicos, la simulacion baja a 293 filas esperadas en `core.club` y quedan
+  0 grupos fuertes pendientes;
+- quedan 41 codigos/abreviaturas por curar;
+- `A84` se conserva como codigo fuente porque asi aparece en los PDFs revisados.
+
 ## Scope congelado 2022-2026 sin carga
 
 Curacion operativa del 2026-04-21:

@@ -127,6 +127,16 @@ Evidencia historica:
   de cada carga y amplia `club_alias.csv` con correcciones curadas de alta
   confianza. La base ya cargada requiere backup, limpieza quirurgica y recarga
   explicita para reflejar estas correcciones.
+- El parser `0.1.15` corrige el layout HY-TEK a dos columnas de Copa UC 2022 y
+  lineas OCR fragmentadas en multicolumna, reduciendo clubes basura antes de
+  aplicar aliases, y repara edad adulta duplicada/parcialmente segmentada antes
+  del club sin recurrir a alias. Los formatos abreviados de club en Copa UC
+  2022, Torneo Apertura 2022 y LQBLO 2023 quedan validados en scratch sin carga.
+- La curacion incremental de `club_alias.csv` debe seguir siendo explicita y
+  revisable. Tras ordenar el archivo por `canonical_name`, aplicar aliases
+  curados actuales, aplicar los 42 grupos fuertes como aliases explicitos y
+  conservar `A84` como codigo fuente, la simulacion local del manifest congelado
+  baja a 293 filas esperadas en `core.club`, sin grupos fuertes pendientes.
 
 No implementado todavia:
 

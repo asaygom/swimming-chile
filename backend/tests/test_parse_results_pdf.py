@@ -246,6 +246,77 @@ def test_parse_result_line_recovers_seed_time_before_status_result():
     assert row.status == "dsq"
 
 
+def test_parse_fragmented_result_line_from_hytek_multicolumn_ocr():
+    row = parser.parse_result_line(
+        "4 D e l g a d o , Ar t u r o 3 8 S T G O D 1 : 1 6 , 4 3",
+        individual_context(),
+        page_number=1,
+        line_number=40,
+        competition_year=2023,
+    )
+
+    assert row is not None
+    assert row.athlete_name == "Delgado, Arturo"
+    assert row.age_at_event == 38
+    assert row.club_name == "STGOD"
+    assert row.result_time_text == "1:16,43"
+
+
+def test_parse_result_line_recovers_duplicated_age_digit_before_club():
+    row = parser.parse_result_line(
+        "--- Rojas, 2 20 Escuela de Suboficiales del Ej NT X1:30,58",
+        individual_context(),
+        page_number=25,
+        line_number=29,
+        competition_year=2024,
+    )
+
+    assert row is not None
+    assert row.athlete_name == "Rojas,"
+    assert row.age_at_event == 20
+    assert row.birth_year_estimated == 2004
+    assert row.club_name == "Escuela de Suboficiales del Ej"
+
+
+def test_parse_result_line_keeps_single_digit_age_for_child_event():
+    child_context = parser.EventContext(
+        event_number=1,
+        gender="men",
+        age_group="9-10",
+        distance_label="50",
+        distance_m=50,
+        course_code="LC",
+        stroke="freestyle",
+    )
+
+    row = parser.parse_result_line(
+        "1 Perez, Tomas 9 Escuela Infantil 45,12 44,90",
+        child_context,
+        page_number=1,
+        line_number=3,
+        competition_year=2026,
+    )
+
+    assert row is not None
+    assert row.athlete_name == "Perez, Tomas"
+    assert row.age_at_event == 9
+    assert row.birth_year_estimated == 2017
+    assert row.club_name == "Escuela Infantil"
+
+
+def test_detects_hytek_two_column_layout():
+    assert parser.looks_like_hytek_two_column(
+        [
+            (
+                1,
+                [
+                    "Event 1 Women 18-24 200 LC Meter Butterfly Event 2 Women 45-49 50 LC Meter Breaststroke",
+                ],
+            )
+        ]
+    )
+
+
 def test_parse_relay_team_line_fixture():
     fixture = load_fixture("relay_team")
     row = parser.parse_relay_team_line(

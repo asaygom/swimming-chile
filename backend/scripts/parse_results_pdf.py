@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.13"
+PARSER_VERSION = "0.1.15"
 
 try:
     import pdfplumber
@@ -104,6 +104,11 @@ RESULT_NO_SEED_LINE_RE = re.compile(
     re.IGNORECASE,
 )
 
+FRAGMENTED_TOKEN_RE = re.compile(r"(?<!\S)(?:[A-Za-zÁÉÍÓÚáéíóúÑñÜü]\s+){3,}[A-Za-zÁÉÍÓÚáéíóúÑñÜü](?!\S)")
+FRAGMENTED_WORD_WITH_PREFIX_RE = re.compile(r"\b(?P<prefix>[A-Za-zÁÉÍÓÚáéíóúÑñÜü]{2})\s+(?P<tail>(?:[A-Za-zÁÉÍÓÚáéíóúÑñÜü]\s+){2,}[A-Za-zÁÉÍÓÚáéíóúÑñÜü])\b")
+FRAGMENTED_TIME_RE = re.compile(r"\b(?P<minute>\d)\s*:\s*(?P<tens>\d)\s+(?P<ones>\d)\s*,\s*(?P<hundred_tens>\d)\s+(?P<hundred_ones>\d)\b")
+FRAGMENTED_AGE_TEAM_RE = re.compile(r"\b(?P<age_tens>\d)\s+(?P<age_ones>\d)\s+(?P<team>(?:[A-ZÑ]\s+){2,}[A-ZÑ])\b")
+
 RELAY_TEAM_RE = re.compile(
     rf"^(?P<rank>\*?\d+|---)\s+(?P<team>.+?)\s+(?:(?P<seed>{TIME_OR_STATUS_PATTERN})\s+)?(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
@@ -126,6 +131,7 @@ RELAY_SWIMMER_SEGMENT_RE = re.compile(
 
 HEADER_SKIP_PATTERNS = [
     re.compile(r"HY-TEK'?S MEET MANAGER", re.IGNORECASE),
+    re.compile(r"^\d+(?:\.\d+)?\s+-\s+\d{1,2}:\d{2}\s+[AP]M\s+\d{2}-\d{2}-\d{4}\s+Page\s+\d+$", re.IGNORECASE),
     re.compile(r"^Results\s*$", re.IGNORECASE),
     re.compile(r"^Results\s*-", re.IGNORECASE),
     re.compile(r"^Resultados\s*$", re.IGNORECASE),
@@ -629,11 +635,48 @@ def parse_combined_result_line(line: str, ctx: EventContext, page_number: int, l
 
 
 
+def repair_fragmented_result_line(line: str) -> str:
+    if not (FRAGMENTED_TOKEN_RE.search(line) or FRAGMENTED_TIME_RE.search(line)):
+        return line
+
+    repaired = FRAGMENTED_TIME_RE.sub(
+        lambda m: f"{m.group('minute')}:{m.group('tens')}{m.group('ones')},{m.group('hundred_tens')}{m.group('hundred_ones')}",
+        line,
+    )
+
+    def collapse_age_team(match: re.Match) -> str:
+        team = match.group("team").replace(" ", "")
+        return f"{match.group('age_tens')}{match.group('age_ones')} {team}"
+
+    repaired = FRAGMENTED_AGE_TEAM_RE.sub(collapse_age_team, repaired)
+
+    def collapse_word(match: re.Match) -> str:
+        return match.group(0).replace(" ", "")
+
+    repaired = FRAGMENTED_TOKEN_RE.sub(collapse_word, repaired)
+    repaired = FRAGMENTED_WORD_WITH_PREFIX_RE.sub(lambda m: m.group("prefix") + m.group("tail").replace(" ", ""), repaired)
+    repaired = re.sub(r"(?<=,\s)([A-Za-zÁÉÍÓÚáéíóúÑñÜü]{2})\s+([a-záéíóúñü]{3,})\b", r"\1\2", repaired)
+    repaired = re.sub(r"(?<=\w)\s+,", ",", repaired)
+    repaired = re.sub(r"\s+", " ", repaired).strip()
+    return repaired
+
+
+def event_age_group_starts_at_adult_age(age_group: Optional[str]) -> bool:
+    age_group = normalize_string(age_group)
+    if age_group is None:
+        return False
+    match = re.search(r"\d+", age_group)
+    if not match:
+        return False
+    return int(match.group(0)) >= 18
+
+
 def parse_result_line(line: str, ctx: EventContext, page_number: int, line_number: int, competition_year: Optional[int]) -> Optional[ParsedResultRow]:
-    m = RESULT_LINE_RE.match(line.strip())
+    line = repair_fragmented_result_line(line.strip())
+    m = RESULT_LINE_RE.match(line)
     has_seed = True
     if not m:
-        m = RESULT_NO_SEED_LINE_RE.match(line.strip())
+        m = RESULT_NO_SEED_LINE_RE.match(line)
         has_seed = False
     if not m:
         return None
@@ -659,6 +702,12 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
     seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
     age_at_event = int(m.group("age"))
+    if age_at_event < 10 and team_raw and event_age_group_starts_at_adult_age(ctx.age_group):
+        # OCR/pdfplumber can duplicate the first digit of an adult age before the club.
+        age_team_match = re.match(r"^(?P<age>[1-9]\d)\s+(?P<team>.+)$", team_raw)
+        if age_team_match:
+            age_at_event = int(age_team_match.group("age"))
+            team_raw = age_team_match.group("team")
     birth_year_estimated = (competition_year - age_at_event) if competition_year is not None else None
 
     points_raw = normalize_string(m.groupdict().get("points"))
@@ -679,7 +728,7 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
         result_time_ms=str(result_time_ms) if result_time_ms is not None else None,
         status=status,
         points=points_raw.replace(" ", "") if isinstance(points_raw, str) else points_raw,
-        raw_line=line.strip(),
+        raw_line=line,
     )
 
 
@@ -1017,7 +1066,12 @@ def looks_like_hytek_multicolumn(pages: List[Tuple[int, List[str]]]) -> bool:
     return has_hash_events and has_mixed_columns
 
 
-def parse_hytek_multicolumn_pdf(pdf_path: Path):
+def looks_like_hytek_two_column(pages: List[Tuple[int, List[str]]]) -> bool:
+    probe_lines = [line for _, lines in pages[:2] for line in lines]
+    return any(len(re.findall(r"\bEvent\s+\d+\s+(?:Women|Men|Mixed)", line)) > 1 for line in probe_lines)
+
+
+def parse_hytek_multicolumn_pdf(pdf_path: Path, column_ranges: Optional[List[Tuple[int, int]]] = None):
     text_pages = extract_text_lines(pdf_path)
     stats = ParseStats(pages_read=len(text_pages))
     rows: List[ParsedResultRow] = []
@@ -1045,9 +1099,10 @@ def parse_hytek_multicolumn_pdf(pdf_path: Path):
         },
         pdf_path,
     )
-    current_events: Dict[int, Optional[EventContext]] = {0: None, 1: None, 2: None}
-    last_relay_team_names: Dict[int, Optional[str]] = {0: None, 1: None, 2: None}
-    column_ranges = [(0, 205), (205, 405), (405, 620)]
+    if column_ranges is None:
+        column_ranges = [(0, 205), (205, 405), (405, 620)]
+    current_events: Dict[int, Optional[EventContext]] = {index: None for index, _ in enumerate(column_ranges)}
+    last_relay_team_names: Dict[int, Optional[str]] = {index: None for index, _ in enumerate(column_ranges)}
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_index, page in enumerate(pdf.pages, start=1):
@@ -1284,6 +1339,8 @@ def parse_pdf(pdf_path: Path):
     pages = extract_text_lines(pdf_path)
     if any("Sistemas de Natação Swim It Up" in line for _, lines in pages[:2] for line in lines):
         return parse_brazil_pdf(pdf_path)
+    if looks_like_hytek_two_column(pages):
+        return parse_hytek_multicolumn_pdf(pdf_path, column_ranges=[(0, 300), (300, 620)])
     if looks_like_hytek_multicolumn(pages):
         return parse_hytek_multicolumn_pdf(pdf_path)
     stats = ParseStats(pages_read=len(pages))
