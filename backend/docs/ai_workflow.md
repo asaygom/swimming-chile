@@ -157,6 +157,15 @@ Evidencia historica:
   descartan como insumo de alias porque no tienen relacion nominal suficiente y
   corresponden a cambios de club; no deben reabrirse salvo nueva evidencia
   externa o correccion de parser/fuente.
+- Antes de recargar core, auditar nombres de atletas con
+  `backend/scripts/audit_athlete_names.py`. La evidencia vigente con overrides
+  scratch del parser 0.1.15 es
+  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v2_parser015_overrides.json`:
+  61 documentos, 4 overrides, 97321 observaciones de nombres y 32 filas
+  sospechosas. El parser 0.1.15 ya corrigio las letras OCR separadas de LQBLO
+  2023; quedan como prioridad los relevos donde el OCR pega el marcador del
+  siguiente nadador al genero/edad anterior y cinco nombres individuales
+  sospechosos para revisar contra fuente.
 
 No implementado todavia:
 

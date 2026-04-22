@@ -511,6 +511,60 @@ y `Sve Hamburg`, queda en:
   Fronteras`, `Club Panguipulli`/`Pangu`, y
   `Patagonia`/`Patagonia Kumen Coyhaique`.
 
+## Auditoria de nombres de atletas
+
+Antes de una recarga completa, auditar nombres de atletas desde los CSVs
+parseados actuales. Esta auditoria no resuelve identidad probabilistica; solo
+detecta señales de extraccion sospechosa que deben clasificarse como fix de
+parser, ruido valido del PDF o deuda de Fase 5.
+
+Ejemplo sin carga:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_athlete_names.py `
+  --manifest backend\data\raw\manifests\fchmn_historical_2022_2026_frozen_local_20260421.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_audit_YYYYMMDD.json `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_review_YYYYMMDD.csv `
+  --json
+```
+
+Cuando existan salidas scratch generadas por un parser mas nuevo que las
+carpetas apuntadas por el manifest congelado, usar `--override-input-dir`
+repetido por `source_url` para medir la condicion actual sin mezclar errores ya
+corregidos.
+
+Evidencia inicial del 2026-04-22 sobre el manifest local congelado:
+
+- baseline manifest actual:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v1_current_manifest.json`
+- review CSV baseline:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v1_current_manifest.csv`
+- resultado baseline: 61 documentos, 97210 observaciones de nombres y 38 filas
+  sospechosas.
+
+Con overrides scratch del parser 0.1.15 para Copa UC 2022, LQBLO 2023,
+Torneo Apertura 2022 y Copa Ñuñoa 2024:
+
+- summary:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_audit_20260422_v2_parser015_overrides.json`
+- review CSV:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_review_20260422_v2_parser015_overrides.csv`
+- resultado: 61 documentos, 4 overrides usados, 97321 observaciones de nombres
+  y 32 filas sospechosas.
+
+Clasificacion vigente:
+
+- el parser 0.1.15 ya elimina los nombres OCR con letras separadas observados en
+  LQBLO 2023;
+- quedan 22 sospechas en `relay_swimmer`, principalmente segmentos donde el OCR
+  pega el marcador del siguiente nadador al genero/edad anterior;
+- quedan 5 sospechas en resultados individuales/athlete: `Fajardo |, Keytheen`,
+  `Hermosilla1, Yasna`, `Malvacias|, Erika`, `Rojas,` y
+  `Rivas, Mª Del(cid:976)ina`;
+- `Rojas,` viene de la linea fuente `Rojas, 2`, donde el `2` es parte del nombre
+  escrito en el PDF, pero no debe confundirse con futuras competencias infantiles
+  donde edades de uno o dos digitos son validas.
+
 ## Scope congelado 2022-2026 sin carga
 
 Curacion operativa del 2026-04-21:
