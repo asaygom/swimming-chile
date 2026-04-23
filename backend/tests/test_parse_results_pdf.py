@@ -111,6 +111,28 @@ def test_clean_athlete_name_removes_layout_artifacts_without_source_suffix():
     assert parser.clean_athlete_name("Hermosilla1, Yasna") == "Hermosilla, Yasna"
     assert parser.clean_athlete_name("Rivas, Mª Del(cid:976)ina") == "Rivas, Maria Delfina"
     assert parser.clean_athlete_name("Rojas, 2") == "Rojas, 2"
+    assert parser.clean_athlete_name("Garcíóa Cereceda, Alexis") == "García Cereceda, Alexis"
+    assert parser.clean_athlete_name("Cantoó, Claudio") == "Canto, Claudio"
+    assert parser.clean_athlete_name("Aguirre, Joseó Ignacio") == "Aguirre, José Ignacio"
+    assert parser.clean_athlete_name("Bustos Araya, Maríóa Gabriela") == "Bustos Araya, María Gabriela"
+    assert parser.clean_athlete_name("AÁlvarez, Alex") == "Álvarez, Alex"
+    assert parser.clean_athlete_name("AÓvila Leal, Diego") == "Ávila Leal, Diego"
+    assert parser.clean_athlete_name("Acuña Saóez, Heóctor") == "Acuña Sáez, Héctor"
+    assert parser.clean_athlete_name("Cabello Tilleríéa, Andreés") == "Cabello Tillería, Andrés"
+    assert parser.clean_athlete_name("Caro P, Cristoébal Fdo") == "Caro P, Cristóbal Fdo"
+    assert parser.clean_athlete_name("Castañeda, Beleún") == "Castañeda, Belén"
+    assert parser.clean_athlete_name("Alarcoán Carvajal, Cristiaán") == "Alarcón Carvajal, Cristián"
+    assert parser.clean_athlete_name("Albornoz Ramíórez, Tania") == "Albornoz Ramírez, Tania"
+    assert parser.clean_athlete_name("Bascuñaán, Matíás") == "Bascuñán, Matías"
+    assert parser.clean_athlete_name("Contreras Saónchez, Jaime") == "Contreras Sánchez, Jaime"
+    assert parser.clean_athlete_name("Gonzaélez, Andrés") == "González, Andrés"
+    assert parser.clean_athlete_name("M e ñadier, Mauri ce") == "Menadier, Maurice"
+    assert parser.clean_athlete_name("Muñ ñoz, Victor") == "Muñoz, Víctor"
+    assert parser.clean_athlete_name("Olivares OÓ rdenes, Cristiaón") == "Olivares Órdenes, Cristián"
+    assert parser.clean_athlete_name("Yañ ñez, Roberto") == "Yáñez, Roberto"
+    assert parser.clean_athlete_name("Sebastiaón, Claudio") == "Sebastián, Claudio"
+    assert parser.clean_athlete_name("Gonzaólez, Andrés") == "González, Andrés"
+    assert parser.clean_athlete_name("Rodríóguez, Alexandra") == "Rodríguez, Alexandra"
 
 
 def test_compute_file_sha256():
@@ -430,7 +452,7 @@ def test_parse_relay_swimmer_line_splits_marker_embedded_after_name():
     )
 
     assert [row.leg_order for row in rows] == [1, 2, 3, 4]
-    assert rows[1].swimmer_name == "Schwarzemberg, Maríá Angeálica"
+    assert rows[1].swimmer_name == "Schwarzemberg, María Angélica"
     assert rows[2].swimmer_name == "P6a8saríán, Claudia"
     assert rows[2].age_at_event == 59
 
