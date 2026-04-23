@@ -188,61 +188,52 @@ Si hay cambios locales del usuario, respetalos y trabaja alrededor de ellos.
 Explica el que, el por que, el donde y lo aprendido de cada cambio.
 Fase activa: Fase 4. No cargues a core ni uses --load salvo pedido explicito.
 
-Retoma desde la auditoria historica 2022-2026:
-- focus audit: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_focus_audit_20260421.json
-- blockers resueltos: backend/data/raw/batch_summaries/scratch_2022_2026_blockers_recheck_20260421_v3.json
-- scope review CSV: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_available_for_scope_review_20260421.csv
-- manifest local congelado: backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl
-- validacion local congelada: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260421.json
-- manifest Sudamericano separado: backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl
-- validacion Sudamericano separada: backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_sudamericano_validation_20260421.json
-
 Contexto vigente:
 - El cierre operativo inicial se acoto a formatos 2022-2026.
 - Los formatos pre-2022 quedan como backlog legacy.
-- Los 14 bloqueados 2022-2026 ya quedaron validated sin --load con parser
-  0.1.13: Quadathlon, HY-TEK multi-columna, variantes de encabezado/canon y
-  omision de parciales/splits.
-- La evidencia final del recheck de bloqueados es
-  scratch_2022_2026_blockers_recheck_20260421_v3.json con
-  state_counts.validated = 14.
-- El freezer ya consolida multiples batch summaries con allow-list explicita de
-  source_url y deduplica por source_url.
-- El manifest local congelado quedo validado sin --load con
-  state_counts.validated = 61 y competition_scope=fchmn_local.
+- La evidencia operativa vigente esta resumida en backend/docs/fchmn_results_validation.md.
+- El manifest local congelado vigente es
+  backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl,
+  validado sin --load con 61 documentos y competition_scope=fchmn_local.
 - Copa Cordillera / Dual Internacional pertenece al circuito master FCHMN,
   incluyendo etapa Argentina; quedo incluida en el manifest local congelado.
 - Sudamericanos deben tratarse como flujo separado y no mezclarse
-  automaticamente con el manifest local principal; quedaron validados por
-  separado con state_counts.validated = 6 y competition_scope=sudamericano_master.
+  automaticamente con el manifest local principal; ver manifest y validacion
+  separados en backend/docs/fchmn_results_validation.md.
 - No usar keywords como compuerta final de carga.
+- Antes de recargar core, usar como evidencia vigente de nombres de atletas
+  fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json,
+  con 2 filas sospechosas restantes, ambas del caso fuente `Rojas, 2`.
 
-Siguiente tarea:
-Verificar el estado post-limpieza de la base antes de cargar: staging vacio,
-tablas de resultados/trazabilidad previa limpias, `pool` intacta y calendario
-planificado FCHMN preservado en `competition`. Luego preparar la carga explicita
-del manifest local congelado siguiendo backend/docs/pre_load_checklist.md:
-comando con `--load`, `--truncate-staging`, summary auditable y validaciones
-post-load. No cargar a core ni usar --load salvo pedido explicito. Mantener
-Sudamericanos en flujo separado.
+Si la conversacion retoma una carga o recarga, seguir backend/docs/pre_load_checklist.md
+sin saltar backup, wipe controlado, summary auditable y validacion post-load.
+Si no hay pedido explicito de carga, mantenerse en diagnostico, parser, curaduria
+o documentacion sin usar --load.
 ```
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo avanzada con contrato, scraper de apuntamiento, descarga separada, parseo automatico previo a validacion, carga explicita protegida por compuertas, resumen JSON auditable opcional, manifest local de multiples documentos, auditoria local de brechas y freezer de manifests validados. El manifest soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) y conserva `source_url` para trazabilidad.
+Fase 4 quedo avanzada con contrato, scraper de apuntamiento, descarga separada,
+parseo automatico previo a validacion, carga explicita protegida por compuertas,
+resumen JSON auditable opcional, manifest local de multiples documentos,
+auditoria local de brechas y freezer de manifests validados. El manifest
+soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) y conserva
+`source_url` para trazabilidad.
 
 Proximo objetivo sugerido:
 
 - Mantener descarga, manifest, parseo, validacion y carga separados.
-- Usar la auditoria de brechas como punto de control canonico antes de nuevas acciones.
-- Usar como evidencia de cierre de bloqueadores 2022-2026 el summary `scratch_2022_2026_blockers_recheck_20260421_v3.json`, generado sin `--load`.
-- Usar como manifest local congelado inicial `fchmn_historical_2022_2026_frozen_local_20260421.jsonl`, validado sin `--load` con 61 documentos.
-- Mantener los Sudamericanos en `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` como flujo separado; no mezclarlos automaticamente con el manifest local principal.
-- La limpieza quirurgica previa a carga ya fue ejecutada manualmente; verificar
-  primero que staging/resultados/trazabilidad quedaron limpios y que calendario
-  planificado/pool se preservaron.
-- Para repetir la carga del manifest local congelado, hacer backup, aplicar la
-  limpieza quirurgica preservando `pool` y competencias planificadas, ejecutar
-  `--load` con `--truncate-staging`, y validar duplicados post-load.
-- Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automaticamente.
+- Usar el runbook `backend/docs/fchmn_results_validation.md` como resumen
+  vigente de evidencia y artefactos, evitando volver a expandir cronologias
+  intermedias en `ai_workflow.md`.
+- Mantener `fchmn_historical_2022_2026_frozen_local_20260421.jsonl` como
+  manifest local congelado de referencia y el flujo Sudamericano separado.
+- Si se retoma una carga explicita, seguir `backend/docs/pre_load_checklist.md`:
+  verificar estado real de staging/resultados/trazabilidad, preservar `pool` y
+  calendario planificado, ejecutar `--load` con summary auditable y validar
+  duplicados post-load.
+- Si no se retoma carga, concentrar el trabajo en parser, curaduria y
+  documentacion de Fase 4 sin usar `--load`.
+- Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum,
+  validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.
