@@ -512,8 +512,9 @@ Curacion operativa del 2026-04-21:
 - validacion local sin carga:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260421.json`
 - resultado local esperado: `state_counts.validated = 61`
-- revalidacion real con parser `0.1.16` sobre los 61 PDFs del manifest:
-  `backend/data/raw/batch_summaries/scratch_fchmn_historical_2022_2026_frozen_local_reparse_validation_20260423_parser016.json`
+- revalidacion real con parser `0.1.16` sobre los 61 PDFs del manifest en rutas
+  canonicas `results_csv/fchmn_auto/<anio>/...`:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260423_parser016_canonical.json`
   con `state_counts.validated = 61`
 
 La allow-list local incluye los candidatos locales validados, las etapas

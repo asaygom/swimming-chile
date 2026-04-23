@@ -195,6 +195,10 @@ Contexto vigente:
 - El manifest local congelado vigente es
   backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl,
   validado sin --load con 61 documentos y competition_scope=fchmn_local.
+- Los 61 parseos locales vigentes ya fueron re-hechos con parser `0.1.16` en
+  rutas canonicas `backend/data/raw/results_csv/fchmn_auto/<anio>/...`; usar
+  como evidencia el summary
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260423_parser016_canonical.json`.
 - Copa Cordillera / Dual Internacional pertenece al circuito master FCHMN,
   incluyendo etapa Argentina; quedo incluida en el manifest local congelado.
 - Sudamericanos deben tratarse como flujo separado y no mezclarse
