@@ -54,6 +54,18 @@ def relay_women_context():
     )
 
 
+def relay_mixed_context():
+    return parser.EventContext(
+        event_number=4,
+        gender="mixed",
+        age_group="160-199",
+        distance_label="4x50",
+        distance_m=200,
+        course_code="SC",
+        stroke="freestyle_relay",
+    )
+
+
 def test_normalize_event_gender_to_competition_canon():
     assert parser.normalize_event_gender("Women") == "women"
     assert parser.normalize_event_gender("Hombres") == "men"
@@ -493,6 +505,81 @@ def test_reconcile_relay_swimmers_uses_digitless_name_with_age_evidence():
     assert relay_swimmers[1].age_at_event == 68
     assert relay_swimmers[2].swimmer_name == "Pasaríán, Claudia"
     assert relay_swimmers[2].age_at_event == 59
+
+
+def test_reconcile_relay_swimmers_infers_missing_gender_in_mixed_relay_from_individuals():
+    relay_team = parser.ParsedRelayTeamRow(
+        page_number=1,
+        line_number=10,
+        event_number=relay_mixed_context().event_number,
+        event_name=relay_mixed_context().event_name,
+        relay_team_name="Peñalolen Master A",
+        club_name="Peñalolen Master",
+        rank_position="1",
+        seed_time_text=None,
+        seed_time_ms=None,
+        result_time_text="2:10,00",
+        result_time_ms="130000",
+        status="valid",
+        points=None,
+        raw_line="1 Peñalolen Master A 2:10.00",
+    )
+    individual_rows = [
+        parser.ParsedResultRow(
+            page_number=1,
+            line_number=1,
+            event_number=11,
+            event_name="women 40-44 50 SC Meter freestyle",
+            athlete_name="Pinto Galleguillos, Rosario Soledad",
+            age_at_event=42,
+            birth_year_estimated=1982,
+            club_name="Peñalolen Master",
+            rank_position="1",
+            seed_time_text=None,
+            seed_time_ms=None,
+            result_time_text="32,00",
+            result_time_ms="32000",
+            status="valid",
+            points=None,
+            raw_line="1 Pinto Galleguillos, Rosario Soledad 42 Peñalolen Master 32.00",
+        ),
+        parser.ParsedResultRow(
+            page_number=1,
+            line_number=2,
+            event_number=12,
+            event_name="men 45-49 50 SC Meter freestyle",
+            athlete_name="Rojas, Juan",
+            age_at_event=45,
+            birth_year_estimated=1979,
+            club_name="Peñalolen Master",
+            rank_position="1",
+            seed_time_text=None,
+            seed_time_ms=None,
+            result_time_text="30,00",
+            result_time_ms="30000",
+            status="valid",
+            points=None,
+            raw_line="1 Rojas, Juan 45 Peñalolen Master 30.00",
+        ),
+    ]
+
+    relay_swimmers = parser.parse_relay_swimmer_line(
+        "1) Pinto Galleguillos, Rosario Soledad 42 2) Rojas, Juan M45",
+        relay_mixed_context(),
+        page_number=2,
+        line_number=20,
+        relay_team_name="Peñalolen Master A",
+        competition_year=2024,
+    )
+
+    assert relay_swimmers[0].gender == "mixed"
+
+    parser.reconcile_relay_swimmers_with_individuals(individual_rows, [relay_team], relay_swimmers)
+
+    assert relay_swimmers[0].swimmer_name == "Pinto Galleguillos, Rosario Soledad"
+    assert relay_swimmers[0].gender == "female"
+    assert relay_swimmers[0].age_at_event == 42
+    assert relay_swimmers[0].birth_year_estimated == 1982
 
 
 def test_parse_relay_swimmer_line_recovers_leg_marker_inside_age():

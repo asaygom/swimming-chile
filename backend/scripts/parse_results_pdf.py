@@ -1170,26 +1170,41 @@ def reconcile_relay_swimmers_with_individuals(parsed_rows: List[ParsedResultRow]
         relay_club = relay_club_by_team.get(normalize_match_text(row.relay_team_name))
         club_key = normalize_match_text(relay_club)
         gender_key = normalize_athlete_gender(row.gender)
-        candidates = individual_by_club_gender.get((club_key, gender_key), [])
-        scored_candidates: List[Tuple[float, ParsedResultRow]] = []
+        candidate_entries: List[Tuple[str, ParsedResultRow]] = []
+        if gender_key in {"female", "male"}:
+            candidate_entries.extend(
+                (gender_key, candidate)
+                for candidate in individual_by_club_gender.get((club_key, gender_key), [])
+            )
+        else:
+            # Mixed relay events may omit the swimmer gender marker on a segment.
+            # In that case, try both person-level genders and let the individual
+            # results of the same club disambiguate the swimmer.
+            for fallback_gender in ("female", "male"):
+                candidate_entries.extend(
+                    (fallback_gender, candidate)
+                    for candidate in individual_by_club_gender.get((club_key, fallback_gender), [])
+                )
+        scored_candidates: List[Tuple[float, str, ParsedResultRow]] = []
 
-        for candidate in candidates:
+        for candidate_gender, candidate in candidate_entries:
             score = name_match_score(row.swimmer_name, candidate.athlete_name)
             if row.age_at_event is not None and candidate.age_at_event == row.age_at_event:
                 score += 0.10
             elif row.age_at_event is not None and score < 0.82:
                 score -= 0.10
-            scored_candidates.append((score, candidate))
+            scored_candidates.append((score, candidate_gender, candidate))
 
         if not scored_candidates:
             continue
 
         scored_candidates.sort(key=lambda item: item[0], reverse=True)
-        best_score, best = scored_candidates[0]
+        best_score, best_gender, best = scored_candidates[0]
         second_score = scored_candidates[1][0] if len(scored_candidates) > 1 else 0.0
 
         if best_score >= 0.82 and (best_score - second_score) >= 0.12:
             row.swimmer_name = best.athlete_name
+            row.gender = best_gender
             row.age_at_event = best.age_at_event
             row.birth_year_estimated = best.birth_year_estimated
 
