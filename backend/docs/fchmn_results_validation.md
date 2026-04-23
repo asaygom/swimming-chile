@@ -396,10 +396,9 @@ Auditoria posterior de `core.club` esperado sin carga:
 
 Evidencia vigente:
 
-- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v5_user_aliases.json`
-- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_after_current_aliases_20260422_v5_user_aliases.csv`
-- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_strong_duplicate_groups_after_current_aliases_20260422_v5_user_aliases.csv`
-- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_unresolved_codes_after_current_aliases_20260422_v5_user_aliases.csv`
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v10_manual_review_aliases.json`
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_after_current_aliases_20260422_v10_manual_review_aliases.csv`
+- `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_club_unresolved_codes_after_current_aliases_20260422_v10_manual_review_aliases.csv`
 
 ## Auditoria de clubes por atleta-año
 
@@ -438,9 +437,9 @@ cuenta como conflicto intra-competencia excluido, no como relacion de alias.
 Evidencia vigente sin carga:
 
 - summary final:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v7_collapsed_canonical_groups.json`
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_20260422_v10_manual_review_aliases.json`
 - candidates CSV final:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v7_collapsed_canonical_groups.csv`
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_club_athlete_year_overlap_candidates_20260422_v10_manual_review_aliases.csv`
 - resultado: 61 documentos, 23271 observaciones de atleta, 31 pares candidatos,
   40 conflictos intra-competencia excluidos, 96 grupos de aliases con multiples
   variantes raw y 0 `missing_athlete_csv_documents`.
@@ -513,6 +512,9 @@ Curacion operativa del 2026-04-21:
 - validacion local sin carga:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260421.json`
 - resultado local esperado: `state_counts.validated = 61`
+- revalidacion real con parser `0.1.16` sobre los 61 PDFs del manifest:
+  `backend/data/raw/batch_summaries/scratch_fchmn_historical_2022_2026_frozen_local_reparse_validation_20260423_parser016.json`
+  con `state_counts.validated = 61`
 
 La allow-list local incluye los candidatos locales validados, las etapas
 Copa Cordillera / Dual Internacional Argentina como circuito master FCHMN, y los
