@@ -509,22 +509,71 @@ consolidar variantes OCR en una etapa separada y auditable, antes del load:
 ```powershell
 backend\.venv\Scripts\python.exe backend\scripts\curate_athlete_names.py `
   --manifest backend\data\raw\manifests\scratch_fchmn_historical_2022_2026_frozen_local_athlete_preview_20260423.jsonl `
-  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_curation_20260423.json `
-  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_curation_20260423.csv `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_curation_20260424.json `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_curation_20260424.csv `
   --json
 ```
 
 - summary:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.json`
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.json`
 - review CSV:
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.csv`
-- resultado: 61 documentos, 97341 observaciones de nombres, 333 grupos de
-  variantes y 129 reemplazos propuestos.
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.csv`
+- resultado: 61 documentos, 97341 observaciones de nombres, 180 grupos
+  contextuales de variantes y 38 reemplazos propuestos.
 
 Esta etapa no modifica el parser ni carga a core. Sirve para consolidar
 variantes tipo `Goámez/Goémez/Goómez -> Gomez`, `Muüller -> Muller` y
-`Pasaríán/Pasaríón -> Pasarin` antes de una recarga. Los casos sin una variante
-corroborada dentro del manifest siguen requiriendo decision humana o parser.
+`Pasaríán/Pasaríón -> Pasarin` antes de una recarga. La semejanza nominal no se
+usa sola: un reemplazo automatico requiere mismo `birth_year`, mismo `club_key`
+y mismo genero, ademas de señal OCR conservadora. Casos como
+`Alfaro, Mauricio`/`Alfaro, Marco` o `Augusto`/`Agusto` quedan para revision
+humana aunque se parezcan por firma.
+
+La revision posterior de nombres iguales no debe interpretarse como lista de
+duplicados. Usar `audit_expected_athlete_identity.py` para separar categorias:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_expected_athlete_identity.py `
+  --input-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_name_curation_20260424.csv `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_name_curation_20260424.csv `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_name_curation_20260424.json `
+  --json
+```
+
+- expected `core.athlete` tras curaduria:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_athlete_after_name_curation_20260424.csv`
+- same-name review:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_name_curation_20260424.csv`
+- resultado: 171 grupos con mismo nombre normalizado; 37 son mismo club con
+  diferencia de `birth_year` de 1 ano y quedan como bandeja fuerte de revision
+  por posible captura de edad/ano; 82 tienen distinto club y distinto ano, por
+  lo que son probablemente personas distintas y no duplicados pendientes.
+
+Para aplicar solo correcciones conservadoras de `birth_year` antes de la carga,
+usar evidencia por fuente: mismo nombre normalizado, mismo genero, mismo club,
+diferencia de 1 ano y una fuente contra varias fuentes para elegir el ano. El
+mismo auditor puede generar el preview de `core.athlete`, los cambios aplicados
+y la bandeja de atletas sin ano con candidato unico por tokens de nombre:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_expected_athlete_identity.py `
+  --input-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_name_curation_20260424.csv `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_birth_year_curation_20260424.csv `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_birth_year_curation_20260424.json `
+  --birth-year-evidence-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_evidence_delta1_same_club_20260424.csv `
+  --corrected-output-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_birth_year_curation_20260424.csv `
+  --birth-year-corrections-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_corrections_applied_20260424.csv `
+  --missing-birth-year-candidates-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_missing_birth_year_candidates_20260424.csv `
+  --json
+```
+
+Evidencia vigente sin carga: el preview baja de 5714 a 5702 filas tras 12
+correcciones de `birth_year`; quedan 159 grupos con mismo nombre normalizado.
+Los atletas sin `birth_year` siguen siendo 161, pero 146 tienen candidato unico
+por mismos tokens de nombre, mismo genero y mismo club. Esa bandeja no debe
+aplicarse a ciegas: muchos casos requieren normalizar tambien el orden del
+nombre (`Nombre Apellido` -> `Apellido, Nombre`) para que `core.athlete` los
+consolide.
 
 ## Scope congelado 2022-2026 sin carga
 

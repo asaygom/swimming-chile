@@ -23,6 +23,7 @@ from run_pipeline_results import clean_extracted_text, normalize_match_text
 NAME_TOKEN_RE = re.compile(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+")
 FRAGMENTED_NAME_RE = re.compile(r"(?:^|\s)(?:[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]\s+){2,}[A-Za-zÁÉÍÓÚÜÑáéíóúüñ](?:\s|$)")
 NOISY_VOWEL_RUN_RE = re.compile(r"[aeiou]{2,}")
+REPEATED_VOWEL_RUN_RE = re.compile(r"([aeiou])\1+")
 
 
 def parse_args() -> argparse.Namespace:
@@ -149,15 +150,32 @@ def collect_name_rows(document: dict, input_dir: Path) -> List[dict]:
     return rows
 
 
+def normalize_birth_year(value: Optional[str]) -> str:
+    cleaned = clean_extracted_text(value)
+    if not cleaned:
+        return ""
+    match = re.match(r"^(\d{4})(?:\.0)?$", cleaned)
+    return match.group(1) if match else cleaned
+
+
+def curation_group_key(row: dict) -> Optional[Tuple[str, str, str, str]]:
+    signature = athlete_name_signature(row.get("athlete_name"))
+    birth_year = normalize_birth_year(row.get("birth_year"))
+    club_key = normalize_match_text(row.get("club_name")) or ""
+    gender = normalize_match_text(row.get("gender")) or ""
+    if not signature or not birth_year or not club_key:
+        return None
+    return signature, birth_year, club_key, gender
+
+
 def choose_canonical_name(group_rows: Sequence[dict]) -> str:
     counts = Counter(row["athlete_name"] for row in group_rows)
     candidates = sorted(
         counts.keys(),
         key=lambda name: (
-            athlete_name_noise_score(name),
-            sum(1 for ch in name if unicodedata.category(ch) == "Mn"),
-            sum(1 for ch in name if ord(ch) > 127),
             -counts[name],
+            athlete_name_noise_score(name),
+            sum(1 for ch in name if ord(ch) > 127),
             len(flatten_visible_name(name) or name),
             flatten_visible_name(name) or name,
         ),
@@ -167,16 +185,80 @@ def choose_canonical_name(group_rows: Sequence[dict]) -> str:
     return chosen_flat or chosen
 
 
-def build_review_rows(rows: Sequence[dict]) -> Tuple[List[dict], Dict[str, str]]:
-    grouped: Dict[str, List[dict]] = defaultdict(list)
+def _name_tokens(value: Optional[str]) -> List[str]:
+    flat = flatten_visible_name(value)
+    if not flat:
+        return []
+    return [token.lower() for token in NAME_TOKEN_RE.findall(flat)]
+
+
+def _single_vowel_deletion_distance(original: str, canonical: str) -> Optional[int]:
+    """Return deleted vowel count when canonical is original minus only vowels."""
+    if original == canonical:
+        return 0
+    i = 0
+    j = 0
+    deletions = 0
+    while i < len(original) and j < len(canonical):
+        if original[i] == canonical[j]:
+            i += 1
+            j += 1
+            continue
+        if original[i] in "aeiou":
+            deletions += 1
+            i += 1
+            continue
+        return None
+    while i < len(original):
+        if original[i] not in "aeiou":
+            return None
+        deletions += 1
+        i += 1
+    if j != len(canonical):
+        return None
+    return deletions
+
+
+def is_safe_ocr_replacement(original_name: str, canonical_name: str, counts: Counter) -> bool:
+    original_tokens = _name_tokens(original_name)
+    canonical_tokens = _name_tokens(canonical_name)
+    if not original_tokens or len(original_tokens) != len(canonical_tokens):
+        return False
+    if not any(ord(ch) > 127 for ch in original_name) and not any(
+        REPEATED_VOWEL_RUN_RE.search(token) for token in original_tokens
+    ):
+        return False
+
+    changed_tokens = 0
+    for original_token, canonical_token in zip(original_tokens, canonical_tokens):
+        if original_token == canonical_token:
+            continue
+        if token_signature(original_token) != token_signature(canonical_token):
+            return False
+        deleted_vowels = _single_vowel_deletion_distance(original_token, canonical_token)
+        if deleted_vowels is None or deleted_vowels > 1:
+            return False
+        changed_tokens += 1
+
+    if changed_tokens == 0:
+        return False
+
+    original_count = counts[original_name]
+    canonical_count = counts.get(canonical_name, 0)
+    return canonical_count >= original_count or athlete_name_noise_score(original_name) > athlete_name_noise_score(canonical_name)
+
+
+def build_review_rows(rows: Sequence[dict]) -> Tuple[List[dict], Dict[Tuple[str, str, str, str], str]]:
+    grouped: Dict[Tuple[str, str, str, str], List[dict]] = defaultdict(list)
     for row in rows:
-        signature = athlete_name_signature(row["athlete_name"])
-        if signature:
-            grouped[signature].append(row)
+        group_key = curation_group_key(row)
+        if group_key:
+            grouped[group_key].append(row)
 
     review_rows: List[dict] = []
-    replacement_map: Dict[str, str] = {}
-    for signature, group_rows in grouped.items():
+    replacement_map: Dict[Tuple[str, str, str, str], str] = {}
+    for group_key, group_rows in grouped.items():
+        signature, birth_year, club_key, gender = group_key
         distinct_names = sorted({row["athlete_name"] for row in group_rows})
         if len(distinct_names) < 2:
             continue
@@ -188,12 +270,19 @@ def build_review_rows(rows: Sequence[dict]) -> Tuple[List[dict], Dict[str, str]]
 
         for original_name in distinct_names:
             flattened_original = flatten_visible_name(original_name) or original_name
-            replacement_needed = flattened_original != canonical_name
+            replacement_needed = flattened_original != canonical_name and is_safe_ocr_replacement(
+                original_name,
+                canonical_name,
+                counts,
+            )
             if replacement_needed:
-                replacement_map[original_name] = canonical_name
+                replacement_map[(original_name, birth_year, club_key, gender)] = canonical_name
             review_rows.append(
                 {
                     "signature": signature,
+                    "birth_year": birth_year,
+                    "club_key": club_key,
+                    "gender": gender,
                     "canonical_name": canonical_name,
                     "original_name": original_name,
                     "original_name_flat": flattened_original,
@@ -244,6 +333,9 @@ def main() -> int:
     review_rows, replacement_map = build_review_rows(all_rows)
     fieldnames = [
         "signature",
+        "birth_year",
+        "club_key",
+        "gender",
         "canonical_name",
         "original_name",
         "original_name_flat",

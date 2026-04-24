@@ -166,10 +166,22 @@ Evidencia historica:
   al parser. La etapa nueva y separada es
   `backend/scripts/curate_athlete_names.py`: consume manifests de carpetas
   parseadas, agrupa variantes OCR por firma robusta de nombre y propone
-  reemplazos auditables pre-load sin tocar parser ni cargar a core. La primera
-  evidencia es
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.json`
-  y su CSV asociado, con 333 grupos de variantes y 129 reemplazos propuestos.
+  reemplazos auditables pre-load sin tocar parser ni cargar a core. No aplica
+  semejanza de nombre por si sola: requiere mismo `birth_year`, mismo
+  `club_key` y mismo genero. La evidencia conservadora vigente es
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.json`
+  y su CSV asociado, con 180 grupos contextuales de variantes y 38 reemplazos
+  propuestos.
+- La salida de "mismo nombre" no debe tratarse como duplicados pendientes. Usar
+  `backend/scripts/audit_expected_athlete_identity.py` sobre el expected
+  `core.athlete` curado para clasificar los grupos. Con evidencia por fuente,
+  el auditor aplica solo 12 correcciones conservadoras de `birth_year` en casos
+  mismo nombre/genero/club con diferencia de 1 ano y una fuente contra varias.
+  El preview vigente queda en 5702 filas esperadas y 159 grupos con mismo nombre
+  normalizado. La bandeja de atletas sin `birth_year` tiene 161 filas; 146
+  tienen candidato unico por mismos tokens de nombre, mismo genero y mismo club,
+  pero requieren revision porque suelen combinar ano faltante con nombre en
+  orden `Nombre Apellido` en vez de `Apellido, Nombre`.
 
 No implementado todavia:
 
@@ -216,9 +228,12 @@ Contexto vigente:
 - Antes de recargar core, usar como evidencia vigente de nombres de atletas
   `backend/scripts/curate_athlete_names.py` sobre el manifest scratch o
   congelado vigente; la evidencia inicial queda en
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.json`.
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.json`.
   Mantener `audit_athlete_names.py` como compuerta diagnostica de sospechosos
   y usar la curaduria separada para consolidar variantes OCR antes del load.
+  Luego usar `audit_expected_athlete_identity.py` para aplicar solo correcciones
+  conservadoras de `birth_year` por evidencia de fuente y generar la bandeja de
+  atletas sin ano con candidato contextual.
 
 Si la conversacion retoma una carga o recarga, seguir backend/docs/pre_load_checklist.md
 sin saltar backup, wipe controlado, summary auditable y validacion post-load.
@@ -252,7 +267,10 @@ Proximo objetivo sugerido:
 - En identidad de atletas, priorizar la etapa post-parser/pre-load
   `curate_athlete_names.py` antes de seguir agregando heuristicas puntuales al
   parser; volver al parser solo para formatos, lineas no parseadas o layouts
-  donde falte evidencia suficiente para curar por variantes.
+  donde falte evidencia suficiente para curar por variantes. Revisar despues la
+  bandeja `athlete_missing_birth_year_candidates`: si se acepta, debe corregir
+  conjuntamente `birth_year` y orden/canon de nombre antes de simular otra vez
+  `core.athlete`.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum,
   validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.
