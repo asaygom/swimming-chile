@@ -175,13 +175,26 @@ Evidencia historica:
 - La salida de "mismo nombre" no debe tratarse como duplicados pendientes. Usar
   `backend/scripts/audit_expected_athlete_identity.py` sobre el expected
   `core.athlete` curado para clasificar los grupos. Con evidencia por fuente,
-  el auditor aplica solo 12 correcciones conservadoras de `birth_year` en casos
-  mismo nombre/genero/club con diferencia de 1 ano y una fuente contra varias.
-  El preview vigente queda en 5702 filas esperadas y 159 grupos con mismo nombre
-  normalizado. La bandeja de atletas sin `birth_year` tiene 161 filas; 146
-  tienen candidato unico por mismos tokens de nombre, mismo genero y mismo club,
-  pero requieren revision porque suelen combinar ano faltante con nombre en
-  orden `Nombre Apellido` en vez de `Apellido, Nombre`.
+  el auditor aplica 12 correcciones conservadoras de `birth_year` en casos
+  mismo nombre/genero/club con diferencia de 1 ano y una fuente contra varias,
+  y consolida 146 atletas sin ano cuando existe candidato unico por mismos
+  tokens de nombre, mismo genero y mismo club. El preview vigente queda en 5556
+  filas esperadas, con 15 filas aun sin `birth_year` y 159 grupos con mismo
+  nombre normalizado. La bandeja posterior
+  `fchmn_historical_2022_2026_athlete_partial_name_candidates_after_identity_consolidation_20260424.csv`
+  lista 385 pares para revision humana por segundo nombre/apellido o nombre
+  parcial dentro del mismo genero, ano y club; no aplicarla automaticamente. La
+  primera iteracion humana marco 364 `merge` y 21 `needs_source_review`; al
+  aplicar solo esos merges, el preview bajo a 5221 filas, los grupos de mismo
+  nombre normalizado bajaron a 131. La primera bandeja iter2 fue demasiado
+  estrecha; la vigente es
+  `fchmn_historical_2022_2026_athlete_partial_name_decisions_review_iter2_broad_20260424.csv`,
+  con 129 candidatos que incluyen iniciales compatibles y relaciones cross-club
+  con mismo genero y `birth_year`. La revision parcial de esa bandeja marco 26
+  `merge` y 23 `needs_source_review`; al aplicar solo los merges, el preview
+  bajo a 5203 filas. Los cross-club marcados como merge solo canonizan nombres
+  bajo el modelo actual; no eliminan la separacion fisica por club en
+  `core.athlete`.
 
 No implementado todavia:
 
@@ -231,9 +244,9 @@ Contexto vigente:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.json`.
   Mantener `audit_athlete_names.py` como compuerta diagnostica de sospechosos
   y usar la curaduria separada para consolidar variantes OCR antes del load.
-  Luego usar `audit_expected_athlete_identity.py` para aplicar solo correcciones
-  conservadoras de `birth_year` por evidencia de fuente y generar la bandeja de
-  atletas sin ano con candidato contextual.
+  Luego usar `audit_expected_athlete_identity.py` para aplicar correcciones
+  conservadoras de `birth_year`, consolidar candidatos sin ano con contexto
+  unico y generar la bandeja de nombres parciales/extendidos.
 
 Si la conversacion retoma una carga o recarga, seguir backend/docs/pre_load_checklist.md
 sin saltar backup, wipe controlado, summary auditable y validacion post-load.
@@ -268,9 +281,11 @@ Proximo objetivo sugerido:
   `curate_athlete_names.py` antes de seguir agregando heuristicas puntuales al
   parser; volver al parser solo para formatos, lineas no parseadas o layouts
   donde falte evidencia suficiente para curar por variantes. Revisar despues la
-  bandeja `athlete_missing_birth_year_candidates`: si se acepta, debe corregir
-  conjuntamente `birth_year` y orden/canon de nombre antes de simular otra vez
-  `core.athlete`.
+  bandeja de nombres parciales/extendidos; si se acepta una relacion, debe
+  quedar como consolidacion auditable antes de simular otra vez `core.athlete`.
+  Este paso es iterativo: aplicar solo `decision=merge`, regenerar preview y
+  emitir una nueva bandeja hasta que los candidatos restantes sean claramente
+  `keep_separate` o `needs_source_review`.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum,
   validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

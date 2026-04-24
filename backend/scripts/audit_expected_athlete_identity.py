@@ -44,6 +44,27 @@ def parse_args() -> argparse.Namespace:
         "--missing-birth-year-candidates-csv",
         help="Optional output CSV listing no-birth_year rows with one exact contextual candidate.",
     )
+    parser.add_argument(
+        "--apply-missing-birth-year-candidates",
+        action="store_true",
+        help="Apply unique missing-birth_year candidates to the corrected output and review.",
+    )
+    parser.add_argument(
+        "--missing-birth-year-consolidation-csv",
+        help="Optional output CSV listing applied missing-birth_year consolidations.",
+    )
+    parser.add_argument(
+        "--partial-name-candidates-csv",
+        help="Optional output CSV listing same-context partial/extended name candidates.",
+    )
+    parser.add_argument(
+        "--partial-name-decisions-csv",
+        help="Optional reviewed CSV. Only rows with decision=merge are applied.",
+    )
+    parser.add_argument(
+        "--partial-name-consolidation-csv",
+        help="Optional output CSV listing applied partial-name consolidations.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON summary to stdout.")
     return parser.parse_args()
 
@@ -99,6 +120,68 @@ def normalize_token_text(value: object) -> str:
 def name_token_key(value: object) -> str:
     tokens = [token for token in normalize_token_text(value).split() if token]
     return " ".join(sorted(tokens))
+
+
+def name_token_set(value: object) -> set:
+    return set(name_token_key(value).split())
+
+
+def ordered_name_key(value: object) -> str:
+    return normalize_token_text(value)
+
+
+def _match_tokens(shorter_tokens: Sequence[str], longer_tokens: Sequence[str]) -> Tuple[bool, List[str], List[str]]:
+    unmatched_longer = list(longer_tokens)
+    unmatched_shorter: List[str] = []
+    initial_matches: List[str] = []
+    for token in shorter_tokens:
+        if token in unmatched_longer:
+            unmatched_longer.remove(token)
+            continue
+        unmatched_shorter.append(token)
+    for token in unmatched_shorter:
+        if len(token) == 1:
+            match = next((candidate for candidate in unmatched_longer if candidate.startswith(token)), None)
+            if match:
+                unmatched_longer.remove(match)
+                initial_matches.append(f"{token}->{match}")
+                continue
+        return False, [], []
+    return True, unmatched_longer, initial_matches
+
+
+def partial_name_match(left_name: object, right_name: object) -> Optional[dict]:
+    left_tokens = name_token_key(left_name).split()
+    right_tokens = name_token_key(right_name).split()
+    if len(left_tokens) < 2 or len(right_tokens) < 2 or left_tokens == right_tokens:
+        return None
+
+    candidates = []
+    if len(left_tokens) <= len(right_tokens):
+        matched, added, initial_matches = _match_tokens(left_tokens, right_tokens)
+        if matched:
+            candidates.append(("left", "right", added, initial_matches))
+    if len(right_tokens) <= len(left_tokens):
+        matched, added, initial_matches = _match_tokens(right_tokens, left_tokens)
+        if matched:
+            candidates.append(("right", "left", added, initial_matches))
+    if not candidates:
+        return None
+
+    shorter_side, longer_side, added_tokens, initial_matches = sorted(
+        candidates,
+        key=lambda item: (len(item[2]), len(item[3])),
+    )[0]
+    if not added_tokens and not initial_matches:
+        return None
+    if len(added_tokens) > 2 and not initial_matches:
+        return None
+    return {
+        "shorter_side": shorter_side,
+        "longer_side": longer_side,
+        "added_tokens": added_tokens,
+        "initial_matches": initial_matches,
+    }
 
 
 def preferred_year_from_evidence(row: dict) -> Optional[str]:
@@ -255,6 +338,65 @@ def dedupe_expected_core_athletes(df: pd.DataFrame) -> pd.DataFrame:
     return output
 
 
+def _candidate_change_by_row_id(candidate_rows: Sequence[dict]) -> Dict[str, dict]:
+    changes: Dict[str, dict] = {}
+    for row in candidate_rows:
+        names = [name.strip() for name in str(row.get("candidate_full_names") or "").split(" | ") if name.strip()]
+        unique_names = sorted(set(names))
+        if len(unique_names) != 1:
+            continue
+        row_id = str(row.get("expected_row_id") or "").strip()
+        candidate_birth_year = birth_year_text(row.get("candidate_birth_year"))
+        if not row_id or not candidate_birth_year:
+            continue
+        changes[row_id] = {
+            "canonical_full_name": unique_names[0],
+            "canonical_athlete_key": ordered_name_key(unique_names[0]),
+            "candidate_birth_year": candidate_birth_year,
+            "candidate_reason": row.get("candidate_reason", ""),
+            "candidate_rows": row.get("candidate_rows", ""),
+            "source_url": row.get("source_url", ""),
+        }
+    return changes
+
+
+def apply_missing_birth_year_candidates(
+    df: pd.DataFrame,
+    candidate_rows: Sequence[dict],
+) -> Tuple[pd.DataFrame, List[dict]]:
+    candidate_by_row_id = _candidate_change_by_row_id(candidate_rows)
+    corrected = df.copy()
+    changes: List[dict] = []
+    for index, row in corrected.iterrows():
+        if birth_year_text(row.get("birth_year")):
+            continue
+        row_id = str(row.get("expected_row_id") or "").strip()
+        candidate = candidate_by_row_id.get(row_id)
+        if not candidate:
+            continue
+        changes.append(
+            {
+                "expected_row_id": row_id,
+                "old_full_name": row.get("full_name", ""),
+                "new_full_name": candidate["canonical_full_name"],
+                "gender": row.get("gender", ""),
+                "club_name": row.get("club_name", ""),
+                "club_key": row.get("club_key", ""),
+                "old_athlete_key": row.get("athlete_key", ""),
+                "new_athlete_key": candidate["canonical_athlete_key"],
+                "old_birth_year": "",
+                "new_birth_year": candidate["candidate_birth_year"],
+                "candidate_reason": candidate["candidate_reason"],
+                "candidate_rows": candidate["candidate_rows"],
+                "source_url": row.get("source_url", ""),
+            }
+        )
+        corrected.at[index, "full_name"] = candidate["canonical_full_name"]
+        corrected.at[index, "athlete_key"] = candidate["canonical_athlete_key"]
+        corrected.at[index, "birth_year"] = candidate["candidate_birth_year"]
+    return corrected, changes
+
+
 def build_missing_birth_year_candidate_rows(df: pd.DataFrame) -> List[dict]:
     known_matches: Dict[Tuple[str, str, str], List[dict]] = {}
     for _, row in df.iterrows():
@@ -307,6 +449,219 @@ def build_missing_birth_year_candidate_rows(df: pd.DataFrame) -> List[dict]:
     return rows
 
 
+def build_partial_name_candidate_rows(df: pd.DataFrame) -> List[dict]:
+    rows: List[dict] = []
+    context_columns = ["gender", "birth_year"]
+    normalized = df.copy()
+    normalized["birth_year"] = normalized["birth_year"].map(birth_year_text)
+    normalized = normalized[normalized["birth_year"] != ""]
+
+    for (gender, birth_year), group in normalized.groupby(context_columns, dropna=False):
+        if not gender or not birth_year or len(group) < 2:
+            continue
+        names = []
+        for _, row in group.iterrows():
+            tokens = name_token_key(row.get("full_name")).split()
+            if len(tokens) < 2:
+                continue
+            names.append(
+                {
+                    "full_name": row.get("full_name", ""),
+                    "athlete_key": row.get("athlete_key", ""),
+                    "club_key": row.get("club_key", ""),
+                    "tokens": tokens,
+                    "club_name": row.get("club_name", ""),
+                    "source_url": row.get("source_url", ""),
+                }
+            )
+
+        emitted_pairs = set()
+        for index, left in enumerate(names):
+            for right in names[index + 1 :]:
+                match = partial_name_match(left["full_name"], right["full_name"])
+                if not match:
+                    continue
+                if match["shorter_side"] == "left":
+                    shorter = left
+                    longer = right
+                else:
+                    shorter = right
+                    longer = left
+                added_tokens = sorted(match["added_tokens"])
+                initial_matches = sorted(match["initial_matches"])
+                same_club = shorter["club_key"] == longer["club_key"]
+                pair_key = tuple(
+                    sorted(
+                        [
+                            shorter["athlete_key"] + "|" + shorter["club_key"],
+                            longer["athlete_key"] + "|" + longer["club_key"],
+                        ]
+                    )
+                )
+                if pair_key in emitted_pairs:
+                    continue
+                emitted_pairs.add(pair_key)
+                if initial_matches:
+                    reason = "same_gender_birth_year_initial_compatible"
+                elif same_club:
+                    reason = "same_gender_birth_year_club_token_subset"
+                else:
+                    reason = "same_gender_birth_year_cross_club_token_subset"
+                rows.append(
+                    {
+                        "candidate_reason": reason,
+                        "gender": gender,
+                        "birth_year": birth_year,
+                        "same_club": "yes" if same_club else "no",
+                        "shorter_club_key": shorter["club_key"],
+                        "longer_club_key": longer["club_key"],
+                        "club_key": shorter["club_key"] if same_club else "",
+                        "club_name": shorter["club_name"] or longer["club_name"],
+                        "shorter_club_name": shorter["club_name"],
+                        "longer_club_name": longer["club_name"],
+                        "shorter_full_name": shorter["full_name"],
+                        "longer_full_name": longer["full_name"],
+                        "shorter_athlete_key": shorter["athlete_key"],
+                        "longer_athlete_key": longer["athlete_key"],
+                        "added_tokens": " ".join(added_tokens),
+                        "initial_matches": " | ".join(initial_matches),
+                        "source_urls": " | ".join(
+                            sorted({url for url in [shorter["source_url"], longer["source_url"]] if url})
+                        ),
+                    }
+                )
+
+    rows.sort(
+        key=lambda row: (
+            row["birth_year"],
+            row["same_club"],
+            row["shorter_club_key"],
+            row["shorter_athlete_key"],
+            row["longer_athlete_key"],
+        )
+    )
+    return rows
+
+
+def read_dict_rows(path: Path) -> List[dict]:
+    text = path.read_text(encoding="utf-8-sig")
+    sample = text[:2048]
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",;")
+    except csv.Error:
+        first_line = text.splitlines()[0] if text.splitlines() else ""
+        delimiter = ";" if first_line.count(";") > first_line.count(",") else ","
+        dialect = csv.excel()
+        dialect.delimiter = delimiter
+    return list(csv.DictReader(text.splitlines(), dialect=dialect))
+
+
+def load_partial_name_decisions(path: Path) -> List[dict]:
+    if not path.exists():
+        raise FileNotFoundError(path)
+    decisions: List[dict] = []
+    for row in read_dict_rows(path):
+        decision = str(row.get("decision") or "").strip().lower()
+        if decision != "merge":
+            continue
+        gender = str(row.get("gender") or "").strip()
+        birth_year = birth_year_text(row.get("birth_year"))
+        club_key = str(row.get("club_key") or row.get("shorter_club_key") or "").strip()
+        shorter_key = ordered_name_key(row.get("shorter_full_name") or row.get("shorter_athlete_key"))
+        canonical_name = str(row.get("suggested_canonical_full_name") or row.get("longer_full_name") or "").strip()
+        canonical_key = ordered_name_key(canonical_name)
+        if not all([gender, birth_year, club_key, shorter_key, canonical_name, canonical_key]):
+            continue
+        decisions.append(
+            {
+                "gender": gender,
+                "birth_year": birth_year,
+                "club_key": club_key,
+                "shorter_athlete_key": shorter_key,
+                "canonical_full_name": canonical_name,
+                "canonical_athlete_key": canonical_key,
+                "source_decision": decision,
+                "notes": row.get("notes", ""),
+                "review_hint": row.get("review_hint", ""),
+                "source_urls": row.get("source_urls", ""),
+            }
+        )
+    return decisions
+
+
+def _resolve_partial_decision_target(
+    key: Tuple[str, str, str, str],
+    decision_map: Dict[Tuple[str, str, str, str], dict],
+) -> dict:
+    seen = set()
+    current_key = key
+    current = decision_map[current_key]
+    while True:
+        target_key = (
+            current["gender"],
+            current["birth_year"],
+            current["club_key"],
+            current["canonical_athlete_key"],
+        )
+        if target_key in seen or target_key not in decision_map:
+            return current
+        seen.add(target_key)
+        current = decision_map[target_key]
+
+
+def apply_partial_name_decisions(
+    df: pd.DataFrame,
+    decisions: Sequence[dict],
+) -> Tuple[pd.DataFrame, List[dict]]:
+    decision_map: Dict[Tuple[str, str, str, str], dict] = {}
+    for decision in decisions:
+        key = (
+            decision["gender"],
+            decision["birth_year"],
+            decision["club_key"],
+            decision["shorter_athlete_key"],
+        )
+        decision_map[key] = decision
+
+    corrected = df.copy()
+    changes: List[dict] = []
+    for index, row in corrected.iterrows():
+        birth_year = birth_year_text(row.get("birth_year"))
+        key = (
+            str(row.get("gender") or "").strip(),
+            birth_year,
+            str(row.get("club_key") or "").strip(),
+            ordered_name_key(row.get("full_name")),
+        )
+        if key not in decision_map:
+            continue
+        target = _resolve_partial_decision_target(key, decision_map)
+        old_full_name = row.get("full_name", "")
+        old_athlete_key = row.get("athlete_key", "")
+        if ordered_name_key(old_full_name) == target["canonical_athlete_key"]:
+            continue
+        changes.append(
+            {
+                "expected_row_id": row.get("expected_row_id", ""),
+                "old_full_name": old_full_name,
+                "new_full_name": target["canonical_full_name"],
+                "gender": row.get("gender", ""),
+                "birth_year": birth_year,
+                "club_name": row.get("club_name", ""),
+                "club_key": row.get("club_key", ""),
+                "old_athlete_key": old_athlete_key,
+                "new_athlete_key": target["canonical_athlete_key"],
+                "review_hint": target.get("review_hint", ""),
+                "notes": target.get("notes", ""),
+                "source_url": row.get("source_url", ""),
+            }
+        )
+        corrected.at[index, "full_name"] = target["canonical_full_name"]
+        corrected.at[index, "athlete_key"] = target["canonical_athlete_key"]
+        corrected.at[index, "birth_year"] = birth_year
+    return corrected, changes
+
+
 def write_csv(path: Path, rows: Sequence[dict]) -> None:
     fieldnames = [
         "review_category",
@@ -349,8 +704,13 @@ def main() -> int:
 
     birth_year_correction_count = 0
     corrected_row_count = None
+    final_row_count = None
     rows_without_birth_year_after_correction = None
     missing_birth_year_candidate_count = None
+    missing_birth_year_consolidation_count = None
+    partial_name_candidate_count = None
+    partial_name_decision_count = None
+    partial_name_consolidation_count = None
     if args.birth_year_evidence_csv:
         evidence_path = resolve_path(args.birth_year_evidence_csv)
         correction_map = load_birth_year_evidence(evidence_path)
@@ -388,6 +748,7 @@ def main() -> int:
         df_for_review = df
         df_for_missing_birth_year = df
 
+    missing_birth_year_rows: List[dict] = []
     if args.missing_birth_year_candidates_csv:
         missing_birth_year_rows = build_missing_birth_year_candidate_rows(df_for_missing_birth_year)
         write_dict_csv(
@@ -409,8 +770,107 @@ def main() -> int:
         )
         missing_birth_year_candidate_count = len(missing_birth_year_rows)
 
+    if args.apply_missing_birth_year_candidates:
+        if not missing_birth_year_rows:
+            missing_birth_year_rows = build_missing_birth_year_candidate_rows(df_for_missing_birth_year)
+            missing_birth_year_candidate_count = len(missing_birth_year_rows)
+        consolidated_df, consolidation_rows = apply_missing_birth_year_candidates(
+            df_for_missing_birth_year,
+            missing_birth_year_rows,
+        )
+        missing_birth_year_consolidation_count = len(consolidation_rows)
+        consolidated_df = dedupe_expected_core_athletes(consolidated_df)
+        final_row_count = len(consolidated_df)
+        df_for_review = consolidated_df
+        df_for_missing_birth_year = consolidated_df
+        if args.corrected_output_csv:
+            output_path = resolve_path(args.corrected_output_csv)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            consolidated_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+        if args.missing_birth_year_consolidation_csv:
+            write_dict_csv(
+                resolve_path(args.missing_birth_year_consolidation_csv),
+                consolidation_rows,
+                [
+                    "expected_row_id",
+                    "old_full_name",
+                    "new_full_name",
+                    "gender",
+                    "club_name",
+                    "club_key",
+                    "old_athlete_key",
+                    "new_athlete_key",
+                    "old_birth_year",
+                    "new_birth_year",
+                    "candidate_reason",
+                    "candidate_rows",
+                    "source_url",
+                ],
+            )
+
+    if args.partial_name_decisions_csv:
+        partial_decisions = load_partial_name_decisions(resolve_path(args.partial_name_decisions_csv))
+        partial_name_decision_count = len(partial_decisions)
+        partial_df, partial_rows = apply_partial_name_decisions(df_for_review, partial_decisions)
+        partial_name_consolidation_count = len(partial_rows)
+        partial_df = dedupe_expected_core_athletes(partial_df)
+        final_row_count = len(partial_df)
+        df_for_review = partial_df
+        df_for_missing_birth_year = partial_df
+        if args.corrected_output_csv:
+            output_path = resolve_path(args.corrected_output_csv)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            partial_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+        if args.partial_name_consolidation_csv:
+            write_dict_csv(
+                resolve_path(args.partial_name_consolidation_csv),
+                partial_rows,
+                [
+                    "expected_row_id",
+                    "old_full_name",
+                    "new_full_name",
+                    "gender",
+                    "birth_year",
+                    "club_name",
+                    "club_key",
+                    "old_athlete_key",
+                    "new_athlete_key",
+                    "review_hint",
+                    "notes",
+                    "source_url",
+                ],
+            )
+
     rows = build_same_name_review_rows(df_for_review)
     write_csv(review_path, rows)
+
+    if args.partial_name_candidates_csv:
+        partial_name_rows = build_partial_name_candidate_rows(df_for_review)
+        write_dict_csv(
+            resolve_path(args.partial_name_candidates_csv),
+            partial_name_rows,
+            [
+                "candidate_reason",
+                "gender",
+                "birth_year",
+                "same_club",
+                "shorter_club_name",
+                "longer_club_name",
+                "shorter_club_key",
+                "longer_club_key",
+                "club_key",
+                "club_name",
+                "shorter_full_name",
+                "longer_full_name",
+                "shorter_athlete_key",
+                "longer_athlete_key",
+                "added_tokens",
+                "initial_matches",
+                "source_urls",
+            ],
+        )
+        partial_name_candidate_count = len(partial_name_rows)
+
     category_counts = {}
     for row in rows:
         category_counts[row["review_category"]] = category_counts.get(row["review_category"], 0) + 1
@@ -430,8 +890,26 @@ def main() -> int:
                 "rows_without_birth_year_after_correction": rows_without_birth_year_after_correction,
             }
         )
+    if final_row_count is not None:
+        summary.update(
+            {
+                "final_row_count": final_row_count,
+                "final_row_delta": final_row_count - source_row_count,
+                "rows_without_birth_year_final": sum(
+                    1 for value in df_for_review["birth_year"].tolist() if not birth_year_text(value)
+                ),
+            }
+        )
     if missing_birth_year_candidate_count is not None:
         summary["missing_birth_year_candidate_count"] = missing_birth_year_candidate_count
+    if missing_birth_year_consolidation_count is not None:
+        summary["missing_birth_year_consolidation_count"] = missing_birth_year_consolidation_count
+    if partial_name_candidate_count is not None:
+        summary["partial_name_candidate_count"] = partial_name_candidate_count
+    if partial_name_decision_count is not None:
+        summary["partial_name_decision_merge_count"] = partial_name_decision_count
+    if partial_name_consolidation_count is not None:
+        summary["partial_name_consolidation_count"] = partial_name_consolidation_count
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if args.json:

@@ -558,22 +558,79 @@ y la bandeja de atletas sin ano con candidato unico por tokens de nombre:
 ```powershell
 backend\.venv\Scripts\python.exe backend\scripts\audit_expected_athlete_identity.py `
   --input-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_name_curation_20260424.csv `
-  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_birth_year_curation_20260424.csv `
-  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_birth_year_curation_20260424.json `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_identity_consolidation_20260424.csv `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_identity_consolidation_20260424.json `
   --birth-year-evidence-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_evidence_delta1_same_club_20260424.csv `
-  --corrected-output-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_birth_year_curation_20260424.csv `
+  --corrected-output-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_identity_consolidation_20260424.csv `
   --birth-year-corrections-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_corrections_applied_20260424.csv `
   --missing-birth-year-candidates-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_missing_birth_year_candidates_20260424.csv `
+  --apply-missing-birth-year-candidates `
+  --missing-birth-year-consolidation-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_missing_birth_year_consolidations_applied_20260424.csv `
+  --partial-name-candidates-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_partial_name_candidates_after_identity_consolidation_20260424.csv `
   --json
 ```
 
-Evidencia vigente sin carga: el preview baja de 5714 a 5702 filas tras 12
-correcciones de `birth_year`; quedan 159 grupos con mismo nombre normalizado.
-Los atletas sin `birth_year` siguen siendo 161, pero 146 tienen candidato unico
-por mismos tokens de nombre, mismo genero y mismo club. Esa bandeja no debe
-aplicarse a ciegas: muchos casos requieren normalizar tambien el orden del
-nombre (`Nombre Apellido` -> `Apellido, Nombre`) para que `core.athlete` los
-consolide.
+Evidencia vigente sin carga: el preview baja de 5714 a 5556 filas tras 12
+correcciones de `birth_year` y 146 consolidaciones de atletas sin ano con
+candidato unico por mismos tokens de nombre, mismo genero y mismo club. Quedan
+15 filas sin `birth_year`. La auditoria posterior conserva 159 grupos con mismo
+nombre normalizado; esos grupos no son automaticamente duplicados.
+
+La bandeja siguiente para revision humana es:
+`backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_partial_name_candidates_after_identity_consolidation_20260424.csv`.
+Contiene 385 pares donde, dentro del mismo genero, ano y club, un nombre es
+subconjunto de tokens del otro (`Bustos Araya, Gabriela` vs
+`Bustos Araya, Maria Gabriela`, por ejemplo). No aplicarla automaticamente:
+incluye iniciales, segundos nombres/apellidos plausibles y algunos nombres
+reordenados por errores de fuente/parser.
+
+El flujo de esta bandeja es iterativo: copiarla a un CSV de decisiones, marcar
+solo `merge`, `keep_separate` o `needs_source_review`, aplicar unicamente los
+`merge` con `--partial-name-decisions-csv` y regenerar el preview junto con una
+nueva bandeja.
+
+Primera iteracion curada:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_expected_athlete_identity.py `
+  --input-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_name_curation_20260424.csv `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_same_name_review_after_partial_decisions_iter1_20260424.csv `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_partial_decisions_iter1_20260424.json `
+  --birth-year-evidence-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_evidence_delta1_same_club_20260424.csv `
+  --corrected-output-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_partial_decisions_iter1_20260424.csv `
+  --birth-year-corrections-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_corrections_applied_20260424.csv `
+  --missing-birth-year-candidates-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_missing_birth_year_candidates_20260424.csv `
+  --apply-missing-birth-year-candidates `
+  --missing-birth-year-consolidation-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_missing_birth_year_consolidations_applied_20260424.csv `
+  --partial-name-decisions-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_partial_name_decisions_review_20260424rev.csv `
+  --partial-name-consolidation-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_partial_name_consolidations_applied_iter1_20260424.csv `
+  --partial-name-candidates-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_partial_name_candidates_after_partial_decisions_iter1_20260424.csv `
+  --json
+```
+
+Resultado iter1 sin carga: el CSV revisado tenia 364 `merge` y 21
+`needs_source_review`. Se aplicaron 335 consolidaciones reales, el preview bajo
+a 5221 filas, quedaron 15 filas sin `birth_year` y los grupos de mismo nombre
+normalizado bajaron a 131.
+
+La primera bandeja iter2 quedo demasiado estrecha porque solo detectaba
+subconjuntos literales dentro del mismo club. La bandeja vigente amplia tambien
+detecta iniciales compatibles (`Luis A` vs `Luis Alberto`) y relaciones
+cross-club con mismo genero y `birth_year`, marcando `same_club=yes/no` para
+revision humana:
+`backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_partial_name_decisions_review_iter2_broad_20260424.csv`.
+Tiene 129 candidatos: 40 con mismo club y 89 cross-club. Si se marca un
+cross-club como `merge`, el aplicador canoniza el nombre de la fila corta, pero
+el modelo actual de `core.athlete` todavia puede mantener filas separadas por
+club hasta que se aborde identidad longitudinal sin club rigido.
+
+Iteracion 2 parcial: el CSV amplio revisado quedo con 26 `merge`, 23
+`needs_source_review` y 80 sin decision. Al aplicar solo los `merge` se
+registraron 25 consolidaciones, el preview bajo de 5221 a 5203 filas y quedo una
+nueva bandeja de 101 candidatos en
+`backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_partial_name_candidates_after_partial_decisions_iter2_20260424.csv`.
+Los casos marcados `needs_source_review` mezclan nombres/apellidos o repiten
+tokens de forma ambigua y no deben aplicarse sin mirar la fuente.
 
 ## Scope congelado 2022-2026 sin carga
 
