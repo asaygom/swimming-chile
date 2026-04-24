@@ -162,6 +162,14 @@ Evidencia historica:
   `fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`,
   con 2 filas sospechosas restantes, ambas del caso fuente `Rojas, 2`, que se
   conserva sin limpieza automatica.
+- Desde 2026-04-23, la curaduria de nombres de atletas dejo de empujarse solo
+  al parser. La etapa nueva y separada es
+  `backend/scripts/curate_athlete_names.py`: consume manifests de carpetas
+  parseadas, agrupa variantes OCR por firma robusta de nombre y propone
+  reemplazos auditables pre-load sin tocar parser ni cargar a core. La primera
+  evidencia es
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.json`
+  y su CSV asociado, con 333 grupos de variantes y 129 reemplazos propuestos.
 
 No implementado todavia:
 
@@ -206,8 +214,11 @@ Contexto vigente:
   separados en backend/docs/fchmn_results_validation.md.
 - No usar keywords como compuerta final de carga.
 - Antes de recargar core, usar como evidencia vigente de nombres de atletas
-  fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json,
-  con 2 filas sospechosas restantes, ambas del caso fuente `Rojas, 2`.
+  `backend/scripts/curate_athlete_names.py` sobre el manifest scratch o
+  congelado vigente; la evidencia inicial queda en
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.json`.
+  Mantener `audit_athlete_names.py` como compuerta diagnostica de sospechosos
+  y usar la curaduria separada para consolidar variantes OCR antes del load.
 
 Si la conversacion retoma una carga o recarga, seguir backend/docs/pre_load_checklist.md
 sin saltar backup, wipe controlado, summary auditable y validacion post-load.
@@ -238,6 +249,10 @@ Proximo objetivo sugerido:
   duplicados post-load.
 - Si no se retoma carga, concentrar el trabajo en parser, curaduria y
   documentacion de Fase 4 sin usar `--load`.
+- En identidad de atletas, priorizar la etapa post-parser/pre-load
+  `curate_athlete_names.py` antes de seguir agregando heuristicas puntuales al
+  parser; volver al parser solo para formatos, lineas no parseadas o layouts
+  donde falte evidencia suficiente para curar por variantes.
 - Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum,
   validar y reportar sin cargar automaticamente.
 - No crear tablas nuevas sin una migracion explicita.

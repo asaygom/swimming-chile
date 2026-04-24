@@ -501,6 +501,31 @@ Evidencia vigente sin carga:
 - resultado: 61 documentos, 15 overrides scratch, 97342 observaciones de
   nombres y 2 filas sospechosas restantes, ambas de `Rojas, 2`.
 
+## Curaduria post-parser/pre-load de nombres de atletas
+
+Cuando el parser ya no reduce mas ruido sin meter heuristicas frágiles,
+consolidar variantes OCR en una etapa separada y auditable, antes del load:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\curate_athlete_names.py `
+  --manifest backend\data\raw\manifests\scratch_fchmn_historical_2022_2026_frozen_local_athlete_preview_20260423.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_curation_20260423.json `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_name_curation_20260423.csv `
+  --json
+```
+
+- summary:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.json`
+- review CSV:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260423.csv`
+- resultado: 61 documentos, 97341 observaciones de nombres, 333 grupos de
+  variantes y 129 reemplazos propuestos.
+
+Esta etapa no modifica el parser ni carga a core. Sirve para consolidar
+variantes tipo `Goámez/Goémez/Goómez -> Gomez`, `Muüller -> Muller` y
+`Pasaríán/Pasaríón -> Pasarin` antes de una recarga. Los casos sin una variante
+corroborada dentro del manifest siguen requiriendo decision humana o parser.
+
 ## Scope congelado 2022-2026 sin carga
 
 Curacion operativa del 2026-04-21:
