@@ -107,3 +107,190 @@ def test_collect_name_rows_reads_parser_tables():
         assert rows[2]["athlete_name"] == "Mu\u00fcller, Bettina"
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Go\u00e1mez, Francisco",
+                "club_name": "Club Test",
+                "gender": "male",
+                "birth_year": "1975",
+            },
+            {
+                "full_name": "Acevedo, Luis A",
+                "club_name": "Natacion Master Recoleta",
+                "gender": "male",
+                "birth_year": "1969",
+            },
+            {
+                "full_name": "Arantxa Aranguren",
+                "club_name": "Lozada Swim Team",
+                "gender": "female",
+                "birth_year": "",
+            },
+            {
+                "full_name": "Abbott, Andres",
+                "club_name": "Efecto Peruga",
+                "gender": "male",
+                "birth_year": "1985",
+            },
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [
+            {
+                "old_key": "goamez francisco",
+                "new_name": "Gomez, Francisco",
+                "new_key": "gomez francisco",
+                "birth_year": "1975",
+                "club_key": "club test",
+                "gender": "male",
+            }
+        ],
+        "birth_year_rules": {("abbott andres", "male", "efecto peruga"): "1984"},
+        "missing_birth_year_rules": [
+            {
+                "old_key": "arantxa aranguren",
+                "new_name": "Aranguren, Arantxa",
+                "new_key": "aranguren arantxa",
+                "birth_year": "1994",
+                "club_key": "lozada swim team",
+                "gender": "female",
+            }
+        ],
+        "partial_name_rules": [
+            {
+                "old_key": "acevedo luis a",
+                "new_name": "Acevedo, Luis Alberto",
+                "new_key": "acevedo luis alberto",
+                "birth_year": "1969",
+                "club_key": "natacion master recoleta",
+                "gender": "male",
+            }
+        ],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Gomez, Francisco"
+    assert curated.loc[1, "full_name"] == "Acevedo, Luis Alberto"
+    assert curated.loc[2, "full_name"] == "Aranguren, Arantxa"
+    assert curated.loc[2, "birth_year"] == "1994"
+    assert curated.loc[3, "birth_year"] == "1984"
+    assert counts == {
+        "ocr_name_replacements": 1,
+        "birth_year_corrections": 1,
+        "missing_birth_year_consolidations": 1,
+        "partial_name_consolidations": 1,
+    }
+
+
+def test_materialize_document_inputs_writes_curated_copy_and_manifest_document():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        input_dir = tmp_dir / "results_csv" / "fchmn_auto" / "2024" / "sample"
+        input_dir.mkdir(parents=True)
+        pd.DataFrame(
+            [
+                {
+                    "full_name": "Acevedo, Luis A",
+                    "gender": "male",
+                    "club_name": "Natacion Master Recoleta",
+                    "birth_year": "1969",
+                    "source_id": "1",
+                }
+            ]
+        ).to_csv(input_dir / "athlete.csv", index=False)
+        pd.DataFrame(
+            [
+                {
+                    "event_name": "50 Free",
+                    "athlete_name": "Acevedo, Luis A",
+                    "club_name": "Natacion Master Recoleta",
+                    "rank_position": "1",
+                    "seed_time_text": "",
+                    "seed_time_ms": "",
+                    "result_time_text": "30.00",
+                    "result_time_ms": "30000",
+                    "age_at_event": "55",
+                    "birth_year_estimated": "1969",
+                    "points": "",
+                    "status": "valid",
+                    "source_id": "1",
+                }
+            ]
+        ).to_csv(input_dir / "result.csv", index=False)
+        pd.DataFrame([{"name": "Natacion Master Recoleta"}]).to_csv(input_dir / "club.csv", index=False)
+        pd.DataFrame([{"event_name": "50 Free"}]).to_csv(input_dir / "event.csv", index=False)
+        (input_dir / "metadata.json").write_text('{"parser_version":"test"}\n', encoding="utf-8")
+
+        rules = {
+            "ocr_name_rules": [],
+            "birth_year_rules": {},
+            "missing_birth_year_rules": [],
+            "partial_name_rules": [
+                {
+                    "old_key": "acevedo luis a",
+                    "new_name": "Acevedo, Luis Alberto",
+                    "new_key": "acevedo luis alberto",
+                    "birth_year": "1969",
+                    "club_key": "natacion master recoleta",
+                    "gender": "male",
+                }
+            ],
+        }
+        document = {"source_url": "https://example.test/a.pdf", "input_dir": str(input_dir)}
+
+        output_document, counts = curate.materialize_document_inputs(
+            document,
+            input_dir,
+            tmp_dir / "curated",
+            rules,
+        )
+
+        output_dir = Path(output_document["input_dir"])
+        athlete_df = pd.read_csv(output_dir / "athlete.csv", dtype=str)
+        result_df = pd.read_csv(output_dir / "result.csv", dtype=str)
+        metadata = (output_dir / "metadata.json").read_text(encoding="utf-8")
+
+        assert athlete_df.loc[0, "full_name"] == "Acevedo, Luis Alberto"
+        assert result_df.loc[0, "athlete_name"] == "Acevedo, Luis Alberto"
+        assert counts["athlete_partial_name_consolidations"] == 1
+        assert counts["result_partial_name_consolidations"] == 1
+        assert '"athlete_materialized": true' in metadata
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def test_load_materialization_rules_accepts_multiple_partial_decision_files():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        first = tmp_dir / "first.csv"
+        second = tmp_dir / "second.csv"
+        first.write_text(
+            "decision;suggested_canonical_full_name;gender;birth_year;club_key;shorter_full_name;longer_full_name\n"
+            "merge;Acevedo, Luis Alberto;male;1969;club a;Acevedo, Luis A;Acevedo, Luis Alberto\n",
+            encoding="utf-8",
+        )
+        second.write_text(
+            "decision;suggested_canonical_full_name;gender;birth_year;club_key;shorter_full_name;longer_full_name\n"
+            "merge;Garay Carrasco, Victor;male;1963;club b;Garay C, Victor;Garay Carrasco, Victor\n",
+            encoding="utf-8",
+        )
+
+        class Args:
+            birth_year_evidence_csv = None
+            missing_birth_year_consolidation_csv = None
+            partial_name_decisions_csv = [str(first), str(second)]
+
+        rules = curate.load_materialization_rules(Args(), {})
+
+        assert [row["new_name"] for row in rules["partial_name_rules"]] == [
+            "Acevedo, Luis Alberto",
+            "Garay Carrasco, Victor",
+        ]
+        assert rules["ocr_name_rules"] == []
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)

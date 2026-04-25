@@ -32,6 +32,11 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
 - Verificar que documentos `failed` y `requires_review` quedaron excluidos.
 - Verificar que cada entrada tiene `competition_scope`.
 - Guardar el manifest congelado como artefacto local auditable.
+- Si existen decisiones manuales de atletas, materializar copias curadas antes
+  de cargar y usar el manifest materializado. Para el backfill 2022-2026 vigente:
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
+- Validar el manifest materializado sin `--load`; debe quedar
+  `state_counts.validated = 61`.
 
 ## 3. Backup
 
@@ -73,7 +78,7 @@ Revisar dependencias reales en `backend/sql/schema.sql` antes de ejecutar.
 
 ## 5. Carga
 
-- Ejecutar `run_results_batch.py --manifest <manifest_congelado> --load`.
+- Ejecutar `run_results_batch.py --manifest <manifest_congelado_o_materializado> --load`.
 - Usar credenciales solo en la terminal o variables locales no versionadas.
 - Escribir `--summary-json` en `backend/data/raw/batch_summaries/`.
 - Confirmar que el summary de carga queda `loaded`.

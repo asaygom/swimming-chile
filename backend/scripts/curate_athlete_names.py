@@ -11,12 +11,14 @@ import argparse
 import csv
 import json
 import re
+import shutil
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from audit_athlete_names import load_manifest, load_overrides, read_csv_if_exists, resolve_path
+from audit_expected_athlete_identity import load_birth_year_evidence, load_partial_name_decisions
 from run_pipeline_results import clean_extracted_text, normalize_match_text
 
 
@@ -43,6 +45,28 @@ def parse_args() -> argparse.Namespace:
         default=[],
         metavar="SOURCE_URL=INPUT_DIR",
         help="Override one manifest input_dir for a source_url, useful for scratch parser outputs.",
+    )
+    parser.add_argument(
+        "--materialize-output-root",
+        help="Optional output root for curated per-document CSV folders.",
+    )
+    parser.add_argument(
+        "--materialized-manifest",
+        help="Optional output manifest pointing to curated per-document CSV folders.",
+    )
+    parser.add_argument(
+        "--birth-year-evidence-csv",
+        help="Optional same-club delta-1 birth_year evidence CSV to apply during materialization.",
+    )
+    parser.add_argument(
+        "--missing-birth-year-consolidation-csv",
+        help="Optional reviewed/applied missing-birth_year consolidation CSV.",
+    )
+    parser.add_argument(
+        "--partial-name-decisions-csv",
+        action="append",
+        default=[],
+        help="Optional reviewed partial-name decisions CSV. Only decision=merge rows are applied.",
     )
     parser.add_argument("--json", action="store_true", help="Print JSON summary to stdout.")
     return parser.parse_args()
@@ -306,6 +330,271 @@ def write_csv(path: Path, rows: Sequence[dict], fieldnames: Sequence[str]) -> No
         writer.writerows(rows)
 
 
+def read_dict_rows(path: Path) -> List[dict]:
+    text = path.read_text(encoding="utf-8-sig")
+    if not text.strip():
+        return []
+    first_line = text.splitlines()[0] if text.splitlines() else ""
+    delimiter = ";" if first_line.count(";") > first_line.count(",") else ","
+    return list(csv.DictReader(text.splitlines(), delimiter=delimiter))
+
+
+def ordered_name_key(value: Optional[str]) -> str:
+    return normalize_match_text(value) or ""
+
+
+def load_missing_birth_year_consolidations(path: Path) -> List[dict]:
+    rows: List[dict] = []
+    if not path.exists():
+        raise FileNotFoundError(path)
+    for row in read_dict_rows(path):
+        old_name = clean_extracted_text(row.get("old_full_name"))
+        new_name = clean_extracted_text(row.get("new_full_name"))
+        birth_year = normalize_birth_year(row.get("new_birth_year"))
+        club_key = normalize_match_text(row.get("club_key")) or ""
+        gender = normalize_match_text(row.get("gender")) or ""
+        if old_name and new_name and birth_year and club_key:
+            rows.append(
+                {
+                    "old_name": old_name,
+                    "old_key": ordered_name_key(old_name),
+                    "new_name": new_name,
+                    "new_key": ordered_name_key(new_name),
+                    "birth_year": birth_year,
+                    "club_key": club_key,
+                    "gender": gender,
+                }
+            )
+    return rows
+
+
+def load_partial_name_consolidations(path: Path) -> List[dict]:
+    decisions = load_partial_name_decisions(path)
+    rows: List[dict] = []
+    for decision in decisions:
+        rows.append(
+            {
+                "old_key": ordered_name_key(decision["shorter_athlete_key"]),
+                "new_name": clean_extracted_text(decision["canonical_full_name"]) or "",
+                "new_key": ordered_name_key(decision["canonical_full_name"]),
+                "birth_year": normalize_birth_year(decision["birth_year"]),
+                "club_key": normalize_match_text(decision["club_key"]) or "",
+                "gender": normalize_match_text(decision["gender"]) or "",
+            }
+        )
+    return [row for row in rows if row["old_key"] and row["new_name"] and row["birth_year"] and row["club_key"]]
+
+
+def load_materialization_rules(
+    args: argparse.Namespace,
+    name_replacement_map: Optional[Dict[Tuple[str, str, str, str], str]] = None,
+) -> dict:
+    ocr_name_rules = []
+    for (old_name, birth_year, club_key, gender), new_name in (name_replacement_map or {}).items():
+        old_name_clean = clean_extracted_text(old_name)
+        new_name_clean = clean_extracted_text(new_name)
+        if old_name_clean and new_name_clean:
+            ocr_name_rules.append(
+                {
+                    "old_key": ordered_name_key(old_name_clean),
+                    "new_name": new_name_clean,
+                    "new_key": ordered_name_key(new_name_clean),
+                    "birth_year": normalize_birth_year(birth_year),
+                    "club_key": normalize_match_text(club_key) or "",
+                    "gender": normalize_match_text(gender) or "",
+                }
+            )
+
+    birth_year_rules = {}
+    if args.birth_year_evidence_csv:
+        for (athlete_key, gender, club_key), new_year in load_birth_year_evidence(
+            resolve_path(args.birth_year_evidence_csv)
+        ).items():
+            birth_year_rules[(athlete_key, gender, club_key)] = new_year
+            birth_year_rules.setdefault((athlete_key, "", club_key), new_year)
+
+    missing_rules = (
+        load_missing_birth_year_consolidations(resolve_path(args.missing_birth_year_consolidation_csv))
+        if args.missing_birth_year_consolidation_csv
+        else []
+    )
+    partial_rules = []
+    for decisions_csv in args.partial_name_decisions_csv:
+        partial_rules.extend(load_partial_name_consolidations(resolve_path(decisions_csv)))
+    return {
+        "ocr_name_rules": ocr_name_rules,
+        "birth_year_rules": birth_year_rules,
+        "missing_birth_year_rules": missing_rules,
+        "partial_name_rules": partial_rules,
+    }
+
+
+def _row_context(row, name_column: str, club_column: str, birth_year_column: str, gender_column: Optional[str]) -> dict:
+    name = clean_extracted_text(row.get(name_column))
+    club_key = normalize_match_text(row.get(club_column)) or ""
+    birth_year = normalize_birth_year(row.get(birth_year_column))
+    gender = normalize_match_text(row.get(gender_column)) or "" if gender_column else ""
+    return {
+        "name": name,
+        "name_key": ordered_name_key(name),
+        "club_key": club_key,
+        "birth_year": birth_year,
+        "gender": gender,
+    }
+
+
+def _rule_matches_context(rule: dict, context: dict, allow_empty_birth_year: bool = False) -> bool:
+    if rule["old_key"] != context["name_key"]:
+        return False
+    if rule["club_key"] != context["club_key"]:
+        return False
+    if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
+        return False
+    if allow_empty_birth_year and not context["birth_year"]:
+        return True
+    return rule["birth_year"] == context["birth_year"]
+
+
+def apply_athlete_curations_to_df(
+    df,
+    table_name: str,
+    rules: dict,
+) -> Tuple[object, dict]:
+    specs = {
+        "athlete": ("full_name", "club_name", "birth_year", "gender"),
+        "result": ("athlete_name", "club_name", "birth_year_estimated", None),
+        "relay_swimmer": ("swimmer_name", "club_name", "birth_year_estimated", "gender"),
+    }
+    if table_name not in specs or df.empty:
+        return df, {}
+
+    name_column, club_column, birth_year_column, gender_column = specs[table_name]
+    if name_column not in df.columns or club_column not in df.columns or birth_year_column not in df.columns:
+        return df, {}
+
+    output = df.copy()
+    counts = Counter()
+    for index, row in output.iterrows():
+        context = _row_context(row, name_column, club_column, birth_year_column, gender_column)
+        if not context["name_key"] or not context["club_key"]:
+            continue
+
+        for rule in rules["ocr_name_rules"]:
+            if _rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                counts["ocr_name_replacements"] += 1
+                break
+
+        birth_year_key = (context["name_key"], context["gender"], context["club_key"])
+        new_year = rules["birth_year_rules"].get(birth_year_key) or rules["birth_year_rules"].get(
+            (context["name_key"], "", context["club_key"])
+        )
+        if new_year and context["birth_year"] and context["birth_year"] != new_year:
+            output.at[index, birth_year_column] = new_year
+            context["birth_year"] = new_year
+            counts["birth_year_corrections"] += 1
+
+        for rule in rules["missing_birth_year_rules"]:
+            if _rule_matches_context(rule, context, allow_empty_birth_year=True):
+                output.at[index, name_column] = rule["new_name"]
+                output.at[index, birth_year_column] = rule["birth_year"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                context["birth_year"] = rule["birth_year"]
+                counts["missing_birth_year_consolidations"] += 1
+                break
+
+        for rule in rules["partial_name_rules"]:
+            if _rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                counts["partial_name_consolidations"] += 1
+                break
+
+    return output, dict(counts)
+
+
+def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
+    parts = list(source_input_dir.parts)
+    if "results_csv" in parts:
+        relative = Path(*parts[parts.index("results_csv") + 1 :])
+    else:
+        relative = Path(source_input_dir.name)
+    return output_root / relative
+
+
+def materialize_document_inputs(
+    document: dict,
+    input_dir: Path,
+    output_root: Path,
+    rules: dict,
+) -> Tuple[dict, dict]:
+    output_dir = materialized_input_dir(input_dir, output_root)
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    shutil.copytree(input_dir, output_dir)
+
+    counts = Counter()
+    for table_name, filename in [
+        ("athlete", "athlete.csv"),
+        ("result", "result.csv"),
+        ("relay_swimmer", "relay_swimmer.csv"),
+    ]:
+        csv_path = output_dir / filename
+        if not csv_path.exists():
+            continue
+        df = read_csv_if_exists(csv_path)
+        curated_df, table_counts = apply_athlete_curations_to_df(df, table_name, rules)
+        for key, value in table_counts.items():
+            counts[f"{table_name}_{key}"] += value
+        curated_df.to_csv(csv_path, index=False, encoding="utf-8-sig")
+
+    output_document = dict(document)
+    output_document["input_dir"] = str(output_dir)
+    output_document["out_dir"] = str(output_dir)
+    metadata_path = output_dir / "metadata.json"
+    if metadata_path.exists():
+        try:
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        except Exception:
+            metadata = {}
+        metadata.setdefault("curation", {})
+        metadata["curation"]["athlete_materialized"] = True
+        metadata["curation"]["source_input_dir"] = str(input_dir)
+        metadata_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return output_document, dict(counts)
+
+
+def write_manifest(path: Path, documents: Sequence[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as fh:
+        for document in documents:
+            fh.write(json.dumps(document, ensure_ascii=False) + "\n")
+
+
+def materialize_manifest_inputs(
+    documents: Sequence[dict],
+    input_dirs_by_source_url: Dict[str, Path],
+    output_root: Path,
+    rules: dict,
+) -> Tuple[List[dict], dict]:
+    materialized_documents: List[dict] = []
+    total_counts = Counter()
+    for document in documents:
+        source_url = clean_extracted_text(document.get("source_url")) or ""
+        input_dir = input_dirs_by_source_url.get(source_url)
+        if input_dir is None:
+            continue
+        output_document, counts = materialize_document_inputs(document, input_dir, output_root, rules)
+        materialized_documents.append(output_document)
+        for key, value in counts.items():
+            total_counts[key] += value
+    return materialized_documents, dict(total_counts)
+
+
 def main() -> int:
     args = parse_args()
     manifest_path = resolve_path(args.manifest)
@@ -314,6 +603,7 @@ def main() -> int:
     overrides = load_overrides(args.override_input_dir)
 
     documents = load_manifest(manifest_path)
+    input_dirs_by_source_url: Dict[str, Path] = {}
     all_rows: List[dict] = []
     override_hits = 0
     missing_input_dirs: List[str] = []
@@ -328,6 +618,7 @@ def main() -> int:
         else:
             missing_input_dirs.append(source_url)
             continue
+        input_dirs_by_source_url[source_url] = input_dir
         all_rows.extend(collect_name_rows(document, input_dir))
 
     review_rows, replacement_map = build_review_rows(all_rows)
@@ -358,6 +649,28 @@ def main() -> int:
         "missing_input_dirs": missing_input_dirs,
         "review_csv": str(review_path),
     }
+    if args.materialize_output_root or args.materialized_manifest:
+        if not args.materialize_output_root or not args.materialized_manifest:
+            raise SystemExit("--materialize-output-root y --materialized-manifest deben usarse juntos.")
+        materialize_root = resolve_path(args.materialize_output_root)
+        materialized_manifest_path = resolve_path(args.materialized_manifest)
+        rules = load_materialization_rules(args, replacement_map)
+        materialized_documents, materialization_counts = materialize_manifest_inputs(
+            documents,
+            input_dirs_by_source_url,
+            materialize_root,
+            rules,
+        )
+        write_manifest(materialized_manifest_path, materialized_documents)
+        summary.update(
+            {
+                "state": "materialized",
+                "materialized_documents": len(materialized_documents),
+                "materialize_output_root": str(materialize_root),
+                "materialized_manifest": str(materialized_manifest_path),
+                "materialization_counts": materialization_counts,
+            }
+        )
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     if args.json:

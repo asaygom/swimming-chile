@@ -632,6 +632,44 @@ nueva bandeja de 101 candidatos en
 Los casos marcados `needs_source_review` mezclan nombres/apellidos o repiten
 tokens de forma ambigua y no deben aplicarse sin mirar la fuente.
 
+Para que estas decisiones entren a una carga real, no cargar desde los CSVs
+parseados originales ni desde los `expected_core_athlete_*.csv`. Materializar
+copias curadas por documento con `curate_athlete_names.py`:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\curate_athlete_names.py `
+  --manifest backend\data\raw\manifests\fchmn_historical_2022_2026_frozen_local_20260421.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_materialization_20260425.json `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_materialization_name_curation_20260425.csv `
+  --birth-year-evidence-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_birth_year_evidence_delta1_same_club_20260424.csv `
+  --missing-birth-year-consolidation-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_missing_birth_year_consolidations_applied_20260424.csv `
+  --partial-name-decisions-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_partial_name_decisions_review_20260424rev.csv `
+  --partial-name-decisions-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_athlete_partial_name_decisions_review_iter2_broad_20260424.csv `
+  --materialize-output-root backend\data\raw\results_csv\fchmn_curated_20260425 `
+  --materialized-manifest backend\data\raw\manifests\fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl `
+  --json
+```
+
+Resultado materializado sin carga: 61 documentos copiados a
+`backend/data/raw/results_csv/fchmn_curated_20260425/`, manifest curado
+`backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
+Conteos aplicados: 117 reemplazos OCR en `athlete`, 244 en `result`, 12
+correcciones de `birth_year` en `athlete`, 29 en `result`, 2 consolidaciones sin
+ano en `athlete`, 8 en `result`, 1316 consolidaciones parciales en `athlete` y
+3480 en `result`.
+
+Validar siempre el manifest materializado antes de cargar:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\run_results_batch.py `
+  --manifest backend\data\raw\manifests\fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_frozen_local_curated_validation_20260425.json `
+  --json
+```
+
+Evidencia vigente: `state=validated`, `state_counts.validated=61`, sin
+`--load`. Este es el manifest que debe usarse para la proxima carga explicita.
+
 ## Scope congelado 2022-2026 sin carga
 
 Curacion operativa del 2026-04-21:

@@ -85,6 +85,10 @@ Estado vigente:
 - `competition_type` clasifica el tipo deportivo general; `competition_scope`
   clasifica el circuito/ambito curado para filtros de carga y analitica. El
   scope del manifest se persiste en `competition.competition_scope`.
+- `curate_athlete_names.py` tiene dos modos: propuesta/auditoria de variantes y
+  materializacion pre-load. La materializacion copia los CSVs parseados a una
+  carpeta curada, aplica decisiones manuales de atletas y emite un manifest
+  nuevo que luego debe validarse con `run_results_batch.py` sin `--load`.
 
 Decisiones vigentes:
 
@@ -195,6 +199,11 @@ Evidencia historica:
   bajo a 5203 filas. Los cross-club marcados como merge solo canonizan nombres
   bajo el modelo actual; no eliminan la separacion fisica por club en
   `core.athlete`.
+- El 2026-04-25 se materializaron esas decisiones en copias curadas de los 61
+  documentos locales: `fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`
+  apunta a `backend/data/raw/results_csv/fchmn_curated_20260425/` y quedo
+  validado sin `--load` con `state_counts.validated = 61`. Para la proxima carga
+  explicita usar este manifest curado, no el congelado original.
 
 No implementado todavia:
 
@@ -273,8 +282,8 @@ Proximo objetivo sugerido:
   manifest local congelado de referencia y el flujo Sudamericano separado.
 - Si se retoma una carga explicita, seguir `backend/docs/pre_load_checklist.md`:
   verificar estado real de staging/resultados/trazabilidad, preservar `pool` y
-  calendario planificado, ejecutar `--load` con summary auditable y validar
-  duplicados post-load.
+  calendario planificado, usar el manifest curado materializado si aplica,
+  ejecutar `--load` con summary auditable y validar duplicados post-load.
 - Si no se retoma carga, concentrar el trabajo en parser, curaduria y
   documentacion de Fase 4 sin usar `--load`.
 - En identidad de atletas, priorizar la etapa post-parser/pre-load
