@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
@@ -41,6 +42,8 @@ STROKES = {
     "freestyle_relay",
 }
 STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
+VOWEL_PLUS_ACCENTED_VOWEL_RE = re.compile(r"[aeiouAEIOUáéíóúüÁÉÍÓÚÜ][áéíóúüÁÉÍÓÚÜ]")
+SPLIT_ENYE_RE = re.compile(r"(?:ñ\s+ñ|n\s+ñ|ñ\s+n)", re.IGNORECASE)
 
 DEFAULT_DEBUG_THRESHOLD = 0.20
 DEFAULT_REQUIRED_COMPETITION_SCOPE = "fchmn_local"
@@ -332,6 +335,68 @@ def validate_required_identities(data: dict[str, list[dict[str, str]]], issues: 
         issues.append(BatchIssue("error", "relay_missing_identity", "Hay relevos sin event_name o relay_team_name.", relay_missing))
 
 
+def has_vowel_plus_accented_vowel_residue(name: str) -> bool:
+    for match in VOWEL_PLUS_ACCENTED_VOWEL_RE.finditer(name):
+        if match.group(0) in {"iá", "IÁ"}:
+            continue
+        return True
+    return False
+
+
+def validate_athlete_name_quality(data: dict[str, list[dict[str, str]]], issues: list[BatchIssue]) -> None:
+    specs = [
+        ("athlete", "full_name", True),
+        ("result", "athlete_name", False),
+        ("relay_swimmer", "swimmer_name", False),
+    ]
+    for table_key, column, require_comma in specs:
+        rows = data.get(table_key, [])
+        if not rows:
+            continue
+
+        vowel_plus_accented = 0
+        split_enye = 0
+        missing_comma = 0
+        for row in rows:
+            name = (row.get(column) or "").strip()
+            if not name:
+                continue
+            if has_vowel_plus_accented_vowel_residue(name):
+                vowel_plus_accented += 1
+            if SPLIT_ENYE_RE.search(name):
+                split_enye += 1
+            if require_comma and "," not in name:
+                missing_comma += 1
+
+        if vowel_plus_accented:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_vowel_plus_accented_vowel",
+                    f"{table_key}.csv tiene nombres con residuo OCR vocal+vocal acentuada.",
+                    vowel_plus_accented,
+                )
+            )
+        if split_enye:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_split_enye",
+                    f"{table_key}.csv tiene nombres con residuo OCR de ene/eñe separada.",
+                    split_enye,
+                )
+            )
+        if missing_comma:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_name_without_comma",
+                    f"{table_key}.csv tiene nombres de atleta sin formato Apellido, Nombre.",
+                    missing_comma,
+                )
+            )
+
+
 def validate_debug_ratio(input_dir: Path, parsed_rows: int, threshold: float, counts: dict[str, int], issues: list[BatchIssue]) -> None:
     debug_path = input_dir / "debug_unparsed_lines.csv"
     if not debug_path.exists():
@@ -392,6 +457,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
 
     validate_canons(data, issues)
     validate_required_identities(data, issues)
+    validate_athlete_name_quality(data, issues)
     validate_debug_ratio(input_dir, parsed_result_rows, debug_threshold, counts, issues)
 
     state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"

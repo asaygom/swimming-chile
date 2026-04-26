@@ -144,6 +144,11 @@ Bloquean la carga y dejan el lote en `requires_review`:
 - `debug_unparsed_lines.csv` supera el umbral permitido.
 - Hay valores fuera del canon documentado para genero, estilo o status.
 - Hay filas de resultado sin `event_name` o sin identidad observable de atleta/equipo.
+- Hay residuos conocidos de OCR en nombres de atletas de `athlete.csv`,
+  `result.csv` o `relay_swimmer.csv`, como vocal seguida de vocal acentuada
+  (`Goámez`, `AÁlvarez`, `Lucíá`, `Muüller`) o ene/eñe separada (`Yañ ñez`).
+- `athlete.csv` trae nombres sin formato `Apellido, Nombre`; estos deben
+  canonizarse en la etapa pre-load si la fuente viene como `Nombre Apellido`.
 - Se intenta cargar con `--load` sin `competition_scope=fchmn_local` o sin el
   scope requerido por `--required-competition-scope`.
 

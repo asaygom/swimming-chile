@@ -180,11 +180,20 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
     assert curated.loc[2, "birth_year"] == "1994"
     assert curated.loc[3, "birth_year"] == "1984"
     assert counts == {
-        "ocr_name_replacements": 1,
+        "known_ocr_name_residue_repairs": 1,
         "birth_year_corrections": 1,
         "missing_birth_year_consolidations": 1,
         "partial_name_consolidations": 1,
     }
+
+
+def test_repair_known_ocr_name_residue_materializes_known_patterns():
+    assert curate.repair_known_ocr_name_residue("A\u00c1lvarez, Alex") == "Alvarez, Alex"
+    assert curate.repair_known_ocr_name_residue("Cofre\u00e1, Patricio") == "Cofre, Patricio"
+    assert curate.repair_known_ocr_name_residue("Brice\u00f1 \u00f1o, Da\u00f1iel") == "Brice\u00f1o, Da\u00f1iel"
+    assert curate.repair_known_ocr_name_residue("Ya\u00f1 \u00f1ez, Roberto") == "Ya\u00f1ez, Roberto"
+    assert curate.repair_known_ocr_name_residue("Mar\u00ed\u00e1 Jos\u00e9, Bocaz") == "Maria Jos\u00e9, Bocaz"
+    assert curate.repair_known_ocr_name_residue("Olivares O\u00c1 rdenes, Cristi\u00e1n") == "Olivares Ordenes, Cristi\u00e1n"
 
 
 def test_canonicalize_space_ordered_name_preserves_surname_particles():
@@ -218,6 +227,64 @@ def test_apply_athlete_curations_to_df_canonicalizes_space_ordered_names():
 
     assert curated.loc[0, "full_name"] == "Gomez, Jennifer"
     assert counts == {"space_order_name_canonicalizations": 1}
+
+
+def test_apply_athlete_curations_to_df_repairs_relay_swimmer_without_club_column():
+    df = pd.DataFrame(
+        [
+            {
+                "event_name": "mixed 200 LC Meter freestyle_relay",
+                "relay_team_name": "Club A",
+                "swimmer_name": "A\u00c1lvarez, Alonso",
+                "birth_year_estimated": "1987",
+                "gender": "male",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "relay_swimmer", rules)
+
+    assert curated.loc[0, "swimmer_name"] == "Alvarez, Alonso"
+    assert counts == {"known_ocr_name_residue_repairs": 1}
+
+
+def test_apply_athlete_curations_to_df_repairs_rule_outputs():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Barahona, Manuel",
+                "club_name": "Pe\u00f1alolen Master",
+                "gender": "male",
+                "birth_year": "1972",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [
+            {
+                "old_key": "barahona manuel",
+                "new_name": "Barahona Ligu\u00fce\u00f1o, Manuel",
+                "new_key": "barahona ligueno manuel",
+                "birth_year": "1972",
+                "club_key": "penalolen master",
+                "gender": "male",
+            }
+        ],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Barahona Ligue\u00f1o, Manuel"
+    assert counts == {"ocr_name_replacements": 1, "known_ocr_name_residue_repairs": 1}
 
 
 def test_materialize_document_inputs_writes_curated_copy_and_manifest_document():

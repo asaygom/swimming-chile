@@ -653,11 +653,12 @@ backend\.venv\Scripts\python.exe backend\scripts\curate_athlete_names.py `
 Resultado materializado sin carga: 61 documentos copiados a
 `backend/data/raw/results_csv/fchmn_curated_20260425/`, manifest curado
 `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
-Conteos aplicados: 117 reemplazos OCR en `athlete`, 244 en `result`, 12
-correcciones de `birth_year` en `athlete`, 29 en `result`, 2 consolidaciones sin
-ano en `athlete`, 8 en `result`, 1316 consolidaciones parciales en `athlete`,
-3480 en `result`, 159 canonizaciones de nombres `Nombre Apellido` a
-`Apellido, Nombre` en `athlete` y 636 en `result`.
+Conteos aplicados: 35 reemplazos OCR contextuales en `athlete`, 76 en `result`,
+456 reparaciones deterministicas de residuos OCR conocidos en `athlete`, 993 en
+`result`, 179 en `relay_swimmer`, 12 correcciones de `birth_year` en `athlete`,
+29 en `result`, 2 consolidaciones sin ano en `athlete`, 8 en `result`, 1327
+consolidaciones parciales en `athlete`, 3502 en `result`, 159 canonizaciones de
+nombres `Nombre Apellido` a `Apellido, Nombre` en `athlete` y 636 en `result`.
 
 Validar siempre el manifest materializado antes de cargar:
 
@@ -674,10 +675,14 @@ La carga debe usar el pipeline actual, que enlaza resultados e integrantes de
 relevo contra `core.athlete` con la misma clave normalizada usada para deduplicar
 atletas. Asi las decisiones manuales ya materializadas en los CSVs curados no
 se pierden por variantes de acento o puntuacion al ejecutar `--load`.
-Auditoria directa posterior: sobre 97.342 nombres observados en `athlete.csv`,
-`result.csv` y `relay_swimmer.csv` no quedan nombres contaminantes conocidos,
-patrones de vocal seguida de vocal acentuada, patrones `ñ ñ` ni atletas sin coma.
-En particular, `resultados-iii-copa-lqblo.pdf` queda sin residuos `ñ ñ`, y
+La validacion batch actual incluye compuerta de calidad de nombres: residuos
+conocidos de OCR en `athlete.csv`, `result.csv` o `relay_swimmer.csv` bloquean
+la carga, incluyendo vocal seguida de vocal acentuada (`Goámez`, `AÁlvarez`,
+`Lucíá`, `Muüller`), ene/eñe separada (`Yañ ñez`) y atletas sin formato
+`Apellido, Nombre`.
+Auditoria directa posterior: sobre 97.342 nombres observados no quedan esos
+residuos ni hits de los contaminantes conocidos revisados. En particular,
+`resultados-iii-copa-lqblo.pdf` queda sin residuos `ñ ñ`, y
 `resultados-torneo-apertura-master-2023-3.pdf` queda canonizado a
 `Apellido, Nombre`.
 

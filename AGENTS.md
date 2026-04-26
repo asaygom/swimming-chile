@@ -54,6 +54,14 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
    - Agrega `competition_scope` curado.
    - No descarga, no parsea, no valida CSVs ni carga a core.
 
+8. `backend/scripts/curate_athlete_names.py`
+   - Consume manifests de carpetas parseadas, agrupa variantes OCR por firma robusta de nombre.
+   - Propone reemplazos auditables pre-load sin tocar parser ni cargar a core.
+   - Materializa CSVs curados en carpeta separada con manifest nuevo.
+   - Aplica OCR name rules, reparaciones deterministicas de residuos OCR conocidos, correcciones de birth_year, consolidaciones de birth_year faltante, consolidaciones de nombres parciales y canonizacion de orden de nombre.
+   - Usa `canonicalize_space_ordered_name` para transformar nombres `Nombre Apellido` a `Apellido, Nombre` cuando no hay coma ni digitos.
+   - No descarga, no parsea, no valida CSVs ni carga a core.
+
 ## Estado actual
 - El trabajo activo del proyecto esta en backend/data pipeline.
 - `frontend/` existe como area planificada para Fase 6, pero todavia no tiene implementacion activa ni reglas propias.
@@ -94,6 +102,9 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
   - E2E real desde `https://fchmn.cl/resultados/` validado sin cargar a core
   - soporte de layout brasileno "Swim It Up" con parser `0.1.12`
   - regresion completa 23/23 validated sin romper PDFs HY-TEK previos
+  - materializacion pre-load de curaciones de atleta con manifest curado
+  - compuerta pre-load de residuos OCR de nombres sobre `athlete.csv`, `result.csv` y `relay_swimmer.csv`
+  - pipeline usa clave normalizada para deduplicar atletas y enlazar resultados, honrando CSVs curados
 
 ## Canon de datos
 ### event.gender
@@ -141,6 +152,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
 - `backend/scripts/run_results_batch.py`
 - `backend/scripts/run_fchmn_results_validation.py`
 - `backend/scripts/freeze_validated_manifest.py`
+- `backend/scripts/curate_athlete_names.py`
 - `backend/scripts/run_pipeline_results.py`
 - `backend/sql/schema.sql`
 - `backend/docs/schema.md`

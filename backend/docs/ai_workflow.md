@@ -202,7 +202,10 @@ Evidencia historica:
 - El 2026-04-25 se materializaron esas decisiones en copias curadas de los 61
   documentos locales: `fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`
   apunta a `backend/data/raw/results_csv/fchmn_curated_20260425/` y quedo
-  validado sin `--load` con `state_counts.validated = 61`. Para la proxima carga
+  validado sin `--load` con `state_counts.validated = 61`. La materializacion
+  actual aplica tambien reparaciones deterministicas de residuos OCR conocidos
+  en `athlete.csv`, `result.csv` y `relay_swimmer.csv`, incluso cuando una regla
+  contextual trae un nombre canonico aun contaminado. Para la proxima carga
   explicita usar este manifest curado, no el congelado original.
 - El pipeline de carga ahora usa la misma clave normalizada de atleta para
   deduplicar `core.athlete`, actualizar `birth_year` y enlazar
@@ -214,6 +217,10 @@ Evidencia historica:
   cubre el caso `resultados-torneo-apertura-master-2023-3.pdf`; la auditoria
   directa posterior no encuentra nombres contaminantes conocidos, `ñ ñ`,
   vocal+vocal acentuada ni atletas sin coma en los 61 documentos curados.
+- `run_results_batch.py` ahora trata esos residuos de nombres como compuerta
+  dura antes de carga: si reaparecen en `athlete.csv`, `result.csv` o
+  `relay_swimmer.csv`, el documento queda `requires_review` aunque los CSVs
+  estructurales sean validos.
 
 No implementado todavia:
 

@@ -26,6 +26,9 @@ NAME_TOKEN_RE = re.compile(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+")
 FRAGMENTED_NAME_RE = re.compile(r"(?:^|\s)(?:[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]\s+){2,}[A-Za-zÁÉÍÓÚÜÑáéíóúüñ](?:\s|$)")
 NOISY_VOWEL_RUN_RE = re.compile(r"[aeiou]{2,}")
 REPEATED_VOWEL_RUN_RE = re.compile(r"([aeiou])\1+")
+OCR_VOWEL_RESIDUE_RE = re.compile(r"([aeiouAEIOUáéíóúüÁÉÍÓÚÜ])([áéíóúüÁÉÍÓÚÜ])")
+OCR_SPLIT_ENYE_RE = re.compile(r"(?:ñ\s+ñ|n\s+ñ|ñ\s+n)", re.IGNORECASE)
+OCR_ORPHAN_VOWEL_FRAGMENT_RE = re.compile(r"\b([AEIOUaeiou])\s+([a-zñ])")
 
 
 def parse_args() -> argparse.Namespace:
@@ -86,6 +89,31 @@ def flatten_visible_name(value: Optional[str]) -> Optional[str]:
         return None
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned or None
+
+
+def repair_known_ocr_name_residue(value: Optional[str]) -> Optional[str]:
+    cleaned = clean_extracted_text(value)
+    if not cleaned:
+        return cleaned
+
+    repaired = OCR_SPLIT_ENYE_RE.sub("ñ", cleaned)
+
+    def drop_extra_accented_vowel(match: re.Match[str]) -> str:
+        first = match.group(1)
+        if first in {"i", "I"} and match.group(2) in {"á", "Á"}:
+            return match.group(0)
+        if ord(first) > 127:
+            return strip_accents(match.group(0)) or match.group(0)
+        return strip_accents(first) or first
+
+    previous = None
+    while previous != repaired:
+        previous = repaired
+        repaired = OCR_VOWEL_RESIDUE_RE.sub(drop_extra_accented_vowel, repaired)
+
+    repaired = OCR_ORPHAN_VOWEL_FRAGMENT_RE.sub(r"\1\2", repaired)
+    repaired = re.sub(r"\s+", " ", repaired).strip()
+    return repaired or cleaned
 
 
 def token_signature(token: str) -> str:
@@ -490,12 +518,22 @@ def apply_athlete_curations_to_df(
         return df, {}
 
     name_column, club_column, birth_year_column, gender_column = specs[table_name]
-    if name_column not in df.columns or club_column not in df.columns or birth_year_column not in df.columns:
+    if name_column not in df.columns:
         return df, {}
 
     output = df.copy()
     counts = Counter()
     for index, row in output.iterrows():
+        current_name = clean_extracted_text(row.get(name_column))
+        repaired_name = repair_known_ocr_name_residue(current_name)
+        if repaired_name and current_name and repaired_name != current_name:
+            output.at[index, name_column] = repaired_name
+            row = output.loc[index]
+            counts["known_ocr_name_residue_repairs"] += 1
+
+        if club_column not in output.columns or birth_year_column not in output.columns:
+            continue
+
         context = _row_context(row, name_column, club_column, birth_year_column, gender_column)
         if not context["name_key"] or not context["club_key"]:
             continue
@@ -534,6 +572,13 @@ def apply_athlete_curations_to_df(
                 context["name_key"] = rule["new_key"]
                 counts["partial_name_consolidations"] += 1
                 break
+
+        repaired_context_name = repair_known_ocr_name_residue(context["name"])
+        if repaired_context_name and repaired_context_name != context["name"]:
+            output.at[index, name_column] = repaired_context_name
+            context["name"] = repaired_context_name
+            context["name_key"] = ordered_name_key(repaired_context_name)
+            counts["known_ocr_name_residue_repairs"] += 1
 
         canonical_order_name = canonicalize_space_ordered_name(context["name"])
         if canonical_order_name and canonical_order_name != context["name"]:

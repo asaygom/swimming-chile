@@ -1,7 +1,9 @@
 import sys
 from argparse import Namespace
 import json
+import shutil
 import subprocess
+import uuid
 from pathlib import Path
 
 import pytest
@@ -45,6 +47,35 @@ def test_validate_input_dir_requires_review_when_debug_ratio_is_high():
 
     assert result.state == "requires_review"
     assert any(issue.issue_key == "debug_unparsed_ratio_exceeded" for issue in result.issues)
+
+
+def test_validate_input_dir_requires_review_for_athlete_name_residues():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_name_quality_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "athlete.csv").write_text(
+            "full_name,gender,club_name,birth_year,source_id\n"
+            '"Cofreá, Patricio",male,Club A,1980,1\n'
+            '"Briceñ ño, Dañiel",male,Club A,1981,1\n'
+            "Nombre Apellido,male,Club A,1982,1\n",
+            encoding="utf-8",
+        )
+        (input_dir / "result.csv").write_text(
+            "event_name,athlete_name,club_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,age_at_event,birth_year_estimated,points,status,source_id\n"
+            'men 35-39 100 LC Meter freestyle,"Yañ ñez, Roberto",Club A,1,1:05.30,65300,1:03.21,63210,35,1991,9,valid,1\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    assert result.state == "requires_review"
+    issue_keys = {issue.issue_key for issue in result.issues}
+    assert "athlete_vowel_plus_accented_vowel" in issue_keys
+    assert "athlete_split_enye" in issue_keys
+    assert "athlete_name_without_comma" in issue_keys
+    assert "result_split_enye" in issue_keys
 
 
 def test_build_parse_command_uses_current_python_and_parser_args():
