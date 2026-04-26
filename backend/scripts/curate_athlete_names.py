@@ -434,9 +434,140 @@ def load_partial_name_consolidations(path: Path) -> List[dict]:
     return [row for row in rows if row["old_key"] and row["new_name"] and row["birth_year"] and row["club_key"]]
 
 
+def resolve_partial_name_rule_chains(rules: Sequence[dict]) -> List[dict]:
+    by_context = {
+        (rule["old_key"], rule["birth_year"], rule["club_key"], rule["gender"]): rule
+        for rule in rules
+    }
+    resolved: List[dict] = []
+    for rule in rules:
+        current = dict(rule)
+        seen = {current["old_key"]}
+        while True:
+            next_rule = by_context.get(
+                (current["new_key"], current["birth_year"], current["club_key"], current["gender"])
+            )
+            if not next_rule or next_rule["new_key"] in seen:
+                break
+            seen.add(next_rule["new_key"])
+            current["new_name"] = next_rule["new_name"]
+            current["new_key"] = next_rule["new_key"]
+        resolved.append(current)
+    return resolved
+
+
+def build_partial_name_identity_rules(rules: Sequence[dict]) -> List[dict]:
+    grouped: Dict[Tuple[str, str, str], set[Tuple[str, str]]] = defaultdict(set)
+    for rule in rules:
+        grouped[(rule["old_key"], rule["birth_year"], rule["gender"])].add((rule["new_name"], rule["new_key"]))
+
+    identity_rules: List[dict] = []
+    for (old_key, birth_year, gender), replacements in grouped.items():
+        if len(replacements) != 1:
+            continue
+        new_name, new_key = next(iter(replacements))
+        identity_rules.append(
+            {
+                "old_key": old_key,
+                "new_name": new_name,
+                "new_key": new_key,
+                "birth_year": birth_year,
+                "club_key": "",
+                "gender": gender,
+            }
+        )
+    return identity_rules
+
+
+def build_comma_order_rules(rows: Sequence[dict]) -> List[dict]:
+    surname_token_counts = Counter()
+    given_token_counts = Counter()
+    contexts: Dict[Tuple[str, str, str, str], dict] = {}
+    for row in rows:
+        name = clean_extracted_text(row.get("athlete_name"))
+        if not name or "," not in name:
+            continue
+        left, right = [side.strip() for side in name.split(",", 1)]
+        left_tokens = NAME_TOKEN_RE.findall(flatten_visible_name(left) or "")
+        right_tokens = NAME_TOKEN_RE.findall(flatten_visible_name(right) or "")
+        if len(left_tokens) == 1:
+            surname_token_counts[left_tokens[0].lower()] += 1
+        for token in right_tokens:
+            given_token_counts[token.lower()] += 1
+        if len(left_tokens) == 1 and len(right_tokens) == 1:
+            key = (
+                ordered_name_key(name),
+                normalize_birth_year(row.get("birth_year")),
+                normalize_match_text(row.get("club_name")) or "",
+                normalize_match_text(row.get("gender")) or "",
+            )
+            contexts[key] = {
+                "old_key": key[0],
+                "old_name": name,
+                "birth_year": key[1],
+                "club_key": key[2],
+                "gender": key[3],
+                "left_token": left_tokens[0].lower(),
+                "right_token": right_tokens[0].lower(),
+                "new_name": f"{right_tokens[0]}, {left_tokens[0]}",
+            }
+
+    rules: List[dict] = []
+    for context in contexts.values():
+        left_token = context["left_token"]
+        right_token = context["right_token"]
+        if not context["birth_year"] or not context["club_key"]:
+            continue
+        left_as_given = given_token_counts[left_token]
+        left_as_surname = surname_token_counts[left_token]
+        right_as_surname = surname_token_counts[right_token]
+        right_as_given = given_token_counts[right_token]
+        if left_as_given < 10 or right_as_surname < 10:
+            continue
+        if left_as_given < max(3, left_as_surname * 5):
+            continue
+        if right_as_surname <= right_as_given:
+            continue
+        rules.append(
+            {
+                "old_key": context["old_key"],
+                "new_name": context["new_name"],
+                "new_key": ordered_name_key(context["new_name"]),
+                "birth_year": context["birth_year"],
+                "club_key": context["club_key"],
+                "gender": context["gender"],
+            }
+        )
+    return rules
+
+
+def build_comma_order_identity_rules(rules: Sequence[dict]) -> List[dict]:
+    grouped: Dict[Tuple[str, str, str], set[Tuple[str, str]]] = defaultdict(set)
+    for rule in rules:
+        grouped[(rule["old_key"], rule["birth_year"], rule["gender"])].add((rule["new_name"], rule["new_key"]))
+
+    identity_rules: List[dict] = []
+    for (old_key, birth_year, gender), replacements in grouped.items():
+        if len(replacements) != 1:
+            continue
+        new_name, new_key = next(iter(replacements))
+        identity_rules.append(
+            {
+                "old_key": old_key,
+                "new_name": new_name,
+                "new_key": new_key,
+                "birth_year": birth_year,
+                "club_key": "",
+                "gender": gender,
+            }
+        )
+    return identity_rules
+
+
 def load_materialization_rules(
     args: argparse.Namespace,
     name_replacement_map: Optional[Dict[Tuple[str, str, str, str], str]] = None,
+    name_rows: Optional[Sequence[dict]] = None,
 ) -> dict:
     ocr_name_rules = []
     for (old_name, birth_year, club_key, gender), new_name in (name_replacement_map or {}).items():
@@ -470,11 +601,16 @@ def load_materialization_rules(
     partial_rules = []
     for decisions_csv in args.partial_name_decisions_csv:
         partial_rules.extend(load_partial_name_consolidations(resolve_path(decisions_csv)))
+    partial_rules = resolve_partial_name_rule_chains(partial_rules)
+    comma_order_rules = build_comma_order_rules(name_rows or [])
     return {
         "ocr_name_rules": ocr_name_rules,
         "birth_year_rules": birth_year_rules,
         "missing_birth_year_rules": missing_rules,
         "partial_name_rules": partial_rules,
+        "partial_name_identity_rules": build_partial_name_identity_rules(partial_rules),
+        "comma_order_rules": comma_order_rules,
+        "comma_order_identity_rules": build_comma_order_identity_rules(comma_order_rules),
     }
 
 
@@ -500,6 +636,16 @@ def _rule_matches_context(rule: dict, context: dict, allow_empty_birth_year: boo
     if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
         return False
     if allow_empty_birth_year and not context["birth_year"]:
+        return True
+    return rule["birth_year"] == context["birth_year"]
+
+
+def _identity_rule_matches_context(rule: dict, context: dict) -> bool:
+    if rule["old_key"] != context["name_key"]:
+        return False
+    if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
+        return False
+    if not context["birth_year"]:
         return True
     return rule["birth_year"] == context["birth_year"]
 
@@ -531,11 +677,11 @@ def apply_athlete_curations_to_df(
             row = output.loc[index]
             counts["known_ocr_name_residue_repairs"] += 1
 
-        if club_column not in output.columns or birth_year_column not in output.columns:
+        if birth_year_column not in output.columns:
             continue
 
         context = _row_context(row, name_column, club_column, birth_year_column, gender_column)
-        if not context["name_key"] or not context["club_key"]:
+        if not context["name_key"]:
             continue
 
         for rule in rules["ocr_name_rules"]:
@@ -565,12 +711,40 @@ def apply_athlete_curations_to_df(
                 counts["missing_birth_year_consolidations"] += 1
                 break
 
+        for rule in rules.get("comma_order_rules", []):
+            if _rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                counts["comma_order_corrections"] += 1
+                break
+        for rule in rules.get("comma_order_identity_rules", []):
+            if _identity_rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                counts["comma_order_corrections"] += 1
+                break
+
         for rule in rules["partial_name_rules"]:
             if _rule_matches_context(rule, context):
                 output.at[index, name_column] = rule["new_name"]
                 context["name"] = rule["new_name"]
                 context["name_key"] = rule["new_key"]
                 counts["partial_name_consolidations"] += 1
+                break
+
+        for rule in rules.get("partial_name_identity_rules", []):
+            if _identity_rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                if not context["birth_year"] and rule.get("birth_year"):
+                    output.at[index, birth_year_column] = rule["birth_year"]
+                    context["birth_year"] = rule["birth_year"]
+                    counts["partial_name_missing_birth_year_consolidations"] += 1
+                else:
+                    counts["partial_name_identity_consolidations"] += 1
                 break
 
         repaired_context_name = repair_known_ocr_name_residue(context["name"])
@@ -580,12 +754,24 @@ def apply_athlete_curations_to_df(
             context["name_key"] = ordered_name_key(repaired_context_name)
             counts["known_ocr_name_residue_repairs"] += 1
 
-        canonical_order_name = canonicalize_space_ordered_name(context["name"])
+        canonical_order_name = None if context["birth_year"] else canonicalize_space_ordered_name(context["name"])
         if canonical_order_name and canonical_order_name != context["name"]:
             output.at[index, name_column] = canonical_order_name
             context["name"] = canonical_order_name
             context["name_key"] = ordered_name_key(canonical_order_name)
             counts["space_order_name_canonicalizations"] += 1
+            for rule in rules.get("partial_name_identity_rules", []):
+                if _identity_rule_matches_context(rule, context):
+                    output.at[index, name_column] = rule["new_name"]
+                    context["name"] = rule["new_name"]
+                    context["name_key"] = rule["new_key"]
+                    if not context["birth_year"] and rule.get("birth_year"):
+                        output.at[index, birth_year_column] = rule["birth_year"]
+                        context["birth_year"] = rule["birth_year"]
+                        counts["partial_name_missing_birth_year_consolidations"] += 1
+                    else:
+                        counts["partial_name_identity_consolidations"] += 1
+                    break
 
     return output, dict(counts)
 
@@ -727,7 +913,7 @@ def main() -> int:
             raise SystemExit("--materialize-output-root y --materialized-manifest deben usarse juntos.")
         materialize_root = resolve_path(args.materialize_output_root)
         materialized_manifest_path = resolve_path(args.materialized_manifest)
-        rules = load_materialization_rules(args, replacement_map)
+        rules = load_materialization_rules(args, replacement_map, all_rows)
         materialized_documents, materialization_counts = materialize_manifest_inputs(
             documents,
             input_dirs_by_source_url,

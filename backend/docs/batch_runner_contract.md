@@ -261,6 +261,9 @@ Pipeline:
 - Las copias curadas pueden canonizar nombres en orden `Nombre Apellido` a
   `Apellido, Nombre` como etapa pre-load auditable. El pipeline consume ese
   resultado materializado, no vuelve a inferir decisiones manuales.
+- Las copias curadas tambien pueden resolver cadenas de merges manuales y
+  reglas de identidad univocas antes de cargar. El pipeline debe honrar esos
+  CSVs; no debe reconstruir merges parciales desde cero durante la carga.
 - Persiste `--competition-scope` en `competition.competition_scope` cuando crea
   o reutiliza una competencia.
 - Registra `source_document`, `load_run` y `validation_issue`.

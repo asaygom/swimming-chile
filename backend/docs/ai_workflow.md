@@ -205,8 +205,12 @@ Evidencia historica:
   validado sin `--load` con `state_counts.validated = 61`. La materializacion
   actual aplica tambien reparaciones deterministicas de residuos OCR conocidos
   en `athlete.csv`, `result.csv` y `relay_swimmer.csv`, incluso cuando una regla
-  contextual trae un nombre canonico aun contaminado. Para la proxima carga
-  explicita usar este manifest curado, no el congelado original.
+  contextual trae un nombre canonico aun contaminado. Tambien resuelve cadenas
+  de decisiones manuales (`Acevedo, Luis` -> `Acevedo, Luis A` ->
+  `Acevedo, Luis Alberto`) y aplica reglas de identidad univocas por
+  `old_key`/genero/`birth_year` fuera del club exacto cuando corresponde, para
+  cubrir alias de club y relevos. Para la proxima carga explicita usar este
+  manifest curado, no el congelado original.
 - El pipeline de carga ahora usa la misma clave normalizada de atleta para
   deduplicar `core.athlete`, actualizar `birth_year` y enlazar
   `result`/`relay_result_member`. Esto permite que las decisiones manuales
@@ -214,9 +218,11 @@ Evidencia historica:
   diferencias de acento o puntuacion entre documentos.
 - La materializacion pre-load tambien canoniza nombres en orden
   `Nombre Apellido` a `Apellido, Nombre` cuando no hay coma ni digitos. Esto
-  cubre el caso `resultados-torneo-apertura-master-2023-3.pdf`; la auditoria
-  directa posterior no encuentra nombres contaminantes conocidos, `ñ ñ`,
-  vocal+vocal acentuada ni atletas sin coma en los 61 documentos curados.
+  cubre el caso `resultados-torneo-apertura-master-2023-3.pdf`. Ademas corrige
+  comas invertidas respaldadas por corpus y contexto, como `Adriana, Herrera`
+  -> `Herrera, Adriana`. La auditoria directa posterior no encuentra nombres
+  contaminantes conocidos, `ñ ñ`, vocal+vocal acentuada ni atletas sin coma en
+  los 61 documentos curados.
 - `run_results_batch.py` ahora trata esos residuos de nombres como compuerta
   dura antes de carga: si reaparecen en `athlete.csv`, `result.csv` o
   `relay_swimmer.csv`, el documento queda `requires_review` aunque los CSVs
@@ -300,7 +306,10 @@ Proximo objetivo sugerido:
 - Si se retoma una carga explicita, seguir `backend/docs/pre_load_checklist.md`:
   verificar estado real de staging/resultados/trazabilidad, preservar `pool` y
   calendario planificado, usar el manifest curado materializado si aplica,
-  ejecutar `--load` con summary auditable y validar duplicados post-load.
+  ejecutar `--load` con summary auditable y validar duplicados post-load. Si ya
+  hubo una carga contaminada, preparar backup y wipe controlado antes de
+  recargar, porque la curaduria corrige los CSVs de entrada pero no repara filas
+  existentes en `core.athlete`.
 - Si no se retoma carga, concentrar el trabajo en parser, curaduria y
   documentacion de Fase 4 sin usar `--load`.
 - En identidad de atletas, priorizar la etapa post-parser/pre-load

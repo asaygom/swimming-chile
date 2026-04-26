@@ -654,11 +654,15 @@ Resultado materializado sin carga: 61 documentos copiados a
 `backend/data/raw/results_csv/fchmn_curated_20260425/`, manifest curado
 `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
 Conteos aplicados: 35 reemplazos OCR contextuales en `athlete`, 76 en `result`,
-456 reparaciones deterministicas de residuos OCR conocidos en `athlete`, 993 en
-`result`, 179 en `relay_swimmer`, 12 correcciones de `birth_year` en `athlete`,
+464 reparaciones deterministicas de residuos OCR conocidos en `athlete`, 1012 en
+`result`, 189 en `relay_swimmer`, 12 correcciones de `birth_year` en `athlete`,
 29 en `result`, 2 consolidaciones sin ano en `athlete`, 8 en `result`, 1327
-consolidaciones parciales en `athlete`, 3502 en `result`, 159 canonizaciones de
-nombres `Nombre Apellido` a `Apellido, Nombre` en `athlete` y 636 en `result`.
+consolidaciones parciales exactas en `athlete`, 3502 en `result`, 839
+consolidaciones parciales por identidad univoca en `athlete`, 2252 en
+`result`, 1174 en `relay_swimmer`, 26 consolidaciones parciales sin ano en
+`athlete`, 104 en `result`, 15 correcciones de coma invertida en `athlete`,
+41 en `result`, 4 en `relay_swimmer`, 159 canonizaciones de nombres `Nombre Apellido` a
+`Apellido, Nombre` en `athlete` y 636 en `result`.
 
 Validar siempre el manifest materializado antes de cargar:
 
@@ -675,6 +679,12 @@ La carga debe usar el pipeline actual, que enlaza resultados e integrantes de
 relevo contra `core.athlete` con la misma clave normalizada usada para deduplicar
 atletas. Asi las decisiones manuales ya materializadas en los CSVs curados no
 se pierden por variantes de acento o puntuacion al ejecutar `--load`.
+La materializacion resuelve cadenas de decisiones manuales antes de escribir los
+CSVs curados, por ejemplo `Acevedo, Luis` -> `Acevedo, Luis A` ->
+`Acevedo, Luis Alberto`. Cuando una relacion manual queda univoca por
+`old_key`, genero y `birth_year`, tambien se aplica fuera del club exacto de la
+bandeja original para cubrir alias de club y `relay_swimmer.csv`, que no tiene
+columna de club.
 La validacion batch actual incluye compuerta de calidad de nombres: residuos
 conocidos de OCR en `athlete.csv`, `result.csv` o `relay_swimmer.csv` bloquean
 la carga, incluyendo vocal seguida de vocal acentuada (`Goámez`, `AÁlvarez`,
@@ -684,7 +694,10 @@ Auditoria directa posterior: sobre 97.342 nombres observados no quedan esos
 residuos ni hits de los contaminantes conocidos revisados. En particular,
 `resultados-iii-copa-lqblo.pdf` queda sin residuos `ñ ñ`, y
 `resultados-torneo-apertura-master-2023-3.pdf` queda canonizado a
-`Apellido, Nombre`.
+`Apellido, Nombre`. La auditoria directa confirma que ya no aparecen
+`Acevedo, Luis`, `Acevedo, Luis A`, `Adriana, Herrera`, `Cynthia, Barroso` ni
+`Natalia, Silva` en `athlete.csv`, `result.csv` o `relay_swimmer.csv` de la
+carpeta curada.
 
 ## Scope congelado 2022-2026 sin carga
 

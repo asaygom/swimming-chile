@@ -59,6 +59,8 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
    - Propone reemplazos auditables pre-load sin tocar parser ni cargar a core.
    - Materializa CSVs curados en carpeta separada con manifest nuevo.
    - Aplica OCR name rules, reparaciones deterministicas de residuos OCR conocidos, correcciones de birth_year, consolidaciones de birth_year faltante, consolidaciones de nombres parciales y canonizacion de orden de nombre.
+   - Resuelve cadenas de merges manuales y reglas de identidad univocas antes de materializar, para que alias de club y relevos no dupliquen atletas ya curados.
+   - Corrige comas invertidas respaldadas por corpus y contexto, sin inferir agresivamente desde el pipeline de carga.
    - Usa `canonicalize_space_ordered_name` para transformar nombres `Nombre Apellido` a `Apellido, Nombre` cuando no hay coma ni digitos.
    - No descarga, no parsea, no valida CSVs ni carga a core.
 
@@ -103,6 +105,7 @@ Extraer resultados de competencias master desde PDFs de FCHMN, normalizarlos y c
   - soporte de layout brasileno "Swim It Up" con parser `0.1.12`
   - regresion completa 23/23 validated sin romper PDFs HY-TEK previos
   - materializacion pre-load de curaciones de atleta con manifest curado
+  - materializacion de merges manuales transitivos y correcciones conservadoras de coma invertida
   - compuerta pre-load de residuos OCR de nombres sobre `athlete.csv`, `result.csv` y `relay_swimmer.csv`
   - pipeline usa clave normalizada para deduplicar atletas y enlazar resultados, honrando CSVs curados
 

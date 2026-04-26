@@ -187,6 +187,57 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
     }
 
 
+def test_partial_name_rules_chain_and_apply_by_identity_when_unambiguous():
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": curate.resolve_partial_name_rule_chains(
+            [
+                {
+                    "old_key": "acevedo luis",
+                    "new_name": "Acevedo, Luis A",
+                    "new_key": "acevedo luis a",
+                    "birth_year": "1969",
+                    "club_key": "natacion master recoleta",
+                    "gender": "male",
+                },
+                {
+                    "old_key": "acevedo luis a",
+                    "new_name": "Acevedo, Luis Alberto",
+                    "new_key": "acevedo luis alberto",
+                    "birth_year": "1969",
+                    "club_key": "natacion master recoleta",
+                    "gender": "male",
+                },
+            ]
+        ),
+        "comma_order_rules": [],
+    }
+    rules["partial_name_identity_rules"] = curate.build_partial_name_identity_rules(rules["partial_name_rules"])
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Acevedo, Luis",
+                "club_name": "Natacion Recoleta",
+                "birth_year": "1969",
+                "gender": "male",
+            },
+            {
+                "full_name": "Acevedo, Luis A",
+                "club_name": "Master Recoleta",
+                "birth_year": "1969",
+                "gender": "male",
+            },
+        ]
+    )
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated["full_name"].tolist() == ["Acevedo, Luis Alberto", "Acevedo, Luis Alberto"]
+    assert counts == {"partial_name_identity_consolidations": 2}
+
+
 def test_repair_known_ocr_name_residue_materializes_known_patterns():
     assert curate.repair_known_ocr_name_residue("A\u00c1lvarez, Alex") == "Alvarez, Alex"
     assert curate.repair_known_ocr_name_residue("Cofre\u00e1, Patricio") == "Cofre, Patricio"
@@ -229,6 +280,101 @@ def test_apply_athlete_curations_to_df_canonicalizes_space_ordered_names():
     assert counts == {"space_order_name_canonicalizations": 1}
 
 
+def test_apply_athlete_curations_to_df_does_not_flip_space_ordered_names_with_birth_year():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Herrera Adriana",
+                "club_name": "Turquesa",
+                "birth_year": "1974",
+                "gender": "female",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Herrera Adriana"
+    assert counts == {}
+
+
+def test_apply_athlete_curations_to_df_corrects_likely_comma_order_from_corpus_rule():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Adriana, Herrera",
+                "club_name": "Turquesa",
+                "birth_year": "1974",
+                "gender": "female",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "comma_order_rules": [
+            {
+                "old_key": "adriana herrera",
+                "new_name": "Herrera, Adriana",
+                "new_key": "herrera adriana",
+                "birth_year": "1974",
+                "club_key": "turquesa",
+                "gender": "female",
+            }
+        ],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Herrera, Adriana"
+    assert counts == {"comma_order_corrections": 1}
+
+
+def test_apply_athlete_curations_to_df_corrects_comma_order_without_club_when_unambiguous():
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "comma_order_rules": [
+            {
+                "old_key": "natalia silva",
+                "new_name": "Silva, Natalia",
+                "new_key": "silva natalia",
+                "birth_year": "1985",
+                "club_key": "agua plena san rafael",
+                "gender": "female",
+            }
+        ],
+    }
+    rules["comma_order_identity_rules"] = curate.build_comma_order_identity_rules(rules["comma_order_rules"])
+    df = pd.DataFrame(
+        [
+            {
+                "event_name": "women 120-159 4x50 SC Meter medley_relay",
+                "relay_team_name": "Agua Plena San Rafael A",
+                "leg_order": "2",
+                "swimmer_name": "Natalia, Silva",
+                "gender": "female",
+                "birth_year_estimated": "1985",
+            }
+        ]
+    )
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "relay_swimmer", rules)
+
+    assert curated.loc[0, "swimmer_name"] == "Silva, Natalia"
+    assert counts == {"comma_order_corrections": 1}
+
+
 def test_apply_athlete_curations_to_df_repairs_relay_swimmer_without_club_column():
     df = pd.DataFrame(
         [
@@ -252,6 +398,117 @@ def test_apply_athlete_curations_to_df_repairs_relay_swimmer_without_club_column
 
     assert curated.loc[0, "swimmer_name"] == "Alvarez, Alonso"
     assert counts == {"known_ocr_name_residue_repairs": 1}
+
+
+def test_apply_athlete_curations_to_df_applies_identity_rule_to_relay_swimmer_without_club_column():
+    df = pd.DataFrame(
+        [
+            {
+                "event_name": "mixed 200 LC Meter freestyle_relay",
+                "relay_team_name": "Master Recoleta A",
+                "swimmer_name": "Acevedo, Luis A",
+                "birth_year_estimated": "1969",
+                "gender": "male",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "partial_name_identity_rules": [
+            {
+                "old_key": "acevedo luis a",
+                "new_name": "Acevedo, Luis Alberto",
+                "new_key": "acevedo luis alberto",
+                "birth_year": "1969",
+                "club_key": "",
+                "gender": "male",
+            }
+        ],
+        "comma_order_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "relay_swimmer", rules)
+
+    assert curated.loc[0, "swimmer_name"] == "Acevedo, Luis Alberto"
+    assert counts == {"partial_name_identity_consolidations": 1}
+
+
+def test_apply_athlete_curations_to_df_applies_identity_rule_to_missing_birth_year():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Acevedo, Luis",
+                "club_name": "NRECO",
+                "birth_year": "",
+                "gender": "male",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "partial_name_identity_rules": [
+            {
+                "old_key": "acevedo luis",
+                "new_name": "Acevedo, Luis Alberto",
+                "new_key": "acevedo luis alberto",
+                "birth_year": "1969",
+                "club_key": "",
+                "gender": "male",
+            }
+        ],
+        "comma_order_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Acevedo, Luis Alberto"
+    assert curated.loc[0, "birth_year"] == "1969"
+    assert counts == {"partial_name_missing_birth_year_consolidations": 1}
+
+
+def test_apply_athlete_curations_to_df_applies_identity_after_space_order_canonicalization():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Luis Acevedo",
+                "club_name": "NRECO",
+                "birth_year": "",
+                "gender": "male",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "partial_name_identity_rules": [
+            {
+                "old_key": "acevedo luis",
+                "new_name": "Acevedo, Luis Alberto",
+                "new_key": "acevedo luis alberto",
+                "birth_year": "1969",
+                "club_key": "",
+                "gender": "male",
+            }
+        ],
+        "comma_order_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Acevedo, Luis Alberto"
+    assert curated.loc[0, "birth_year"] == "1969"
+    assert counts == {
+        "space_order_name_canonicalizations": 1,
+        "partial_name_missing_birth_year_consolidations": 1,
+    }
 
 
 def test_apply_athlete_curations_to_df_repairs_rule_outputs():
