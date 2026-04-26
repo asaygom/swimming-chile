@@ -187,6 +187,39 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
     }
 
 
+def test_canonicalize_space_ordered_name_preserves_surname_particles():
+    assert curate.canonicalize_space_ordered_name("Eduardo Nuñez") == "Nuñez, Eduardo"
+    assert (
+        curate.canonicalize_space_ordered_name("Maria Antonieta de La Maza")
+        == "de La Maza, Maria Antonieta"
+    )
+    assert curate.canonicalize_space_ordered_name("Rojas, Jorge") == "Rojas, Jorge"
+
+
+def test_apply_athlete_curations_to_df_canonicalizes_space_ordered_names():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Jennifer Gomez",
+                "club_name": "Delfines",
+                "birth_year": "",
+                "gender": "female",
+            }
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Gomez, Jennifer"
+    assert counts == {"space_order_name_canonicalizations": 1}
+
+
 def test_materialize_document_inputs_writes_curated_copy_and_manifest_document():
     tmp_dir = _workspace_tmp_dir()
     try:

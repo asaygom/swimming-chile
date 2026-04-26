@@ -181,3 +181,42 @@ def test_insert_core_athlete_deduplicates_staging_by_normalized_identity():
     assert len(insert_statements) == 2
     assert all("SELECT DISTINCT ON" in statement for statement in insert_statements)
     assert all("athlete_key" in statement for statement in insert_statements)
+
+
+def test_result_and_relay_member_match_athletes_by_normalized_key():
+    class Cursor:
+        def __init__(self):
+            self.statements = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, statement, params=None):
+            self.statements.append((statement, params))
+
+        def fetchone(self):
+            return [0]
+
+    class Conn:
+        def __init__(self, cursor):
+            self._cursor = cursor
+
+        def cursor(self):
+            return self._cursor
+
+    cursor = Cursor()
+
+    pipeline.insert_core_result(cursor, "core", 1, 1)
+    pipeline.insert_core_relay_result_member(cursor, "core", 1)
+    pipeline.collect_validations(Conn(cursor), argparse.Namespace(schema="core", competition_id=1))
+
+    joined_sql = "\n".join(statement for statement, _ in cursor.statements)
+
+    assert "LOWER(TRIM(at.full_name)) = LOWER(TRIM(r.athlete_name))" not in joined_sql
+    assert "LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))" not in joined_sql
+    assert "TRANSLATE(LOWER(TRIM(at.full_name))" in joined_sql
+    assert "TRANSLATE(LOWER(TRIM(r.athlete_name))" in joined_sql
+    assert "TRANSLATE(LOWER(TRIM(m.athlete_name))" in joined_sql

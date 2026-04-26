@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pipeline v0.3.12
+# pipeline v0.3.13
 from __future__ import annotations
 
 import argparse
@@ -131,6 +131,10 @@ def club_match_key_sql(expr: str) -> str:
 def club_name_quality_sql(expr: str) -> str:
     accent_chars = "CHR(225)||CHR(233)||CHR(237)||CHR(243)||CHR(250)||CHR(252)||CHR(241)"
     return f"LENGTH(LOWER(TRIM({expr}))) - LENGTH(TRANSLATE(LOWER(TRIM({expr})), {accent_chars}, ''))"
+
+
+def athlete_match_key_sql(expr: str) -> str:
+    return club_match_key_sql(expr)
 
 
 def normalize_string(x):
@@ -944,7 +948,7 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
         LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('a.club_name')} = {club_match_key_sql('c.name')}
         WHERE at.birth_year IS NULL
           AND NULLIF(TRIM(a.birth_year), '') IS NOT NULL
-          AND LOWER(TRIM(at.full_name)) = LOWER(TRIM(a.full_name))
+          AND {athlete_match_key_sql('at.full_name')} = {athlete_match_key_sql('a.full_name')}
           AND (
                 LOWER(NULLIF(TRIM(a.gender), '')) IS NULL
                 OR at.gender IS NULL
@@ -960,7 +964,7 @@ def insert_core_athlete(cur, schema: str, default_source_id: int) -> None:
         LEFT JOIN {fqtn(schema, 'club')} c ON {club_match_key_sql('m.club_name')} = {club_match_key_sql('c.name')}
         WHERE at.birth_year IS NULL
           AND NULLIF(TRIM(m.birth_year_estimated), '') IS NOT NULL
-          AND LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+          AND {athlete_match_key_sql('at.full_name')} = {athlete_match_key_sql('m.athlete_name')}
           AND (
                 LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
                 OR at.gender IS NULL
@@ -1106,7 +1110,7 @@ def insert_core_result(cur, schema: str, competition_id: int, default_source_id:
         LEFT JOIN LATERAL (
             SELECT at.id
             FROM {fqtn(schema, 'athlete')} at
-            WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(r.athlete_name))
+            WHERE {athlete_match_key_sql('at.full_name')} = {athlete_match_key_sql('r.athlete_name')}
               AND (
                     {athlete_gender_from_event_gender_sql('e.gender')} IS NULL
                     OR at.gender IS NULL
@@ -1203,7 +1207,7 @@ def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> No
         LEFT JOIN LATERAL (
             SELECT at.id
             FROM {fqtn(schema, 'athlete')} at
-            WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+            WHERE {athlete_match_key_sql('at.full_name')} = {athlete_match_key_sql('m.athlete_name')}
               AND (
                     LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
                     OR at.gender IS NULL
@@ -1299,7 +1303,7 @@ def collect_validations(conn, config: Config) -> Dict[str, int]:
             LEFT JOIN LATERAL (
                 SELECT at.id
                 FROM {fqtn(config.schema, 'athlete')} at
-                WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(r.athlete_name))
+                WHERE {athlete_match_key_sql('at.full_name')} = {athlete_match_key_sql('r.athlete_name')}
                   AND (
                         {athlete_gender_from_event_gender_sql('e.gender')} IS NULL
                         OR at.gender IS NULL
@@ -1350,7 +1354,7 @@ def collect_validations(conn, config: Config) -> Dict[str, int]:
             LEFT JOIN LATERAL (
                 SELECT at.id
                 FROM {fqtn(config.schema, 'athlete')} at
-                WHERE LOWER(TRIM(at.full_name)) = LOWER(TRIM(m.athlete_name))
+                WHERE {athlete_match_key_sql('at.full_name')} = {athlete_match_key_sql('m.athlete_name')}
                   AND (
                         LOWER(NULLIF(TRIM(m.gender), '')) IS NULL
                         OR at.gender IS NULL
@@ -1427,7 +1431,7 @@ def main() -> None:
         save_validation_issues(conn, config, validation_results)
         print_validations(validation_results)
         finish_load_run(conn, config, "completed")
-        print("\n[OK] Pipeline v0.3.12 completado.")
+        print("\n[OK] Pipeline v0.3.13 completado.")
     except Exception as exc:
         conn.rollback()
         finish_load_run(conn, config, "failed", str(exc))

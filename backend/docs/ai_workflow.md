@@ -204,6 +204,16 @@ Evidencia historica:
   apunta a `backend/data/raw/results_csv/fchmn_curated_20260425/` y quedo
   validado sin `--load` con `state_counts.validated = 61`. Para la proxima carga
   explicita usar este manifest curado, no el congelado original.
+- El pipeline de carga ahora usa la misma clave normalizada de atleta para
+  deduplicar `core.athlete`, actualizar `birth_year` y enlazar
+  `result`/`relay_result_member`. Esto permite que las decisiones manuales
+  materializadas en los CSVs curados entren a core sin perder matches por
+  diferencias de acento o puntuacion entre documentos.
+- La materializacion pre-load tambien canoniza nombres en orden
+  `Nombre Apellido` a `Apellido, Nombre` cuando no hay coma ni digitos. Esto
+  cubre el caso `resultados-torneo-apertura-master-2023-3.pdf`; la auditoria
+  directa posterior no encuentra nombres contaminantes conocidos, `ñ ñ`,
+  vocal+vocal acentuada ni atletas sin coma en los 61 documentos curados.
 
 No implementado todavia:
 

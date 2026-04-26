@@ -249,6 +249,13 @@ Pipeline:
 - Deduplica atletas dentro de cada carga por nombre normalizado, genero, año de
   nacimiento y club observado para evitar variantes OCR/acento equivalentes en
   un mismo `INSERT`.
+- Usa la misma clave normalizada de atleta para actualizar años de nacimiento y
+  enlazar `result`/`relay_result_member` contra `core.athlete`; las decisiones
+  manuales materializadas en CSVs curados no deben perderse por diferencias de
+  acento o puntuacion entre documentos.
+- Las copias curadas pueden canonizar nombres en orden `Nombre Apellido` a
+  `Apellido, Nombre` como etapa pre-load auditable. El pipeline consume ese
+  resultado materializado, no vuelve a inferir decisiones manuales.
 - Persiste `--competition-scope` en `competition.competition_scope` cuando crea
   o reutiliza una competencia.
 - Registra `source_document`, `load_run` y `validation_issue`.

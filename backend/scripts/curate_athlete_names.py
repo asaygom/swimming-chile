@@ -343,6 +343,27 @@ def ordered_name_key(value: Optional[str]) -> str:
     return normalize_match_text(value) or ""
 
 
+def canonicalize_space_ordered_name(value: Optional[str]) -> Optional[str]:
+    cleaned = clean_extracted_text(value)
+    if not cleaned or "," in cleaned or re.search(r"\d", cleaned):
+        return cleaned
+    tokens = NAME_TOKEN_RE.findall(cleaned)
+    if len(tokens) < 2:
+        return cleaned
+
+    surname_start = len(tokens) - 1
+    if len(tokens) >= 4 and tokens[-3].lower() == "de" and tokens[-2].lower() == "la":
+        surname_start = len(tokens) - 3
+    elif len(tokens) >= 3 and tokens[-2].lower() in {"de", "del"}:
+        surname_start = len(tokens) - 2
+
+    given_tokens = tokens[:surname_start]
+    surname_tokens = tokens[surname_start:]
+    if not given_tokens or not surname_tokens:
+        return cleaned
+    return f"{' '.join(surname_tokens)}, {' '.join(given_tokens)}"
+
+
 def load_missing_birth_year_consolidations(path: Path) -> List[dict]:
     rows: List[dict] = []
     if not path.exists():
@@ -513,6 +534,13 @@ def apply_athlete_curations_to_df(
                 context["name_key"] = rule["new_key"]
                 counts["partial_name_consolidations"] += 1
                 break
+
+        canonical_order_name = canonicalize_space_ordered_name(context["name"])
+        if canonical_order_name and canonical_order_name != context["name"]:
+            output.at[index, name_column] = canonical_order_name
+            context["name"] = canonical_order_name
+            context["name_key"] = ordered_name_key(canonical_order_name)
+            counts["space_order_name_canonicalizations"] += 1
 
     return output, dict(counts)
 

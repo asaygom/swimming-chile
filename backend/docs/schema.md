@@ -610,11 +610,14 @@ Columnas principales por CSV operativo:
 4. Crea un `load_run` con conteos de entrada.
 5. Carga todas las tablas staging con `COPY`.
 6. Inserta o reutiliza clubes, eventos y atletas.
-7. Inserta resultados individuales en `result`, ignorando observaciones ya existentes.
-8. Inserta resultados de relevos en `relay_result`, ignorando observaciones ya existentes.
-9. Inserta integrantes de relevos en `relay_result_member`.
-10. Ejecuta chequeos de diagnostico y persiste issues con conteo mayor que cero en `validation_issue`.
-11. Marca el `load_run` como `completed` o `failed`.
+7. Enlaza resultados individuales e integrantes de relevos con atletas usando
+   la misma clave normalizada que deduplica `core.athlete`, para respetar CSVs
+   curados aunque existan diferencias de acento o puntuacion entre documentos.
+8. Inserta resultados individuales en `result`, ignorando observaciones ya existentes.
+9. Inserta resultados de relevos en `relay_result`, ignorando observaciones ya existentes.
+10. Inserta integrantes de relevos en `relay_result_member`.
+11. Ejecuta chequeos de diagnostico y persiste issues con conteo mayor que cero en `validation_issue`.
+12. Marca el `load_run` como `completed` o `failed`.
 
 ## 11. Decisiones relevantes
 
@@ -624,7 +627,17 @@ Un relevo es un resultado de equipo. Por eso se modela en `relay_result`, con in
 
 ### 11.2 Identidad de atletas
 
-El pipeline cruza atletas principalmente por nombre normalizado, genero y año de nacimiento cuando existe. El club ayuda, pero no debe convertirse en identidad historica rigida.
+El pipeline cruza atletas principalmente por nombre normalizado, genero y año de
+nacimiento cuando existe. Esa misma clave normalizada se usa al cargar
+`result` y `relay_result_member`, no solo al insertar `athlete`, para que las
+decisiones manuales materializadas antes del load no se pierdan por variantes de
+acento o puntuacion. El club ayuda, pero no debe convertirse en identidad
+historica rigida.
+
+Cuando una fuente trae nombres en orden `Nombre Apellido`, la curaduria pre-load
+puede materializarlos como `Apellido, Nombre` antes de la carga. Esa
+canonizacion queda en los CSVs curados; el pipeline solo consume el resultado y
+mantiene cruces normalizados.
 
 ### 11.3 Semantica de tiempos
 
