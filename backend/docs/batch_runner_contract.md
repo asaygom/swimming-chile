@@ -250,6 +250,9 @@ Parser:
 Pipeline:
 
 - Hace limpieza generica y carga.
+- Aplica `club_alias.csv` colapsando cadenas transitivas de aliases antes de
+  cargar. Si existe `A -> B -> C`, `A` y `B` deben resolver al canonical final
+  `C`, no a un canonical intermedio.
 - Al transformar `relay_team.csv` + `relay_swimmer.csv`, usa `relay_team.club_name` cuando venga informado y conserva la inferencia desde `club.csv` solo como fallback compatible.
 - Deduplica atletas dentro de cada carga por nombre normalizado, genero, año de
   nacimiento y club observado para evitar variantes OCR/acento equivalentes en
@@ -264,6 +267,10 @@ Pipeline:
 - Las copias curadas tambien pueden resolver cadenas de merges manuales y
   reglas de identidad univocas antes de cargar. El pipeline debe honrar esos
   CSVs; no debe reconstruir merges parciales desde cero durante la carga.
+- La materializacion pre-load puede descartar filas de `result.csv` cuando el
+  genero inferido del evento contradice la identidad de atleta ya curada, o
+  cuando la misma identidad aparece en ambos generos y la fila sospechosa trae
+  un tiempo de distancia larga claramente recortado por layout/OCR.
 - Persiste `--competition-scope` en `competition.competition_scope` cuando crea
   o reutiliza una competencia.
 - Registra `source_document`, `load_run` y `validation_issue`.

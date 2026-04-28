@@ -237,6 +237,19 @@ def load_club_aliases(alias_csv: Optional[str]) -> Dict[str, str]:
             if canonical_key:
                 aliases.setdefault(canonical_key, canonical_name)
 
+    for alias_key, canonical_name in list(aliases.items()):
+        seen = {alias_key}
+        while True:
+            canonical_key = normalize_match_text(canonical_name)
+            if not canonical_key or canonical_key in seen or canonical_key not in aliases:
+                break
+            seen.add(canonical_key)
+            next_canonical = aliases[canonical_key]
+            if normalize_match_text(next_canonical) == canonical_key:
+                break
+            canonical_name = next_canonical
+        aliases[alias_key] = canonical_name
+
     info(f"Aliases de club cargados: {len(aliases)} claves desde {alias_path}")
     return aliases
 

@@ -375,6 +375,72 @@ def test_apply_athlete_curations_to_df_corrects_comma_order_without_club_when_un
     assert counts == {"comma_order_corrections": 1}
 
 
+def test_drop_result_rows_with_athlete_gender_conflict():
+    athlete_df = pd.DataFrame(
+        [
+            {
+                "full_name": "Henriquez, Soledad",
+                "gender": "female",
+                "club_name": "MSBDO",
+                "birth_year": "1984",
+            },
+            {
+                "full_name": "Rivera, Pedro Pablo",
+                "gender": "male",
+                "club_name": "SIMAS",
+                "birth_year": "1980",
+            },
+            {
+                "full_name": "Perez, Paulina",
+                "gender": "male",
+                "club_name": "RECOL",
+                "birth_year": "1970",
+            },
+        ]
+    )
+    result_df = pd.DataFrame(
+        [
+            {
+                "event_name": "men 35-39 50 LC Meter breaststroke",
+                "athlete_name": "Henriquez, Soledad",
+                "club_name": "MSBDO",
+                "birth_year_estimated": "1984",
+                "result_time_ms": "252110",
+            },
+            {
+                "event_name": "men 40-44 50 LC Meter breaststroke",
+                "athlete_name": "Rivera, Pedro Pablo",
+                "club_name": "SIMAS",
+                "birth_year_estimated": "1980",
+                "result_time_ms": "32000",
+            },
+            {
+                "event_name": "men 50-54 200 LC Meter backstroke",
+                "athlete_name": "Perez Pacheco, Paulina",
+                "club_name": "RECOL",
+                "birth_year_estimated": "1970",
+                "result_time_ms": "48450",
+            },
+            {
+                "event_name": "women 50-54 50 LC Meter butterfly",
+                "athlete_name": "Perez Pacheco, Paulina",
+                "club_name": "RECOL",
+                "birth_year_estimated": "1970",
+                "result_time_ms": "61160",
+            },
+        ]
+    )
+
+    filtered, dropped = curate.drop_result_rows_with_athlete_gender_conflict(result_df, athlete_df)
+
+    assert dropped == 2
+    assert filtered["athlete_name"].tolist() == ["Rivera, Pedro Pablo", "Perez Pacheco, Paulina"]
+    assert filtered["event_name"].tolist() == [
+        "men 40-44 50 LC Meter breaststroke",
+        "women 50-54 50 LC Meter butterfly",
+    ]
+
+
 def test_apply_athlete_curations_to_df_repairs_relay_swimmer_without_club_column():
     df = pd.DataFrame(
         [

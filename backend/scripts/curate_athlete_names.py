@@ -29,6 +29,7 @@ REPEATED_VOWEL_RUN_RE = re.compile(r"([aeiou])\1+")
 OCR_VOWEL_RESIDUE_RE = re.compile(r"([aeiouAEIOUáéíóúüÁÉÍÓÚÜ])([áéíóúüÁÉÍÓÚÜ])")
 OCR_SPLIT_ENYE_RE = re.compile(r"(?:ñ\s+ñ|n\s+ñ|ñ\s+n)", re.IGNORECASE)
 OCR_ORPHAN_VOWEL_FRAGMENT_RE = re.compile(r"\b([AEIOUaeiou])\s+([a-zñ])")
+EVENT_DISTANCE_RE = re.compile(r"\b(\d+)\s+(?:LC|SC)\s+Meter\b", re.IGNORECASE)
 
 
 def parse_args() -> argparse.Namespace:
@@ -776,6 +777,118 @@ def apply_athlete_curations_to_df(
     return output, dict(counts)
 
 
+def athlete_gender_from_event_name(event_name: object) -> str:
+    event_key = normalize_match_text(event_name) or ""
+    if event_key.startswith("women "):
+        return "female"
+    if event_key.startswith("men "):
+        return "male"
+    return ""
+
+
+def event_distance_meters(event_name: object) -> Optional[int]:
+    cleaned = clean_extracted_text(event_name) or ""
+    match = EVENT_DISTANCE_RE.search(cleaned)
+    return int(match.group(1)) if match else None
+
+
+def result_time_ms_value(value: object) -> Optional[float]:
+    cleaned = clean_extracted_text(value)
+    if not cleaned:
+        return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def is_implausibly_short_distance_result(row: object) -> bool:
+    distance = event_distance_meters(row.get("event_name"))
+    result_time_ms = result_time_ms_value(row.get("result_time_ms"))
+    status = normalize_match_text(row.get("status")) or ""
+    if status and status != "valid":
+        return False
+    return distance is not None and distance >= 200 and result_time_ms is not None and result_time_ms < 90000
+
+
+def result_identity_key(row: object) -> Optional[Tuple[str, str, str]]:
+    key = (
+        ordered_name_key(row.get("athlete_name")),
+        normalize_match_text(row.get("club_name")) or "",
+        normalize_birth_year(row.get("birth_year_estimated")),
+    )
+    return key if all(key) else None
+
+
+def drop_result_rows_with_athlete_gender_conflict(result_df, athlete_df) -> Tuple[object, int]:
+    if result_df.empty:
+        return result_df, 0
+    required_result = {"event_name", "athlete_name", "club_name", "birth_year_estimated"}
+    required_athlete = {"full_name", "gender", "club_name", "birth_year"}
+    if not required_result.issubset(set(result_df.columns)):
+        return result_df, 0
+
+    genders_by_identity: Dict[Tuple[str, str, str], set[str]] = defaultdict(set)
+    if not athlete_df.empty and required_athlete.issubset(set(athlete_df.columns)):
+        for _, row in athlete_df.iterrows():
+            gender = normalize_match_text(row.get("gender")) or ""
+            if gender not in {"female", "male"}:
+                continue
+            key = (
+                ordered_name_key(row.get("full_name")),
+                normalize_match_text(row.get("club_name")) or "",
+                normalize_birth_year(row.get("birth_year")),
+            )
+            if all(key):
+                genders_by_identity[key].add(gender)
+
+    gender_by_identity = {
+        key: next(iter(genders))
+        for key, genders in genders_by_identity.items()
+        if len(genders) == 1
+    }
+    keep_indexes = []
+    dropped = 0
+    for index, row in result_df.iterrows():
+        event_gender = athlete_gender_from_event_name(row.get("event_name"))
+        if not event_gender:
+            keep_indexes.append(index)
+            continue
+        key = result_identity_key(row)
+        athlete_gender = gender_by_identity.get(key)
+        if athlete_gender and athlete_gender != event_gender:
+            dropped += 1
+            continue
+        keep_indexes.append(index)
+
+    filtered_df = result_df.loc[keep_indexes].reset_index(drop=True)
+    if "result_time_ms" not in filtered_df.columns:
+        return (filtered_df, dropped) if dropped else (result_df, 0)
+
+    result_genders_by_identity: Dict[Tuple[str, str, str], set[str]] = defaultdict(set)
+    for _, row in filtered_df.iterrows():
+        key = result_identity_key(row)
+        event_gender = athlete_gender_from_event_name(row.get("event_name"))
+        if key and event_gender in {"female", "male"}:
+            result_genders_by_identity[key].add(event_gender)
+
+    keep_indexes = []
+    for index, row in filtered_df.iterrows():
+        key = result_identity_key(row)
+        if (
+            key
+            and result_genders_by_identity.get(key) == {"female", "male"}
+            and is_implausibly_short_distance_result(row)
+        ):
+            dropped += 1
+            continue
+        keep_indexes.append(index)
+
+    if dropped == 0:
+        return result_df, 0
+    return filtered_df.loc[keep_indexes].reset_index(drop=True), dropped
+
+
 def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
     parts = list(source_input_dir.parts)
     if "results_csv" in parts:
@@ -797,6 +910,7 @@ def materialize_document_inputs(
     shutil.copytree(input_dir, output_dir)
 
     counts = Counter()
+    curated_tables = {}
     for table_name, filename in [
         ("athlete", "athlete.csv"),
         ("result", "result.csv"),
@@ -809,7 +923,16 @@ def materialize_document_inputs(
         curated_df, table_counts = apply_athlete_curations_to_df(df, table_name, rules)
         for key, value in table_counts.items():
             counts[f"{table_name}_{key}"] += value
+        curated_tables[table_name] = (csv_path, curated_df)
         curated_df.to_csv(csv_path, index=False, encoding="utf-8-sig")
+
+    if "athlete" in curated_tables and "result" in curated_tables:
+        result_path, result_df = curated_tables["result"]
+        _athlete_path, athlete_df = curated_tables["athlete"]
+        filtered_result_df, dropped = drop_result_rows_with_athlete_gender_conflict(result_df, athlete_df)
+        if dropped:
+            counts["result_gender_conflict_rows_dropped"] += dropped
+            filtered_result_df.to_csv(result_path, index=False, encoding="utf-8-sig")
 
     output_document = dict(document)
     output_document["input_dir"] = str(output_dir)

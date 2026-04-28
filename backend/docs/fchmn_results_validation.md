@@ -470,6 +470,26 @@ y `Sve Hamburg`, queda en:
   Fronteras`, `Club Panguipulli`/`Pangu`, y
   `Patagonia`/`Patagonia Kumen Coyhaique`.
 
+Auditoria posterior sobre el manifest curado materializado, sin carga, realizada
+el 2026-04-28:
+
+- comando: `audit_club_athlete_year_overlap.py` sobre
+  `fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`;
+- resultado inicial: 33 pares candidatos, 4 conflictos intra-competencia
+  excluidos y 103 grupos de alias con multiples variantes raw;
+- hallazgo tecnico: `club_alias.csv` contenia cadenas como
+  `Vitacura Deportes -> Deportes Vitacura -> Master Vitacura`; sin colapsar
+  aliases transitivos, `Deportes Vitacura` podia quedar como canonical
+  intermedio;
+- despues de colapsar aliases transitivos en `run_pipeline_results.py`, la
+  auditoria baja a 32 pares candidatos y desaparece
+  `Deportes Vitacura`/`Master Vitacura`;
+- pares que quedan como revision humana, no merge automatico:
+  `Bswim`/`Master Vitacura` con 5 atleta-anos compartidos y
+  `Club Master Vamos por la Natac`/`Venimos por la Natacion` con 2. El resto
+  mezcla cambios reales de club, clubes sin afiliacion y relaciones sin evidencia
+  nominal suficiente.
+
 ## Auditoria de nombres de atletas
 
 Antes de una recarga completa, auditar nombres de atletas desde los CSVs
@@ -662,7 +682,9 @@ consolidaciones parciales por identidad univoca en `athlete`, 2252 en
 `result`, 1174 en `relay_swimmer`, 26 consolidaciones parciales sin ano en
 `athlete`, 104 en `result`, 15 correcciones de coma invertida en `athlete`,
 41 en `result`, 4 en `relay_swimmer`, 159 canonizaciones de nombres `Nombre Apellido` a
-`Apellido, Nombre` en `athlete` y 636 en `result`.
+`Apellido, Nombre` en `athlete`, 636 en `result` y 8 filas de `result.csv`
+descartadas por conflicto conservador entre genero de evento e identidad de
+atleta en Copa UC 2022.
 
 Validar siempre el manifest materializado antes de cargar:
 

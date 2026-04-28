@@ -610,14 +610,16 @@ Columnas principales por CSV operativo:
 4. Crea un `load_run` con conteos de entrada.
 5. Carga todas las tablas staging con `COPY`.
 6. Inserta o reutiliza clubes, eventos y atletas.
-7. Enlaza resultados individuales e integrantes de relevos con atletas usando
+7. Los aliases de club se aplican con resolucion transitiva: si el CSV contiene
+   `A -> B -> C`, el pipeline carga `A` y `B` como `C`.
+8. Enlaza resultados individuales e integrantes de relevos con atletas usando
    la misma clave normalizada que deduplica `core.athlete`, para respetar CSVs
    curados aunque existan diferencias de acento o puntuacion entre documentos.
-8. Inserta resultados individuales en `result`, ignorando observaciones ya existentes.
-9. Inserta resultados de relevos en `relay_result`, ignorando observaciones ya existentes.
-10. Inserta integrantes de relevos en `relay_result_member`.
-11. Ejecuta chequeos de diagnostico y persiste issues con conteo mayor que cero en `validation_issue`.
-12. Marca el `load_run` como `completed` o `failed`.
+9. Inserta resultados individuales en `result`, ignorando observaciones ya existentes.
+10. Inserta resultados de relevos en `relay_result`, ignorando observaciones ya existentes.
+11. Inserta integrantes de relevos en `relay_result_member`.
+12. Ejecuta chequeos de diagnostico y persiste issues con conteo mayor que cero en `validation_issue`.
+13. Marca el `load_run` como `completed` o `failed`.
 
 ## 11. Decisiones relevantes
 

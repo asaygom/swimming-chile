@@ -103,6 +103,7 @@ def test_default_club_alias_csv_contains_audited_fchmn_mappings():
     assert pipeline.resolve_club_alias("GOURA", aliases) == "Goura Swim Team"
     assert pipeline.resolve_club_alias("Club de Natacion Mako´s", aliases) == "Club de Natacion Makos"
     assert pipeline.resolve_club_alias("Club Natacion Makos", aliases) == "Club de Natacion Makos"
+    assert pipeline.resolve_club_alias("Vitacura Deportes", aliases) == "Master Vitacura"
     assert pipeline.resolve_club_alias("Club Elite Sport", aliases) == "Elite Sports"
     assert pipeline.resolve_club_alias("Club Estadio Español", aliases) == "Estadio Español"
     assert pipeline.resolve_club_alias("Club Golden Swim", aliases) == "Golden"

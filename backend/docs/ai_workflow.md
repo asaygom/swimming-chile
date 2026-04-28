@@ -223,10 +223,22 @@ Evidencia historica:
   -> `Herrera, Adriana`. La auditoria directa posterior no encuentra nombres
   contaminantes conocidos, `ñ ñ`, vocal+vocal acentuada ni atletas sin coma en
   los 61 documentos curados.
+- El 2026-04-28 se corrigio en la materializacion pre-load el caso de Copa UC
+  2022 donde ocho filas de `result.csv` heredaban evento masculino desde layout
+  multicolumna/OCR, pero correspondian a atletas femeninas ya observadas en el
+  mismo documento. La nueva materializacion descarta esos ocho residuos antes
+  de carga y el manifest curado queda nuevamente `validated = 61` sin `--load`.
 - `run_results_batch.py` ahora trata esos residuos de nombres como compuerta
   dura antes de carga: si reaparecen en `athlete.csv`, `result.csv` o
   `relay_swimmer.csv`, el documento queda `requires_review` aunque los CSVs
   estructurales sean validos.
+- El 2026-04-28 se revisaron duplicados por variacion de club sobre el manifest
+  curado materializado. La auditoria `audit_club_athlete_year_overlap.py` bajo
+  de 33 a 32 pares candidatos despues de colapsar aliases transitivos en
+  `run_pipeline_results.py`; el caso corregido fue
+  `Vitacura Deportes -> Deportes Vitacura -> Master Vitacura`. Quedan como
+  revision humana, no merge automatico, `Bswim`/`Master Vitacura` y
+  `Club Master Vamos por la Natac`/`Venimos por la Natacion`.
 
 No implementado todavia:
 
@@ -303,6 +315,9 @@ Proximo objetivo sugerido:
   intermedias en `ai_workflow.md`.
 - Mantener `fchmn_historical_2022_2026_frozen_local_20260421.jsonl` como
   manifest local congelado de referencia y el flujo Sudamericano separado.
+- Para duplicados de club, usar la auditoria sobre el manifest curado
+  materializado y tratar los pares restantes como bandeja de revision humana,
+  no como aliases automaticos.
 - Si se retoma una carga explicita, seguir `backend/docs/pre_load_checklist.md`:
   verificar estado real de staging/resultados/trazabilidad, preservar `pool` y
   calendario planificado, usar el manifest curado materializado si aplica,
