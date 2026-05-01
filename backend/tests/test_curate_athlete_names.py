@@ -170,6 +170,19 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
                 "gender": "male",
             }
         ],
+        "gender_correction_rules": [
+            {
+                "name_key": "molero vianny",
+                "birth_year": "1990",
+                "gender": "female",
+            }
+        ],
+    }
+    df.loc[len(df)] = {
+        "full_name": "Molero, Vianny",
+        "club_name": "Club Nunoa Master",
+        "gender": "male",
+        "birth_year": "1990",
     }
 
     curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
@@ -179,12 +192,31 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
     assert curated.loc[2, "full_name"] == "Aranguren, Arantxa"
     assert curated.loc[2, "birth_year"] == "1994"
     assert curated.loc[3, "birth_year"] == "1984"
+    assert curated.loc[4, "gender"] == "female"
     assert counts == {
         "known_ocr_name_residue_repairs": 1,
         "birth_year_corrections": 1,
         "missing_birth_year_consolidations": 1,
         "partial_name_consolidations": 1,
+        "gender_corrections": 1,
     }
+
+
+def test_load_gender_corrections_accepts_reviewed_csv():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        corrections_path = tmp_dir / "gender_corrections.csv"
+        corrections_path.write_text(
+            "full_name,birth_year,gender\n"
+            '"Molero, Vianny",1990,female\n',
+            encoding="utf-8",
+        )
+
+        rules = curate.load_gender_corrections(corrections_path)
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    assert rules == [{"name_key": "molero vianny", "birth_year": "1990", "gender": "female"}]
 
 
 def test_partial_name_rules_chain_and_apply_by_identity_when_unambiguous():

@@ -28,6 +28,10 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   Dual Internacional Copa Chile 2025. El origen era duplicacion exacta en
   `relay_team.csv` y `relay_swimmer.csv`; parser `0.1.18` deduplica esas filas
   operacionales y el batch runner las bloquea si reaparecen antes de cargar.
+- La auditoria de identidad post-load detecto 4 conflictos de genero. Se agrego
+  soporte de correcciones auditables por CSV en `curate_athlete_names.py` para
+  resolverlos antes del load, con reglas locales revisadas para Hernandez
+  Salvador, Miranda Milanch, Molero Vianny y Orrego Ariel.
 
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).

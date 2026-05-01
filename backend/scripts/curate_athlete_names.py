@@ -72,6 +72,12 @@ def parse_args() -> argparse.Namespace:
         default=[],
         help="Optional reviewed partial-name decisions CSV. Only decision=merge rows are applied.",
     )
+    parser.add_argument(
+        "--gender-corrections-csv",
+        action="append",
+        default=[],
+        help="Optional reviewed gender corrections CSV with full_name, birth_year and gender.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON summary to stdout.")
     return parser.parse_args()
 
@@ -418,6 +424,34 @@ def load_missing_birth_year_consolidations(path: Path) -> List[dict]:
     return rows
 
 
+def normalize_gender_rule_value(value: Optional[str]) -> str:
+    gender = normalize_match_text(value) or ""
+    if gender in {"female", "mujer", "women", "w", "f"}:
+        return "female"
+    if gender in {"male", "hombre", "men", "m"}:
+        return "male"
+    return ""
+
+
+def load_gender_corrections(path: Path) -> List[dict]:
+    rows: List[dict] = []
+    if not path.exists():
+        raise FileNotFoundError(path)
+    for row in read_dict_rows(path):
+        name = clean_extracted_text(row.get("full_name") or row.get("athlete_name") or row.get("name"))
+        birth_year = normalize_birth_year(row.get("birth_year") or row.get("birth_year_estimated"))
+        gender = normalize_gender_rule_value(row.get("gender") or row.get("corrected_gender") or row.get("new_gender"))
+        if name and birth_year and gender:
+            rows.append(
+                {
+                    "name_key": ordered_name_key(name),
+                    "birth_year": birth_year,
+                    "gender": gender,
+                }
+            )
+    return rows
+
+
 def load_partial_name_consolidations(path: Path) -> List[dict]:
     decisions = load_partial_name_decisions(path)
     rows: List[dict] = []
@@ -603,6 +637,9 @@ def load_materialization_rules(
     for decisions_csv in args.partial_name_decisions_csv:
         partial_rules.extend(load_partial_name_consolidations(resolve_path(decisions_csv)))
     partial_rules = resolve_partial_name_rule_chains(partial_rules)
+    gender_correction_rules = []
+    for gender_corrections_csv in getattr(args, "gender_corrections_csv", []):
+        gender_correction_rules.extend(load_gender_corrections(resolve_path(gender_corrections_csv)))
     comma_order_rules = build_comma_order_rules(name_rows or [])
     return {
         "ocr_name_rules": ocr_name_rules,
@@ -610,6 +647,7 @@ def load_materialization_rules(
         "missing_birth_year_rules": missing_rules,
         "partial_name_rules": partial_rules,
         "partial_name_identity_rules": build_partial_name_identity_rules(partial_rules),
+        "gender_correction_rules": gender_correction_rules,
         "comma_order_rules": comma_order_rules,
         "comma_order_identity_rules": build_comma_order_identity_rules(comma_order_rules),
     }
@@ -684,6 +722,16 @@ def apply_athlete_curations_to_df(
         context = _row_context(row, name_column, club_column, birth_year_column, gender_column)
         if not context["name_key"]:
             continue
+
+        if gender_column and gender_column in output.columns:
+            for rule in rules.get("gender_correction_rules", []):
+                if rule["name_key"] == context["name_key"] and rule["birth_year"] == context["birth_year"]:
+                    current_gender = normalize_gender_rule_value(row.get(gender_column))
+                    if current_gender != rule["gender"]:
+                        output.at[index, gender_column] = rule["gender"]
+                        context["gender"] = rule["gender"]
+                        counts["gender_corrections"] += 1
+                    break
 
         for rule in rules["ocr_name_rules"]:
             if _rule_matches_context(rule, context):
