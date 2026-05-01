@@ -32,11 +32,8 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
 - Verificar que documentos `failed` y `requires_review` quedaron excluidos.
 - Verificar que cada entrada tiene `competition_scope`.
 - Guardar el manifest congelado como artefacto local auditable.
-- Si existen decisiones manuales de atletas, materializar copias curadas antes
-  de cargar y usar el manifest materializado. Para el backfill 2022-2026 vigente:
-  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
-- Validar el manifest materializado sin `--load`; debe quedar
-  `state_counts.validated = 61`.
+- Si existen decisiones manuales de atletas, materializar copias curadas antes de cargar y usar el manifest materializado.
+- Validar el manifest materializado sin `--load` para confirmar que todos los documentos queden `validated` antes de la carga a core.
 
 ## 3. Backup
 

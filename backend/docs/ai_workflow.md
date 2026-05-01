@@ -1,354 +1,92 @@
-﻿# Metodologia de trabajo con IA
+# Metodología de trabajo con IA
 
-Este documento permite retomar el proyecto en otra conversacion sin depender del historial del chat. Resume la forma de trabajo acordada para Natacion Chile.
+Este documento permite retomar el proyecto en otra conversación sin depender del historial del chat. Resume la forma de trabajo acordada para Natación Chile.
 
 ## Fuentes de verdad
 
-- Hoja de ruta: `implementation_plan.md`.
-- Reglas operativas para agentes: `AGENTS.md`.
-- Politica de artefactos: `backend/docs/data_artifacts.md`.
-- Contratos del parser: `backend/docs/parser_contracts.md`.
-- Contrato del batch runner: `backend/docs/batch_runner_contract.md`.
-- Validacion automatizada FCHMN: `backend/docs/fchmn_results_validation.md`.
-- Checklist pre-carga/full reload: `backend/docs/pre_load_checklist.md`.
-- Modelo vigente: `backend/docs/schema.md`.
-- Trazabilidad e idempotencia: `backend/docs/traceability_idempotency.md`.
+- **Arquitectura y Uso**: `backend/README.md`
+- **Hoja de ruta**: `implementation_plan.md`
+- **Reglas operativas para agentes**: `AGENTS.md`
+- **Política de artefactos**: `backend/docs/data_artifacts.md`
+- **Contratos del parser**: `backend/docs/parser_contracts.md`
+- **Contrato del batch runner**: `backend/docs/batch_runner_contract.md`
+- **Validación automatizada**: `backend/docs/fchmn_results_validation.md`
+- **Checklist pre-carga/full reload**: `backend/docs/pre_load_checklist.md`
+- **Modelo de Datos vigente**: `backend/docs/schema.md`
+- **Trazabilidad e idempotencia**: `backend/docs/traceability_idempotency.md`
+- **Historial de Decisiones (Log)**: `backend/docs/CHANGELOG.md`
 
 ## Principio central
 
-El aprendizaje con IA debe avanzar junto con el plan real del proyecto. Cada sesion debe empujar una fase del producto y explicar el donde, por que y para que de los cambios.
+El aprendizaje con IA debe avanzar junto con el plan real del proyecto. Cada sesión debe empujar una fase del producto y explicar el dónde, por qué y para qué de los cambios.
 
 `AGENTS.md` y este documento se complementan:
-
 - `AGENTS.md`: reglas cortas e imperativas para actuar dentro del repo.
-- `backend/docs/ai_workflow.md`: memoria metodologica, continuidad entre conversaciones, estado extendido y siguiente paso.
-- Los contratos tecnicos viven en docs especificas como `parser_contracts.md`, `batch_runner_contract.md` o `traceability_idempotency.md`.
-- Evitar duplicar detalles largos entre documentos; enlazar o resumir cuando baste.
+- `ai_workflow.md`: memoria metodológica y continuidad entre conversaciones.
+- Los contratos técnicos viven en docs específicas. Evitar duplicar detalles largos.
 
-Orden actual del proyecto:
-
+**Orden actual del proyecto:**
 1. Blindar.
 2. Trazabilidad e idempotencia.
 3. Modularizar.
-4. Automatizar con compuertas.
+4. Automatizar con compuertas (Fase Actual).
 5. Curar identidad de atletas.
 6. Exponer producto de datos.
 
 ## Flujo obligatorio por cambio
 
-1. Diagnostico:
+1. **Diagnóstico**:
    - Revisar `git status`.
    - Leer archivos relevantes antes de proponer cambios.
    - Identificar cambios locales del usuario y no sobrescribirlos.
-2. Propuesta corta:
+2. **Propuesta corta**:
    - Explicar el patch antes de editar.
-   - Mantener cambios minimos y localizados.
-3. Implementacion:
+   - Mantener cambios mínimos y localizados.
+3. **Implementación**:
    - Seguir patrones existentes.
-   - No refactorizar fuera de alcance.
    - Si cambia regex o parseo, agregar comentario breve.
-4. Verificacion:
+4. **Verificación**:
    - Ejecutar tests relevantes.
    - Ejecutar `py_compile` si se modifican scripts Python.
-   - Si toca DB, explicar si falta aplicar migracion.
-5. Cierre:
+5. **Cierre**:
    - Revisar `git status`.
-   - Resumir diagnostico, cambios y verificacion.
+   - Resumir diagnóstico, cambios y verificación.
    - Proponer mensaje de commit.
 
-## Regla de sincronizacion documental
+## Regla de sincronización documental
 
-Si cambia comportamiento o contrato:
-
+Si cambia el comportamiento o el contrato:
 1. Actualizar tests.
-2. Actualizar el contrato tecnico correspondiente.
+2. Actualizar el contrato técnico correspondiente.
 3. Actualizar `README.md` si afecta uso humano.
-4. Actualizar `AGENTS.md` solo si cambia una regla operativa para agentes.
-5. Actualizar `backend/docs/ai_workflow.md` si cambia metodologia, handoff, estado extendido o siguiente paso sugerido.
+4. Actualizar `AGENTS.md` solo si cambia una regla operativa.
+5. Registrar cambios de gran envergadura o decisiones arquitectónicas en `CHANGELOG.md`.
 
-## Estado metodologico actual
+## Estado actual
 
-Estado vigente:
-
-- Fase activa: Fase 4, scraper y batch runner con compuertas de calidad.
-- La hoja de ruta, reglas operativas, politica de artefactos, contratos, schema y runbook FCHMN estan versionados como fuentes de verdad.
-- El parser soporta resultados FCHMN tipo HY-TEK y layout brasileno "Swim It Up"; genera CSVs operativos, raw/debug y `metadata.json`.
-- El pipeline carga `club`, `event`, `athlete`, `result`, `relay_result` y `relay_result_member`, y registra trazabilidad e issues de validacion.
-- La normalizacion compartida de tiempos, generos, estilos y status vive en `backend/natacion_chile/domain/normalization.py`.
-- Discovery, descarga, parseo, validacion y carga estan separados: `scrape_fchmn.py`, `download_manifest_pdfs.py`, `run_results_batch.py`, `run_fchmn_results_validation.py` y `run_pipeline_results.py`.
-- Los manifests JSONL aceptan `input_dir`, `pdf` o `pdf_path`, conservan `source_url`, resuelven rutas relativas desde la raiz del proyecto y procesan documentos de forma aislada.
-- `run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin aceptar ni pasar `--load`.
-- `freeze_validated_manifest.py` genera manifests congelados desde summaries de batch, incluyendo solo documentos `validated` y agregando `competition_scope` curado.
-- `audit_fchmn_artifacts.py` audita brechas locales de Fase 4 cruzando manifests, summaries, PDFs y carpetas CSV sin descargar, parsear ni cargar a core.
-- `scrape_fchmn.py` y `run_fchmn_results_validation.py` soportan `--crawl-pages` y multiples `--url` para consolidar fuentes FCHMN en un manifest deduplicado.
-- `run_results_batch.py --load` solo ejecuta el pipeline si el documento esta `validated` y su `competition_scope` coincide con el scope requerido (`fchmn_local` por defecto).
-- `competition_type` clasifica el tipo deportivo general; `competition_scope`
-  clasifica el circuito/ambito curado para filtros de carga y analitica. El
-  scope del manifest se persiste en `competition.competition_scope`.
-- `curate_athlete_names.py` tiene dos modos: propuesta/auditoria de variantes y
-  materializacion pre-load. La materializacion copia los CSVs parseados a una
-  carpeta curada, aplica decisiones manuales de atletas y emite un manifest
-  nuevo que luego debe validarse con `run_results_batch.py` sin `--load`.
-
-Decisiones vigentes:
-
-- El parser parsea PDFs publicados; no decide si un documento se carga a core.
-- La compuerta de carga debe distinguir circuito, federacion, ambito, sede o etapa con datos curados, no con keywords automaticas.
-- Coppa Italia pertenece al circuito FCHMN local. Copa Cordillera / Dual Internacional tambien pertenece al circuito master FCHMN, incluyendo etapa Chile y etapa Argentina; no excluirla por sede argentina, pero modelar sede/etapa en scope o metadata curada. Sudamericanos pueden validarse, pero deben tratarse como flujo aparte y no cargarse a core local sin scope adecuado.
-- Un documento `failed` o `requires_review` no debe contaminar otros documentos del manifest ni cargarse a core.
-- Los PDFs con formato no soportado son candidatos a soporte futuro, no ruido descartable.
-
-Evidencia historica:
-
-- La evidencia auditable de discovery, descarga, validacion, regresiones y cargas previas vive en `backend/data/raw/batch_summaries/` y `backend/data/raw/manifests/`.
-- El runbook `backend/docs/fchmn_results_validation.md` conserva los comandos reproducibles y los resultados exploratorios relevantes.
-- El checklist `backend/docs/pre_load_checklist.md` ordena backup, wipe controlado, carga y validacion post-load antes de una primera carga o full reload.
-- La regresion amplia con parser `0.1.12` dejo `backend/data/raw/batch_summaries/regression_parser_012.json` como evidencia principal de compatibilidad HY-TEK + Swim It Up.
-- La auditoria de brechas historicas debe quedar como summary JSON local antes de proponer descargas, reparseos o manifests congelados.
-- Al 2026-04-20, el inventario historico FCHMN de 108 documentos ya no tiene `missing_download`: los 64 faltantes fueron descargados con checksums y validados sin carga. La foto consolidada quedo en `fchmn_historical_gap_audit_after_batch_20260420.json`: 46 `validated_local_candidate`, 7 `validated_non_local_candidate`, 27 `requires_review` y 28 `failed`.
-- La lista `fchmn_historical_validated_local_candidates_20260420.txt` es diagnostica y no reemplaza una allow-list curada para freeze/load.
-- Al 2026-04-21, el cierre operativo de Fase 4 se acoto a formatos 2022-2026. La foto `fchmn_historical_2022_2026_focus_audit_20260421.json` contiene 67 documentos: 46 `validated_local_candidate`, 7 `validated_non_local_candidate`, 8 `requires_review` y 6 `failed`. Los formatos pre-2022 quedan como backlog legacy. Dentro de los 7 `validated_non_local_candidate`, las dos Copa Argentina / Dual Internacional corresponden al circuito master FCHMN y deben reclasificarse manualmente como cargables si el scope curado lo confirma; los 5 Sudamericanos Recife deben revisarse en flujo separado.
-- `fchmn_historical_2022_2026_available_for_scope_review_20260421.csv` lista las 53 competencias/documentos validados disponibles para curar scope (`fchmn_local` u otro). Es insumo de revision humana, no compuerta final automatica. Al clasificar, tratar Copa Cordillera / Dual Internacional como circuito master FCHMN, no como exclusion no-local automatica.
-- Al 2026-04-21, el parser `0.1.13` resolvio los 14 bloqueados 2022-2026 sin carga a core. La evidencia final es `scratch_2022_2026_blockers_recheck_20260421_v3.json` con `state_counts.validated = 14`. Los cambios cubren Quadathlon, HY-TEK multi-columna, variantes de encabezado/canon y omision de parciales/splits. Los Sudamericanos validados siguen fuera del manifest local principal hasta curar scope separado.
-- Al 2026-04-21, se congelo el scope operativo 2022-2026 sin carga a core:
-  `fchmn_historical_2022_2026_frozen_local_20260421.jsonl` incluye 61
-  documentos con `competition_scope=fchmn_local`, usando allow-list explicita de
-  `source_url` y sumando los documentos locales desbloqueados en el recheck v3.
-  `fchmn_historical_2022_2026_frozen_sudamericano_20260421.jsonl` separa 6
-  documentos con `competition_scope=sudamericano_master`. Las validaciones
-  posteriores quedaron `validated`: local 61/61 y Sudamericano 6/6.
-- La migracion `backend/sql/migrations/002_competition_scope.sql` ya fue aplicada
-  antes de continuar hacia la carga, por lo que `core.competition` puede
-  persistir el scope curado.
-- La base contiene calendario planificado FCHMN 2026 en `competition` sin
-  eventos cargados y datos de `pool` fuera del alcance actual. Para una recarga
-  de resultados, usar una limpieza quirurgica que preserve esas filas. Esa
-  limpieza operacional ya se ejecuto manualmente y no se conserva como script
-  versionado.
-- Despues de la primera carga explicita del manifest local congelado se
-  detectaron duplicados de identidad observada en `athlete` y variantes/errores
-  de club. El patch en curso deduplica atletas por identidad normalizada dentro
-  de cada carga y amplia `club_alias.csv` con correcciones curadas de alta
-  confianza. La base ya cargada requiere backup, limpieza quirurgica y recarga
-  explicita para reflejar estas correcciones.
-- El parser `0.1.15` corrige el layout HY-TEK a dos columnas de Copa UC 2022 y
-  lineas OCR fragmentadas en multicolumna, reduciendo clubes basura antes de
-  aplicar aliases, y repara edad adulta duplicada/parcialmente segmentada antes
-  del club sin recurrir a alias. Los formatos abreviados de club en Copa UC
-  2022, Torneo Apertura 2022 y LQBLO 2023 quedan validados en scratch sin carga.
-- La curacion incremental de `club_alias.csv` debe seguir siendo explicita y
-  revisable. Tras ordenar el archivo por `canonical_name`, aplicar aliases
-  curados actuales, aplicar los 42 grupos fuertes como aliases explicitos y
-  conservar `A84` como codigo fuente, la simulacion local vigente del manifest
-  congelado bajo a 199 filas esperadas en `core.club` despues de la curacion por
-  atleta-ano y la revision manual de variantes logicas. La evidencia vigente es
-  `fchmn_historical_2022_2026_expected_core_club_audit_after_current_aliases_20260422_v10_manual_review_aliases.json`.
-- "Sin grupos fuertes pendientes" solo describe la compuerta por similitud de
-  nombre vigente. Para detectar relaciones no capturadas por esa regla y validar
-  aliases ya aplicados, usar `backend/scripts/audit_club_athlete_year_overlap.py`,
-  que cruza atletas por ano de competencia sin cargar a core. La corrida
-  corregida `v2_cross_competition` del 2026-04-22 cuenta como evidencia positiva
-  solo atletas compartidos entre competencias distintas del mismo ano, excluye
-  solapes dentro de una misma competencia y encontro 79 pares candidatos con al
-  menos 2 atleta-anos compartidos, 40 conflictos intra-competencia excluidos y
-  90 grupos de aliases con multiples variantes raw. Tras aplicar 30 aliases
-  seguros desde esa bandeja curada, expandir 7 relaciones hacia canonicals ya
-  existentes, aplicar las 6 relaciones restantes curadas por el usuario y
-  colapsar aliases que apuntaban a canonicals antiguos, la corrida
-  `v7_collapsed_canonical_groups` bajo a 31 pares candidatos, mantuvo 40
-  conflictos intra-competencia excluidos y dejo 96 grupos de aliases con
-  multiples variantes raw. Esos 31 pares fueron revisados manualmente y se
-  descartan como insumo de alias porque no tienen relacion nominal suficiente y
-  corresponden a cambios de club; no deben reabrirse salvo nueva evidencia
-  externa o correccion de parser/fuente.
-- Antes de recargar core, auditar nombres de atletas con
-  `backend/scripts/audit_athlete_names.py`. Evidencia vigente:
-  `fchmn_historical_2022_2026_athlete_name_audit_20260422_v8_rivas_verified.json`,
-  con 2 filas sospechosas restantes, ambas del caso fuente `Rojas, 2`, que se
-  conserva sin limpieza automatica.
-- Desde 2026-04-23, la curaduria de nombres de atletas dejo de empujarse solo
-  al parser. La etapa nueva y separada es
-  `backend/scripts/curate_athlete_names.py`: consume manifests de carpetas
-  parseadas, agrupa variantes OCR por firma robusta de nombre y propone
-  reemplazos auditables pre-load sin tocar parser ni cargar a core. No aplica
-  semejanza de nombre por si sola: requiere mismo `birth_year`, mismo
-  `club_key` y mismo genero. La evidencia conservadora vigente es
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.json`
-  y su CSV asociado, con 180 grupos contextuales de variantes y 38 reemplazos
-  propuestos.
-- La salida de "mismo nombre" no debe tratarse como duplicados pendientes. Usar
-  `backend/scripts/audit_expected_athlete_identity.py` sobre el expected
-  `core.athlete` curado para clasificar los grupos. Con evidencia por fuente,
-  el auditor aplica 12 correcciones conservadoras de `birth_year` en casos
-  mismo nombre/genero/club con diferencia de 1 ano y una fuente contra varias,
-  y consolida 146 atletas sin ano cuando existe candidato unico por mismos
-  tokens de nombre, mismo genero y mismo club. El preview vigente queda en 5556
-  filas esperadas, con 15 filas aun sin `birth_year` y 159 grupos con mismo
-  nombre normalizado. La bandeja posterior
-  `fchmn_historical_2022_2026_athlete_partial_name_candidates_after_identity_consolidation_20260424.csv`
-  lista 385 pares para revision humana por segundo nombre/apellido o nombre
-  parcial dentro del mismo genero, ano y club; no aplicarla automaticamente. La
-  primera iteracion humana marco 364 `merge` y 21 `needs_source_review`; al
-  aplicar solo esos merges, el preview bajo a 5221 filas, los grupos de mismo
-  nombre normalizado bajaron a 131. La primera bandeja iter2 fue demasiado
-  estrecha; la vigente es
-  `fchmn_historical_2022_2026_athlete_partial_name_decisions_review_iter2_broad_20260424.csv`,
-  con 129 candidatos que incluyen iniciales compatibles y relaciones cross-club
-  con mismo genero y `birth_year`. La revision parcial de esa bandeja marco 26
-  `merge` y 23 `needs_source_review`; al aplicar solo los merges, el preview
-  bajo a 5203 filas. Los cross-club marcados como merge solo canonizan nombres
-  bajo el modelo actual; no eliminan la separacion fisica por club en
-  `core.athlete`.
-- El 2026-04-25 se materializaron esas decisiones en copias curadas de los 61
-  documentos locales: `fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`
-  apunta a `backend/data/raw/results_csv/fchmn_curated_20260425/` y quedo
-  validado sin `--load` con `state_counts.validated = 61`. La materializacion
-  actual aplica tambien reparaciones deterministicas de residuos OCR conocidos
-  en `athlete.csv`, `result.csv` y `relay_swimmer.csv`, incluso cuando una regla
-  contextual trae un nombre canonico aun contaminado. Tambien resuelve cadenas
-  de decisiones manuales (`Acevedo, Luis` -> `Acevedo, Luis A` ->
-  `Acevedo, Luis Alberto`) y aplica reglas de identidad univocas por
-  `old_key`/genero/`birth_year` fuera del club exacto cuando corresponde, para
-  cubrir alias de club y relevos. Para la proxima carga explicita usar este
-  manifest curado, no el congelado original.
-- El pipeline de carga ahora usa la misma clave normalizada de atleta para
-  deduplicar `core.athlete`, actualizar `birth_year` y enlazar
-  `result`/`relay_result_member`. Esto permite que las decisiones manuales
-  materializadas en los CSVs curados entren a core sin perder matches por
-  diferencias de acento o puntuacion entre documentos.
-- La materializacion pre-load tambien canoniza nombres en orden
-  `Nombre Apellido` a `Apellido, Nombre` cuando no hay coma ni digitos. Esto
-  cubre el caso `resultados-torneo-apertura-master-2023-3.pdf`. Ademas corrige
-  comas invertidas respaldadas por corpus y contexto, como `Adriana, Herrera`
-  -> `Herrera, Adriana`. La auditoria directa posterior no encuentra nombres
-  contaminantes conocidos, `ñ ñ`, vocal+vocal acentuada ni atletas sin coma en
-  los 61 documentos curados.
-- El 2026-04-28 se corrigio en la materializacion pre-load el caso de Copa UC
-  2022 donde ocho filas de `result.csv` heredaban evento masculino desde layout
-  multicolumna/OCR, pero correspondian a atletas femeninas ya observadas en el
-  mismo documento. La nueva materializacion descarta esos ocho residuos antes
-  de carga y el manifest curado queda nuevamente `validated = 61` sin `--load`.
-- El 2026-05-01 el parser subio a `0.1.17` para corregir tiempos imposibles
-  cargados como 1-9 segundos: algunas filas HY-TEK sin seed real leian los
-  puntos como `result_time_text`, y un split Quadathlon venia con un digito OCR
-  faltante. En la misma revision se corrigieron `seed_time` sospechosos por
-  tokens numericos de club desplazados antes de `NT` o antes de dos tiempos
-  reales; cuando una prueba de 100m o mas quedaba con seed bajo 25 segundos sin
-  evidencia suficiente, el seed se limpio de forma conservadora. La revision de
-  puntajes agrego compuerta para `points` sin posicion y valores sobre maximo
-  esperable (9 individual, 18 relevo), limpiando tokens post-DQ o exhibicion que
-  no son puntaje cargable. Se reparsearon los documentos afectados, se
-  rematerializo el manifest curado y quedo `validated = 61` sin `--load`; la
-  base cargada actualmente conserva esos errores hasta una recarga controlada.
-- `run_results_batch.py` ahora trata esos residuos de nombres como compuerta
-  dura antes de carga: si reaparecen en `athlete.csv`, `result.csv` o
-  `relay_swimmer.csv`, el documento queda `requires_review` aunque los CSVs
-  estructurales sean validos.
-- El 2026-04-28 se revisaron duplicados por variacion de club sobre el manifest
-  curado materializado. La auditoria `audit_club_athlete_year_overlap.py` bajo
-  de 33 a 32 pares candidatos despues de colapsar aliases transitivos en
-  `run_pipeline_results.py`; el caso corregido fue
-  `Vitacura Deportes -> Deportes Vitacura -> Master Vitacura`. Quedan como
-  revision humana, no merge automatico, `Bswim`/`Master Vitacura` y
-  `Club Master Vamos por la Natac`/`Venimos por la Natacion`.
-
-No implementado todavia:
-
-- Memoria persistente tipo Engram.  https://github.com/Gentleman-Programming/engram 
-- Skills de `gentle-ai`. https://github.com/Gentleman-Programming/gentle-ai 
-- MCP externo para memoria.
-- Orquestacion multiagente.
-- Persistencia explicita de estado de batch en tabla operativa propia.
-
-La metodologia del curso se esta aplicando manualmente: Plan Mode, SDD, contratos, tests, docs vivas y human-in-the-loop. Las herramientas Gentleman/Engram quedan como fase posterior, no como dependencia actual.
+- **Fase activa**: Fase 4, scraper y batch runner con compuertas de calidad.
+- El parser soporta PDFs HY-TEK y Swim It Up, generando CSVs que pasan compuertas estrictas.
+- El proceso ELT (Extract, Load, Transform) está separado y asegurado mediante manifests `.jsonl`.
+- `run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin usar `--load` automáticamente.
 
 ## Prompt recomendado para retomar
 
-Usar este texto al iniciar una nueva conversacion. 
+Usar este texto al iniciar una nueva conversación:
 
 ```text
-Lee primero implementation_plan.md, backend/docs/ai_workflow.md,
-backend/docs/fchmn_results_validation.md y backend/docs/pre_load_checklist.md.
-Luego revisa git status y los docs/scripts relevantes antes de proponer cambios.
-Continua segun la metodologia acordada: diagnostico, propuesta corta, patch
-minimo, tests, git status y propuesta de commit.
-No saltes fases del implementation_plan.md.
-Si hay cambios locales del usuario, respetalos y trabaja alrededor de ellos.
-Explica el que, el por que, el donde y lo aprendido de cada cambio.
-Fase activa: Fase 4. No cargues a core ni uses --load salvo pedido explicito.
+Lee primero implementation_plan.md, backend/README.md, backend/docs/ai_workflow.md y AGENTS.md.
+Luego revisa git status y los scripts relevantes antes de proponer cambios.
+Continúa según la metodología acordada: diagnóstico, propuesta corta, patch mínimo, tests, git status y propuesta de commit.
+Si hay cambios locales del usuario, respétalos y trabaja alrededor de ellos.
+Explica el qué, el por qué, el dónde y lo aprendido de cada cambio.
+Fase activa: Fase 4. No cargues a core ni uses --load salvo pedido explícito.
 
-Contexto vigente:
-- El cierre operativo inicial se acoto a formatos 2022-2026.
-- Los formatos pre-2022 quedan como backlog legacy.
-- La evidencia operativa vigente esta resumida en backend/docs/fchmn_results_validation.md.
-- El manifest local congelado vigente es
-  backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl,
-  validado sin --load con 61 documentos y competition_scope=fchmn_local.
-- Los 61 parseos locales vigentes viven en rutas canonicas
-  `backend/data/raw/results_csv/fchmn_auto/<anio>/...`; la base fue parser
-  `0.1.16`, con documentos reparseados a `0.1.17` por correccion de
-  `result_time` y `seed_time` imposibles. Usar como evidencia vigente de carga
-  candidata el manifest curado materializado y validado sin `--load`.
-- Copa Cordillera / Dual Internacional pertenece al circuito master FCHMN,
-  incluyendo etapa Argentina; quedo incluida en el manifest local congelado.
-- Sudamericanos deben tratarse como flujo separado y no mezclarse
-  automaticamente con el manifest local principal; ver manifest y validacion
-  separados en backend/docs/fchmn_results_validation.md.
-- No usar keywords como compuerta final de carga.
-- Antes de recargar core, usar como evidencia vigente de nombres de atletas
-  `backend/scripts/curate_athlete_names.py` sobre el manifest scratch o
-  congelado vigente; la evidencia inicial queda en
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_athlete_name_curation_20260424.json`.
-  Mantener `audit_athlete_names.py` como compuerta diagnostica de sospechosos
-  y usar la curaduria separada para consolidar variantes OCR antes del load.
-  Luego usar `audit_expected_athlete_identity.py` para aplicar correcciones
-  conservadoras de `birth_year`, consolidar candidatos sin ano con contexto
-  unico y generar la bandeja de nombres parciales/extendidos.
-
-Si la conversacion retoma una carga o recarga, seguir backend/docs/pre_load_checklist.md
-sin saltar backup, wipe controlado, summary auditable y validacion post-load.
-Si no hay pedido explicito de carga, mantenerse en diagnostico, parser, curaduria
-o documentacion sin usar --load.
+Si la conversación retoma una carga o recarga, sigue backend/docs/pre_load_checklist.md sin saltar backup, wipe controlado y validación post-load.
 ```
 
 ## Siguiente paso sugerido
 
-Fase 4 quedo avanzada con contrato, scraper de apuntamiento, descarga separada,
-parseo automatico previo a validacion, carga explicita protegida por compuertas,
-resumen JSON auditable opcional, manifest local de multiples documentos,
-auditoria local de brechas y freezer de manifests validados. El manifest
-soporta carpetas parseadas y PDFs locales (`pdf` o `pdf_path`) y conserva
-`source_url` para trazabilidad.
-
-Proximo objetivo sugerido:
-
-- Mantener descarga, manifest, parseo, validacion y carga separados.
-- Usar el runbook `backend/docs/fchmn_results_validation.md` como resumen
-  vigente de evidencia y artefactos, evitando volver a expandir cronologias
-  intermedias en `ai_workflow.md`.
-- Mantener `fchmn_historical_2022_2026_frozen_local_20260421.jsonl` como
-  manifest local congelado de referencia y el flujo Sudamericano separado.
-- Para duplicados de club, usar la auditoria sobre el manifest curado
-  materializado y tratar los pares restantes como bandeja de revision humana,
-  no como aliases automaticos.
-- Si se retoma una carga explicita, seguir `backend/docs/pre_load_checklist.md`:
-  verificar estado real de staging/resultados/trazabilidad, preservar `pool` y
-  calendario planificado, usar el manifest curado materializado si aplica,
-  ejecutar `--load` con summary auditable y validar duplicados post-load. Si ya
-  hubo una carga contaminada, preparar backup y wipe controlado antes de
-  recargar, porque la curaduria corrige los CSVs de entrada pero no repara filas
-  existentes en `core.athlete`.
-- Si no se retoma carga, concentrar el trabajo en parser, curaduria y
-  documentacion de Fase 4 sin usar `--load`.
-- En identidad de atletas, priorizar la etapa post-parser/pre-load
-  `curate_athlete_names.py` antes de seguir agregando heuristicas puntuales al
-  parser; volver al parser solo para formatos, lineas no parseadas o layouts
-  donde falte evidencia suficiente para curar por variantes. Revisar despues la
-  bandeja de nombres parciales/extendidos; si se acepta una relacion, debe
-  quedar como consolidacion auditable antes de simular otra vez `core.athlete`.
-  Este paso es iterativo: aplicar solo `decision=merge`, regenerar preview y
-  emitir una nueva bandeja hasta que los candidatos restantes sean claramente
-  `keep_separate` o `needs_source_review`.
-- Diseñar automatizacion futura para detectar PDFs nuevos o cambios de checksum,
-  validar y reportar sin cargar automaticamente.
-- No crear tablas nuevas sin una migracion explicita.
+- Si se retoma una carga explícita, seguir `backend/docs/pre_load_checklist.md`: verificar estado real, ejecutar `--load` con summary auditable y validar duplicados.
+- En identidad de atletas, priorizar la etapa post-parser/pre-load `curate_athlete_names.py` antes de seguir agregando heurísticas puntuales al parser.
+- Diseñar automatización futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automáticamente.
+- No crear tablas nuevas sin una migración explícita.
