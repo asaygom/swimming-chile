@@ -30,6 +30,34 @@ OCR_VOWEL_RESIDUE_RE = re.compile(r"([aeiouAEIOUáéíóúüÁÉÍÓÚÜ])([áé
 OCR_SPLIT_ENYE_RE = re.compile(r"(?:ñ\s+ñ|n\s+ñ|ñ\s+n)", re.IGNORECASE)
 OCR_ORPHAN_VOWEL_FRAGMENT_RE = re.compile(r"\b([AEIOUaeiou])\s+([a-zñ])")
 EVENT_DISTANCE_RE = re.compile(r"\b(\d+)\s+(?:LC|SC)\s+Meter\b", re.IGNORECASE)
+FUZZY_IDENTITY_DECISION_COLUMNS = [
+    "decision",
+    "suggested_canonical_full_name",
+    "review_hint",
+    "candidate_reason",
+    "gender",
+    "birth_year",
+    "same_club",
+    "left_athlete_id",
+    "left_full_name",
+    "left_club",
+    "left_observations",
+    "left_result_count",
+    "left_relay_count",
+    "right_athlete_id",
+    "right_full_name",
+    "right_club",
+    "right_observations",
+    "right_result_count",
+    "right_relay_count",
+    "surname_similarity",
+    "given_similarity",
+    "surname_edit_distance",
+    "left_result_clubs",
+    "left_relay_clubs",
+    "right_result_clubs",
+    "right_relay_clubs",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,6 +105,12 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=[],
         help="Optional reviewed gender corrections CSV with full_name, birth_year and gender.",
+    )
+    parser.add_argument(
+        "--fuzzy-identity-decisions-csv",
+        action="append",
+        default=[],
+        help="Optional reviewed fuzzy identity CSV. Only decision=merge rows are applied.",
     )
     parser.add_argument("--json", action="store_true", help="Print JSON summary to stdout.")
     return parser.parse_args()
@@ -366,12 +400,36 @@ def write_csv(path: Path, rows: Sequence[dict], fieldnames: Sequence[str]) -> No
 
 
 def read_dict_rows(path: Path) -> List[dict]:
-    text = path.read_text(encoding="utf-8-sig")
+    for encoding in ("utf-8-sig", "cp1252"):
+        try:
+            text = path.read_text(encoding=encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        text = path.read_text(encoding="utf-8-sig")
     if not text.strip():
         return []
     first_line = text.splitlines()[0] if text.splitlines() else ""
     delimiter = ";" if first_line.count(";") > first_line.count(",") else ","
-    return list(csv.DictReader(text.splitlines(), delimiter=delimiter))
+    rows = text.splitlines()
+    reader = csv.reader(rows, delimiter=delimiter)
+    first_row = next(reader, [])
+    normalized_first = [normalize_match_text(value) or "" for value in first_row]
+    has_header = "decision" in normalized_first and (
+        "suggested_canonical_full_name" in normalized_first
+        or "canonical_full_name" in normalized_first
+        or "shorter_full_name" in normalized_first
+    )
+    if has_header:
+        return list(csv.DictReader(rows, delimiter=delimiter))
+    if len(first_row) == len(FUZZY_IDENTITY_DECISION_COLUMNS):
+        return [dict(zip(FUZZY_IDENTITY_DECISION_COLUMNS, first_row))] + [
+            dict(zip(FUZZY_IDENTITY_DECISION_COLUMNS, row))
+            for row in reader
+            if row
+        ]
+    return list(csv.DictReader(rows, delimiter=delimiter))
 
 
 def ordered_name_key(value: Optional[str]) -> str:
@@ -446,6 +504,38 @@ def load_gender_corrections(path: Path) -> List[dict]:
                 {
                     "name_key": ordered_name_key(name),
                     "birth_year": birth_year,
+                    "gender": gender,
+                }
+            )
+    return rows
+
+
+def load_fuzzy_identity_decisions(path: Path) -> List[dict]:
+    rows: List[dict] = []
+    if not path.exists():
+        raise FileNotFoundError(path)
+    for row in read_dict_rows(path):
+        decision = normalize_match_text(row.get("decision")) or ""
+        if decision != "merge":
+            continue
+        canonical_name = clean_extracted_text(
+            row.get("suggested_canonical_full_name") or row.get("canonical_full_name")
+        )
+        birth_year = normalize_birth_year(row.get("birth_year"))
+        gender = normalize_match_text(row.get("gender")) or ""
+        if not canonical_name or not birth_year:
+            continue
+        for field in ("left_full_name", "right_full_name"):
+            old_name = clean_extracted_text(row.get(field))
+            if not old_name or ordered_name_key(old_name) == ordered_name_key(canonical_name):
+                continue
+            rows.append(
+                {
+                    "old_key": ordered_name_key(old_name),
+                    "new_name": canonical_name,
+                    "new_key": ordered_name_key(canonical_name),
+                    "birth_year": birth_year,
+                    "club_key": "",
                     "gender": gender,
                 }
             )
@@ -637,6 +727,10 @@ def load_materialization_rules(
     for decisions_csv in args.partial_name_decisions_csv:
         partial_rules.extend(load_partial_name_consolidations(resolve_path(decisions_csv)))
     partial_rules = resolve_partial_name_rule_chains(partial_rules)
+    fuzzy_identity_rules = []
+    for decisions_csv in getattr(args, "fuzzy_identity_decisions_csv", []):
+        fuzzy_identity_rules.extend(load_fuzzy_identity_decisions(resolve_path(decisions_csv)))
+    fuzzy_identity_rules = resolve_partial_name_rule_chains(fuzzy_identity_rules)
     gender_correction_rules = []
     for gender_corrections_csv in getattr(args, "gender_corrections_csv", []):
         gender_correction_rules.extend(load_gender_corrections(resolve_path(gender_corrections_csv)))
@@ -647,6 +741,7 @@ def load_materialization_rules(
         "missing_birth_year_rules": missing_rules,
         "partial_name_rules": partial_rules,
         "partial_name_identity_rules": build_partial_name_identity_rules(partial_rules),
+        "fuzzy_identity_rules": fuzzy_identity_rules,
         "gender_correction_rules": gender_correction_rules,
         "comma_order_rules": comma_order_rules,
         "comma_order_identity_rules": build_comma_order_identity_rules(comma_order_rules),
@@ -796,6 +891,14 @@ def apply_athlete_curations_to_df(
                     counts["partial_name_identity_consolidations"] += 1
                 break
 
+        for rule in rules.get("fuzzy_identity_rules", []):
+            if _identity_rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                counts["fuzzy_identity_consolidations"] += 1
+                break
+
         repaired_context_name = repair_known_ocr_name_residue(context["name"])
         if repaired_context_name and repaired_context_name != context["name"]:
             output.at[index, name_column] = repaired_context_name
@@ -820,6 +923,13 @@ def apply_athlete_curations_to_df(
                         counts["partial_name_missing_birth_year_consolidations"] += 1
                     else:
                         counts["partial_name_identity_consolidations"] += 1
+                    break
+            for rule in rules.get("fuzzy_identity_rules", []):
+                if _identity_rule_matches_context(rule, context):
+                    output.at[index, name_column] = rule["new_name"]
+                    context["name"] = rule["new_name"]
+                    context["name_key"] = rule["new_key"]
+                    counts["fuzzy_identity_consolidations"] += 1
                     break
 
     return output, dict(counts)

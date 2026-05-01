@@ -127,6 +127,14 @@ Esta etapa no modifica el parser ni carga a core. Sirve para consolidar
 variantes tipo `Goámez/Goémez -> Gomez` antes de una recarga. La semejanza nominal no se
 usa sola: requiere mismo `birth_year`, mismo `club_key` y mismo género.
 
+La materialización vigente 20260501 agrega decisiones manuales de identidad
+fuzzy revisadas desde
+`backend/data/raw/batch_summaries/fchmn_core_athlete_fuzzy_identity_candidates_20260501_revas.csv`.
+Solo se aplican filas con `decision=merge`; las filas en blanco quedan como
+pendientes. El manifest resultante es
+`backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260501.jsonl`
+y valida 61/61 sin `--load`.
+
 ---
 
 ## 7. Carga a BD (Load Explicito)

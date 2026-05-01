@@ -88,5 +88,9 @@ Si la conversación retoma una carga o recarga, sigue backend/docs/pre_load_chec
 
 - Si se retoma una carga explícita, seguir `backend/docs/pre_load_checklist.md`: verificar estado real, ejecutar `--load` con summary auditable y validar duplicados.
 - En identidad de atletas, priorizar la etapa post-parser/pre-load `curate_athlete_names.py` antes de seguir agregando heurísticas puntuales al parser.
+- La materialización vigente para FCHMN local 2022-2026 es
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260501.jsonl`.
+  Incluye decisiones manuales fuzzy con `decision=merge`, overrides de LQBLO
+  2023 y Copa Cordillera 2025, y valida 61/61 sin `--load`.
 - Diseñar automatización futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automáticamente.
 - No crear tablas nuevas sin una migración explícita.

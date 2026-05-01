@@ -219,6 +219,97 @@ def test_load_gender_corrections_accepts_reviewed_csv():
     assert rules == [{"name_key": "molero vianny", "birth_year": "1990", "gender": "female"}]
 
 
+def test_load_fuzzy_identity_decisions_accepts_headerless_semicolon_cp1252_csv():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        decisions_path = tmp_dir / "fuzzy_decisions.csv"
+        row = [
+            "merge",
+            "Zonza, Marcela",
+            "same_club_high_confidence",
+            "surname_edit_distance_le1_first_given_compatible",
+            "female",
+            "1979",
+            "yes",
+            "4635",
+            "Zonsa, Marcela",
+            "Fullmar Vi\u00f1a del Mar",
+            "2",
+            "2",
+            "0",
+            "1",
+            "Zonza, Marcela",
+            "Delfines de Villa Alemana",
+            "52",
+            "50",
+            "2",
+            "800",
+            "1000",
+            "1",
+            "Fullmar Vi\u00f1a del Mar",
+            "",
+            "Delfines de Villa Alemana",
+            "Delfines de Villa Alemana",
+        ]
+        decisions_path.write_text(";".join(row) + "\n", encoding="cp1252")
+
+        rules = curate.load_fuzzy_identity_decisions(decisions_path)
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    assert rules == [
+        {
+            "old_key": "zonsa marcela",
+            "new_name": "Zonza, Marcela",
+            "new_key": "zonza marcela",
+            "birth_year": "1979",
+            "club_key": "",
+            "gender": "female",
+        }
+    ]
+
+
+def test_fuzzy_identity_rules_apply_by_birth_year_and_gender_without_club_lock():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Zonsa, Marcela",
+                "club_name": "Fullmar Vi\u00f1a del Mar",
+                "gender": "female",
+                "birth_year": "1979",
+            },
+            {
+                "full_name": "Zonsa, Marcela",
+                "club_name": "Fullmar Vi\u00f1a del Mar",
+                "gender": "female",
+                "birth_year": "1980",
+            },
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "fuzzy_identity_rules": [
+            {
+                "old_key": "zonsa marcela",
+                "new_name": "Zonza, Marcela",
+                "new_key": "zonza marcela",
+                "birth_year": "1979",
+                "club_key": "",
+                "gender": "female",
+            }
+        ],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "full_name"] == "Zonza, Marcela"
+    assert curated.loc[1, "full_name"] == "Zonsa, Marcela"
+    assert counts == {"fuzzy_identity_consolidations": 1}
+
+
 def test_partial_name_rules_chain_and_apply_by_identity_when_unambiguous():
     rules = {
         "ocr_name_rules": [],

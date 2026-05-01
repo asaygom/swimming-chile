@@ -16,7 +16,7 @@ El proceso está estrictamente desacoplado para asegurar calidad e idempotencia:
 1. **Scraping** (`scrape_fchmn.py`): Descubre URLs y genera un JSONL. No descarga, no parsea, no carga.
 2. **Download** (`download_manifest_pdfs.py`): Descarga PDFs y genera hashes. No parsea, no carga.
 3. **Parseo** (`parse_results_pdf.py`): Convierte PDFs (HY-TEK / Swim It Up) a CSVs Raw (`club.csv`, `athlete.csv`, `result.csv`, etc.). No decide qué cargar.
-4. **Curaduría** (`curate_athlete_names.py`): Resuelve variantes OCR y consolida alias de atletas pre-load sobre los CSVs.
+4. **Curaduría** (`curate_athlete_names.py`): Resuelve variantes OCR y consolida alias de atletas pre-load sobre los CSVs, incluyendo decisiones manuales de identidad fuzzy revisadas con `decision=merge`.
 5. **Validación** (`run_results_batch.py` sin `--load`): Revisa CSVs y aplica compuertas de calidad. Genera un Summary.
 6. **Carga a Core** (`run_results_batch.py --load`): Solo inserta a la BD PostgreSQL si el lote de validación (`manifest.jsonl`) está congelado y `validated`, y el `competition_scope` coincide.
 

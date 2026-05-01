@@ -6,9 +6,9 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 
 ### Estado operativo vigente
 - Manifest local curado vigente para carga FCHMN 2022-2026:
-  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260501.jsonl`.
 - Carpeta materializada asociada:
-  `backend/data/raw/results_csv/fchmn_curated_20260425/`.
+  `backend/data/raw/results_csv/fchmn_curated_20260501/`.
 - Evidencia de validacion sin carga vigente:
   `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_curated_validation_20260501.json`,
   con `state_counts.validated = 61`.
@@ -35,6 +35,11 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - LQBLO 2023 no era un caso sin nomina de relevos: el PDF trae integrantes en
   continuaciones posicionales dentro del layout multicolumna. Parser `0.1.19`
   extrae esas postas sin mezclar nombres de otros equipos o categorias.
+- La auditoria post-load de identidad fuzzy genero una bandeja revisada:
+  `backend/data/raw/batch_summaries/fchmn_core_athlete_fuzzy_identity_candidates_20260501_revas.csv`.
+  `curate_athlete_names.py` aplica solo filas `decision=merge`; las filas en
+  blanco quedan como pendientes. La materializacion 20260501 consolido esas
+  decisiones y valido 61/61 sin `--load`.
 
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).
