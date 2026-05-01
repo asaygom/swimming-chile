@@ -96,6 +96,24 @@ def test_validate_input_dir_requires_review_for_implausibly_short_valid_times():
     assert any(issue.issue_key == "result_implausibly_short_result_time" for issue in result.issues)
 
 
+def test_validate_input_dir_requires_review_for_implausibly_short_relay_times():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_relay_time_quality_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "relay_team.csv").write_text(
+            "event_name,relay_team_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,points,status,source_id,page_number,line_number\n"
+            'mixed 120-159 200 SC Meter freestyle_relay,Club A,1,"2:00,32",120320,"18,00",18000,,valid,1,1,15\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    assert result.state == "requires_review"
+    assert any(issue.issue_key == "relay_team_implausibly_short_result_time" for issue in result.issues)
+
+
 def test_validate_input_dir_requires_review_for_implausibly_short_seed_time():
     input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_seed_quality_{uuid.uuid4().hex}"
     try:

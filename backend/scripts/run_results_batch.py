@@ -47,6 +47,7 @@ EVENT_DISTANCE_RE = re.compile(r"\b(\d+)(?:x\d+)?\s+(?:LC|SC)\s+Meter\b", re.IGN
 DEFAULT_DEBUG_THRESHOLD = 0.20
 DEFAULT_REQUIRED_COMPETITION_SCOPE = "fchmn_local"
 MIN_VALID_RESULT_TIME_MS = 10000
+MIN_VALID_RELAY_RESULT_TIME_MS = 25000
 MAX_INDIVIDUAL_POINTS = 9.0
 MAX_RELAY_POINTS = 18.0
 PARSER_SCRIPT = BACKEND_DIR / "scripts" / "parse_results_pdf.py"
@@ -429,18 +430,19 @@ def validate_result_time_quality(data: dict[str, list[dict[str, str]]], issues: 
         rows = data.get(table_key, [])
         if not rows:
             continue
+        min_result_time_ms = MIN_VALID_RELAY_RESULT_TIME_MS if table_key == "relay_team" else MIN_VALID_RESULT_TIME_MS
         impossible_times = 0
         for row in rows:
             status = (row.get("status") or "").strip()
             result_time_ms = parse_int_or_none(row.get("result_time_ms"))
-            if status == "valid" and result_time_ms is not None and result_time_ms < MIN_VALID_RESULT_TIME_MS:
+            if status == "valid" and result_time_ms is not None and result_time_ms < min_result_time_ms:
                 impossible_times += 1
         if impossible_times:
             issues.append(
                 BatchIssue(
                     "error",
                     f"{table_key}_implausibly_short_result_time",
-                    f"{table_key}.csv tiene tiempos validos bajo {MIN_VALID_RESULT_TIME_MS} ms.",
+                    f"{table_key}.csv tiene tiempos validos bajo {min_result_time_ms} ms.",
                     impossible_times,
                 )
             )

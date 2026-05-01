@@ -20,6 +20,9 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
   `seed_time` cuando un token numerico de club queda antes de `NT` o antes de
   dos tiempos reales; para pruebas de 100m o mas, un seed bajo 25 segundos se
   limpia en forma conservadora en vez de inferir un tiempo no observado.
+- En relevos HY-TEK sin seed real, los puntos finales pueden ser dobles
+  (`18,00`, `14,00`, `12,00`, `10,00`). Esos tokens deben guardarse en
+  `points` y no como `result_time_text`.
 
 ## Salidas operativas
 
@@ -61,8 +64,9 @@ Tambien puede generar archivos de trazabilidad/debug:
 - El parser puede omitir parciales/splits de carrera en `debug_unparsed_lines.csv` cuando no son filas de resultado; esto evita bloquear la validacion por lineas auxiliares de HY-TEK.
 - Si una fila con resultado tipo status deja el tiempo de seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`, el parser debe separar `club_name = Club Sparta A C`, `seed_time_text = 49,33` y `result_time_text = DQ`.
 - Ningun resultado `valid` individual o de relevo debe materializarse con
-  `result_time_ms` bajo 10000; esos casos son evidencia de columna corrida,
-  puntos interpretados como tiempo o OCR incompleto.
+  `result_time_ms` bajo el umbral minimo del batch runner; esos casos son
+  evidencia de columna corrida, puntos interpretados como tiempo o OCR
+  incompleto.
 - Ningun `seed_time_ms` individual o de relevo bajo 25000 debe materializarse
   en pruebas de 100m o mas; si la fuente no permite reconstruirlo con evidencia
   de layout, el parser debe dejar el seed vacio.

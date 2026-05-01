@@ -21,6 +21,9 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - La evidencia candidata actual incluye correcciones de `result_time`,
   `seed_time` y `points`: sin resultados validos bajo 10s, sin seeds bajo 25s
   en eventos de 100m o mas, y sin `points` sin posicion o sobre maximo esperado.
+- Tras la revision post-load de relevos, el parser `0.1.17` tambien reclasifica
+  puntos dobles de relevo (`18`, `14`, `12`, `10`) como `points` cuando HY-TEK
+  no trae seed real; el manifest curado queda sin relevos validos bajo 25s.
 
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).

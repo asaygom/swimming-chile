@@ -830,14 +830,14 @@ def normalize_result_status(status, result_time_text):
     return "unknown"
 
 
-def looks_like_hytek_points_as_final(seed_raw: Optional[str], final_raw: Optional[str]) -> bool:
+def looks_like_hytek_points_as_final(seed_raw: Optional[str], final_raw: Optional[str], max_points: int = 9) -> bool:
     seed_time_ms = derive_result_time_ms(seed_raw)
     final_time_ms = derive_result_time_ms(final_raw)
     if seed_time_ms is None or final_time_ms is None:
         return False
     # In HY-TEK rows with no seed, the generic two-time regex can read
-    # "real final time + points" as "seed + final". No master race is <= 9s.
-    return seed_time_ms > 9000 and final_time_ms <= 9000
+    # "real final time + points" as "seed + final".
+    return seed_time_ms > 9000 and final_time_ms <= max_points * 1000
 
 
 def looks_like_hytek_spurious_seed_before_two_times(
@@ -1190,7 +1190,7 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
     seed_raw = normalize_string(m.group("seed"))
     final_raw = normalize_string(m.group("final"))
     points_raw = normalize_string(m.groupdict().get("points"))
-    if points_raw is None and looks_like_hytek_points_as_final(seed_raw, final_raw):
+    if points_raw is None and looks_like_hytek_points_as_final(seed_raw, final_raw, max_points=18):
         points_raw = final_raw
         final_raw = seed_raw
         seed_raw = None

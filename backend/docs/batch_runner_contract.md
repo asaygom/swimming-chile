@@ -152,6 +152,9 @@ Bloquean la carga y dejan el lote en `requires_review`:
 - `result.csv` o `relay_team.csv` traen filas `valid` con `result_time_ms` bajo
   10000. Esos valores son imposibles para el circuito master y suelen indicar
   puntos interpretados como tiempo o split OCR incompleto.
+- En `relay_team.csv`, el umbral minimo es mas estricto: un relevo `valid` bajo
+  25000 ms queda bloqueado, porque suele indicar puntos dobles de relevo
+  (`18`, `14`, `12`, `10`) interpretados como tiempo.
 - `result.csv` o `relay_team.csv` traen `seed_time_ms` bajo 25000 en pruebas de
   100m o mas. En esos casos el seed queda como evidencia sospechosa de columna
   corrida u OCR y debe corregirse o limpiarse antes de cargar.

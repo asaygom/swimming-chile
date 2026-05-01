@@ -532,6 +532,21 @@ def test_parse_relay_team_line_reclassifies_points_as_points_not_final_time():
     assert row.points == "2,00"
 
 
+def test_parse_relay_team_line_reclassifies_relay_points_as_points_not_final_time():
+    row = parser.parse_relay_team_line(
+        "1 Club Atr Valdivia A 2:00,32 18,00",
+        relay_context(),
+        page_number=1,
+        line_number=15,
+    )
+
+    assert row is not None
+    assert row.seed_time_text is None
+    assert row.result_time_text == "2:00,32"
+    assert row.result_time_ms == "120320"
+    assert row.points == "18,00"
+
+
 def test_parse_relay_team_line_drops_unranked_exhibition_points():
     row = parser.parse_relay_team_line(
         "--- Santiago Deporte A 2:15,00 X2:27,46 18",
