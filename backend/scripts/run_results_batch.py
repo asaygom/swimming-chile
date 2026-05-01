@@ -16,8 +16,6 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from natacion_chile.manifest import read_jsonl_manifest_entries
-
-
 REQUIRED_PARSER_OUTPUTS = {
     "club": ["name", "short_name", "city", "region", "source_id"],
     "event": ["competition_id", "event_name", "stroke", "distance_m", "gender", "age_group", "round_type", "source_id"],
@@ -44,9 +42,13 @@ STROKES = {
 STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 VOWEL_PLUS_ACCENTED_VOWEL_RE = re.compile(r"[aeiouAEIOUáéíóúüÁÉÍÓÚÜ][áéíóúüÁÉÍÓÚÜ]")
 SPLIT_ENYE_RE = re.compile(r"(?:ñ\s+ñ|n\s+ñ|ñ\s+n)", re.IGNORECASE)
+EVENT_DISTANCE_RE = re.compile(r"\b(\d+)(?:x\d+)?\s+(?:LC|SC)\s+Meter\b", re.IGNORECASE)
 
 DEFAULT_DEBUG_THRESHOLD = 0.20
 DEFAULT_REQUIRED_COMPETITION_SCOPE = "fchmn_local"
+MIN_VALID_RESULT_TIME_MS = 10000
+MAX_INDIVIDUAL_POINTS = 9.0
+MAX_RELAY_POINTS = 18.0
 PARSER_SCRIPT = BACKEND_DIR / "scripts" / "parse_results_pdf.py"
 PIPELINE_SCRIPT = BACKEND_DIR / "scripts" / "run_pipeline_results.py"
 PROJECT_DIR = BACKEND_DIR.parent
@@ -397,6 +399,106 @@ def validate_athlete_name_quality(data: dict[str, list[dict[str, str]]], issues:
             )
 
 
+def parse_int_or_none(value: str | None) -> int | None:
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return None
+    try:
+        return int(cleaned)
+    except ValueError:
+        return None
+
+
+def parse_float_or_none(value: str | None) -> float | None:
+    cleaned = (value or "").strip().replace(",", ".")
+    if not cleaned:
+        return None
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def event_distance_meters(event_name: str | None) -> int | None:
+    match = EVENT_DISTANCE_RE.search(event_name or "")
+    return int(match.group(1)) if match else None
+
+
+def validate_result_time_quality(data: dict[str, list[dict[str, str]]], issues: list[BatchIssue]) -> None:
+    for table_key in ["result", "relay_team"]:
+        rows = data.get(table_key, [])
+        if not rows:
+            continue
+        impossible_times = 0
+        for row in rows:
+            status = (row.get("status") or "").strip()
+            result_time_ms = parse_int_or_none(row.get("result_time_ms"))
+            if status == "valid" and result_time_ms is not None and result_time_ms < MIN_VALID_RESULT_TIME_MS:
+                impossible_times += 1
+        if impossible_times:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_implausibly_short_result_time",
+                    f"{table_key}.csv tiene tiempos validos bajo {MIN_VALID_RESULT_TIME_MS} ms.",
+                    impossible_times,
+                )
+            )
+
+        impossible_seed_times = 0
+        for row in rows:
+            seed_time_ms = parse_int_or_none(row.get("seed_time_ms"))
+            distance_m = event_distance_meters(row.get("event_name"))
+            if seed_time_ms is not None and distance_m is not None and distance_m >= 100 and seed_time_ms < 25000:
+                impossible_seed_times += 1
+        if impossible_seed_times:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_implausibly_short_seed_time",
+                    f"{table_key}.csv tiene seed_time bajo 25000 ms en pruebas de 100m o mas.",
+                    impossible_seed_times,
+                )
+            )
+
+
+def validate_points_quality(data: dict[str, list[dict[str, str]]], issues: list[BatchIssue]) -> None:
+    table_limits = {"result": MAX_INDIVIDUAL_POINTS, "relay_team": MAX_RELAY_POINTS}
+    for table_key, max_points in table_limits.items():
+        rows = data.get(table_key, [])
+        if not rows:
+            continue
+        points_without_rank = 0
+        points_over_max = 0
+        for row in rows:
+            points_raw = (row.get("points") or "").strip()
+            if not points_raw:
+                continue
+            if parse_int_or_none(row.get("rank_position")) is None:
+                points_without_rank += 1
+            points = parse_float_or_none(points_raw)
+            if points is not None and points > max_points:
+                points_over_max += 1
+        if points_without_rank:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_points_without_rank",
+                    f"{table_key}.csv tiene points en filas sin rank_position.",
+                    points_without_rank,
+                )
+            )
+        if points_over_max:
+            issues.append(
+                BatchIssue(
+                    "error",
+                    f"{table_key}_points_over_max",
+                    f"{table_key}.csv tiene points sobre el maximo esperado ({max_points:g}).",
+                    points_over_max,
+                )
+            )
+
+
 def validate_debug_ratio(input_dir: Path, parsed_rows: int, threshold: float, counts: dict[str, int], issues: list[BatchIssue]) -> None:
     debug_path = input_dir / "debug_unparsed_lines.csv"
     if not debug_path.exists():
@@ -458,6 +560,8 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
     validate_canons(data, issues)
     validate_required_identities(data, issues)
     validate_athlete_name_quality(data, issues)
+    validate_result_time_quality(data, issues)
+    validate_points_quality(data, issues)
     validate_debug_ratio(input_dir, parsed_result_rows, debug_threshold, counts, issues)
 
     state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"

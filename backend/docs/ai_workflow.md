@@ -228,6 +228,18 @@ Evidencia historica:
   multicolumna/OCR, pero correspondian a atletas femeninas ya observadas en el
   mismo documento. La nueva materializacion descarta esos ocho residuos antes
   de carga y el manifest curado queda nuevamente `validated = 61` sin `--load`.
+- El 2026-05-01 el parser subio a `0.1.17` para corregir tiempos imposibles
+  cargados como 1-9 segundos: algunas filas HY-TEK sin seed real leian los
+  puntos como `result_time_text`, y un split Quadathlon venia con un digito OCR
+  faltante. En la misma revision se corrigieron `seed_time` sospechosos por
+  tokens numericos de club desplazados antes de `NT` o antes de dos tiempos
+  reales; cuando una prueba de 100m o mas quedaba con seed bajo 25 segundos sin
+  evidencia suficiente, el seed se limpio de forma conservadora. La revision de
+  puntajes agrego compuerta para `points` sin posicion y valores sobre maximo
+  esperable (9 individual, 18 relevo), limpiando tokens post-DQ o exhibicion que
+  no son puntaje cargable. Se reparsearon los documentos afectados, se
+  rematerializo el manifest curado y quedo `validated = 61` sin `--load`; la
+  base cargada actualmente conserva esos errores hasta una recarga controlada.
 - `run_results_batch.py` ahora trata esos residuos de nombres como compuerta
   dura antes de carga: si reaparecen en `athlete.csv`, `result.csv` o
   `relay_swimmer.csv`, el documento queda `requires_review` aunque los CSVs
@@ -272,10 +284,11 @@ Contexto vigente:
 - El manifest local congelado vigente es
   backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_20260421.jsonl,
   validado sin --load con 61 documentos y competition_scope=fchmn_local.
-- Los 61 parseos locales vigentes ya fueron re-hechos con parser `0.1.16` en
-  rutas canonicas `backend/data/raw/results_csv/fchmn_auto/<anio>/...`; usar
-  como evidencia el summary
-  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_validation_20260423_parser016_canonical.json`.
+- Los 61 parseos locales vigentes viven en rutas canonicas
+  `backend/data/raw/results_csv/fchmn_auto/<anio>/...`; la base fue parser
+  `0.1.16`, con documentos reparseados a `0.1.17` por correccion de
+  `result_time` y `seed_time` imposibles. Usar como evidencia vigente de carga
+  candidata el manifest curado materializado y validado sin `--load`.
 - Copa Cordillera / Dual Internacional pertenece al circuito master FCHMN,
   incluyendo etapa Argentina; quedo incluida en el manifest local congelado.
 - Sudamericanos deben tratarse como flujo separado y no mezclarse

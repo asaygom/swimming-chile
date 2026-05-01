@@ -197,6 +197,20 @@ def test_parse_combined_quadathlon_line_as_four_canon_events():
     assert rows[-1].result_time_text == "31,37"
 
 
+def test_parse_combined_quadathlon_repairs_single_ocr_short_split_from_total():
+    ctx = parser.parse_combined_event_header("Hombres 30-34 Quadathlon", event_number=9000)
+    rows = parser.parse_combined_result_line(
+        "17 Eduardo Carrasco GOURA 2'29'55 36'03 41'50 4'46 31'56",
+        ctx,
+        page_number=4,
+        line_number=19,
+        competition_year=2023,
+    )
+
+    assert [row.result_time_text for row in rows] == ["36,03", "41,50", "40,46", "31,56"]
+    assert rows[2].result_time_ms == "40460"
+
+
 def test_parse_brazil_event_header_and_age_group():
     individual = parser.parse_brazil_event_header("1ª PROVA - 400 METROS MEDLEY FEMININO (13/04/2026)")
     relay = parser.parse_brazil_event_header("35ª PROVA - REVEZAMENTO 4X50 METROS LIVRE MISTO (17/04/2026)")
@@ -279,6 +293,122 @@ def test_parse_individual_result_line_without_seed_fixture():
     assert row.result_time_text == "35,40"
     assert row.result_time_ms == "35400"
     assert row.points is None
+
+
+def test_parse_individual_result_line_reclassifies_points_as_points_not_final_time():
+    row = parser.parse_result_line(
+        "8 Morales, Alonso 29 Master Triton De Rufino 1:22,49 1,00",
+        individual_context(),
+        page_number=1,
+        line_number=30,
+        competition_year=2022,
+    )
+
+    assert row is not None
+    assert row.seed_time_text is None
+    assert row.result_time_text == "1:22,49"
+    assert row.result_time_ms == "82490"
+    assert row.points == "1,00"
+
+
+def test_parse_individual_result_line_drops_spurious_seed_before_nt_seed():
+    row = parser.parse_result_line(
+        "10 Larghi, Stephanie 33 Orinoco Swim 23 NT 4:06,79",
+        individual_context(),
+        page_number=1,
+        line_number=31,
+        competition_year=2025,
+    )
+
+    assert row is not None
+    assert row.club_name == "Orinoco Swim"
+    assert row.seed_time_text == "NT"
+    assert row.seed_time_ms is None
+    assert row.result_time_text == "4:06,79"
+    assert row.result_time_ms == "246790"
+
+
+def test_parse_individual_result_line_shifts_spurious_seed_before_seed_and_final():
+    row = parser.parse_result_line(
+        "14 Pineda, Miguel 29 Orinoco Swim 23 41,00 40,35",
+        individual_context(),
+        page_number=1,
+        line_number=32,
+        competition_year=2025,
+    )
+
+    assert row is not None
+    assert row.seed_time_text == "41,00"
+    assert row.seed_time_ms == "41000"
+    assert row.result_time_text == "40,35"
+    assert row.result_time_ms == "40350"
+    assert row.points is None
+
+
+def test_parse_individual_result_line_shifts_spurious_seed_before_nt_and_final():
+    row = parser.parse_result_line(
+        "5 Veas, Danika 35 Orinoco Swim 23 NT 58,24",
+        individual_context(),
+        page_number=1,
+        line_number=33,
+        competition_year=2025,
+    )
+
+    assert row is not None
+    assert row.club_name == "Orinoco Swim"
+    assert row.seed_time_text == "NT"
+    assert row.seed_time_ms is None
+    assert row.result_time_text == "58,24"
+    assert row.result_time_ms == "58240"
+    assert row.points is None
+
+
+def test_parse_individual_result_line_drops_dsq_trailing_time_as_points():
+    row = parser.parse_result_line(
+        "--- Jaitul, Anay 35 Club Natacion Araucania 1:20.00 DQ 58.80",
+        individual_context(),
+        page_number=1,
+        line_number=37,
+        competition_year=2023,
+    )
+
+    assert row is not None
+    assert row.rank_position is None
+    assert row.seed_time_text == "1:20,00"
+    assert row.result_time_text == "DQ"
+    assert row.status == "dsq"
+    assert row.points is None
+
+
+def test_parse_individual_result_line_drops_unranked_dsq_points():
+    row = parser.parse_result_line(
+        "--- Cuevas, Matias 28 Club Deportivo UC 1:21,22 DQ 9",
+        individual_context(),
+        page_number=17,
+        line_number=46,
+        competition_year=2024,
+    )
+
+    assert row is not None
+    assert row.rank_position is None
+    assert row.status == "dsq"
+    assert row.points is None
+
+
+def test_parse_individual_result_line_clears_implausible_seed_for_long_event():
+    row = parser.parse_result_line(
+        "4 Saavedra, Francisco 30 Goura Swim Team 11,30 1:17,58 5",
+        individual_context(),
+        page_number=1,
+        line_number=33,
+        competition_year=2023,
+    )
+
+    assert row is not None
+    assert row.seed_time_text is None
+    assert row.seed_time_ms is None
+    assert row.result_time_text == "1:17,58"
+    assert row.result_time_ms == "77580"
 
 
 def test_parse_result_line_recovers_seed_time_before_status_result():
@@ -385,6 +515,35 @@ def test_parse_relay_team_line_fixture():
     assert row.result_time_text == "4:22,50"
     assert row.result_time_ms == "262500"
     assert row.points == "18"
+
+
+def test_parse_relay_team_line_reclassifies_points_as_points_not_final_time():
+    row = parser.parse_relay_team_line(
+        "2 Master del Ñielol 2:30,55 2,00",
+        relay_context(),
+        page_number=2,
+        line_number=25,
+    )
+
+    assert row is not None
+    assert row.seed_time_text is None
+    assert row.result_time_text == "2:30,55"
+    assert row.result_time_ms == "150550"
+    assert row.points == "2,00"
+
+
+def test_parse_relay_team_line_drops_unranked_exhibition_points():
+    row = parser.parse_relay_team_line(
+        "--- Santiago Deporte A 2:15,00 X2:27,46 18",
+        relay_context(),
+        page_number=28,
+        line_number=13,
+    )
+
+    assert row is not None
+    assert row.rank_position is None
+    assert row.result_time_text == "X2:27,46"
+    assert row.points is None
 
 
 def test_parse_relay_swimmer_line_fixture():

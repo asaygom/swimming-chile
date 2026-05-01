@@ -381,6 +381,51 @@ Evidencia sin carga:
 Las filas `Rojas, 2` se conservan sin limpieza automatica porque corresponden
 al texto fuente.
 
+## Correccion parser 0.1.17 para tiempos imposibles HY-TEK
+
+Auditoria en `core.result` el 2026-05-01 detecto resultados `valid` con
+`result_time_ms` bajo 10000, principalmente `1,00` a `9,00`. La causa era una
+ambiguedad HY-TEK: filas sin seed real y con puntos al final, por ejemplo
+`... 1:22,49 1,00`, eran leidas como `seed_time = 1:22,49` y
+`result_time = 1,00`. Tambien se detecto un split Quadathlon OCR `4'46` que,
+segun el total de la linea, correspondia a `40,46`.
+
+Patch aplicado:
+
+- `parse_results_pdf.py` `0.1.17` reclasifica puntos finales como `points`
+  cuando el supuesto resultado queda bajo 10 segundos y el token anterior es un
+  tiempo real.
+- En Quadathlon, si un unico split queda bajo 10 segundos y el total permite
+  inferirlo, el parser reconstruye el split desde la suma.
+- Para `seed_time`, `0.1.17` corrige filas HY-TEK donde un token numerico del
+  club queda antes de `NT` o antes de dos tiempos reales. Si una prueba de 100m
+  o mas queda con seed bajo 25 segundos y no hay evidencia suficiente para
+  reconstruirlo, el seed se limpia en vez de inventar un minuto faltante.
+- `run_results_batch.py` bloquea `result.csv` y `relay_team.csv` con filas
+  `valid` bajo 10000 ms.
+- `run_results_batch.py` tambien bloquea `seed_time_ms` bajo 25000 en eventos
+  de 100m o mas.
+- La revision de `points` no usa solo "parece tiempo", porque existen empates
+  con puntajes fraccionarios. La compuerta dura bloquea `points` sin
+  `rank_position` y valores sobre el maximo esperable: 9 en individuales, 18 en
+  relevos.
+
+Evidencia sin carga:
+
+- Se reparsearon los documentos afectados:
+  `resultados-generales-copa-araucania-2022.pdf`,
+  `resultados-copa-recoleta.pdf`,
+  `resultados-i-copa-del-maule-master.pdf`,
+  `resultados-v-copa-araucania.pdf` y
+  `resultados-torneo-apertura-master-2023-3.pdf`.
+- Auditoria local posterior: 0 filas `valid` bajo 10000 ms en `result.csv` y
+  `relay_team.csv` bajo `fchmn_auto` y `fchmn_curated_20260425`; 0 seeds bajo
+  25000 ms en eventos de 100m o mas sobre el manifest curado; 0 filas con
+  `points` sin posicion o sobre maximo en el manifest curado.
+- Manifest curado revalidado sin `--load`:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_curated_validation_20260501.json`,
+  `state_counts.validated = 61`.
+
 Auditoria posterior de `core.club` esperado sin carga:
 
 - despues del fix de parser para `20 Escuela...`, ordenar `club_alias.csv` por

@@ -12,6 +12,14 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
 - Desde parser `0.1.16`, los nombres de atletas y nadadores de relevo corrigen
   artefactos OCR acotados solo cuando hay evidencia de layout o respaldo de
   pruebas individuales. No se reescriben sufijos fuente como `Rojas, 2`.
+- Desde parser `0.1.17`, filas HY-TEK sin seed real que terminan en puntos
+  (`... 1:22,49 1,00`) deben guardar `1:22,49` como `result_time_text` y
+  `1,00` como `points`, no como tiempo de 1 segundo. En Quadathlon, si un unico
+  split OCR queda bajo 10 segundos y el total permite inferirlo, se reconstruye
+  el split desde la suma del total. La misma version corrige desplazamientos de
+  `seed_time` cuando un token numerico de club queda antes de `NT` o antes de
+  dos tiempos reales; para pruebas de 100m o mas, un seed bajo 25 segundos se
+  limpia en forma conservadora en vez de inferir un tiempo no observado.
 
 ## Salidas operativas
 
@@ -52,6 +60,15 @@ Tambien puede generar archivos de trazabilidad/debug:
 - El parser normaliza sufijos de categorias de edad pegados al estilo en encabezados HY-TEK, por ejemplo `Breast 40 a 99 años` o `Medley 120 a 159 años Relay`, sin cambiar el canon de `event.stroke`.
 - El parser puede omitir parciales/splits de carrera en `debug_unparsed_lines.csv` cuando no son filas de resultado; esto evita bloquear la validacion por lineas auxiliares de HY-TEK.
 - Si una fila con resultado tipo status deja el tiempo de seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`, el parser debe separar `club_name = Club Sparta A C`, `seed_time_text = 49,33` y `result_time_text = DQ`.
+- Ningun resultado `valid` individual o de relevo debe materializarse con
+  `result_time_ms` bajo 10000; esos casos son evidencia de columna corrida,
+  puntos interpretados como tiempo o OCR incompleto.
+- Ningun `seed_time_ms` individual o de relevo bajo 25000 debe materializarse
+  en pruebas de 100m o mas; si la fuente no permite reconstruirlo con evidencia
+  de layout, el parser debe dejar el seed vacio.
+- Las filas sin posicion (`---`) con `DQ`/`DNF`/`DNS` o marca de exhibicion `X`
+  no deben conservar puntos aunque el PDF traiga un token numerico al final; ese
+  token no representa puntaje cargable.
 
 ## Fixtures de prueba
 

@@ -78,6 +78,66 @@ def test_validate_input_dir_requires_review_for_athlete_name_residues():
     assert "result_split_enye" in issue_keys
 
 
+def test_validate_input_dir_requires_review_for_implausibly_short_valid_times():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_time_quality_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "result.csv").write_text(
+            "event_name,athlete_name,club_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,age_at_event,birth_year_estimated,points,status,source_id\n"
+            'men 35-39 100 LC Meter freestyle,Juan Perez,Club A,8,,,"1,00",1000,35,1991,,valid,1\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    assert result.state == "requires_review"
+    assert any(issue.issue_key == "result_implausibly_short_result_time" for issue in result.issues)
+
+
+def test_validate_input_dir_requires_review_for_implausibly_short_seed_time():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_seed_quality_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "result.csv").write_text(
+            "event_name,athlete_name,club_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,age_at_event,birth_year_estimated,points,status,source_id\n"
+            'men 35-39 100 LC Meter freestyle,Juan Perez,Club A,8,"23,00",23000,"1:03,21",63210,35,1991,,valid,1\n'
+            'men 35-39 50 LC Meter freestyle,Juan Perez,Club A,8,"41,00",41000,"40,35",40350,35,1991,"39,90",valid,1\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    issue_keys = {issue.issue_key for issue in result.issues}
+    assert result.state == "requires_review"
+    assert "result_implausibly_short_seed_time" in issue_keys
+    assert "result_time_like_points" not in issue_keys
+
+
+def test_validate_input_dir_requires_review_for_impossible_points():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_points_quality_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "result.csv").write_text(
+            "event_name,athlete_name,club_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,age_at_event,birth_year_estimated,points,status,source_id\n"
+            'men 35-39 50 LC Meter freestyle,Juan Perez,Club A,,"41,00",41000,DQ,,35,1991,"39,90",dsq,1\n'
+            'men 35-39 50 LC Meter freestyle,Pedro Perez,Club A,1,"41,00",41000,"40,35",40350,35,1991,"9",valid,1\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    issue_keys = {issue.issue_key for issue in result.issues}
+    assert result.state == "requires_review"
+    assert "result_points_without_rank" in issue_keys
+    assert "result_points_over_max" in issue_keys
+
+
 def test_build_parse_command_uses_current_python_and_parser_args():
     args = Namespace(
         pdf="backend/data/raw/results_pdf/demo.pdf",

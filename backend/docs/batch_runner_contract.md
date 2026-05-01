@@ -149,6 +149,15 @@ Bloquean la carga y dejan el lote en `requires_review`:
   (`Goámez`, `AÁlvarez`, `Lucíá`, `Muüller`) o ene/eñe separada (`Yañ ñez`).
 - `athlete.csv` trae nombres sin formato `Apellido, Nombre`; estos deben
   canonizarse en la etapa pre-load si la fuente viene como `Nombre Apellido`.
+- `result.csv` o `relay_team.csv` traen filas `valid` con `result_time_ms` bajo
+  10000. Esos valores son imposibles para el circuito master y suelen indicar
+  puntos interpretados como tiempo o split OCR incompleto.
+- `result.csv` o `relay_team.csv` traen `seed_time_ms` bajo 25000 en pruebas de
+  100m o mas. En esos casos el seed queda como evidencia sospechosa de columna
+  corrida u OCR y debe corregirse o limpiarse antes de cargar.
+- `points` aparece en filas sin `rank_position`, o supera el maximo de puntaje
+  esperable por fila: 9 en individuales y 18 en relevos. Esto captura tiempos
+  post-DQ o marcas de exhibicion que el parser no debe tratar como puntaje.
 - Se intenta cargar con `--load` sin `competition_scope=fchmn_local` o sin el
   scope requerido por `--required-competition-scope`.
 
@@ -164,6 +173,8 @@ cargas masivas.
 Estas alertas se registran, pero no bloquean por defecto:
 
 - Puntos ausentes.
+- Diferencias finas de puntaje por empates o reglas especiales de reparto,
+  siempre que el valor no supere el maximo y exista posicion observada.
 - `seed_time` ausente.
 - Club inferido para relevos.
 - `birth_year_estimated` ausente cuando no hay edad.

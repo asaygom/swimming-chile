@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.16"
+PARSER_VERSION = "0.1.17"
 
 try:
     import pdfplumber
@@ -830,6 +830,96 @@ def normalize_result_status(status, result_time_text):
     return "unknown"
 
 
+def looks_like_hytek_points_as_final(seed_raw: Optional[str], final_raw: Optional[str]) -> bool:
+    seed_time_ms = derive_result_time_ms(seed_raw)
+    final_time_ms = derive_result_time_ms(final_raw)
+    if seed_time_ms is None or final_time_ms is None:
+        return False
+    # In HY-TEK rows with no seed, the generic two-time regex can read
+    # "real final time + points" as "seed + final". No master race is <= 9s.
+    return seed_time_ms > 9000 and final_time_ms <= 9000
+
+
+def looks_like_hytek_spurious_seed_before_two_times(
+    seed_raw: Optional[str], final_raw: Optional[str], points_raw: Optional[str]
+) -> bool:
+    seed_time_ms = derive_result_time_ms(seed_raw)
+    final_time_ms = derive_result_time_ms(final_raw)
+    points_time_ms = derive_result_time_ms(points_raw)
+    if seed_time_ms is None or final_time_ms is None or points_time_ms is None:
+        return False
+    return seed_time_ms < 25000 and final_time_ms >= 25000 and points_time_ms >= 25000
+
+
+def looks_like_hytek_spurious_seed_before_status_and_final(
+    seed_raw: Optional[str], final_raw: Optional[str], points_raw: Optional[str]
+) -> bool:
+    seed_time_ms = derive_result_time_ms(seed_raw)
+    points_time_ms = derive_result_time_ms(points_raw)
+    final_key = normalize_match_text(final_raw)
+    return (
+        seed_time_ms is not None
+        and seed_time_ms < 25000
+        and final_key in {"nt", "dns", "dnf", "dq", "dsq"}
+        and points_time_ms is not None
+        and points_time_ms >= 25000
+    )
+
+
+def should_keep_status_seed_attached_to_team(seed_raw: Optional[str], final_raw: Optional[str]) -> bool:
+    seed_key = normalize_match_text(seed_raw)
+    final_key = normalize_match_text(final_raw)
+    if not seed_key or not final_key:
+        return False
+    return seed_key == final_key
+
+
+def should_drop_status_trailing_time_as_points(final_raw: Optional[str], points_raw: Optional[str]) -> bool:
+    final_key = normalize_match_text(final_raw)
+    points_time_ms = derive_result_time_ms(points_raw)
+    return final_key in {"dns", "dnf", "dq", "dsq"} and points_time_ms is not None and points_time_ms >= 10000
+
+
+def should_drop_unranked_status_points(rank_raw: str, final_raw: Optional[str]) -> bool:
+    final_key = normalize_match_text(final_raw)
+    final_text = normalize_string(final_raw)
+    return rank_raw.strip() == "---" and (
+        final_key in {"dns", "dnf", "dq", "dsq"} or (isinstance(final_text, str) and final_text.upper().startswith("X"))
+    )
+
+
+def is_implausible_seed_for_distance(seed_time_text: Optional[str], distance_m: int) -> bool:
+    seed_time_ms = derive_result_time_ms(seed_time_text)
+    return distance_m >= 100 and seed_time_ms is not None and seed_time_ms < 25000
+
+
+def format_result_time_ms(result_time_ms: int) -> str:
+    centiseconds = result_time_ms // 10
+    minutes, centiseconds = divmod(centiseconds, 6000)
+    seconds, centis = divmod(centiseconds, 100)
+    if minutes:
+        return f"{minutes}:{seconds:02d},{centis:02d}"
+    return f"{seconds},{centis:02d}"
+
+
+def repair_combined_split_times(total_token: Optional[str], split_times: List[str]) -> List[str]:
+    normalized_splits = [normalize_swim_time_text(raw_time) for raw_time in split_times]
+    total_time_ms = derive_result_time_ms(total_token)
+    split_time_ms = [derive_result_time_ms(raw_time) for raw_time in normalized_splits]
+    short_indexes = [index for index, value in enumerate(split_time_ms) if value is not None and value < 10000]
+    if total_time_ms is None or len(short_indexes) != 1:
+        return [value or raw for value, raw in zip(normalized_splits, split_times)]
+    if any(value is None for index, value in enumerate(split_time_ms) if index not in short_indexes):
+        return [value or raw for value, raw in zip(normalized_splits, split_times)]
+
+    short_index = short_indexes[0]
+    inferred_time_ms = total_time_ms - sum(value or 0 for index, value in enumerate(split_time_ms) if index != short_index)
+    if inferred_time_ms <= 9000:
+        return [value or raw for value, raw in zip(normalized_splits, split_times)]
+    normalized_splits[short_index] = format_result_time_ms(inferred_time_ms)
+    return [value or raw for value, raw in zip(normalized_splits, split_times)]
+
+
 
 def should_skip_line(line: str) -> bool:
     stripped = line.strip()
@@ -905,10 +995,12 @@ def parse_combined_result_line(line: str, ctx: EventContext, page_number: int, l
         return []
 
     split_times = time_tokens[-4:]
+    total_token = None
     if len(time_tokens) > 4:
         total_token = time_tokens[-5]
         if total_token == "-":
-            pass
+            total_token = None
+    split_times = repair_combined_split_times(total_token, split_times)
 
     rank_position: Optional[str] = None
     if tokens and re.fullmatch(r"\d+", tokens[0]):
@@ -1022,12 +1114,31 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
     final_raw = normalize_string(m.group("final"))
     seed_raw = normalize_string(m.group("seed")) if has_seed else None
     team_raw = normalize_string(m.group("team"))
+    points_raw = normalize_string(m.groupdict().get("points"))
+    if has_seed and points_raw is None and looks_like_hytek_points_as_final(seed_raw, final_raw):
+        points_raw = final_raw
+        final_raw = seed_raw
+        seed_raw = None
+        has_seed = False
+    elif has_seed and looks_like_hytek_spurious_seed_before_two_times(seed_raw, final_raw, points_raw):
+        seed_raw = final_raw
+        final_raw = points_raw
+        points_raw = None
+    elif has_seed and looks_like_hytek_spurious_seed_before_status_and_final(seed_raw, final_raw, points_raw):
+        seed_raw = final_raw
+        final_raw = points_raw
+        points_raw = None
+    elif should_drop_status_trailing_time_as_points(final_raw, points_raw):
+        points_raw = None
+    if points_raw is not None and should_drop_unranked_status_points(rank_raw, final_raw):
+        points_raw = None
     if has_seed and seed_raw and derive_result_time_ms(seed_raw) is None and team_raw:
         # Algunos DQ/DNF dejan el seed pegado al club: "Club A 49.33 DQ DQ".
         team_seed_match = TRAILING_TIME_OR_STATUS_RE.match(team_raw)
         if team_seed_match:
             team_raw = team_seed_match.group("team")
-            seed_raw = team_seed_match.group("seed")
+            if should_keep_status_seed_attached_to_team(seed_raw, final_raw):
+                seed_raw = team_seed_match.group("seed")
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
     rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
@@ -1036,6 +1147,8 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
         rank_position = None
 
     seed_time_text = normalize_swim_time_text(seed_raw) if has_seed else None
+    if is_implausible_seed_for_distance(seed_time_text, ctx.distance_m):
+        seed_time_text = None
     seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
     age_at_event = int(m.group("age"))
@@ -1046,8 +1159,6 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
             age_at_event = int(age_team_match.group("age"))
             team_raw = age_team_match.group("team")
     birth_year_estimated = (competition_year - age_at_event) if competition_year is not None else None
-
-    points_raw = normalize_string(m.groupdict().get("points"))
 
     return ParsedResultRow(
         page_number=page_number,
@@ -1078,6 +1189,15 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
     rank_raw = m.group("rank").strip()
     seed_raw = normalize_string(m.group("seed"))
     final_raw = normalize_string(m.group("final"))
+    points_raw = normalize_string(m.groupdict().get("points"))
+    if points_raw is None and looks_like_hytek_points_as_final(seed_raw, final_raw):
+        points_raw = final_raw
+        final_raw = seed_raw
+        seed_raw = None
+    elif should_drop_status_trailing_time_as_points(final_raw, points_raw):
+        points_raw = None
+    if points_raw is not None and should_drop_unranked_status_points(rank_raw, final_raw):
+        points_raw = None
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
     rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
@@ -1086,10 +1206,10 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
         rank_position = None
 
     seed_time_text = normalize_swim_time_text(seed_raw)
+    if is_implausible_seed_for_distance(seed_time_text, ctx.distance_m):
+        seed_time_text = None
     seed_time_ms = derive_result_time_ms(seed_time_text)
     result_time_ms = derive_result_time_ms(normalized_final)
-
-    points_raw = normalize_string(m.groupdict().get("points"))
 
     return ParsedRelayTeamRow(
         page_number=page_number,
