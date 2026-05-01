@@ -26,6 +26,10 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
 - Desde parser `0.1.18`, si un PDF repite exactamente la misma tabla de relevos
   en paginas distintas, `relay_team.csv` y `relay_swimmer.csv` deben conservar
   una sola fila operacional por equipo/nadador observado.
+- Desde parser `0.1.19`, los relevos HY-TEK multicolumna tambien soportan
+  integrantes sin marcadores `1)`/`2)`, cuando aparecen como continuacion
+  posicional del equipo en la misma columna, por ejemplo
+  `Perez, Romulo M31 Correa, Carolina W31`.
 
 ## Salidas operativas
 
@@ -79,6 +83,10 @@ Tambien puede generar archivos de trazabilidad/debug:
 - Los relevos no deben materializar duplicados exactos. Si la misma combinacion
   de evento, equipo, posta, nadador, genero y edad aparece repetida por una
   pagina duplicada del PDF, la salida operacional conserva solo una ocurrencia.
+- En layouts multicolumna, los integrantes de relevo sin marcador explicito se
+  asignan solo al equipo activo de esa columna y hasta completar cuatro postas;
+  no se deben arrastrar nombres desde otro equipo, otra categoria o texto
+  corrido de columnas vecinas.
 
 ## Fixtures de prueba
 

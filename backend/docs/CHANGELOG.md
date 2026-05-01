@@ -32,6 +32,9 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   soporte de correcciones auditables por CSV en `curate_athlete_names.py` para
   resolverlos antes del load, con reglas locales revisadas para Hernandez
   Salvador, Miranda Milanch, Molero Vianny y Orrego Ariel.
+- LQBLO 2023 no era un caso sin nomina de relevos: el PDF trae integrantes en
+  continuaciones posicionales dentro del layout multicolumna. Parser `0.1.19`
+  extrae esas postas sin mezclar nombres de otros equipos o categorias.
 
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).
@@ -40,6 +43,7 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - **0.1.16**: Correcciones menores en nombres de atletas y relevos, validado sobre 97k filas de atletas con sobreescribimientos específicos.
 - **0.1.17**: Corrección de tiempos imposibles en HY-TEK (menores a 10s) que leían los puntos como tiempo o no traían seed real. Bloqueos estrictos para `result.csv` y `relay_team.csv`.
 - **0.1.18**: Deduplicacion operacional de filas exactas de relevos repetidas por paginas duplicadas del PDF y compuerta pre-load para `relay_team.csv`/`relay_swimmer.csv`.
+- **0.1.19**: Soporte para integrantes de relevo en continuaciones posicionales de layouts HY-TEK multicolumna, validado con III Copa LQBLO 2023.
 
 ### Curaduría de Atletas y Alias de Clubes
 - Se automatizó la detección pre-load de errores OCR conocidos en nombres de atletas. 

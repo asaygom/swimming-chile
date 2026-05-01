@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.18"
+PARSER_VERSION = "0.1.19"
 
 try:
     import pdfplumber
@@ -132,6 +132,7 @@ RELAY_SWIMMER_EMBEDDED_NEXT_RE = re.compile(
     r"^(?P<name>.+?)\s+(?P<gender>[WM])(?P<age>\d{2})(?:\d\)|\)\s*\d)\s*(?P<next_name>.+?)(?:\s+(?P<next_gender>[WM])(?P<next_age>\d{1,3})\)?)?$",
     re.IGNORECASE,
 )
+RELAY_CONTINUATION_GENDER_AGE_RE = re.compile(r"\s(?P<gender>[WM])(?P<age>\d{1,3})(?=\s|$)", re.IGNORECASE)
 LETTER_CHARS = "A-Za-zÁÉÍÓÚÜÑáéíóúüñ"
 
 HEADER_SKIP_PATTERNS = [
@@ -1379,6 +1380,50 @@ def parse_relay_swimmer_line(line: str, ctx: EventContext, page_number: int, lin
     return swimmers
 
 
+def parse_relay_swimmer_continuation_line(
+    line: str,
+    ctx: EventContext,
+    page_number: int,
+    line_number: int,
+    relay_team_name: Optional[str],
+    competition_year: Optional[int],
+    starting_leg_order: int,
+) -> List[ParsedRelaySwimmerRow]:
+    if not relay_team_name or starting_leg_order > 4:
+        return []
+    stripped = line.strip()
+    markers = list(RELAY_CONTINUATION_GENDER_AGE_RE.finditer(stripped))
+    if not markers:
+        return []
+
+    swimmers: List[ParsedRelaySwimmerRow] = []
+    segment_start = 0
+    leg_order = starting_leg_order
+    for marker in markers:
+        if leg_order > 4:
+            break
+        swimmer_name = clean_athlete_name(stripped[segment_start:marker.start()])
+        segment_start = marker.end()
+        if not swimmer_name or "," not in swimmer_name:
+            return []
+        swimmers.append(
+            build_relay_swimmer_row(
+                ctx,
+                page_number,
+                line_number,
+                relay_team_name,
+                competition_year,
+                leg_order,
+                swimmer_name,
+                marker.group("gender").upper(),
+                int(marker.group("age")),
+                stripped,
+            )
+        )
+        leg_order += 1
+    return swimmers
+
+
 def words_to_text(words: List[dict]) -> str:
     return clean_extracted_text(" ".join(str(word.get("text", "")) for word in words)) or ""
 
@@ -1702,6 +1747,7 @@ def parse_hytek_multicolumn_pdf(pdf_path: Path, column_ranges: Optional[List[Tup
         column_ranges = [(0, 205), (205, 405), (405, 620)]
     current_events: Dict[int, Optional[EventContext]] = {index: None for index, _ in enumerate(column_ranges)}
     last_relay_team_names: Dict[int, Optional[str]] = {index: None for index, _ in enumerate(column_ranges)}
+    relay_leg_orders: Dict[int, int] = {index: 1 for index, _ in enumerate(column_ranges)}
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_index, page in enumerate(pdf.pages, start=1):
@@ -1723,6 +1769,7 @@ def parse_hytek_multicolumn_pdf(pdf_path: Path, column_ranges: Optional[List[Tup
                     if event is not None:
                         current_events[column_index] = event
                         last_relay_team_names[column_index] = None
+                        relay_leg_orders[column_index] = 1
                         stats.event_headers_found += 1
                         continue
 
@@ -1736,6 +1783,7 @@ def parse_hytek_multicolumn_pdf(pdf_path: Path, column_ranges: Optional[List[Tup
                         if relay_team is not None:
                             relay_team_rows.append(relay_team)
                             last_relay_team_names[column_index] = relay_team.relay_team_name
+                            relay_leg_orders[column_index] = 1
                             stats.relay_team_rows_found += 1
                             continue
 
@@ -1749,6 +1797,21 @@ def parse_hytek_multicolumn_pdf(pdf_path: Path, column_ranges: Optional[List[Tup
                         )
                         if relay_swimmers:
                             relay_swimmer_rows.extend(relay_swimmers)
+                            relay_leg_orders[column_index] = max(row.leg_order for row in relay_swimmers) + 1
+                            stats.relay_swimmer_rows_found += len(relay_swimmers)
+                            continue
+                        relay_swimmers = parse_relay_swimmer_continuation_line(
+                            line,
+                            current_event,
+                            page_index,
+                            line_number,
+                            last_relay_team_names[column_index],
+                            competition_year,
+                            relay_leg_orders[column_index],
+                        )
+                        if relay_swimmers:
+                            relay_swimmer_rows.extend(relay_swimmers)
+                            relay_leg_orders[column_index] += len(relay_swimmers)
                             stats.relay_swimmer_rows_found += len(relay_swimmers)
                             continue
                     else:

@@ -618,6 +618,37 @@ def test_parse_relay_swimmer_line_fixture():
     assert rows[0].birth_year_estimated == 1991
 
 
+def test_parse_relay_swimmer_continuation_line_assigns_sequential_legs():
+    rows = parser.parse_relay_swimmer_continuation_line(
+        "Perez, Romulo M31 Correa, Carolina W31",
+        relay_mixed_context(),
+        page_number=4,
+        line_number=30,
+        relay_team_name="Ñuñoa A",
+        competition_year=2023,
+        starting_leg_order=1,
+    )
+
+    assert [row.leg_order for row in rows] == [1, 2]
+    assert [row.swimmer_name for row in rows] == ["Perez, Romulo", "Correa, Carolina"]
+    assert [row.gender for row in rows] == ["male", "female"]
+    assert [row.birth_year_estimated for row in rows] == [1992, 1992]
+
+
+def test_parse_relay_swimmer_continuation_line_ignores_rows_without_comma_names():
+    rows = parser.parse_relay_swimmer_continuation_line(
+        "1 Ñuñoa A 4:15,00",
+        relay_mixed_context(),
+        page_number=4,
+        line_number=28,
+        relay_team_name="Ñuñoa A",
+        competition_year=2023,
+        starting_leg_order=1,
+    )
+
+    assert rows == []
+
+
 def test_parse_relay_swimmer_line_splits_embedded_next_marker_after_age():
     rows = parser.parse_relay_swimmer_line(
         "3) Chamorro M, Alejandra Leonor W340) Levrini, Aldo M42",
