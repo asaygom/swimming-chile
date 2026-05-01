@@ -114,6 +114,33 @@ def test_validate_input_dir_requires_review_for_implausibly_short_relay_times():
     assert any(issue.issue_key == "relay_team_implausibly_short_result_time" for issue in result.issues)
 
 
+def test_validate_input_dir_requires_review_for_duplicate_relay_rows():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_relay_duplicates_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "relay_team.csv").write_text(
+            "event_name,relay_team_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,points,status,source_id,page_number,line_number\n"
+            'mixed 120-159 200 SC Meter freestyle_relay,Club A,1,,,"2:00,32",120320,"18",valid,1,24,7\n'
+            'mixed 120-159 200 SC Meter freestyle_relay,Club A,1,,,"2:00,32",120320,"18",valid,1,27,7\n',
+            encoding="utf-8",
+        )
+        (input_dir / "relay_swimmer.csv").write_text(
+            "event_name,relay_team_name,leg_order,swimmer_name,gender,age_at_event,birth_year_estimated,page_number,line_number\n"
+            'mixed 120-159 200 SC Meter freestyle_relay,Club A,1,"Meza, Valentina",female,28,1997,24,8\n'
+            'mixed 120-159 200 SC Meter freestyle_relay,Club A,1,"Meza, Valentina",female,28,1997,27,8\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    issue_keys = {issue.issue_key for issue in result.issues}
+    assert result.state == "requires_review"
+    assert "relay_team_duplicate_rows" in issue_keys
+    assert "relay_swimmer_duplicate_rows" in issue_keys
+
+
 def test_validate_input_dir_requires_review_for_implausibly_short_seed_time():
     input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_seed_quality_{uuid.uuid4().hex}"
     try:

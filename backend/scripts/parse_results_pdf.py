@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.17"
+PARSER_VERSION = "0.1.18"
 
 try:
     import pdfplumber
@@ -1773,6 +1773,7 @@ def parse_hytek_multicolumn_pdf(pdf_path: Path, column_ranges: Optional[List[Tup
                         stats.lines_skipped += 1
 
     reconcile_relay_swimmers_with_individuals(rows, relay_team_rows, relay_swimmer_rows)
+    relay_team_rows, relay_swimmer_rows = deduplicate_relay_rows(relay_team_rows, relay_swimmer_rows)
     debug_df = pd.DataFrame(debug_rows, columns=["page_number", "line_number", "event_name_context", "raw_line", "reason"])
     metadata = {
         "pdf_name": pdf_path.name,
@@ -1793,6 +1794,50 @@ def compute_file_sha256(path: Path) -> str:
         for chunk in iter(lambda: fh.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def deduplicate_relay_rows(
+    relay_team_rows: List[ParsedRelayTeamRow],
+    relay_swimmer_rows: List[ParsedRelaySwimmerRow],
+) -> Tuple[List[ParsedRelayTeamRow], List[ParsedRelaySwimmerRow]]:
+    seen_teams = set()
+    unique_teams: List[ParsedRelayTeamRow] = []
+    for row in relay_team_rows:
+        key = (
+            row.event_name,
+            row.club_name,
+            row.relay_team_name,
+            row.rank_position,
+            row.seed_time_text,
+            row.seed_time_ms,
+            row.result_time_text,
+            row.result_time_ms,
+            row.points,
+            row.status,
+        )
+        if key in seen_teams:
+            continue
+        seen_teams.add(key)
+        unique_teams.append(row)
+
+    seen_swimmers = set()
+    unique_swimmers: List[ParsedRelaySwimmerRow] = []
+    for row in relay_swimmer_rows:
+        key = (
+            row.event_name,
+            row.relay_team_name,
+            row.leg_order,
+            row.swimmer_name,
+            row.gender,
+            row.age_at_event,
+            row.birth_year_estimated,
+        )
+        if key in seen_swimmers:
+            continue
+        seen_swimmers.add(key)
+        unique_swimmers.append(row)
+
+    return unique_teams, unique_swimmers
 
 
 def parse_brazil_competition_dates(line: str) -> Tuple[Optional[str], Optional[str]]:
@@ -2080,6 +2125,7 @@ def parse_pdf(pdf_path: Path):
             )
 
     reconcile_relay_swimmers_with_individuals(rows, relay_team_rows, relay_swimmer_rows)
+    relay_team_rows, relay_swimmer_rows = deduplicate_relay_rows(relay_team_rows, relay_swimmer_rows)
 
     debug_df = pd.DataFrame(debug_rows, columns=["page_number", "line_number", "event_name_context", "raw_line", "reason"])
     metadata = {

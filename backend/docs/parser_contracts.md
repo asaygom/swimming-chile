@@ -23,6 +23,9 @@ Este documento fija los contratos minimos de entrada y salida del parser antes d
 - En relevos HY-TEK sin seed real, los puntos finales pueden ser dobles
   (`18,00`, `14,00`, `12,00`, `10,00`). Esos tokens deben guardarse en
   `points` y no como `result_time_text`.
+- Desde parser `0.1.18`, si un PDF repite exactamente la misma tabla de relevos
+  en paginas distintas, `relay_team.csv` y `relay_swimmer.csv` deben conservar
+  una sola fila operacional por equipo/nadador observado.
 
 ## Salidas operativas
 
@@ -73,6 +76,9 @@ Tambien puede generar archivos de trazabilidad/debug:
 - Las filas sin posicion (`---`) con `DQ`/`DNF`/`DNS` o marca de exhibicion `X`
   no deben conservar puntos aunque el PDF traiga un token numerico al final; ese
   token no representa puntaje cargable.
+- Los relevos no deben materializar duplicados exactos. Si la misma combinacion
+  de evento, equipo, posta, nadador, genero y edad aparece repetida por una
+  pagina duplicada del PDF, la salida operacional conserva solo una ocurrencia.
 
 ## Fixtures de prueba
 

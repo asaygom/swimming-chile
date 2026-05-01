@@ -24,6 +24,10 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - Tras la revision post-load de relevos, el parser `0.1.17` tambien reclasifica
   puntos dobles de relevo (`18`, `14`, `12`, `10`) como `points` cuando HY-TEK
   no trae seed real; el manifest curado queda sin relevos validos bajo 25s.
+- Una auditoria posterior sobre `core` detecto relevos con 8 integrantes en
+  Dual Internacional Copa Chile 2025. El origen era duplicacion exacta en
+  `relay_team.csv` y `relay_swimmer.csv`; parser `0.1.18` deduplica esas filas
+  operacionales y el batch runner las bloquea si reaparecen antes de cargar.
 
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).
@@ -31,6 +35,7 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - **0.1.15**: Corrección de bugs en layouts HY-TEK de dos columnas y fragmentación OCR. Reparación conservadora de textos como `Rojas, 2 20 Escuela...` sin aplicar aliases.
 - **0.1.16**: Correcciones menores en nombres de atletas y relevos, validado sobre 97k filas de atletas con sobreescribimientos específicos.
 - **0.1.17**: Corrección de tiempos imposibles en HY-TEK (menores a 10s) que leían los puntos como tiempo o no traían seed real. Bloqueos estrictos para `result.csv` y `relay_team.csv`.
+- **0.1.18**: Deduplicacion operacional de filas exactas de relevos repetidas por paginas duplicadas del PDF y compuerta pre-load para `relay_team.csv`/`relay_swimmer.csv`.
 
 ### Curaduría de Atletas y Alias de Clubes
 - Se automatizó la detección pre-load de errores OCR conocidos en nombres de atletas. 

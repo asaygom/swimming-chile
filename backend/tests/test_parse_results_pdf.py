@@ -561,6 +561,45 @@ def test_parse_relay_team_line_drops_unranked_exhibition_points():
     assert row.points is None
 
 
+def test_deduplicate_relay_rows_removes_same_relay_seen_on_multiple_pages():
+    team = parser.parse_relay_team_line(
+        "1 Club Atr Valdivia A 2:00,32 18,00",
+        relay_context(),
+        page_number=24,
+        line_number=7,
+    )
+    duplicate_team = parser.parse_relay_team_line(
+        "1 Club Atr Valdivia A 2:00,32 18,00",
+        relay_context(),
+        page_number=27,
+        line_number=7,
+    )
+    swimmers = parser.parse_relay_swimmer_line(
+        "1) Meza, Valentina W28 2) Jimenez, Karina W32 3) Vega, Ana W31 4) Vilches, Monserrat W28",
+        relay_context(),
+        page_number=24,
+        line_number=8,
+        relay_team_name="Club Atr Valdivia A",
+        competition_year=2025,
+    )
+    duplicate_swimmers = parser.parse_relay_swimmer_line(
+        "1) Meza, Valentina W28 2) Jimenez, Karina W32 3) Vega, Ana W31 4) Vilches, Monserrat W28",
+        relay_context(),
+        page_number=27,
+        line_number=8,
+        relay_team_name="Club Atr Valdivia A",
+        competition_year=2025,
+    )
+
+    unique_teams, unique_swimmers = parser.deduplicate_relay_rows(
+        [team, duplicate_team],
+        swimmers + duplicate_swimmers,
+    )
+
+    assert len(unique_teams) == 1
+    assert [row.leg_order for row in unique_swimmers] == [1, 2, 3, 4]
+
+
 def test_parse_relay_swimmer_line_fixture():
     fixture = load_fixture("relay_swimmers")
     rows = parser.parse_relay_swimmer_line(

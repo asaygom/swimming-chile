@@ -161,6 +161,9 @@ Bloquean la carga y dejan el lote en `requires_review`:
 - `points` aparece en filas sin `rank_position`, o supera el maximo de puntaje
   esperable por fila: 9 en individuales y 18 en relevos. Esto captura tiempos
   post-DQ o marcas de exhibicion que el parser no debe tratar como puntaje.
+- `relay_team.csv` o `relay_swimmer.csv` traen filas duplicadas exactas de
+  relevos. Esto bloquea la carga porque puede producir equipos con integrantes
+  repetidos en `core.relay_result_member`.
 - Se intenta cargar con `--load` sin `competition_scope=fchmn_local` o sin el
   scope requerido por `--required-competition-scope`.
 
