@@ -4,6 +4,24 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 
 ## Abril - Mayo 2026 (Consolidación de Pipeline FCHMN 2022-2026)
 
+### Estado operativo vigente
+- Manifest local curado vigente para carga FCHMN 2022-2026:
+  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260425.jsonl`.
+- Carpeta materializada asociada:
+  `backend/data/raw/results_csv/fchmn_curated_20260425/`.
+- Evidencia de validacion sin carga vigente:
+  `backend/data/raw/batch_summaries/fchmn_historical_2022_2026_frozen_local_curated_validation_20260501.json`,
+  con `state_counts.validated = 61`.
+- La carga a core debe ser explicita con `--load` y seguir
+  `backend/docs/pre_load_checklist.md`: backup, wipe controlado si corresponde,
+  summary auditable y validacion post-load.
+- Sudamericanos se mantienen como flujo separado y no deben mezclarse con el
+  manifest local principal. Copa Cordillera / Dual Internacional si pertenece al
+  circuito master FCHMN y queda incluida en el manifest local curado.
+- La evidencia candidata actual incluye correcciones de `result_time`,
+  `seed_time` y `points`: sin resultados validos bajo 10s, sin seeds bajo 25s
+  en eventos de 100m o mas, y sin `points` sin posicion o sobre maximo esperado.
+
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).
 - **0.1.13**: Soporte para Quadathlon (conversión a 4 pruebas de 50m), sufijos de récords, encabezados OCR "E vento" y layouts HY-TEK multi-columna.
