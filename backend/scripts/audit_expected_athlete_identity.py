@@ -58,6 +58,10 @@ def parse_args() -> argparse.Namespace:
         help="Optional output CSV listing same-context partial/extended name candidates.",
     )
     parser.add_argument(
+        "--expanded-identity-candidates-csv",
+        help="Optional output CSV listing broader reviewed identity candidates before load.",
+    )
+    parser.add_argument(
         "--partial-name-decisions-csv",
         help="Optional reviewed CSV. Only rows with decision=merge are applied.",
     )
@@ -130,6 +134,17 @@ def ordered_name_key(value: object) -> str:
     return normalize_token_text(value)
 
 
+def split_ordered_name(value: object) -> Tuple[str, str]:
+    text = "" if value is None else str(value)
+    if "," in text:
+        surname, given = text.split(",", 1)
+        return normalize_token_text(surname), normalize_token_text(given)
+    tokens = normalize_token_text(text).split()
+    if not tokens:
+        return "", ""
+    return tokens[-1], " ".join(tokens[:-1])
+
+
 def _match_tokens(shorter_tokens: Sequence[str], longer_tokens: Sequence[str]) -> Tuple[bool, List[str], List[str]]:
     unmatched_longer = list(longer_tokens)
     unmatched_shorter: List[str] = []
@@ -182,6 +197,83 @@ def partial_name_match(left_name: object, right_name: object) -> Optional[dict]:
         "added_tokens": added_tokens,
         "initial_matches": initial_matches,
     }
+
+
+def edit_distance_at_most_one(left: str, right: str) -> bool:
+    if left == right:
+        return True
+    if abs(len(left) - len(right)) > 1:
+        return False
+    if len(left) > len(right):
+        left, right = right, left
+    mismatches = 0
+    index_left = 0
+    index_right = 0
+    while index_left < len(left) and index_right < len(right):
+        if left[index_left] == right[index_right]:
+            index_left += 1
+            index_right += 1
+            continue
+        mismatches += 1
+        if mismatches > 1:
+            return False
+        if len(left) == len(right):
+            index_left += 1
+        index_right += 1
+    return True
+
+
+def ordered_prefix_tokens(shorter: str, longer: str) -> bool:
+    shorter_tokens = [token for token in normalize_token_text(shorter).split() if token]
+    longer_tokens = [token for token in normalize_token_text(longer).split() if token]
+    if not shorter_tokens or len(shorter_tokens) > len(longer_tokens):
+        return False
+    return longer_tokens[: len(shorter_tokens)] == shorter_tokens
+
+
+def compatible_first_given(left: str, right: str) -> bool:
+    left_tokens = [token for token in normalize_token_text(left).split() if token]
+    right_tokens = [token for token in normalize_token_text(right).split() if token]
+    if not left_tokens or not right_tokens:
+        return False
+    if left_tokens[0] == right_tokens[0]:
+        return True
+    return edit_distance_at_most_one(left_tokens[0], right_tokens[0])
+
+
+def source_url_set(value: object) -> set[str]:
+    text = "" if value is None else str(value)
+    return {part.strip() for part in text.split(" | ") if part.strip()}
+
+
+def expanded_identity_match(left_name: object, right_name: object, same_birth_year: bool, birth_year_delta: int) -> Optional[dict]:
+    left_surname, left_given = split_ordered_name(left_name)
+    right_surname, right_given = split_ordered_name(right_name)
+    if not left_surname or not left_given or not right_surname or not right_given:
+        return None
+    reasons: List[str] = []
+    if same_birth_year and compatible_first_given(left_given, right_given):
+        if ordered_prefix_tokens(left_surname, right_surname) and left_surname != right_surname:
+            reasons.append("surname_prefix_or_second_surname_omitted")
+        elif ordered_prefix_tokens(right_surname, left_surname) and left_surname != right_surname:
+            reasons.append("surname_prefix_or_second_surname_omitted")
+    if same_birth_year and left_surname == right_surname and left_given != right_given:
+        if ordered_prefix_tokens(left_given, right_given) or ordered_prefix_tokens(right_given, left_given):
+            reasons.append("given_prefix_initial_or_second_name_omitted")
+        else:
+            matched_left, _, initial_left = _match_tokens(left_given.split(), right_given.split())
+            matched_right, _, initial_right = _match_tokens(right_given.split(), left_given.split())
+            if (matched_left and initial_left) or (matched_right and initial_right):
+                reasons.append("given_prefix_initial_or_second_name_omitted")
+    if (
+        birth_year_delta == 1
+        and (left_surname == right_surname or edit_distance_at_most_one(left_surname, right_surname))
+        and compatible_first_given(left_given, right_given)
+    ):
+        reasons.append("birth_year_delta_1_name_compatible")
+    if not reasons:
+        return None
+    return {"candidate_reason": ";".join(sorted(set(reasons)))}
 
 
 def preferred_year_from_evidence(row: dict) -> Optional[str]:
@@ -543,6 +635,104 @@ def build_partial_name_candidate_rows(df: pd.DataFrame) -> List[dict]:
     return rows
 
 
+def preferred_expanded_canonical_name(left: dict, right: dict, candidate_reason: str) -> str:
+    left_name = str(left.get("full_name") or "")
+    right_name = str(right.get("full_name") or "")
+    if "surname_prefix_or_second_surname_omitted" in candidate_reason:
+        left_surname, _ = split_ordered_name(left_name)
+        right_surname, _ = split_ordered_name(right_name)
+        return left_name if len(left_surname.split()) >= len(right_surname.split()) else right_name
+    if "given_prefix_initial_or_second_name_omitted" in candidate_reason:
+        _, left_given = split_ordered_name(left_name)
+        _, right_given = split_ordered_name(right_name)
+        return left_name if len(left_given.split()) >= len(right_given.split()) else right_name
+    return left_name
+
+
+def build_expanded_identity_candidate_rows(df: pd.DataFrame) -> List[dict]:
+    rows: List[dict] = []
+    normalized = df.copy()
+    normalized["birth_year"] = normalized["birth_year"].map(birth_year_text)
+    normalized = normalized[normalized["birth_year"] != ""]
+    grouped: Dict[str, List[dict]] = {}
+    for _, row in normalized.iterrows():
+        gender = str(row.get("gender") or "").strip()
+        if not gender:
+            continue
+        grouped.setdefault(gender, []).append(row.to_dict())
+
+    emitted_pairs = set()
+    for gender, group in grouped.items():
+        for index, left in enumerate(group):
+            left_year = parse_birth_year(left.get("birth_year"))
+            for right in group[index + 1 :]:
+                right_year = parse_birth_year(right.get("birth_year"))
+                if left_year is None or right_year is None:
+                    continue
+                birth_year_delta = abs(left_year - right_year)
+                if birth_year_delta > 1:
+                    continue
+                match = expanded_identity_match(
+                    left.get("full_name"),
+                    right.get("full_name"),
+                    same_birth_year=birth_year_delta == 0,
+                    birth_year_delta=birth_year_delta,
+                )
+                if not match:
+                    continue
+                left_sources = source_url_set(left.get("source_url"))
+                right_sources = source_url_set(right.get("source_url"))
+                pair_key = tuple(sorted([str(left.get("athlete_key") or ""), str(right.get("athlete_key") or "")]))
+                if pair_key in emitted_pairs:
+                    continue
+                emitted_pairs.add(pair_key)
+                same_club = str(left.get("club_key") or "") == str(right.get("club_key") or "")
+                candidate_reason = match["candidate_reason"]
+                rows.append(
+                    {
+                        "decision": "",
+                        "suggested_canonical_full_name": preferred_expanded_canonical_name(
+                            left, right, candidate_reason
+                        ),
+                        "review_hint": (
+                            "same_club_high_confidence"
+                            if same_club and birth_year_delta == 0
+                            else "birth_year_delta_1_review"
+                            if birth_year_delta == 1
+                            else "cross_club_review"
+                        ),
+                        "candidate_reason": candidate_reason,
+                        "gender": gender,
+                        "birth_year": left_year if birth_year_delta == 0 else "",
+                        "left_birth_year": left_year,
+                        "right_birth_year": right_year,
+                        "birth_year_delta": birth_year_delta,
+                        "same_club": "yes" if same_club else "no",
+                        "left_full_name": left.get("full_name", ""),
+                        "left_club": left.get("club_name", ""),
+                        "left_athlete_key": left.get("athlete_key", ""),
+                        "right_full_name": right.get("full_name", ""),
+                        "right_club": right.get("club_name", ""),
+                        "right_athlete_key": right.get("athlete_key", ""),
+                        "left_source_count": len(left_sources),
+                        "right_source_count": len(right_sources),
+                        "combined_source_count": len(left_sources | right_sources),
+                        "left_source_urls": " | ".join(sorted(left_sources)),
+                        "right_source_urls": " | ".join(sorted(right_sources)),
+                        "source_urls": " | ".join(sorted(left_sources | right_sources)),
+                    }
+                )
+    rows.sort(
+        key=lambda row: (
+            row["review_hint"],
+            row["birth_year_delta"],
+            row["left_full_name"],
+            row["right_full_name"],
+        )
+    )
+    return rows
+
+
 def read_dict_rows(path: Path) -> List[dict]:
     text = path.read_text(encoding="utf-8-sig")
     sample = text[:2048]
@@ -709,6 +899,7 @@ def main() -> int:
     missing_birth_year_candidate_count = None
     missing_birth_year_consolidation_count = None
     partial_name_candidate_count = None
+    expanded_identity_candidate_count = None
     partial_name_decision_count = None
     partial_name_consolidation_count = None
     if args.birth_year_evidence_csv:
@@ -871,6 +1062,38 @@ def main() -> int:
         )
         partial_name_candidate_count = len(partial_name_rows)
 
+    if args.expanded_identity_candidates_csv:
+        expanded_identity_rows = build_expanded_identity_candidate_rows(df_for_review)
+        write_dict_csv(
+            resolve_path(args.expanded_identity_candidates_csv),
+            expanded_identity_rows,
+            [
+                "decision",
+                "suggested_canonical_full_name",
+                "review_hint",
+                "candidate_reason",
+                "gender",
+                "birth_year",
+                "left_birth_year",
+                "right_birth_year",
+                "birth_year_delta",
+                "same_club",
+                "left_full_name",
+                "left_club",
+                "left_athlete_key",
+                "right_full_name",
+                "right_club",
+                "right_athlete_key",
+                "left_source_count",
+                "right_source_count",
+                "combined_source_count",
+                "left_source_urls",
+                "right_source_urls",
+                "source_urls",
+            ],
+        )
+        expanded_identity_candidate_count = len(expanded_identity_rows)
+
     category_counts = {}
     for row in rows:
         category_counts[row["review_category"]] = category_counts.get(row["review_category"], 0) + 1
@@ -906,6 +1129,8 @@ def main() -> int:
         summary["missing_birth_year_consolidation_count"] = missing_birth_year_consolidation_count
     if partial_name_candidate_count is not None:
         summary["partial_name_candidate_count"] = partial_name_candidate_count
+    if expanded_identity_candidate_count is not None:
+        summary["expanded_identity_candidate_count"] = expanded_identity_candidate_count
     if partial_name_decision_count is not None:
         summary["partial_name_decision_merge_count"] = partial_name_decision_count
     if partial_name_consolidation_count is not None:

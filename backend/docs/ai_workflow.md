@@ -92,5 +92,10 @@ Si la conversación retoma una carga o recarga, sigue backend/docs/pre_load_chec
   `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260501.jsonl`.
   Incluye decisiones manuales fuzzy con `decision=merge`, overrides de LQBLO
   2023 y Copa Cordillera 2025, y valida 61/61 sin `--load`.
+- Antes de cerrar una nueva recarga, generar y revisar la bandeja ampliada de
+  identidad con `audit_expected_athlete_identity.py --expanded-identity-candidates-csv`.
+  Esta bandeja cubre segundo apellido/segundo nombre omitido e indicios de
+  `birth_year` +/-1; solo las filas revisadas como `merge` deben pasar luego a
+  `curate_athlete_names.py`.
 - Diseñar automatización futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automáticamente.
 - No crear tablas nuevas sin una migración explícita.

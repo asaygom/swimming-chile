@@ -312,6 +312,87 @@ def test_build_partial_name_candidate_rows_includes_initial_and_cross_club_revie
     assert by_shorter["Acevedo, Bernardita"]["same_club"] == "no"
 
 
+def test_build_expanded_identity_candidate_rows_catches_omitted_names_and_delta_one():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Acevedo, Luis",
+                "gender": "male",
+                "birth_year": "1969",
+                "club_name": "Club A",
+                "club_key": "club a",
+                "athlete_key": "acevedo luis",
+                "source_url": "a",
+            },
+            {
+                "full_name": "Acevedo, Luis Alberto",
+                "gender": "male",
+                "birth_year": "1969",
+                "club_name": "Club A",
+                "club_key": "club a",
+                "athlete_key": "acevedo luis alberto",
+                "source_url": "b",
+            },
+            {
+                "full_name": "Abarca Ramirez, Valentina",
+                "gender": "female",
+                "birth_year": "1991",
+                "club_name": "Club B",
+                "club_key": "club b",
+                "athlete_key": "abarca ramirez valentina",
+                "source_url": "c",
+            },
+            {
+                "full_name": "Abarca, Valentina",
+                "gender": "female",
+                "birth_year": "1991",
+                "club_name": "Club B",
+                "club_key": "club b",
+                "athlete_key": "abarca valentina",
+                "source_url": "d",
+            },
+            {
+                "full_name": "Acosta, Andres",
+                "gender": "male",
+                "birth_year": "1987",
+                "club_name": "Club C",
+                "club_key": "club c",
+                "athlete_key": "acosta andres",
+                "source_url": "e",
+            },
+            {
+                "full_name": "Acosta, Andres",
+                "gender": "male",
+                "birth_year": "1988",
+                "club_name": "Club D",
+                "club_key": "club d",
+                "athlete_key": "acosta andres",
+                "source_url": "f",
+            },
+        ]
+    )
+
+    rows = audit.build_expanded_identity_candidate_rows(df)
+
+    by_pair = {(row["left_full_name"], row["right_full_name"]): row for row in rows}
+    assert by_pair[("Acevedo, Luis", "Acevedo, Luis Alberto")]["candidate_reason"] == (
+        "given_prefix_initial_or_second_name_omitted"
+    )
+    assert by_pair[("Acevedo, Luis", "Acevedo, Luis Alberto")]["suggested_canonical_full_name"] == (
+        "Acevedo, Luis Alberto"
+    )
+    assert by_pair[("Abarca Ramirez, Valentina", "Abarca, Valentina")]["candidate_reason"] == (
+        "surname_prefix_or_second_surname_omitted"
+    )
+    assert by_pair[("Abarca Ramirez, Valentina", "Abarca, Valentina")]["suggested_canonical_full_name"] == (
+        "Abarca Ramirez, Valentina"
+    )
+    assert by_pair[("Acosta, Andres", "Acosta, Andres")]["review_hint"] == "birth_year_delta_1_review"
+    assert by_pair[("Acosta, Andres", "Acosta, Andres")]["left_source_count"] == 1
+    assert by_pair[("Acosta, Andres", "Acosta, Andres")]["right_source_count"] == 1
+    assert by_pair[("Acosta, Andres", "Acosta, Andres")]["combined_source_count"] == 2
+
+
 def test_apply_partial_name_decisions_uses_only_curated_merge_rows():
     df = pd.DataFrame(
         [

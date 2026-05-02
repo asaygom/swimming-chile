@@ -135,6 +135,21 @@ pendientes. El manifest resultante es
 `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_curated_20260501.jsonl`
 y valida 61/61 sin `--load`.
 
+La siguiente iteración de identidad debe incluir la bandeja ampliada:
+
+```powershell
+backend\.venv\Scripts\python.exe backend\scripts\audit_expected_athlete_identity.py `
+  --input-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_athlete_after_partial_decisions_iter2_20260424.csv `
+  --review-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_same_name_review_expanded.csv `
+  --summary-json backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expected_core_expanded_identity.json `
+  --expanded-identity-candidates-csv backend\data\raw\batch_summaries\fchmn_historical_2022_2026_expanded_identity_candidates.csv `
+  --json
+```
+
+Esa salida es solo diagnóstico/revisión: captura variantes como segundo
+apellido omitido, segundo nombre omitido, inicial final y candidatos con
+`birth_year` +/-1. No debe cargarse ni aplicarse sin revisión manual.
+
 ---
 
 ## 7. Carga a BD (Load Explicito)

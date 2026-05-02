@@ -40,6 +40,12 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   `curate_athlete_names.py` aplica solo filas `decision=merge`; las filas en
   blanco quedan como pendientes. La materializacion 20260501 consolido esas
   decisiones y valido 61/61 sin `--load`.
+- La recarga 20260502 evidencio una segunda familia de duplicados ya conocida
+  pero no persistida completamente: nombres con segundo apellido/segundo nombre
+  omitido (`Luis`/`Luis Alberto`, `Abarca`/`Abarca Ramirez`) y candidatos con
+  `birth_year` +/-1. `audit_expected_athlete_identity.py` ahora puede emitir una
+  bandeja ampliada con `--expanded-identity-candidates-csv` para revisar estos
+  casos antes de futuras cargas; sigue sin aplicar merges automaticamente.
 
 ### Parser Updates
 - **0.1.12**: Soporte para layout brasileño "Swim It Up" (ej. Sudamericano Recife).
