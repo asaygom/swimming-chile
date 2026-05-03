@@ -542,6 +542,40 @@ def load_fuzzy_identity_decisions(path: Path) -> List[dict]:
     return rows
 
 
+def load_fuzzy_identity_birth_year_decisions(path: Path) -> List[dict]:
+    rows: List[dict] = []
+    if not path.exists():
+        raise FileNotFoundError(path)
+    for row in read_dict_rows(path):
+        decision = normalize_match_text(row.get("decision")) or ""
+        if decision != "merge":
+            continue
+        canonical_name = clean_extracted_text(
+            row.get("suggested_canonical_full_name") or row.get("canonical_full_name")
+        )
+        canonical_birth_year = normalize_birth_year(row.get("birth_year"))
+        gender = normalize_match_text(row.get("gender")) or ""
+        if not canonical_name or not canonical_birth_year:
+            continue
+        for side in ("left", "right"):
+            old_name = clean_extracted_text(row.get(f"{side}_full_name"))
+            old_birth_year = normalize_birth_year(row.get(f"{side}_birth_year"))
+            if not old_name or not old_birth_year or old_birth_year == canonical_birth_year:
+                continue
+            rows.append(
+                {
+                    "old_key": ordered_name_key(old_name),
+                    "old_birth_year": old_birth_year,
+                    "new_name": canonical_name,
+                    "new_key": ordered_name_key(canonical_name),
+                    "birth_year": canonical_birth_year,
+                    "club_key": "",
+                    "gender": gender,
+                }
+            )
+    return rows
+
+
 def load_partial_name_consolidations(path: Path) -> List[dict]:
     decisions = load_partial_name_decisions(path)
     rows: List[dict] = []
@@ -728,8 +762,11 @@ def load_materialization_rules(
         partial_rules.extend(load_partial_name_consolidations(resolve_path(decisions_csv)))
     partial_rules = resolve_partial_name_rule_chains(partial_rules)
     fuzzy_identity_rules = []
+    fuzzy_identity_birth_year_rules = []
     for decisions_csv in getattr(args, "fuzzy_identity_decisions_csv", []):
-        fuzzy_identity_rules.extend(load_fuzzy_identity_decisions(resolve_path(decisions_csv)))
+        decisions_path = resolve_path(decisions_csv)
+        fuzzy_identity_rules.extend(load_fuzzy_identity_decisions(decisions_path))
+        fuzzy_identity_birth_year_rules.extend(load_fuzzy_identity_birth_year_decisions(decisions_path))
     fuzzy_identity_rules = resolve_partial_name_rule_chains(fuzzy_identity_rules)
     gender_correction_rules = []
     for gender_corrections_csv in getattr(args, "gender_corrections_csv", []):
@@ -742,6 +779,7 @@ def load_materialization_rules(
         "partial_name_rules": partial_rules,
         "partial_name_identity_rules": build_partial_name_identity_rules(partial_rules),
         "fuzzy_identity_rules": fuzzy_identity_rules,
+        "fuzzy_identity_birth_year_rules": fuzzy_identity_birth_year_rules,
         "gender_correction_rules": gender_correction_rules,
         "comma_order_rules": comma_order_rules,
         "comma_order_identity_rules": build_comma_order_identity_rules(comma_order_rules),
@@ -782,6 +820,14 @@ def _identity_rule_matches_context(rule: dict, context: dict) -> bool:
     if not context["birth_year"]:
         return True
     return rule["birth_year"] == context["birth_year"]
+
+
+def _fuzzy_birth_year_rule_matches_context(rule: dict, context: dict) -> bool:
+    if rule["old_key"] != context["name_key"]:
+        return False
+    if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
+        return False
+    return rule["old_birth_year"] == context["birth_year"]
 
 
 def apply_athlete_curations_to_df(
@@ -844,6 +890,16 @@ def apply_athlete_curations_to_df(
             output.at[index, birth_year_column] = new_year
             context["birth_year"] = new_year
             counts["birth_year_corrections"] += 1
+
+        for rule in rules.get("fuzzy_identity_birth_year_rules", []):
+            if _fuzzy_birth_year_rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                output.at[index, birth_year_column] = rule["birth_year"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                context["birth_year"] = rule["birth_year"]
+                counts["fuzzy_identity_birth_year_corrections"] += 1
+                break
 
         for rule in rules["missing_birth_year_rules"]:
             if _rule_matches_context(rule, context, allow_empty_birth_year=True):

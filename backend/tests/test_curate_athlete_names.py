@@ -310,6 +310,103 @@ def test_fuzzy_identity_rules_apply_by_birth_year_and_gender_without_club_lock()
     assert counts == {"fuzzy_identity_consolidations": 1}
 
 
+def test_fuzzy_identity_birth_year_decisions_correct_same_name_delta_one():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        decisions_path = tmp_dir / "fuzzy_delta_one.csv"
+        decisions_path.write_text(
+            "\n".join(
+                [
+                    ";".join(
+                        [
+                            "decision",
+                            "suggested_canonical_full_name",
+                            "review_hint",
+                            "candidate_reason",
+                            "gender",
+                            "birth_year",
+                            "left_birth_year",
+                            "right_birth_year",
+                            "birth_year_delta",
+                            "same_club",
+                            "left_athlete_id",
+                            "left_full_name",
+                            "left_club",
+                            "right_athlete_id",
+                            "right_full_name",
+                            "right_club",
+                        ]
+                    ),
+                    ";".join(
+                        [
+                            "merge",
+                            "Acosta, Andres",
+                            "birth_year_delta_1_review",
+                            "birth_year_delta_1_name_compatible",
+                            "male",
+                            "1987",
+                            "1987",
+                            "1988",
+                            "1",
+                            "no",
+                            "2190",
+                            "Acosta, Andres",
+                            "Nunoa Master",
+                            "4513",
+                            "Acosta, Andres",
+                            "Pura Vida Pichilemu",
+                        ]
+                    ),
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        rules = curate.load_fuzzy_identity_birth_year_decisions(decisions_path)
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    assert rules == [
+        {
+            "old_key": "acosta andres",
+            "old_birth_year": "1988",
+            "new_name": "Acosta, Andres",
+            "new_key": "acosta andres",
+            "birth_year": "1987",
+            "club_key": "",
+            "gender": "male",
+        }
+    ]
+
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Acosta, Andres",
+                "club_name": "Pura Vida Pichilemu",
+                "gender": "male",
+                "birth_year": "1988",
+            }
+        ]
+    )
+    curated, counts = curate.apply_athlete_curations_to_df(
+        df,
+        "athlete",
+        {
+            "ocr_name_rules": [],
+            "birth_year_rules": {},
+            "missing_birth_year_rules": [],
+            "partial_name_rules": [],
+            "fuzzy_identity_rules": [],
+            "fuzzy_identity_birth_year_rules": rules,
+        },
+    )
+
+    assert curated.loc[0, "full_name"] == "Acosta, Andres"
+    assert curated.loc[0, "birth_year"] == "1987"
+    assert counts == {"fuzzy_identity_birth_year_corrections": 1}
+
+
 def test_partial_name_rules_chain_and_apply_by_identity_when_unambiguous():
     rules = {
         "ocr_name_rules": [],
