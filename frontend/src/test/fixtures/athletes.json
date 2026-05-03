@@ -1,0 +1,61 @@
+{
+  "search_results": {
+    "data": [
+      {
+        "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        "full_name": "Perez, Juan",
+        "gender": "male",
+        "birth_year": 1985,
+        "club_name": "Club de Natación Master"
+      },
+      {
+        "id": "8f8e0257-2fc7-4221-a7eb-6c61f95b7f73",
+        "full_name": "Gomez, Maria",
+        "gender": "female",
+        "birth_year": 1990,
+        "club_name": "Estadio Español"
+      }
+    ],
+    "meta": {
+      "total_results": 2,
+      "page": 1,
+      "page_size": 10,
+      "total_pages": 1
+    }
+  },
+  "athlete_profile": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "full_name": "Perez, Juan",
+    "gender": "male",
+    "birth_year": 1985,
+    "club_name": "Club de Natación Master",
+    "recent_results": [
+      {
+        "id": "b95f22e7-d20a-4712-8700-1127027e8d64",
+        "event_name": "50m Freestyle Men",
+        "stroke": "freestyle",
+        "distance_m": 50,
+        "course_type": "scm",
+        "competition_name": "Copa Master FCHMN 2026",
+        "competition_date": "2026-04-15T00:00:00Z",
+        "result_time_text": "26.50",
+        "result_time_ms": 26500,
+        "points": 850,
+        "status": "valid"
+      },
+      {
+        "id": "e3d74c8b-6216-419b-ab9f-723a1a4f009e",
+        "event_name": "100m Freestyle Men",
+        "stroke": "freestyle",
+        "distance_m": 100,
+        "course_type": "scm",
+        "competition_name": "Copa Master FCHMN 2026",
+        "competition_date": "2026-04-15T00:00:00Z",
+        "result_time_text": "58.20",
+        "result_time_ms": 58200,
+        "points": null,
+        "status": "valid"
+      }
+    ]
+  }
+}

@@ -1,11 +1,24 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './app/router';
+
+// Configuración global del cliente de React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // En datos estáticos/históricos no necesitamos refrescar al volver a la ventana
+      retry: 1, // Reintentos limitados para fallos de red
+      staleTime: 5 * 60 * 1000, // Los datos se consideran "frescos" por 5 minutos
+    },
+  },
+});
+
 function App() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <h1 className="text-3xl font-bold text-slate-800">
-        Natación Chile
-      </h1>
-    </div>
-  )
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 }
 
-export default App
+export default App;

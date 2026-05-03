@@ -1,0 +1,27 @@
+{
+  "search_results": {
+    "data": [
+      {
+        "id": "713e5ef2-7e0e-46bb-864a-25be15f3a61c",
+        "name": "Copa Master FCHMN 2026",
+        "date_start": "2026-04-15T00:00:00Z",
+        "date_end": "2026-04-17T00:00:00Z",
+        "location": "Piscina Centro Acuático, Santiago",
+        "course_type": "scm"
+      },
+      {
+        "id": "936d0bca-4b0e-450f-90e6-8c43ec220d93",
+        "name": "Sudamericano Master 2026",
+        "date_start": "2026-02-10T00:00:00Z",
+        "location": "Recife, Brasil",
+        "course_type": "lcm"
+      }
+    ],
+    "meta": {
+      "total_results": 2,
+      "page": 1,
+      "page_size": 10,
+      "total_pages": 1
+    }
+  }
+}

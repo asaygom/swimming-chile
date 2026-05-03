@@ -1,0 +1,42 @@
+{
+  "search_results": {
+    "data": [
+      {
+        "rank": 1,
+        "athlete_name": "Perez, Juan",
+        "athlete_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        "club_name": "Club de Natación Master",
+        "time_text": "26.50",
+        "time_ms": 26500,
+        "competition_name": "Copa Master FCHMN 2026",
+        "date": "2026-04-15T00:00:00Z",
+        "distance_m": 50,
+        "stroke": "freestyle",
+        "course_type": "scm",
+        "gender": "male",
+        "age_group": "40-44"
+      },
+      {
+        "rank": 2,
+        "athlete_name": "Soto, Pedro",
+        "athlete_id": "2d9b1c73-4957-41ab-bc92-1c2df5d53a29",
+        "club_name": "Estadio Español",
+        "time_text": "27.15",
+        "time_ms": 27150,
+        "competition_name": "Copa Master FCHMN 2026",
+        "date": "2026-04-15T00:00:00Z",
+        "distance_m": 50,
+        "stroke": "freestyle",
+        "course_type": "scm",
+        "gender": "male",
+        "age_group": "40-44"
+      }
+    ],
+    "meta": {
+      "total_results": 2,
+      "page": 1,
+      "page_size": 10,
+      "total_pages": 1
+    }
+  }
+}
