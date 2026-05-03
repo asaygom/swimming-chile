@@ -1,0 +1,64 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python backend for FCHMN PDF/CSV ELT, PostgreSQL core load, React/Vite/TypeScript frontend planned.
+  Architecture: Decoupled scrape -> download -> parse -> curate -> validate -> load pipeline with manifests and audit summaries.
+  Testing: pytest for backend pipeline contracts; frontend has build/lint scripts but no test runner script.
+  Style: Minimal localized patches, no passwords in artifacts, no --load unless explicitly requested.
+
+strict_tdd: true
+
+testing:
+  detected: 2026-05-03
+  strict_tdd: true
+  test_runner:
+    framework: pytest
+    command: backend\.venv\Scripts\python.exe -m pytest
+  layers:
+    unit:
+      available: true
+      tool: pytest
+    integration:
+      available: true
+      tool: pytest with filesystem, manifest, and SQL contract tests
+    e2e:
+      available: false
+      tool: null
+  coverage:
+    available: false
+    command: null
+  quality:
+    linter:
+      available: true
+      command: cd frontend; npm run lint
+    type_checker:
+      available: true
+      command: cd frontend; npm run build
+    formatter:
+      available: false
+      command: null
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+    - Respect Fase 4: do not load core unless explicitly requested
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Prefer curation/materialization before load-time heuristics
+  verify:
+    - Run backend pytest when Python pipeline behavior changes
+    - Run frontend build/lint when frontend behavior changes
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas (large removals)

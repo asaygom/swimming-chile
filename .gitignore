@@ -19,3 +19,5 @@ Thumbs.db
 backend/data/raw/
 backend/data/staging/csv/*
 !backend/data/staging/csv/.gitkeep
+
+.atl/
