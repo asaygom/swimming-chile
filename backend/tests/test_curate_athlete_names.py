@@ -149,6 +149,16 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
                 "gender": "male",
             }
         ],
+        "name_correction_rules": [
+            {
+                "old_key": "cabello tilleria jorge",
+                "new_name": "Cabello, Jorge T",
+                "new_key": "cabello jorge t",
+                "birth_year": "1958",
+                "club_key": "iron swim master",
+                "gender": "male",
+            }
+        ],
         "birth_year_rules": {("abbott andres", "male", "efecto peruga"): "1984"},
         "missing_birth_year_rules": [
             {
@@ -184,6 +194,12 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
         "gender": "male",
         "birth_year": "1990",
     }
+    df.loc[len(df)] = {
+        "full_name": "Cabello Tilleria, Jorge",
+        "club_name": "Iron Swim Master",
+        "gender": "male",
+        "birth_year": "1958",
+    }
 
     curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
 
@@ -193,8 +209,10 @@ def test_apply_athlete_curations_to_df_updates_names_and_birth_years():
     assert curated.loc[2, "birth_year"] == "1994"
     assert curated.loc[3, "birth_year"] == "1984"
     assert curated.loc[4, "gender"] == "female"
+    assert curated.loc[5, "full_name"] == "Cabello, Jorge T"
     assert counts == {
         "known_ocr_name_residue_repairs": 1,
+        "name_corrections": 1,
         "birth_year_corrections": 1,
         "missing_birth_year_consolidations": 1,
         "partial_name_consolidations": 1,
@@ -217,6 +235,32 @@ def test_load_gender_corrections_accepts_reviewed_csv():
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
     assert rules == [{"name_key": "molero vianny", "birth_year": "1990", "gender": "female"}]
+
+
+def test_load_name_corrections_accepts_club_locked_csv():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        corrections_path = tmp_dir / "name_corrections.csv"
+        corrections_path.write_text(
+            "decision;old_full_name;new_full_name;birth_year;club_key;gender\n"
+            'merge;"Cabello Tilleria, Jorge";"Cabello, Jorge T";1958;iron swim master;male\n',
+            encoding="utf-8",
+        )
+
+        rules = curate.load_name_corrections(corrections_path)
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    assert rules == [
+        {
+            "old_key": "cabello tilleria jorge",
+            "new_name": "Cabello, Jorge T",
+            "new_key": "cabello jorge t",
+            "birth_year": "1958",
+            "club_key": "iron swim master",
+            "gender": "male",
+        }
+    ]
 
 
 def test_load_fuzzy_identity_decisions_accepts_headerless_semicolon_cp1252_csv():
@@ -661,6 +705,47 @@ def test_drop_result_rows_with_athlete_gender_conflict():
     ]
 
 
+def test_sync_athlete_rows_from_result_identities_uses_surviving_result_gender():
+    athlete_df = pd.DataFrame(
+        [
+            {
+                "full_name": "Perez, Paulina",
+                "gender": "male",
+                "club_name": "RECOL",
+                "birth_year": "1970",
+            }
+        ]
+    )
+    result_df = pd.DataFrame(
+        [
+            {
+                "event_name": "women 50-54 50 LC Meter butterfly",
+                "athlete_name": "Perez Pacheco, Paulina",
+                "club_name": "RECOL",
+                "birth_year_estimated": "1970",
+            }
+        ]
+    )
+    rules = {
+        "fuzzy_identity_rules": [
+            {
+                "old_key": "perez paulina",
+                "new_name": "Perez Pacheco, Paulina",
+                "new_key": "perez pacheco paulina",
+                "birth_year": "1970",
+                "club_key": "",
+                "gender": "female",
+            }
+        ],
+    }
+
+    synced, count = curate.sync_athlete_rows_from_result_identities(athlete_df, result_df, rules)
+
+    assert count == 1
+    assert synced.loc[0, "full_name"] == "Perez Pacheco, Paulina"
+    assert synced.loc[0, "gender"] == "female"
+
+
 def test_apply_athlete_curations_to_df_repairs_relay_swimmer_without_club_column():
     df = pd.DataFrame(
         [
@@ -756,6 +841,13 @@ def test_apply_athlete_curations_to_df_applies_identity_rule_to_missing_birth_ye
     assert curated.loc[0, "full_name"] == "Acevedo, Luis Alberto"
     assert curated.loc[0, "birth_year"] == "1969"
     assert counts == {"partial_name_missing_birth_year_consolidations": 1}
+
+
+def test_materialized_input_dir_drops_generated_results_root():
+    source = BACKEND_DIR / "data" / "raw" / "results_csv" / "fchmn_curated_final_identity_20260503" / "fchmn_auto" / "2025" / "doc"
+    output_root = BACKEND_DIR / "data" / "raw" / "results_csv" / "fc_next"
+
+    assert curate.materialized_input_dir(source, output_root) == output_root / "fchmn_auto" / "2025" / "doc"
 
 
 def test_apply_athlete_curations_to_df_applies_identity_after_space_order_canonicalization():

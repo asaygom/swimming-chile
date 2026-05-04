@@ -107,6 +107,12 @@ def parse_args() -> argparse.Namespace:
         help="Optional reviewed gender corrections CSV with full_name, birth_year and gender.",
     )
     parser.add_argument(
+        "--name-corrections-csv",
+        action="append",
+        default=[],
+        help="Optional reviewed club-locked name corrections CSV with old_full_name, new_full_name, birth_year, club_key and gender.",
+    )
+    parser.add_argument(
         "--fuzzy-identity-decisions-csv",
         action="append",
         default=[],
@@ -510,6 +516,33 @@ def load_gender_corrections(path: Path) -> List[dict]:
     return rows
 
 
+def load_name_corrections(path: Path) -> List[dict]:
+    rows: List[dict] = []
+    if not path.exists():
+        raise FileNotFoundError(path)
+    for row in read_dict_rows(path):
+        decision = normalize_match_text(row.get("decision")) or "merge"
+        if decision != "merge":
+            continue
+        old_name = clean_extracted_text(row.get("old_full_name") or row.get("old_name"))
+        new_name = clean_extracted_text(row.get("new_full_name") or row.get("new_name"))
+        birth_year = normalize_birth_year(row.get("birth_year") or row.get("new_birth_year"))
+        club_key = normalize_match_text(row.get("club_key")) or ""
+        gender = normalize_match_text(row.get("gender")) or ""
+        if old_name and new_name and birth_year and club_key:
+            rows.append(
+                {
+                    "old_key": ordered_name_key(old_name),
+                    "new_name": new_name,
+                    "new_key": ordered_name_key(new_name),
+                    "birth_year": birth_year,
+                    "club_key": club_key,
+                    "gender": gender,
+                }
+            )
+    return rows
+
+
 def load_fuzzy_identity_decisions(path: Path) -> List[dict]:
     rows: List[dict] = []
     if not path.exists():
@@ -771,9 +804,13 @@ def load_materialization_rules(
     gender_correction_rules = []
     for gender_corrections_csv in getattr(args, "gender_corrections_csv", []):
         gender_correction_rules.extend(load_gender_corrections(resolve_path(gender_corrections_csv)))
+    name_correction_rules = []
+    for name_corrections_csv in getattr(args, "name_corrections_csv", []):
+        name_correction_rules.extend(load_name_corrections(resolve_path(name_corrections_csv)))
     comma_order_rules = build_comma_order_rules(name_rows or [])
     return {
         "ocr_name_rules": ocr_name_rules,
+        "name_correction_rules": name_correction_rules,
         "birth_year_rules": birth_year_rules,
         "missing_birth_year_rules": missing_rules,
         "partial_name_rules": partial_rules,
@@ -873,6 +910,14 @@ def apply_athlete_curations_to_df(
                         context["gender"] = rule["gender"]
                         counts["gender_corrections"] += 1
                     break
+
+        for rule in rules.get("name_correction_rules", []):
+            if _rule_matches_context(rule, context):
+                output.at[index, name_column] = rule["new_name"]
+                context["name"] = rule["new_name"]
+                context["name_key"] = rule["new_key"]
+                counts["name_corrections"] += 1
+                break
 
         for rule in rules["ocr_name_rules"]:
             if _rule_matches_context(rule, context):
@@ -1122,10 +1167,75 @@ def drop_result_rows_with_athlete_gender_conflict(result_df, athlete_df) -> Tupl
     return filtered_df.loc[keep_indexes].reset_index(drop=True), dropped
 
 
+def sync_athlete_rows_from_result_identities(athlete_df, result_df, rules: dict) -> Tuple[object, int]:
+    if athlete_df.empty or result_df.empty:
+        return athlete_df, 0
+    required_athlete = {"full_name", "club_name", "birth_year", "gender"}
+    required_result = {"event_name", "athlete_name", "club_name", "birth_year_estimated"}
+    if not required_athlete.issubset(set(athlete_df.columns)) or not required_result.issubset(set(result_df.columns)):
+        return athlete_df, 0
+
+    result_gender_by_identity: Dict[Tuple[str, str, str], str] = {}
+    observed_genders: Dict[Tuple[str, str, str], set[str]] = defaultdict(set)
+    for _, row in result_df.iterrows():
+        key = (
+            ordered_name_key(row.get("athlete_name")),
+            normalize_match_text(row.get("club_name")) or "",
+            normalize_birth_year(row.get("birth_year_estimated")),
+        )
+        event_gender = athlete_gender_from_event_name(row.get("event_name"))
+        if all(key) and event_gender in {"female", "male"}:
+            observed_genders[key].add(event_gender)
+    for key, genders in observed_genders.items():
+        if len(genders) == 1:
+            result_gender_by_identity[key] = next(iter(genders))
+
+    candidate_rules = []
+    for rule_group in (
+        "fuzzy_identity_rules",
+        "partial_name_identity_rules",
+        "comma_order_identity_rules",
+        "partial_name_rules",
+        "comma_order_rules",
+    ):
+        candidate_rules.extend(rules.get(rule_group, []))
+
+    output = athlete_df.copy()
+    updated = 0
+    for index, row in output.iterrows():
+        context = _row_context(row, "full_name", "club_name", "birth_year", "gender")
+        if not context["name_key"] or not context["birth_year"] or not context["club_key"]:
+            continue
+        for rule in candidate_rules:
+            if rule["old_key"] != context["name_key"] or rule["birth_year"] != context["birth_year"]:
+                continue
+            if rule.get("club_key") and rule["club_key"] != context["club_key"]:
+                continue
+            result_key = (rule["new_key"], context["club_key"], context["birth_year"])
+            result_gender = result_gender_by_identity.get(result_key)
+            if rule.get("gender") and result_gender and rule["gender"] != result_gender:
+                continue
+            if not result_gender:
+                continue
+            if context["name_key"] == rule["new_key"] and context["gender"] == result_gender:
+                break
+            output.at[index, "full_name"] = rule["new_name"]
+            output.at[index, "gender"] = result_gender
+            updated += 1
+            break
+
+    return output, updated
+
+
 def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
     parts = list(source_input_dir.parts)
     if "results_csv" in parts:
         relative = Path(*parts[parts.index("results_csv") + 1 :])
+        if relative.parts and (
+            relative.parts[0].startswith("fchmn_curated")
+            or relative.parts[0].startswith("fc_fix")
+        ):
+            relative = Path(*relative.parts[1:])
     else:
         relative = Path(source_input_dir.name)
     return output_root / relative
@@ -1161,11 +1271,19 @@ def materialize_document_inputs(
 
     if "athlete" in curated_tables and "result" in curated_tables:
         result_path, result_df = curated_tables["result"]
-        _athlete_path, athlete_df = curated_tables["athlete"]
+        athlete_path, athlete_df = curated_tables["athlete"]
         filtered_result_df, dropped = drop_result_rows_with_athlete_gender_conflict(result_df, athlete_df)
         if dropped:
             counts["result_gender_conflict_rows_dropped"] += dropped
             filtered_result_df.to_csv(result_path, index=False, encoding="utf-8-sig")
+        synced_athlete_df, synced = sync_athlete_rows_from_result_identities(
+            athlete_df,
+            filtered_result_df,
+            rules,
+        )
+        if synced:
+            counts["athlete_result_identity_synchronizations"] += synced
+            synced_athlete_df.to_csv(athlete_path, index=False, encoding="utf-8-sig")
 
     output_document = dict(document)
     output_document["input_dir"] = str(output_dir)
