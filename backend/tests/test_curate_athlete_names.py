@@ -980,6 +980,13 @@ def test_materialized_input_dir_drops_generated_results_root():
     assert curate.materialized_input_dir(source, output_root) == output_root / "fchmn_auto" / "2025" / "doc"
 
 
+def test_materialized_input_dir_drops_parser_reparse_root():
+    source = BACKEND_DIR / "data" / "raw" / "results_csv" / "fchmn_parser020_20260510" / "fchmn_auto" / "2025" / "doc"
+    output_root = BACKEND_DIR / "data" / "raw" / "results_csv" / "fchmn_parser020_curated_20260510"
+
+    assert curate.materialized_input_dir(source, output_root) == output_root / "fchmn_auto" / "2025" / "doc"
+
+
 def test_apply_athlete_curations_to_df_applies_identity_after_space_order_canonicalization():
     df = pd.DataFrame(
         [
@@ -1106,7 +1113,7 @@ def test_materialize_document_inputs_writes_curated_copy_and_manifest_document()
                 }
             ],
         }
-        document = {"source_url": "https://example.test/a.pdf", "input_dir": str(input_dir)}
+        document = {"source_url": "https://example.test/a.pdf", "pdf": "source.pdf", "input_dir": str(input_dir)}
 
         output_document, counts = curate.materialize_document_inputs(
             document,
@@ -1124,6 +1131,7 @@ def test_materialize_document_inputs_writes_curated_copy_and_manifest_document()
         assert result_df.loc[0, "athlete_name"] == "Acevedo, Luis Alberto"
         assert counts["athlete_partial_name_consolidations"] == 1
         assert counts["result_partial_name_consolidations"] == 1
+        assert "pdf" not in output_document
         assert '"athlete_materialized": true' in metadata
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)

@@ -1363,6 +1363,7 @@ def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
         if relative.parts and (
             relative.parts[0].startswith("fchmn_curated")
             or relative.parts[0].startswith("fc_fix")
+            or relative.parts[0].startswith("fchmn_parser")
         ):
             relative = Path(*relative.parts[1:])
     else:
@@ -1426,6 +1427,7 @@ def materialize_document_inputs(
             synced_athlete_df.to_csv(athlete_path, index=False, encoding="utf-8-sig")
 
     output_document = dict(document)
+    output_document.pop("pdf", None)
     output_document["input_dir"] = str(output_dir)
     output_document["out_dir"] = str(output_dir)
     metadata_path = output_dir / "metadata.json"
