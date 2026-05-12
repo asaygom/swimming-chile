@@ -106,7 +106,7 @@ export const CompetitionProfilePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['competition-detail', id],
     queryFn: () => competitionService.getCompetitionDetail(id!),
     enabled: !!id,
@@ -142,7 +142,8 @@ export const CompetitionProfilePage: React.FC = () => {
   }, [data, searchQuery, genderFilter]);
 
   if (isLoading) return <LoadingState />;
-  if (isError || !data) return <EmptyState title="Competencia no encontrada" description="La competencia que buscas no existe o fue removida." />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
+  if (!data) return <EmptyState title="Competencia no encontrada" description="La competencia que buscas no existe o fue removida." />;
 
   const { competition } = data;
   const dateObj = new Date(competition.date_start);

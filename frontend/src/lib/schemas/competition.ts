@@ -3,7 +3,7 @@ import { PaginationMetaSchema } from './athlete';
 import { CourseTypeSchema } from './canon';
 
 export const CompetitionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.union([z.string(), z.number()]),
   name: z.string(),
   date_start: z.string().datetime(),
   date_end: z.string().datetime().optional(),
@@ -25,7 +25,7 @@ import { EventGenderSchema, StrokeSchema, ResultStatusSchema } from './canon';
 export const CompetitionResultSchema = z.object({
   rank: z.number().int().optional(),
   athlete_name: z.string(),
-  athlete_id: z.string().uuid(),
+  athlete_id: z.union([z.string(), z.number()]),
   club_name: z.string(),
   time_text: z.string(),
   status: ResultStatusSchema,
@@ -34,7 +34,7 @@ export const CompetitionResultSchema = z.object({
 export type CompetitionResult = z.infer<typeof CompetitionResultSchema>;
 
 export const CompetitionEventSchema = z.object({
-  id: z.string().uuid(),
+  id: z.union([z.string(), z.number()]),
   distance_m: z.number().int(),
   stroke: StrokeSchema,
   gender: EventGenderSchema,

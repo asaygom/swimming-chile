@@ -12,7 +12,7 @@ export const ClubProfilePage: React.FC = () => {
   const navigate = useNavigate();
 
   // Fetch Club details (en un escenario real habría un getClubById, por ahora buscamos en la lista)
-  const { data: clubsResponse, isLoading: loadingClub } = useQuery({
+  const { data: clubsResponse, isLoading: loadingClub, isError: isErrorClub, refetch: refetchClubs } = useQuery({
     queryKey: ['clubs'],
     queryFn: () => clubService.getClubs(),
   });
@@ -20,7 +20,7 @@ export const ClubProfilePage: React.FC = () => {
   const club = clubsResponse?.data.find(c => c.id === id);
 
   // Fetch Athletes for this club (mockeamos trayendo todos y filtrando)
-  const { data: athletesResponse, isLoading: loadingAthletes } = useQuery({
+  const { data: athletesResponse, isLoading: loadingAthletes, isError: isErrorAthletes, refetch: refetchAthletes } = useQuery({
     queryKey: ['athletes-by-club', id],
     queryFn: () => athleteService.searchAthletes(''),
   });
@@ -28,6 +28,7 @@ export const ClubProfilePage: React.FC = () => {
   const clubAthletes = athletesResponse?.data.filter(a => a.club_name === club?.name);
 
   if (loadingClub || loadingAthletes) return <LoadingState />;
+  if (isErrorClub || isErrorAthletes) return <ErrorState onRetry={() => { refetchClubs(); refetchAthletes(); }} />;
   if (!club) return <EmptyState title="Club no encontrado" />;
 
   return (

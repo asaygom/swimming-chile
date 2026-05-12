@@ -5,7 +5,7 @@ import { AthleteGenderSchema, StrokeSchema, CourseTypeSchema } from './canon';
 export const RankingEntrySchema = z.object({
   rank: z.number().int(),
   athlete_name: z.string(),
-  athlete_id: z.string().uuid(),
+  athlete_id: z.union([z.string(), z.number()]),
   club_name: z.string(),
   time_text: z.string(),
   time_ms: z.number().int(),

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { PaginationMetaSchema } from './athlete';
 
 export const ClubSchema = z.object({
-  id: z.string().uuid(),
+  id: z.union([z.string(), z.number()]),
   name: z.string(),
   city: z.string().optional(),
   country: z.string().optional(),

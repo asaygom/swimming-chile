@@ -3,7 +3,7 @@ import { AthleteGenderSchema, StrokeSchema, ResultStatusSchema, CourseTypeSchema
 
 // Base Athlete
 export const AthleteSchema = z.object({
-  id: z.string().uuid(),
+  id: z.union([z.string(), z.number()]),
   full_name: z.string(),
   gender: AthleteGenderSchema,
   birth_year: z.number().int().nullable().optional(),
@@ -14,7 +14,7 @@ export type Athlete = z.infer<typeof AthleteSchema>;
 
 // Athlete Result (Individual)
 export const AthleteResultSchema = z.object({
-  id: z.string().uuid(),
+  id: z.union([z.string(), z.number()]),
   event_name: z.string(),
   stroke: StrokeSchema,
   distance_m: z.number().int(),
