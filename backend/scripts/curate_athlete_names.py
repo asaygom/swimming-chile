@@ -15,7 +15,7 @@ import shutil
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from audit_athlete_names import load_manifest, load_overrides, read_csv_if_exists, resolve_path
 from audit_expected_athlete_identity import load_birth_year_evidence, load_partial_name_decisions
@@ -675,6 +675,30 @@ def load_fuzzy_identity_birth_year_decisions(path: Path) -> List[dict]:
     return rows
 
 
+def load_fuzzy_identity_merge_keys(path: Path) -> List[dict]:
+    rows: List[dict] = []
+    if not path.exists():
+        raise FileNotFoundError(path)
+    for row in read_dict_rows(path):
+        decision = normalize_match_text(row.get("decision")) or ""
+        if decision != "merge":
+            continue
+        canonical_name = clean_extracted_text(
+            row.get("suggested_canonical_full_name") or row.get("canonical_full_name")
+        )
+        birth_year = normalize_birth_year(row.get("birth_year"))
+        gender = normalize_match_text(row.get("gender")) or ""
+        if canonical_name and birth_year:
+            rows.append(
+                {
+                    "name_key": ordered_name_key(canonical_name),
+                    "birth_year": birth_year,
+                    "gender": gender,
+                }
+            )
+    return rows
+
+
 def load_partial_name_consolidations(path: Path) -> List[dict]:
     decisions = load_partial_name_decisions(path)
     rows: List[dict] = []
@@ -862,10 +886,12 @@ def load_materialization_rules(
     partial_rules = resolve_partial_name_rule_chains(partial_rules)
     fuzzy_identity_rules = []
     fuzzy_identity_birth_year_rules = []
+    athlete_identity_merge_keys = []
     for decisions_csv in getattr(args, "fuzzy_identity_decisions_csv", []):
         decisions_path = resolve_path(decisions_csv)
         fuzzy_identity_rules.extend(load_fuzzy_identity_decisions(decisions_path))
         fuzzy_identity_birth_year_rules.extend(load_fuzzy_identity_birth_year_decisions(decisions_path))
+        athlete_identity_merge_keys.extend(load_fuzzy_identity_merge_keys(decisions_path))
     fuzzy_identity_rules = resolve_partial_name_rule_chains(fuzzy_identity_rules)
     gender_correction_rules = []
     for gender_corrections_csv in getattr(args, "gender_corrections_csv", []):
@@ -891,6 +917,7 @@ def load_materialization_rules(
         "partial_name_identity_rules": build_partial_name_identity_rules(partial_rules),
         "fuzzy_identity_rules": fuzzy_identity_rules,
         "fuzzy_identity_birth_year_rules": fuzzy_identity_birth_year_rules,
+        "athlete_identity_merge_keys": athlete_identity_merge_keys,
         "gender_correction_rules": gender_correction_rules,
         "comma_order_rules": comma_order_rules,
         "comma_order_identity_rules": build_comma_order_identity_rules(comma_order_rules),
@@ -939,6 +966,20 @@ def _fuzzy_birth_year_rule_matches_context(rule: dict, context: dict) -> bool:
     if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
         return False
     return rule["old_birth_year"] == context["birth_year"]
+
+
+def _apply_identity_merge_missing_birth_year(output, index: int, birth_year_column: str, context: dict, rules: dict) -> bool:
+    if context["birth_year"]:
+        return False
+    for rule in rules.get("athlete_identity_merge_keys", []):
+        if rule["name_key"] != context["name_key"]:
+            continue
+        if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
+            continue
+        output.at[index, birth_year_column] = rule["birth_year"]
+        context["birth_year"] = rule["birth_year"]
+        return True
+    return False
 
 
 def apply_athlete_curations_to_df(
@@ -1019,6 +1060,9 @@ def apply_athlete_curations_to_df(
                 context["birth_year"] = rule["birth_year"]
                 counts["fuzzy_identity_birth_year_corrections"] += 1
                 break
+
+        if _apply_identity_merge_missing_birth_year(output, index, birth_year_column, context, rules):
+            counts["identity_merge_missing_birth_year_consolidations"] += 1
 
         for rule in rules["missing_birth_year_rules"]:
             if _rule_matches_context(rule, context, allow_empty_birth_year=True):
@@ -1106,6 +1150,9 @@ def apply_athlete_curations_to_df(
                     context["name_key"] = rule["new_key"]
                     counts["fuzzy_identity_consolidations"] += 1
                     break
+
+        if _apply_identity_merge_missing_birth_year(output, index, birth_year_column, context, rules):
+            counts["identity_merge_missing_birth_year_consolidations"] += 1
 
     return output, dict(counts)
 
@@ -1356,6 +1403,108 @@ def sync_athlete_rows_from_result_identities(athlete_df, result_df, rules: dict)
     return output, updated
 
 
+def _observed_athlete_identities(result_df, relay_swimmer_df) -> Set[Tuple[str, str, str, str]]:
+    observed: Set[Tuple[str, str, str, str]] = set()
+    if result_df is not None and not result_df.empty:
+        required = {"event_name", "athlete_name", "club_name", "birth_year_estimated"}
+        if required.issubset(set(result_df.columns)):
+            for _, row in result_df.iterrows():
+                name_key = ordered_name_key(row.get("athlete_name"))
+                birth_year = normalize_birth_year(row.get("birth_year_estimated"))
+                club_key = normalize_match_text(row.get("club_name")) or ""
+                gender = athlete_gender_from_event_name(row.get("event_name"))
+                if name_key and birth_year:
+                    observed.add((name_key, club_key, birth_year, gender))
+
+    if relay_swimmer_df is not None and not relay_swimmer_df.empty:
+        required = {"swimmer_name", "birth_year_estimated"}
+        if required.issubset(set(relay_swimmer_df.columns)):
+            for _, row in relay_swimmer_df.iterrows():
+                name_key = ordered_name_key(row.get("swimmer_name"))
+                birth_year = normalize_birth_year(row.get("birth_year_estimated"))
+                club_key = normalize_match_text(row.get("club_name")) or ""
+                gender = normalize_match_text(row.get("gender")) or ""
+                if name_key and birth_year:
+                    observed.add((name_key, club_key, birth_year, gender))
+    return observed
+
+
+def _athlete_row_has_observation(row, observed: Set[Tuple[str, str, str, str]]) -> bool:
+    name_key = ordered_name_key(row.get("full_name"))
+    birth_year = normalize_birth_year(row.get("birth_year"))
+    club_key = normalize_match_text(row.get("club_name")) or ""
+    gender = normalize_match_text(row.get("gender")) or ""
+    if not name_key or not birth_year:
+        return True
+    for observed_name, observed_club, observed_year, observed_gender in observed:
+        if observed_name != name_key or observed_year != birth_year:
+            continue
+        if observed_gender and gender and observed_gender != gender:
+            continue
+        if observed_club and club_key and observed_club != club_key:
+            continue
+        return True
+    return False
+
+
+def prune_athlete_rows_without_observations(athlete_df, result_df, relay_swimmer_df) -> Tuple[object, int]:
+    if athlete_df.empty:
+        return athlete_df, 0
+    required = {"full_name", "birth_year"}
+    if not required.issubset(set(athlete_df.columns)):
+        return athlete_df, 0
+    observed = _observed_athlete_identities(result_df, relay_swimmer_df)
+    if not observed:
+        return athlete_df, 0
+    keep_indexes = [index for index, row in athlete_df.iterrows() if _athlete_row_has_observation(row, observed)]
+    dropped = len(athlete_df) - len(keep_indexes)
+    if dropped == 0:
+        return athlete_df, 0
+    return athlete_df.loc[keep_indexes].reset_index(drop=True), dropped
+
+
+def _matches_identity_merge_key(row, rules: dict) -> bool:
+    name_key = ordered_name_key(row.get("full_name"))
+    birth_year = normalize_birth_year(row.get("birth_year"))
+    gender = normalize_match_text(row.get("gender")) or ""
+    if not name_key or not birth_year:
+        return False
+    for rule in rules.get("athlete_identity_merge_keys", []):
+        if rule["name_key"] != name_key or rule["birth_year"] != birth_year:
+            continue
+        if rule.get("gender") and gender and rule["gender"] != gender:
+            continue
+        return True
+    return False
+
+
+def prune_duplicate_athlete_rows_for_reviewed_identity_merges(
+    athlete_df,
+    rules: dict,
+    seen_identity_merge_keys: Set[Tuple[str, str, str]],
+) -> Tuple[object, int]:
+    if athlete_df.empty or not rules.get("athlete_identity_merge_keys"):
+        return athlete_df, 0
+    keep_indexes = []
+    dropped = 0
+    local_seen: Set[Tuple[str, str, str]] = set()
+    for index, row in athlete_df.iterrows():
+        name_key = ordered_name_key(row.get("full_name"))
+        birth_year = normalize_birth_year(row.get("birth_year"))
+        gender = normalize_match_text(row.get("gender")) or ""
+        merge_key = (name_key, birth_year, gender)
+        if _matches_identity_merge_key(row, rules):
+            if merge_key in seen_identity_merge_keys or merge_key in local_seen:
+                dropped += 1
+                continue
+            local_seen.add(merge_key)
+        keep_indexes.append(index)
+    seen_identity_merge_keys.update(local_seen)
+    if dropped == 0:
+        return athlete_df, 0
+    return athlete_df.loc[keep_indexes].reset_index(drop=True), dropped
+
+
 def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
     parts = list(source_input_dir.parts)
     if "results_csv" in parts:
@@ -1376,6 +1525,7 @@ def materialize_document_inputs(
     input_dir: Path,
     output_root: Path,
     rules: dict,
+    seen_identity_merge_keys: Optional[Set[Tuple[str, str, str]]] = None,
 ) -> Tuple[dict, dict]:
     output_dir = materialized_input_dir(input_dir, output_root)
     if output_dir.exists():
@@ -1402,6 +1552,7 @@ def materialize_document_inputs(
     if "athlete" in curated_tables and "result" in curated_tables:
         result_path, result_df = curated_tables["result"]
         athlete_path, athlete_df = curated_tables["athlete"]
+        relay_path, relay_swimmer_df = curated_tables.get("relay_swimmer", (None, None))
         source_url = clean_extracted_text(document.get("source_url")) or ""
         filtered_result_df, corrected = apply_result_event_corrections(result_df, source_url, rules)
         if corrected:
@@ -1425,6 +1576,23 @@ def materialize_document_inputs(
         if synced:
             counts["athlete_result_identity_synchronizations"] += synced
             synced_athlete_df.to_csv(athlete_path, index=False, encoding="utf-8-sig")
+        pruned_athlete_df, pruned = prune_athlete_rows_without_observations(
+            synced_athlete_df,
+            filtered_result_df,
+            relay_swimmer_df,
+        )
+        if pruned:
+            counts["athlete_rows_without_observations_dropped"] += pruned
+            pruned_athlete_df.to_csv(athlete_path, index=False, encoding="utf-8-sig")
+        if seen_identity_merge_keys is not None:
+            deduped_athlete_df, deduped = prune_duplicate_athlete_rows_for_reviewed_identity_merges(
+                pruned_athlete_df,
+                rules,
+                seen_identity_merge_keys,
+            )
+            if deduped:
+                counts["athlete_reviewed_identity_duplicate_rows_dropped"] += deduped
+                deduped_athlete_df.to_csv(athlete_path, index=False, encoding="utf-8-sig")
 
     output_document = dict(document)
     output_document.pop("pdf", None)
@@ -1458,12 +1626,19 @@ def materialize_manifest_inputs(
 ) -> Tuple[List[dict], dict]:
     materialized_documents: List[dict] = []
     total_counts = Counter()
+    seen_identity_merge_keys: Set[Tuple[str, str, str]] = set()
     for document in documents:
         source_url = clean_extracted_text(document.get("source_url")) or ""
         input_dir = input_dirs_by_source_url.get(source_url)
         if input_dir is None:
             continue
-        output_document, counts = materialize_document_inputs(document, input_dir, output_root, rules)
+        output_document, counts = materialize_document_inputs(
+            document,
+            input_dir,
+            output_root,
+            rules,
+            seen_identity_merge_keys,
+        )
         materialized_documents.append(output_document)
         for key, value in counts.items():
             total_counts[key] += value

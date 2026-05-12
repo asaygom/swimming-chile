@@ -876,6 +876,133 @@ def test_sync_athlete_rows_from_result_identities_uses_surviving_result_gender()
     assert synced.loc[0, "gender"] == "female"
 
 
+def test_prune_athlete_rows_without_observations_after_result_exclusion():
+    athlete_df = pd.DataFrame(
+        [
+            {
+                "full_name": "Cabello, Jorge T",
+                "gender": "male",
+                "club_name": "Iron Swim Master",
+                "birth_year": "1958",
+            },
+            {
+                "full_name": "Torres, Sergio",
+                "gender": "male",
+                "club_name": "Condrictios Team",
+                "birth_year": "1994",
+            },
+        ]
+    )
+    result_df = pd.DataFrame(
+        [
+            {
+                "event_name": "men 30-34 400 LC Meter freestyle",
+                "athlete_name": "Torres, Sergio",
+                "club_name": "Condrictios Team",
+                "birth_year_estimated": "1994",
+            }
+        ]
+    )
+    relay_swimmer_df = pd.DataFrame()
+
+    pruned, dropped = curate.prune_athlete_rows_without_observations(
+        athlete_df,
+        result_df,
+        relay_swimmer_df,
+    )
+
+    assert dropped == 1
+    assert pruned["full_name"].tolist() == ["Torres, Sergio"]
+
+
+def test_prune_duplicate_athlete_rows_for_reviewed_identity_merges_keeps_homonyms_without_rule():
+    athlete_df = pd.DataFrame(
+        [
+            {
+                "full_name": "Leal, Rene",
+                "gender": "male",
+                "club_name": "Fullmar Viña del Mar",
+                "birth_year": "1964",
+            },
+            {
+                "full_name": "Leal, Rene",
+                "gender": "male",
+                "club_name": "Delfines de Villa Alemana",
+                "birth_year": "1964",
+            },
+            {
+                "full_name": "Torres, Sergio",
+                "gender": "male",
+                "club_name": "Lozada Swim Team",
+                "birth_year": "1994",
+            },
+            {
+                "full_name": "Torres, Sergio",
+                "gender": "male",
+                "club_name": "Condrictios Team",
+                "birth_year": "1994",
+            },
+        ]
+    )
+    rules = {
+        "athlete_identity_merge_keys": [
+            {
+                "name_key": "leal rene",
+                "birth_year": "1964",
+                "gender": "male",
+            }
+        ]
+    }
+
+    pruned, dropped = curate.prune_duplicate_athlete_rows_for_reviewed_identity_merges(
+        athlete_df,
+        rules,
+        set(),
+    )
+
+    assert dropped == 1
+    assert pruned["full_name"].tolist() == ["Leal, Rene", "Torres, Sergio", "Torres, Sergio"]
+    assert pruned["club_name"].tolist() == ["Fullmar Viña del Mar", "Lozada Swim Team", "Condrictios Team"]
+
+
+def test_identity_merge_key_fills_missing_birth_year_without_merging_homonyms():
+    df = pd.DataFrame(
+        [
+            {
+                "full_name": "Leal, Rene",
+                "club_name": "DELVA",
+                "birth_year": "",
+                "gender": "male",
+            },
+            {
+                "full_name": "Torres, Sergio",
+                "club_name": "CONDT",
+                "birth_year": "",
+                "gender": "male",
+            },
+        ]
+    )
+    rules = {
+        "ocr_name_rules": [],
+        "birth_year_rules": {},
+        "missing_birth_year_rules": [],
+        "partial_name_rules": [],
+        "athlete_identity_merge_keys": [
+            {
+                "name_key": "leal rene",
+                "birth_year": "1964",
+                "gender": "male",
+            }
+        ],
+    }
+
+    curated, counts = curate.apply_athlete_curations_to_df(df, "athlete", rules)
+
+    assert curated.loc[0, "birth_year"] == "1964"
+    assert curated.loc[1, "birth_year"] == ""
+    assert counts == {"identity_merge_missing_birth_year_consolidations": 1}
+
+
 def test_apply_athlete_curations_to_df_repairs_relay_swimmer_without_club_column():
     df = pd.DataFrame(
         [
