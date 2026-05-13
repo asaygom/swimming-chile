@@ -13,7 +13,9 @@ La aplicación está construida usando el patrón *Contract-First*, por lo que e
 Buscador general de atletas.
 
 **Query Params:**
-- `search` (string, opcional): Búsqueda difusa por nombre.
+- `search` (string, opcional): Búsqueda por nombre en formato canónico
+  `Apellido, Nombre` o natural `Nombre Apellido`; debe tolerar diferencias de
+  acentos en la consulta.
 
 **Response (200 OK):**
 ```json

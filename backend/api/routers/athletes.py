@@ -1,9 +1,56 @@
 import math
+import unicodedata
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 from ..database import get_db_connection
 
 router = APIRouter()
+
+
+def normalize_search_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value.casefold())
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch))
+
+
+def athlete_name_sql(expression: str) -> str:
+    return f"""
+    TRANSLATE(
+        LOWER({expression}),
+        'áàäâãéèëêíìïîóòöôõúùüûñ',
+        'aaaaaeeeeiiiiooooouuuun'
+    )
+    """
+
+
+def athlete_natural_name_sql() -> str:
+    return """
+    CONCAT(
+        TRIM(SUBSTRING(a.full_name FROM POSITION(',' IN a.full_name) + 1)),
+        ' ',
+        TRIM(SUBSTRING(a.full_name FROM 1 FOR POSITION(',' IN a.full_name) - 1))
+    )
+    """
+
+
+def athlete_search_sql() -> str:
+    # full_name is stored as "Apellido, Nombre"; also match natural order "Nombre Apellido".
+    # The normalized checks make "Daniel Briceño" and "Daniel Briceno" equivalent.
+    natural_name = athlete_natural_name_sql()
+    return f"""
+    (
+        a.full_name ILIKE %s
+        OR {athlete_name_sql('a.full_name')} LIKE %s
+        OR (
+            POSITION(',' IN a.full_name) > 0
+            AND {natural_name} ILIKE %s
+        )
+        OR (
+            POSITION(',' IN a.full_name) > 0
+            AND {athlete_name_sql(natural_name)} LIKE %s
+        )
+    )
+    """
+
 
 @router.get("")
 def list_athletes(
@@ -40,9 +87,15 @@ def list_athletes(
             params = []
             
             if search:
-                query += " AND a.full_name ILIKE %s"
-                count_query += " AND a.full_name ILIKE %s"
-                params.append(f"%{search}%")
+                query += f" AND {athlete_search_sql()}"
+                count_query += f" AND {athlete_search_sql()}"
+                normalized_search = normalize_search_text(search)
+                params.extend([
+                    f"%{search}%",
+                    f"%{normalized_search}%",
+                    f"%{search}%",
+                    f"%{normalized_search}%",
+                ])
                 
             if club_id:
                 query += " AND acc.club_id = %s"

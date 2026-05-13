@@ -19,6 +19,29 @@ def test_athletes_api_uses_current_club_view_not_static_athlete_club():
     assert "left join core.club c on a.club_id = c.id" not in source
 
 
+def test_athletes_api_search_accepts_natural_name_order():
+    source = normalized_source(ATHLETES_ROUTER)
+
+    assert "full_name is stored as" in ATHLETES_ROUTER.read_text(encoding="utf-8").lower()
+    assert "concat(" in source
+    assert "substring(a.full_name" in source
+    assert "position(',' in a.full_name)" in source
+    assert "a.full_name ilike %s" in source
+    assert "translate(" in source
+    assert "normalized_search" in source
+
+
+def test_athlete_search_text_normalization_removes_accents_for_search():
+    import sys
+
+    if str(BACKEND_DIR) not in sys.path:
+        sys.path.insert(0, str(BACKEND_DIR))
+
+    from api.routers.athletes import normalize_search_text
+
+    assert normalize_search_text("Daniel Briceño") == "daniel briceno"
+
+
 def test_clubs_api_counts_current_athletes_from_current_club_view():
     source = normalized_source(CLUBS_ROUTER)
 
