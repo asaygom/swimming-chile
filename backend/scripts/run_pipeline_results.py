@@ -65,6 +65,7 @@ STAGING_TABLES = {
 }
 
 DEFAULT_CLUB_ALIAS_CSV = Path(__file__).resolve().parents[1] / "data" / "reference" / "club_alias.csv"
+PLANNED_COMPETITION_MATCH_THRESHOLD = 0.72
 
 
 def expected_points_case_sql(rank_expression: str, *, relay: bool) -> str:
@@ -677,6 +678,22 @@ def normalize_competition_scope(value: Optional[str]) -> Optional[str]:
     return scope
 
 
+def competition_name_similarity(left: Optional[str], right: Optional[str]) -> float:
+    left_key = normalize_match_text(left)
+    right_key = normalize_match_text(right)
+    if not left_key or not right_key:
+        return 0.0
+    if left_key == right_key:
+        return 1.0
+    left_tokens = set(left_key.split())
+    right_tokens = set(right_key.split())
+    if left_tokens and right_tokens:
+        overlap_ratio = len(left_tokens & right_tokens) / min(len(left_tokens), len(right_tokens))
+        if overlap_ratio >= 0.80:
+            return max(overlap_ratio, SequenceMatcher(None, left_key, right_key).ratio())
+    return SequenceMatcher(None, left_key, right_key).ratio()
+
+
 def update_competition_scope(conn, config: Config, competition_id: int, competition_scope: Optional[str]) -> None:
     if competition_scope is None:
         return
@@ -728,6 +745,52 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
             update_competition_scope(conn, config, competition_id, competition_scope)
             info(f"Se reutilizará competition_id={competition_id} para '{competition_name}'.")
             return competition_id
+
+        if start_date:
+            cur.execute(f"""
+                SELECT c.id, c.name
+                FROM {fqtn(config.schema, 'competition')} c
+                WHERE c.start_date = %s
+                  AND (%s = 'unknown' OR c.course_type IS NULL OR c.course_type = %s)
+                  AND NOT EXISTS (
+                      SELECT 1 FROM {fqtn(config.schema, 'load_run')} lr
+                      WHERE lr.competition_id = c.id
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM {fqtn(config.schema, 'event')} e
+                      JOIN {fqtn(config.schema, 'result')} r ON r.event_id = e.id
+                      WHERE e.competition_id = c.id
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM {fqtn(config.schema, 'event')} e
+                      JOIN {fqtn(config.schema, 'relay_result')} rr ON rr.event_id = e.id
+                      WHERE e.competition_id = c.id
+                  )
+                ORDER BY c.id;
+            """, (start_date, course_type, course_type))
+            scored_candidates = [
+                (competition_name_similarity(competition_name, candidate_name), candidate_id, candidate_name)
+                for candidate_id, candidate_name in cur.fetchall()
+            ]
+            scored_candidates.sort(reverse=True)
+            if scored_candidates and scored_candidates[0][0] >= PLANNED_COMPETITION_MATCH_THRESHOLD:
+                score, competition_id, planned_name = scored_candidates[0]
+                update_competition_scope(conn, config, int(competition_id), competition_scope)
+                cur.execute(f"""
+                    UPDATE {fqtn(config.schema, 'competition')}
+                    SET course_type = COALESCE(course_type, %s),
+                        source_url = COALESCE(source_url, %s),
+                        status = 'finished',
+                        updated_at = NOW()
+                    WHERE id = %s;
+                """, (course_type, source_url, competition_id))
+                info(
+                    f"Se reutilizará competition_id={competition_id} para competencia planificada "
+                    f"'{planned_name}' (match={score:.2f}) desde '{competition_name}'."
+                )
+                return int(competition_id)
 
         cur.execute(f"""
             INSERT INTO {fqtn(config.schema, 'competition')} (name, season_year, start_date, end_date, competition_scope, course_type, status, source_id, source_url)

@@ -21,6 +21,12 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   defecto una fuente con checksum/URL distinta para una competencia ya cargada;
   solo se puede saltar con `--allow-competition-source-revision` y reemplazo
   controlado.
+- En el mismo cierre se fusiono la carga de resultados de XIII Copa Peñalolén
+  Master 2026 con la competencia planificada existente del calendario
+  (`competition_id=5`). La fila generada por el PDF (`competition_id=81`) quedo
+  eliminada tras mover 139 eventos, 1400 resultados, 96 relevos y el `load_run`.
+  El loader ahora intenta reutilizar competencias planificadas sin resultados
+  por fecha exacta, curso compatible y nombre similar antes de crear una nueva.
 - Manifest local curado vigente para carga FCHMN 2022-2026:
   `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_parser020_tracefixed_curated_20260512_identity_fix.jsonl`.
 - Carpeta materializada asociada:

@@ -29,6 +29,9 @@ El identificador preferido es `pdf_sha256`, porque prueba que el contenido del P
   pipeline debe bloquear la carga por defecto. Esa situacion representa una
   posible revision oficial o URL alternativa y requiere reemplazo controlado,
   no append automatico.
+- Si el resultado publicado corresponde a una competencia planificada existente
+  sin resultados, la carga debe reutilizar esa competencia por fecha exacta,
+  curso compatible y similitud de nombre, en vez de crear una segunda fila.
 - Las validaciones no bloquean la carga todavia; quedan persistidas para revision. Las compuertas duras pertenecen a la fase de batch runner.
 
 ## Validacion operativa

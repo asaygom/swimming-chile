@@ -253,6 +253,10 @@ Batch runner:
   entrante tiene checksum/URL distinta a la fuente existente, la carga se
   bloquea. Una revisión oficial debe tratarse como reemplazo controlado y solo
   puede saltar la compuerta con `--allow-competition-source-revision`.
+- Antes de crear una competencia nueva, el pipeline debe intentar reutilizar una
+  competencia planificada sin resultados ni `load_run` cuando tenga la misma
+  fecha, curso compatible y nombre similar. Esto conecta calendario planificado
+  con resultados oficiales publicados posteriormente.
 - Ejecuta pipeline solo si el lote esta validado.
 - Si se usa `--load`, exige que cada documento tenga un `competition_scope`
   curado que coincida con `--required-competition-scope` (`fchmn_local` por

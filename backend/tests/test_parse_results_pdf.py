@@ -9,6 +9,7 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 import parse_results_pdf as parser
+import run_pipeline_results as pipeline
 
 
 FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "parser_golden_lines.json"
@@ -94,6 +95,16 @@ def test_normalize_stroke_to_domain_canon():
 
 
     assert parser.normalize_stroke("Estilo Libre Pre Master - Master") == "freestyle"
+
+
+def test_competition_name_similarity_matches_planned_calendar_name():
+    assert (
+        pipeline.competition_name_similarity(
+            "XIII Copa Penalolen Master Natacion 2026",
+            "XIII Copa Peñalolén Máster",
+        )
+        >= pipeline.PLANNED_COMPETITION_MATCH_THRESHOLD
+    )
     assert parser.normalize_stroke("4x50 Mts Combinado") == "medley_relay"
 
 

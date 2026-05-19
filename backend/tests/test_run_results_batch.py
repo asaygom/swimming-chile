@@ -303,6 +303,27 @@ def test_build_load_command_passes_source_url_to_pipeline_when_available():
     ]
 
 
+def test_build_load_command_forwards_source_revision_override():
+    args = Namespace(
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user="postgres",
+        password="secret",
+        schema="core",
+        default_source_id=7,
+        competition_id=42,
+        source_url=None,
+        competition_scope="fchmn_local",
+        truncate_staging=False,
+        allow_competition_source_revision=True,
+    )
+
+    command = batch.build_load_command(args, Path("backend/data/raw/results_csv/demo"))
+
+    assert "--allow-competition-source-revision" in command
+
+
 def test_redact_command_hides_password_value():
     command = ["python", "script.py", "--user", "postgres", "--password", "secret", "--schema", "core"]
 
