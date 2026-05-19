@@ -10,6 +10,13 @@ export const ClubsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [page, setPage] = React.useState(1);
+  const hasActiveFilters = searchTerm.trim() !== '';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDebouncedQuery('');
+    setPage(1);
+  };
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -32,17 +39,28 @@ export const ClubsPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Clubes</h1>
           <p className="text-slate-500 mt-1">Explora los clubes de natación registrados.</p>
         </div>
-        <div className="relative w-full md:w-96">
-          <input
-            type="text"
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none bg-white text-sm"
-            placeholder="Buscar por nombre o ciudad..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <svg className="w-5 h-5 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+        <div className="flex w-full flex-col gap-3 md:w-auto sm:flex-row">
+          <div className="relative w-full md:w-96">
+            <input
+              type="text"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none bg-white text-sm"
+              placeholder="Buscar por nombre o ciudad..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+            >
+              Limpiar
+            </button>
+          )}
         </div>
       </div>
 

@@ -16,6 +16,14 @@ export const ClubProfilePage: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [gender, setGender] = React.useState('all');
   const [page, setPage] = React.useState(1);
+  const hasActiveFilters = searchTerm.trim() !== '' || gender !== 'all';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDebouncedQuery('');
+    setGender('all');
+    setPage(1);
+  };
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -24,10 +32,6 @@ export const ClubProfilePage: React.FC = () => {
     }, 400);
     return () => clearTimeout(handler);
   }, [searchTerm]);
-
-  React.useEffect(() => {
-    setPage(1);
-  }, [gender]);
 
   // Fetch Club details
   const { data: club, isLoading: loadingClub, isError: errorClub, refetch: refetchClub } = useQuery({
@@ -110,13 +114,25 @@ export const ClubProfilePage: React.FC = () => {
           
           <select
             value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={(e) => {
+              setGender(e.target.value);
+              setPage(1);
+            }}
             className="px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm text-slate-700 cursor-pointer"
           >
             <option value="all">Todos los géneros</option>
             <option value="female">Damas</option>
             <option value="male">Varones</option>
           </select>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+            >
+              Limpiar
+            </button>
+          )}
         </div>
 
         {/* Lista de Atletas Paginada */}

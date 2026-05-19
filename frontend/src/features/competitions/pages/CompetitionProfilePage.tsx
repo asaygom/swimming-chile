@@ -5,6 +5,8 @@ import { competitionService } from '../api/competitionService';
 import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
+import { CourseBadge } from '../../../components/ui/CourseBadge';
+import { getCourseMeta } from '../../../lib/courseMeta';
 import type { CompetitionEvent } from '../../../lib/schemas/competition';
 
 const strokeTranslations: Record<string, string> = {
@@ -221,6 +223,13 @@ export const CompetitionProfilePage: React.FC = () => {
   const dateObj = new Date(competition.date_start);
   const formattedDate = dateObj.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const isSearching = searchQuery.trim().length > 0;
+  const course = getCourseMeta(competition.course_type);
+  const hasActiveFilters = searchQuery.trim() !== '' || genderFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setGenderFilter('all');
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -243,9 +252,8 @@ export const CompetitionProfilePage: React.FC = () => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                Piscina {competition.course_type === 'scm' ? 'Corta (25m)' : 'Larga (50m)'}
-              </span>
+              <CourseBadge courseType={competition.course_type} variant="dark" />
+              <span className="text-xs font-medium text-slate-300">{course.description}</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">{competition.name}</h1>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-slate-300 text-sm">
@@ -299,6 +307,15 @@ export const CompetitionProfilePage: React.FC = () => {
             <option value="mixed">Mixtos</option>
           </select>
         </div>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 md:w-auto"
+          >
+            Limpiar filtros
+          </button>
+        )}
       </div>
 
       {/* Resultados por Evento */}

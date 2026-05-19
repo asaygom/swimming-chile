@@ -160,6 +160,8 @@ def test_result_status_from_text_statuses():
     assert parser.normalize_result_status(None, "DQ") == "dsq"
     assert parser.normalize_result_status(None, "NT") == "unknown"
     assert parser.normalize_result_status(None, "1:05.30") == "valid"
+    assert parser.normalize_result_status(None, "X1:05.30") == "valid"
+    assert parser.normalize_result_status(None, "XDQ") == "dsq"
 
 
 def test_parse_event_header_in_english_and_spanish():
@@ -472,6 +474,9 @@ def test_parse_result_line_recovers_duplicated_age_digit_before_club():
     assert row.age_at_event == 20
     assert row.birth_year_estimated == 2004
     assert row.club_name == "Escuela de Suboficiales del Ej"
+    assert row.result_time_text == "X1:30,58"
+    assert row.result_time_ms == "90580"
+    assert row.status == "valid"
 
 
 def test_parse_result_line_keeps_single_digit_age_for_child_event():
@@ -571,6 +576,7 @@ def test_parse_relay_team_line_drops_unranked_exhibition_points():
     assert row is not None
     assert row.rank_position is None
     assert row.result_time_text == "X2:27,46"
+    assert row.status == "valid"
     assert row.points is None
 
 

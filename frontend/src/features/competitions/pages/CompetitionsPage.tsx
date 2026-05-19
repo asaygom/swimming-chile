@@ -5,6 +5,8 @@ import { competitionService } from '../api/competitionService';
 import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
+import { CourseBadge } from '../../../components/ui/CourseBadge';
+import { getCourseMeta } from '../../../lib/courseMeta';
 import type { Competition } from '../../../lib/schemas/competition';
 
 const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = ({ comp, isUpcoming = false }) => {
@@ -14,6 +16,7 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
   const month = dateObj.toLocaleDateString('es-CL', { month: 'short' }).toUpperCase();
   const day = dateObj.getDate();
   const yearStr = dateObj.getFullYear();
+  const course = getCourseMeta(comp.course_type);
   
   const innerContent = (
     <>
@@ -27,6 +30,9 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
           <h3 className={`text-lg font-bold text-slate-900 leading-tight transition-colors ${!isUpcoming ? 'group-hover:text-blue-700' : ''}`}>
             {comp.name}
           </h3>
+          <div className="mt-2">
+            <CourseBadge courseType={comp.course_type} />
+          </div>
         </div>
       </div>
 
@@ -43,9 +49,7 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
             <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>
-              Piscina {!comp.course_type ? 'Desconocida' : comp.course_type === 'scm' ? 'Corta (25m)' : 'Larga (50m)'}
-            </span>
+            <span>{course.description}</span>
           </div>
         </div>
 
@@ -96,6 +100,15 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
   const [year, setYear] = React.useState('all');
   const [circuit, setCircuit] = React.useState('FCHMN'); // Default FCHMN
   const [page, setPage] = React.useState(1);
+  const hasActiveFilters = searchTerm.trim() !== '' || year !== 'all' || circuit !== 'FCHMN';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDebouncedQuery('');
+    setYear('all');
+    setCircuit('FCHMN');
+    setPage(1);
+  };
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -104,11 +117,6 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
     }, 400);
     return () => clearTimeout(handler);
   }, [searchTerm]);
-
-  // Reset página cuando cambian los selectores
-  React.useEffect(() => {
-    setPage(1);
-  }, [year, circuit, mode]);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['competitions', debouncedQuery, year, page, mode],
@@ -173,7 +181,10 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
             {mode === 'past' && (
               <select 
                 value={year} 
-                onChange={(e) => setYear(e.target.value)}
+                onChange={(e) => {
+                  setYear(e.target.value);
+                  setPage(1);
+                }}
                 className="flex-1 sm:w-28 py-2 pl-3 pr-8 border border-slate-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="all">Año</option>
@@ -185,13 +196,25 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
 
             <select 
               value={circuit} 
-              onChange={(e) => setCircuit(e.target.value)}
+              onChange={(e) => {
+                setCircuit(e.target.value);
+                setPage(1);
+              }}
               className="flex-1 sm:w-32 py-2 pl-3 pr-8 border border-slate-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
             >
               <option value="FCHMN">FCHMN</option>
               <option value="FECHIDA">FECHIDA</option>
               <option value="all">Todos</option>
             </select>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+              >
+                Limpiar
+              </button>
+            )}
           </div>
         </div>
       </div>

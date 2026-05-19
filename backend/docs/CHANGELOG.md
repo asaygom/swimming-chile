@@ -27,6 +27,10 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   eliminada tras mover 139 eventos, 1400 resultados, 96 relevos y el `load_run`.
   El loader ahora intenta reutilizar competencias planificadas sin resultados
   por fecha exacta, curso compatible y nombre similar antes de crear una nueva.
+- Los resultados HY-TEK con prefijo `X` en el tiempo se tratan como resultados
+  válidos de exhibición/sin puntaje cuando traen `result_time_ms`; no deben
+  mostrarse como `unknown`. Los estados `XDQ`/`XDNF` se normalizan a `dsq`/`dnf`
+  y `XNS` permanece `unknown` porque no hay tiempo válido.
 - Manifest local curado vigente para carga FCHMN 2022-2026:
   `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_parser020_tracefixed_curated_20260512_identity_fix.jsonl`.
 - Carpeta materializada asociada:

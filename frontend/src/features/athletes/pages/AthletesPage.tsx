@@ -11,6 +11,14 @@ export const AthletesPage: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
   const [page, setPage] = useState(1);
+  const hasActiveFilters = searchTerm.trim() !== '' || genderFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDebouncedQuery('');
+    setGenderFilter('all');
+    setPage(1);
+  };
 
   // Sincronización simple de debouncing para no saturar llamadas
   React.useEffect(() => {
@@ -56,6 +64,15 @@ export const AthletesPage: React.FC = () => {
             <option value="female">Femenino</option>
             <option value="male">Masculino</option>
           </select>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+            >
+              Limpiar
+            </button>
+          )}
         </div>
       </div>
 

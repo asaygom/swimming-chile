@@ -823,7 +823,12 @@ def normalize_result_status(status, result_time_text):
         if upper in {"NT", "NS", "UNKNOWN"}:
             return "unknown"
         if upper.startswith("X"):
-            return "unknown"
+            # HY-TEK usa prefijo X para exhibición / categorías sin puntaje oficial.
+            # El tiempo es válido y debe mostrarse; el no-puntaje se conserva con rank/points nulos.
+            exhibition_status = normalize_domain_result_status(None, rtt[1:])
+            if exhibition_status != "unknown":
+                return exhibition_status
+            return "valid" if derive_result_time_ms(rtt) is not None else "unknown"
         if derive_result_time_ms(rtt) is not None:
             return "valid"
         return "valid"

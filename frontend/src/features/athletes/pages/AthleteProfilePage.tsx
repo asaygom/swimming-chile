@@ -5,6 +5,7 @@ import { athleteService } from '../api/athleteService';
 import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
+import { CourseBadge } from '../../../components/ui/CourseBadge';
 
 export const AthleteProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -105,7 +106,7 @@ export const AthleteProfilePage: React.FC = () => {
                 <div>
                   <div className="font-bold text-slate-900">{res.distance_m}m <span className="capitalize">{res.stroke}</span></div>
                   <div className="text-xs text-slate-500 uppercase flex items-center gap-2 mt-0.5 tracking-wider">
-                    <span>{res.course_type}</span>
+                    <CourseBadge courseType={res.course_type} variant="compact" />
                     {res.age_group && (
                       <>
                         <span className="w-1 h-1 rounded-full bg-slate-300"></span>
@@ -147,7 +148,7 @@ export const AthleteProfilePage: React.FC = () => {
                         <div>
                           <div className="font-semibold text-slate-900">{res.distance_m}m <span className="capitalize">{res.stroke}</span></div>
                           <div className="text-xs text-slate-500 uppercase flex items-center gap-2">
-                            <span>{res.course_type}</span>
+                            <CourseBadge courseType={res.course_type} variant="compact" />
                             {res.age_group && (
                               <>
                                 <span className="w-1 h-1 rounded-full bg-slate-300"></span>
