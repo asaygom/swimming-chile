@@ -249,6 +249,10 @@ Batch runner:
   `--competition-source-url` cuando se ejecuta `--load`.
 - Conserva `competition_scope` desde el manifest y la pasa al pipeline como
   `--competition-scope` cuando se ejecuta `--load`.
+- Por defecto, si el pipeline resuelve una competencia ya cargada y el PDF
+  entrante tiene checksum/URL distinta a la fuente existente, la carga se
+  bloquea. Una revisión oficial debe tratarse como reemplazo controlado y solo
+  puede saltar la compuerta con `--allow-competition-source-revision`.
 - Ejecuta pipeline solo si el lote esta validado.
 - Si se usa `--load`, exige que cada documento tenga un `competition_scope`
   curado que coincida con `--required-competition-scope` (`fchmn_local` por
@@ -314,7 +318,11 @@ Pipeline:
 
 - Si el mismo `pdf_sha256` ya fue procesado y cargado, el batch runner puede saltar la carga.
 - Si el mismo checksum aparece con nueva URL, se actualiza trazabilidad del documento, no se duplica core.
-- Si cambia el checksum para una URL conocida, se procesa como nueva version del documento.
+- Si cambia el checksum o la URL para una competencia ya cargada, no se carga
+  automáticamente sobre core. El caso queda como revisión de fuente y requiere
+  decisión humana: conservar versión previa, reemplazarla o habilitar
+  explícitamente `--allow-competition-source-revision` junto con limpieza
+  controlada.
 - Si el parser cambia de version, se permite reprocesar, pero la carga a core debe seguir siendo idempotente.
 
 ## Fuera de alcance de este primer paso

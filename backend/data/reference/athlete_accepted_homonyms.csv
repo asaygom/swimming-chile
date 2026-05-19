@@ -1,2 +1,3 @@
 full_name,gender,birth_year,decision,reason
 "Torres, Sergio",male,1994,keep_separate,"Homonimos confirmados manualmente; no deben volver a tratarse como duplicado pendiente."
+"Briceño, Carlos",male,,keep_separate,"Homónimos confirmados manualmente: Briceño, Carlos (1994) y Briceno, Carlos Eduardo (1985) compiten en las mismas fuentes con categorías/clubes distintos."

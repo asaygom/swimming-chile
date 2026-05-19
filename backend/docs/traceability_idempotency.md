@@ -25,6 +25,10 @@ El identificador preferido es `pdf_sha256`, porque prueba que el contenido del P
 - Reprocesar el mismo PDF debe reutilizar `source_document` por checksum.
 - Las tablas core evitan duplicados con checks previos y constraints unicos minimos.
 - Si una fila ya existe, el pipeline debe ignorarla, no crear otra observacion equivalente.
+- Si una competencia ya cargada aparece con otro checksum o URL de documento, el
+  pipeline debe bloquear la carga por defecto. Esa situacion representa una
+  posible revision oficial o URL alternativa y requiere reemplazo controlado,
+  no append automatico.
 - Las validaciones no bloquean la carga todavia; quedan persistidas para revision. Las compuertas duras pertenecen a la fase de batch runner.
 
 ## Validacion operativa

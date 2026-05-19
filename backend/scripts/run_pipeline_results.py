@@ -128,6 +128,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-name", type=str, help="Nombre de competencia opcional para auto-upsert cuando no se indique competition_id")
     parser.add_argument("--competition-source-url", type=str, help="URL fuente opcional para competition cuando se cree automáticamente")
     parser.add_argument("--competition-scope", type=str, help="Scope curado opcional para filtrar circuito/federacion/ambito de la competencia")
+    parser.add_argument(
+        "--allow-competition-source-revision",
+        action="store_true",
+        help="Permite cargar una fuente con checksum/URL distinta para una competencia ya cargada. Usar solo con revision explicita.",
+    )
     parser.add_argument("--default-source-id", type=int, default=1)
     parser.add_argument("--club-alias-csv", type=str, default=str(DEFAULT_CLUB_ALIAS_CSV), help="CSV opcional con columnas alias_name, canonical_name para resolver variantes de nombres de clubes")
     return parser.parse_args()
@@ -806,6 +811,54 @@ def register_source_document(conn, config: Config, args: argparse.Namespace, met
     return source_document_id
 
 
+def assert_no_unapproved_competition_source_revision(
+    conn,
+    config: Config,
+    args: argparse.Namespace,
+    metadata: Dict[str, Optional[str]],
+) -> None:
+    if getattr(args, "allow_competition_source_revision", False):
+        return
+
+    checksum_sha256 = normalize_string(metadata.get("pdf_sha256"))
+    source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+    if not checksum_sha256 and not source_url:
+        return
+
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            SELECT sd.id, sd.document_name, sd.source_url, sd.checksum_sha256
+            FROM {fqtn(config.schema, 'load_run')} lr
+            JOIN {fqtn(config.schema, 'source_document')} sd ON sd.id = lr.source_document_id
+            WHERE lr.competition_id = %s
+              AND (
+                    (%s::text IS NOT NULL AND sd.checksum_sha256 IS NOT NULL AND sd.checksum_sha256 <> %s::text)
+                 OR (%s::text IS NULL AND %s::text IS NOT NULL AND sd.source_url IS NOT NULL AND sd.source_url <> %s::text)
+              )
+            ORDER BY sd.id
+            LIMIT 1;
+        """, (config.competition_id, checksum_sha256, checksum_sha256, checksum_sha256, source_url, source_url))
+        row = cur.fetchone()
+
+    if not row:
+        return
+
+    existing_id, existing_name, existing_url, existing_checksum = row
+    fail(
+        "La competencia ya tiene una fuente cargada con checksum/URL distinta. "
+        "Esto puede ser una revision oficial o una URL alternativa del mismo PDF; "
+        "no se carga automaticamente para evitar duplicados. "
+        f"competition_id={config.competition_id}; "
+        f"source_document_existente={existing_id} ({existing_name}); "
+        f"checksum_existente={existing_checksum or 'sin_checksum'}; "
+        f"checksum_entrante={checksum_sha256 or 'sin_checksum'}; "
+        f"url_existente={existing_url or 'sin_url'}; "
+        f"url_entrante={source_url or 'sin_url'}. "
+        "Si se decide reemplazar o revisar conscientemente, ejecutar con "
+        "--allow-competition-source-revision y una limpieza/reemplazo controlado."
+    )
+
+
 def count_input_rows(data: Dict[str, pd.DataFrame]) -> Dict[str, int]:
     return {
         "club": len(data.get("club", [])),
@@ -1461,6 +1514,7 @@ def main() -> None:
     conn = get_conn(config)
     try:
         config.competition_id = resolve_competition_id(conn, config, args, data, metadata)
+        assert_no_unapproved_competition_source_revision(conn, config, args, metadata)
         config.source_document_id = register_source_document(conn, config, args, metadata)
         config.load_run_id = start_load_run(conn, config, args, data, metadata)
         truncate_tables(conn, config)

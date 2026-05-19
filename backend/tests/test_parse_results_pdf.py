@@ -89,6 +89,8 @@ def test_normalize_stroke_to_domain_canon():
     assert parser.normalize_stroke("Breast 40 a 99 años") == "breaststroke"
     assert parser.normalize_stroke("Medley 120 a 159 años Relay") == "medley_relay"
     assert parser.normalize_stroke("Medley 280 y mas años Relay") == "medley_relay"
+    assert parser.normalize_stroke("Medley Relay 280 y mas") == "medley_relay"
+    assert parser.normalize_stroke("Medley Relay Pre Master") == "medley_relay"
 
 
     assert parser.normalize_stroke("Estilo Libre Pre Master - Master") == "freestyle"

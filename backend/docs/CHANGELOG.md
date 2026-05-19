@@ -12,6 +12,15 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - `backend/README.md`, `frontend/README.md` y `frontend/docs/api_contracts.md` se alinean para explicar el flujo PostgreSQL/FastAPI/React y el estado transicional de contratos manuales hacia OpenAPI.
 
 ### Estado operativo vigente
+- En la prueba incremental FCHMN del 2026-05-19 se detecto que
+  `resultados-ii-copa-chile.pdf` era una revision/URL alternativa de la misma
+  `II Copa Chile 2026` ya cargada desde `resultados-ii-copa-chile-1.pdf`.
+  La base se limpio quirurgicamente para conservar la version `-1`: se elimino
+  el segundo `load_run/source_document`, 132 resultados derivados de esa carga y
+  15 atletas huerfanos creados por ella. Desde ahora el pipeline bloquea por
+  defecto una fuente con checksum/URL distinta para una competencia ya cargada;
+  solo se puede saltar con `--allow-competition-source-revision` y reemplazo
+  controlado.
 - Manifest local curado vigente para carga FCHMN 2022-2026:
   `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_parser020_tracefixed_curated_20260512_identity_fix.jsonl`.
 - Carpeta materializada asociada:

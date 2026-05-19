@@ -86,6 +86,8 @@ def normalize_stroke(value: Any) -> str | None:
     value = re.sub(r"\b(?:novicios|pre master master)\b", "", value).strip()
     value = re.sub(r"^\d+x\d+\s+(?:mts?\s+)?", "", value).strip()
     value = re.sub(r"\s+\d+\s+a\s+\d+$", "", value).strip()
+    # Algunos encabezados de relevos dejan sufijos de categoria despues del estilo.
+    value = re.sub(r"\s+(?:pre master|\d+\s+y\s+m[aá]s)$", "", value).strip()
     if has_relay_distance_prefix and value in {"comb", "combinado", "medley"}:
         return "medley_relay"
     if has_relay_distance_prefix and value in {"libre", "crol", "free", "freestyle"}:
