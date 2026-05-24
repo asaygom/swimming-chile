@@ -56,8 +56,23 @@ export const MainLayout: React.FC = () => {
 
       {/* Footer Minimalista */}
       <footer className="w-full border-t border-slate-200 bg-white py-6 mt-auto pb-24 md:pb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
-          &copy; {new Date().getFullYear()} SwimStats Chile. Plataforma de Datos No Oficial.
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className='flex flex-col items-center justify-between gap-2 text-center text-sm text-slate-500 md:flex-row md:text-left'>
+            <p>
+              &copy; {new Date().getFullYear()} SwimStats Chile. Plataforma de Datos No Oficial.
+            </p>
+            <p>
+              Proyecto desarrollado por{" "}
+              <a
+                href="https://asaygom.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-slate-700 underline underline-offset-4 hover:text-blue-700"
+              >
+                Alexis Sayago
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
 
