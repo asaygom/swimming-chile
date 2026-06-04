@@ -8,17 +8,16 @@ export const MainLayout: React.FC = () => {
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              {/* Logo Placeholder */}
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
+            <NavLink to="/" className="flex items-center gap-2">
+              <img
+                src="/web-app-manifest-192x192.png"
+                alt="SwimStats Chile"
+                className="h-8 w-8"
+              />
               <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
                 SwimStats Chile
               </span>
-            </div>
+            </NavLink>
             
             {/* Navegación Principal */}
             <nav className="hidden md:flex space-x-1">
