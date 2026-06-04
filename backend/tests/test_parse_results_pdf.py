@@ -108,6 +108,19 @@ def test_competition_name_similarity_matches_planned_calendar_name():
     assert parser.normalize_stroke("4x50 Mts Combinado") == "medley_relay"
 
 
+def test_choose_planned_competition_candidate_survives_calendar_date_change():
+    candidate = pipeline.choose_planned_competition_candidate(
+        "VII Copa Smart Swim Team",
+        [
+            (6, "VII Copa Smart Swim"),
+            (7, "VI Copa Santiago Deporte"),
+        ],
+    )
+
+    assert candidate is not None
+    assert candidate[1:] == (6, "VII Copa Smart Swim")
+
+
 def test_swim_time_normalization_and_milliseconds():
     assert parser.normalize_swim_time_text("35.40") == "35,40"
     assert parser.derive_result_time_ms("35.40") == 35400
@@ -170,6 +183,10 @@ def test_parse_event_header_in_english_and_spanish():
     relay = parser.parse_event_header("Evento 3 Mixto 160-199 4x50 CP Metro Relevo Libre")
     age_suffix = parser.parse_event_header("Event 4 Women 40-44 100 SC Meter Breast 40 a 99 años")
     relay_age_suffix = parser.parse_event_header("Event 5 Mixed 120-159 200 LC Meter Medley 120 a 159 años Relay")
+    relay_aggregate_age_suffix = parser.parse_event_header("Event 10 Women 400 SC Meter Freestyle Relay 240 a 279")
+    relay_trailing_age = parser.parse_event_header("Event 7 Mixed 200 SC Meter Medley C 160 a 199 años Relay")
+    relay_trailing_label = parser.parse_event_header("Event 11 Mixed 100 SC Meter 4x100 mts Libres PM Relay")
+    spanish_relay_trailing_age = parser.parse_event_header("Evento 11 Mixto 200 CL Metro Combinado 120 a 159 años Relevo")
 
     sudamericano = parser.parse_event_header("Evento 1 Damas 18-24 400 SC Metros Comb. Ind.")
     compact = parser.parse_event_header("#1 Women 18-24 100 Meter IM")
@@ -183,6 +200,15 @@ def test_parse_event_header_in_english_and_spanish():
     assert age_suffix.event_name == "women 40-44 100 SC Meter breaststroke"
     assert relay_age_suffix.distance_m == 200
     assert relay_age_suffix.stroke == "medley_relay"
+    assert relay_aggregate_age_suffix.age_group == "240 a 279"
+    assert relay_aggregate_age_suffix.distance_m == 400
+    assert relay_aggregate_age_suffix.stroke == "freestyle_relay"
+    assert relay_trailing_age.age_group == "C 160 a 199 años"
+    assert relay_trailing_age.stroke == "medley_relay"
+    assert relay_trailing_label.age_group == "PM"
+    assert relay_trailing_label.stroke == "freestyle_relay"
+    assert spanish_relay_trailing_age.age_group == "120 a 159 años"
+    assert spanish_relay_trailing_age.stroke == "medley_relay"
     assert sudamericano.gender == "women"
     assert sudamericano.stroke == "individual_medley"
     assert compact.course_code == "SC"

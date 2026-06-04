@@ -90,11 +90,11 @@ def normalize_stroke(value: Any) -> str | None:
     value = re.sub(r"\s+(?:pre master|\d+\s+y\s+m[aá]s)$", "", value).strip()
     if has_relay_distance_prefix and value in {"comb", "combinado", "medley"}:
         return "medley_relay"
-    if has_relay_distance_prefix and value in {"libre", "crol", "free", "freestyle"}:
+    if has_relay_distance_prefix and value in {"libre", "libres", "crol", "free", "freestyle"}:
         return "freestyle_relay"
     if re.fullmatch(r"(?:comb|combinado)(?: \d+ a \d+)? relay", value):
         return "medley_relay"
-    if value in {"libre relay", "crol relay"}:
+    if value in {"libre relay", "libres relay", "crol relay"}:
         return "freestyle_relay"
     mapping = {
         "free": "freestyle",

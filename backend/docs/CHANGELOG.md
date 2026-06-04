@@ -12,6 +12,29 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - `backend/README.md`, `frontend/README.md` y `frontend/docs/api_contracts.md` se alinean para explicar el flujo PostgreSQL/FastAPI/React y el estado transicional de contratos manuales hacia OpenAPI.
 
 ### Estado operativo vigente
+- El 2026-06-02 se detecto la publicacion de VII Copa Smart Swim Team desde la
+  portada FCHMN. Parser `0.1.21` agrega soporte para encabezados HY-TEK de relevo
+  con categoria agregada al final (`Freestyle Relay 240 a 279`) y el batch
+  bloquea cualquier encabezado de relevo remanente en debug aunque el ratio
+  global sea bajo. La validacion aislada sin `--load` extrae 504 resultados
+  individuales, 42 relevos y 168 integrantes con 0 lineas no parseadas.
+- La compuerta nueva expuso deuda historica en cinco PDFs 2022-2023 que antes
+  pasaban por ratio global: SBDO 2023, Santiago Deporte 2023, Delfines 2022,
+  LQBLO 2022 y Santiago Master 2022. Se reparsearon con `0.1.21`, recuperando
+  sus relevos, y la materializacion curada ampliada valida 63/63 sin `--load`.
+- El calendario FCHMN actualizado al 31/mayo/2026 movio VII Copa Smart Swim al
+  31/mayo y VI Copa Santiago Deporte al 20/junio. Los resultados oficiales de
+  Smart Swim traen eventos `SC Meter`, por lo que el curso real es `scm` aunque
+  el calendario lo mantenga como 50m. El loader ahora puede
+  reutilizar una competencia planificada vacia de la misma temporada por nombre
+  similar aunque fecha o curso hayan cambiado, evitando duplicados.
+- La bandeja revisada de identidad de Smart Swim
+  `backend/data/raw/batch_summaries/fchmn_vii_copa_smart_swim_20260603_identity_candidates_alias.csv`
+  debe aplicarse como `--fuzzy-identity-decisions-csv`: contiene decisiones
+  `merge` con `birth_year` curado y formato semicolon. La materializacion
+  `fchmn_parser021_reparsed_curated_identity_review_20260604` aplica 32
+  consolidaciones de atleta, 116 de resultados, 31 de relevos y 2 correcciones
+  de año en atletas; el manifest resultante valida 63/63 sin `--load`.
 - En la prueba incremental FCHMN del 2026-05-19 se detecto que
   `resultados-ii-copa-chile.pdf` era una revision/URL alternativa de la misma
   `II Copa Chile 2026` ya cargada desde `resultados-ii-copa-chile-1.pdf`.
@@ -106,6 +129,8 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - **0.1.18**: Deduplicacion operacional de filas exactas de relevos repetidas por paginas duplicadas del PDF y compuerta pre-load para `relay_team.csv`/`relay_swimmer.csv`.
 - **0.1.19**: Soporte para integrantes de relevo en continuaciones posicionales de layouts HY-TEK multicolumna, validado con III Copa LQBLO 2023.
 - **0.1.20**: Lectura HY-TEK multicolumna por columna logica completa para preservar el contexto correcto de evento antes de avanzar a otra columna, evitando resultados asignados a pruebas/generos/edades incorrectos.
+- **0.1.21**: Soporte para encabezados HY-TEK de relevos con categoria agregada
+  al final y compuerta batch contra encabezados de relevo no parseados en debug.
 
 ### Curaduría de Atletas y Alias de Clubes
 - Se automatizó la detección pre-load de errores OCR conocidos en nombres de atletas.

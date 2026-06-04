@@ -33,6 +33,10 @@ def parse_args() -> argparse.Namespace:
         help="Optional CSV with same-club delta-1 birth_year evidence.",
     )
     parser.add_argument(
+        "--club-alias-csv",
+        help="Optional CSV with alias_name, canonical_name columns used to canonicalize club_key before auditing.",
+    )
+    parser.add_argument(
         "--corrected-output-csv",
         help="Optional output expected core.athlete CSV after conservative birth_year corrections.",
     )
@@ -119,6 +123,56 @@ def normalize_token_text(value: object) -> str:
     text = text.lower()
     text = re.sub(r"[^a-z0-9]+", " ", text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def load_club_alias_maps(path: Path) -> Tuple[Dict[str, str], Dict[str, str]]:
+    key_aliases: Dict[str, str] = {}
+    name_aliases: Dict[str, str] = {}
+    if not path.exists():
+        return key_aliases, name_aliases
+    with path.open(newline="", encoding="utf-8-sig") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            alias_key = normalize_token_text(row.get("alias_name"))
+            canonical_name = str(row.get("canonical_name") or "").strip()
+            canonical_key = normalize_token_text(canonical_name)
+            if alias_key and canonical_key:
+                key_aliases[alias_key] = canonical_key
+                name_aliases[alias_key] = canonical_name
+    return key_aliases, name_aliases
+
+
+def load_club_alias_key_map(path: Path) -> Dict[str, str]:
+    key_aliases, _ = load_club_alias_maps(path)
+    return key_aliases
+
+
+def apply_club_alias_keys(
+    df: pd.DataFrame, aliases: Dict[str, str], name_aliases: Optional[Dict[str, str]] = None
+) -> pd.DataFrame:
+    if not aliases or "club_name" not in df.columns:
+        return df
+    output = df.copy()
+    name_aliases = name_aliases or {}
+
+    def alias_lookup_key(row: pd.Series) -> str:
+        raw_name_key = normalize_token_text(row.get("club_name"))
+        raw_key = normalize_token_text(row.get("club_key"))
+        return raw_name_key if raw_name_key in aliases else raw_key
+
+    def canonical_key(row: pd.Series) -> str:
+        lookup_key = alias_lookup_key(row)
+        raw_name_key = normalize_token_text(row.get("club_name"))
+        raw_key = normalize_token_text(row.get("club_key"))
+        return aliases.get(lookup_key) or raw_name_key or raw_key
+
+    def canonical_name(row: pd.Series) -> str:
+        lookup_key = alias_lookup_key(row)
+        return name_aliases.get(lookup_key) or str(row.get("club_name") or "").strip()
+
+    output["club_key"] = output.apply(canonical_key, axis=1)
+    output["club_name_canonical"] = output.apply(canonical_name, axis=1)
+    return output
 
 
 def name_token_key(value: object) -> str:
@@ -709,10 +763,12 @@ def build_expanded_identity_candidate_rows(df: pd.DataFrame) -> List[dict]:
                         "birth_year_delta": birth_year_delta,
                         "same_club": "yes" if same_club else "no",
                         "left_full_name": left.get("full_name", ""),
-                        "left_club": left.get("club_name", ""),
+                        "left_club": left.get("club_name_canonical") or left.get("club_name", ""),
+                        "left_club_raw": left.get("club_name", ""),
                         "left_athlete_key": left.get("athlete_key", ""),
                         "right_full_name": right.get("full_name", ""),
-                        "right_club": right.get("club_name", ""),
+                        "right_club": right.get("club_name_canonical") or right.get("club_name", ""),
+                        "right_club_raw": right.get("club_name", ""),
                         "right_athlete_key": right.get("athlete_key", ""),
                         "left_source_count": len(left_sources),
                         "right_source_count": len(right_sources),
@@ -746,6 +802,41 @@ def read_dict_rows(path: Path) -> List[dict]:
     return list(csv.DictReader(text.splitlines(), dialect=dialect))
 
 
+def _append_merge_decision(
+    decisions: List[dict],
+    *,
+    gender: str,
+    selected_birth_year: str,
+    match_birth_year: str,
+    club_key: str,
+    source_name: str,
+    canonical_name: str,
+    decision: str,
+    notes: object,
+    review_hint: object,
+    source_urls: object,
+) -> None:
+    source_key = ordered_name_key(source_name)
+    canonical_key = ordered_name_key(canonical_name)
+    if not all([gender, selected_birth_year, match_birth_year, source_key, canonical_name, canonical_key]):
+        return
+    decisions.append(
+        {
+            "gender": gender,
+            "birth_year": selected_birth_year,
+            "match_birth_year": match_birth_year,
+            "club_key": club_key,
+            "shorter_athlete_key": source_key,
+            "canonical_full_name": canonical_name,
+            "canonical_athlete_key": canonical_key,
+            "source_decision": decision,
+            "notes": notes or "",
+            "review_hint": review_hint or "",
+            "source_urls": source_urls or "",
+        }
+    )
+
+
 def load_partial_name_decisions(path: Path) -> List[dict]:
     if not path.exists():
         raise FileNotFoundError(path)
@@ -755,29 +846,47 @@ def load_partial_name_decisions(path: Path) -> List[dict]:
         if decision != "merge":
             continue
         gender = str(row.get("gender") or "").strip()
-        birth_year = birth_year_text(row.get("birth_year"))
-        club_key = str(row.get("club_key") or row.get("shorter_club_key") or "").strip()
-        shorter_key = ordered_name_key(row.get("shorter_full_name") or row.get("shorter_athlete_key"))
+        selected_birth_year = birth_year_text(row.get("birth_year"))
         canonical_name = str(row.get("suggested_canonical_full_name") or row.get("longer_full_name") or "").strip()
-        canonical_key = ordered_name_key(canonical_name)
-        if not all([gender, birth_year, club_key, shorter_key, canonical_name, canonical_key]):
-            continue
-        decisions.append(
-            {
-                "gender": gender,
-                "birth_year": birth_year,
-                "club_key": club_key,
-                "shorter_athlete_key": shorter_key,
-                "canonical_full_name": canonical_name,
-                "canonical_athlete_key": canonical_key,
-                "source_decision": decision,
-                "notes": row.get("notes", ""),
-                "review_hint": row.get("review_hint", ""),
-                "source_urls": row.get("source_urls", ""),
-            }
-        )
-    return decisions
+        club_key = str(row.get("club_key") or row.get("shorter_club_key") or "").strip()
 
+        shorter_name = row.get("shorter_full_name") or row.get("shorter_athlete_key")
+        if shorter_name:
+            _append_merge_decision(
+                decisions,
+                gender=gender,
+                selected_birth_year=selected_birth_year,
+                match_birth_year=selected_birth_year,
+                club_key=club_key,
+                source_name=str(shorter_name),
+                canonical_name=canonical_name,
+                decision=decision,
+                notes=row.get("notes", ""),
+                review_hint=row.get("review_hint", ""),
+                source_urls=row.get("source_urls", ""),
+            )
+            continue
+
+        # Expanded identity trays use left/right rows instead of shorter/longer.
+        # Each reviewed side may carry a different observed birth_year; use that
+        # year for matching and the curated birth_year as the final value.
+        for side in ("left", "right"):
+            source_name = row.get(f"{side}_full_name") or row.get(f"{side}_athlete_key")
+            match_birth_year = birth_year_text(row.get(f"{side}_birth_year")) or selected_birth_year
+            _append_merge_decision(
+                decisions,
+                gender=gender,
+                selected_birth_year=selected_birth_year,
+                match_birth_year=match_birth_year,
+                club_key=club_key,
+                source_name=str(source_name or ""),
+                canonical_name=canonical_name,
+                decision=decision,
+                notes=row.get("notes", ""),
+                review_hint=row.get("review_hint", ""),
+                source_urls=row.get("source_urls", ""),
+            )
+    return decisions
 
 def _resolve_partial_decision_target(
     key: Tuple[str, str, str, str],
@@ -804,14 +913,19 @@ def apply_partial_name_decisions(
     decisions: Sequence[dict],
 ) -> Tuple[pd.DataFrame, List[dict]]:
     decision_map: Dict[Tuple[str, str, str, str], dict] = {}
+    decision_map_without_club: Dict[Tuple[str, str, str], dict] = {}
     for decision in decisions:
+        match_birth_year = decision.get("match_birth_year") or decision["birth_year"]
         key = (
             decision["gender"],
-            decision["birth_year"],
+            match_birth_year,
             decision["club_key"],
             decision["shorter_athlete_key"],
         )
-        decision_map[key] = decision
+        if decision["club_key"]:
+            decision_map[key] = decision
+        else:
+            decision_map_without_club[(decision["gender"], match_birth_year, decision["shorter_athlete_key"])] = decision
 
     corrected = df.copy()
     changes: List[dict] = []
@@ -823,12 +937,16 @@ def apply_partial_name_decisions(
             str(row.get("club_key") or "").strip(),
             ordered_name_key(row.get("full_name")),
         )
-        if key not in decision_map:
+        target = decision_map.get(key)
+        if target is None:
+            target = decision_map_without_club.get((key[0], key[1], key[3]))
+        if target is None:
             continue
-        target = _resolve_partial_decision_target(key, decision_map)
+        if key in decision_map:
+            target = _resolve_partial_decision_target(key, decision_map)
         old_full_name = row.get("full_name", "")
         old_athlete_key = row.get("athlete_key", "")
-        if ordered_name_key(old_full_name) == target["canonical_athlete_key"]:
+        if ordered_name_key(old_full_name) == target["canonical_athlete_key"] and birth_year == target["birth_year"]:
             continue
         changes.append(
             {
@@ -836,7 +954,8 @@ def apply_partial_name_decisions(
                 "old_full_name": old_full_name,
                 "new_full_name": target["canonical_full_name"],
                 "gender": row.get("gender", ""),
-                "birth_year": birth_year,
+                "birth_year": target["birth_year"],
+                "old_birth_year": birth_year,
                 "club_name": row.get("club_name", ""),
                 "club_key": row.get("club_key", ""),
                 "old_athlete_key": old_athlete_key,
@@ -848,7 +967,7 @@ def apply_partial_name_decisions(
         )
         corrected.at[index, "full_name"] = target["canonical_full_name"]
         corrected.at[index, "athlete_key"] = target["canonical_athlete_key"]
-        corrected.at[index, "birth_year"] = birth_year
+        corrected.at[index, "birth_year"] = target["birth_year"]
     return corrected, changes
 
 
@@ -890,6 +1009,9 @@ def main() -> int:
     summary_path = resolve_path(args.summary_json)
 
     df = pd.read_csv(input_path, dtype=str, encoding="utf-8-sig").fillna("")
+    if args.club_alias_csv:
+        club_alias_keys, club_alias_names = load_club_alias_maps(resolve_path(args.club_alias_csv))
+        df = apply_club_alias_keys(df, club_alias_keys, club_alias_names)
     source_row_count = len(df)
 
     birth_year_correction_count = 0
@@ -1022,6 +1144,7 @@ def main() -> int:
                     "new_full_name",
                     "gender",
                     "birth_year",
+                    "old_birth_year",
                     "club_name",
                     "club_key",
                     "old_athlete_key",
@@ -1080,9 +1203,11 @@ def main() -> int:
                 "same_club",
                 "left_full_name",
                 "left_club",
+                "left_club_raw",
                 "left_athlete_key",
                 "right_full_name",
                 "right_club",
+                "right_club_raw",
                 "right_athlete_key",
                 "left_source_count",
                 "right_source_count",

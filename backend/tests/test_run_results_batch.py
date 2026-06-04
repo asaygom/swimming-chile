@@ -49,6 +49,25 @@ def test_validate_input_dir_requires_review_when_debug_ratio_is_high():
     assert any(issue.issue_key == "debug_unparsed_ratio_exceeded" for issue in result.issues)
 
 
+def test_validate_input_dir_requires_review_for_unparsed_relay_event_header():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_unparsed_relay_header_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "debug_unparsed_lines.csv").write_text(
+            "page_number,line_number,event_name_context,raw_line,reason\n"
+            '15,3,men 75-79 50 SC Meter butterfly,"Event 10 Women 400 SC Meter Freestyle Relay 240 a 279",unparsed_inside_event\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    assert result.state == "requires_review"
+    assert result.counts["debug_unparsed_relay_event_headers"] == 1
+    assert any(issue.issue_key == "unparsed_relay_event_headers" for issue in result.issues)
+
+
 def test_validate_input_dir_requires_review_for_athlete_name_residues():
     input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_name_quality_{uuid.uuid4().hex}"
     try:

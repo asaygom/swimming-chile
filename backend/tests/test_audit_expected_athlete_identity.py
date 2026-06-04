@@ -81,6 +81,30 @@ def test_build_same_name_review_rows_groups_by_name_and_gender():
     assert rows[0]["review_category"] == "same_club_birth_year_delta_1_review_age_capture"
 
 
+def test_apply_club_alias_keys_canonicalizes_identity_context():
+    df = pd.DataFrame(
+        [
+            {"club_name": "Carabineros", "club_key": "carabineros"},
+            {"club_name": "Carabineros de Chile", "club_key": "carabineros de chile"},
+        ]
+    )
+
+    output = audit.apply_club_alias_keys(
+        df,
+        {
+            "carabineros": "carabineros de chile",
+            "carabineros de chile": "carabineros de chile",
+        },
+        {
+            "carabineros": "Carabineros de Chile",
+            "carabineros de chile": "Carabineros de Chile",
+        },
+    )
+
+    assert output["club_key"].tolist() == ["carabineros de chile", "carabineros de chile"]
+    assert output["club_name_canonical"].tolist() == ["Carabineros de Chile", "Carabineros de Chile"]
+
+
 def test_preferred_year_from_evidence_requires_source_one_vs_many():
     row = {
         "year_observation_counts": "1984:11 | 1985:3",
@@ -449,6 +473,59 @@ def test_apply_partial_name_decisions_uses_only_curated_merge_rows():
     assert changes[0]["new_full_name"] == "Bustos Araya, Maria Gabriela"
     assert len(deduped) == 2
     assert "Machuca, Egidio" in set(deduped["full_name"])
+
+
+def test_load_expanded_identity_decisions_accepts_semicolon_and_curated_birth_year():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        path = tmp_dir / "expanded_decisions.csv"
+        path.write_text(
+            "decision;suggested_canonical_full_name;review_hint;candidate_reason;gender;birth_year;left_birth_year;right_birth_year;left_full_name;right_full_name;source_urls\n"
+            "merge;Lange, Alexandro;birth_year_delta_1_review;birth_year_delta_1_name_compatible;male;2002;2001;2002;Lange, Alexandro;Lange, Alexandro;a | b\n",
+            encoding="utf-8",
+        )
+
+        decisions = audit.load_partial_name_decisions(path)
+
+        assert len(decisions) == 2
+        assert {decision["match_birth_year"] for decision in decisions} == {"2001", "2002"}
+        assert {decision["birth_year"] for decision in decisions} == {"2002"}
+
+        df = pd.DataFrame(
+            [
+                {
+                    "expected_row_id": "1",
+                    "full_name": "Lange, Alexandro",
+                    "gender": "male",
+                    "birth_year": "2001",
+                    "club_name": "Carabineros de Chile",
+                    "club_key": "carabineros de chile",
+                    "athlete_key": "lange alexandro",
+                    "source_url": "a",
+                },
+                {
+                    "expected_row_id": "2",
+                    "full_name": "Lange, Alexandro",
+                    "gender": "male",
+                    "birth_year": "2002",
+                    "club_name": "Carabineros de Chile",
+                    "club_key": "carabineros de chile",
+                    "athlete_key": "lange alexandro",
+                    "source_url": "b",
+                },
+            ]
+        )
+
+        corrected, changes = audit.apply_partial_name_decisions(df, decisions)
+        deduped = audit.dedupe_expected_core_athletes(corrected)
+
+        assert len(changes) == 1
+        assert set(corrected["birth_year"]) == {"2002"}
+        assert len(deduped) == 1
+    finally:
+        import shutil
+
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def test_load_partial_name_decisions_accepts_semicolon_csv():

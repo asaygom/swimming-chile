@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.20"
+PARSER_VERSION = "0.1.21"
 
 try:
     import pdfplumber
@@ -55,6 +55,22 @@ COMPETITION_HEADER_WITH_DATE_RANGE_RE = re.compile(
 
 EVENT_HEADER_RE = re.compile(
     r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>LC|SC)\s+Meter\s+(?P<stroke>.+?)\)?$",
+    re.IGNORECASE,
+)
+
+ENGLISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE = re.compile(
+    # HY-TEK can move the relay aggregate-age category after the stroke.
+    r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>LC|SC)\s+Meter\s+(?P<stroke>.+?\s+Relay)\s+(?P<age_group>\d+\s+a\s+\d+)\)?$",
+    re.IGNORECASE,
+)
+
+ENGLISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE = re.compile(
+    r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>LC|SC)\s+Meter\s+(?P<stroke>.+?)\s+(?P<age_group>(?:(?:PM|[A-Z])\s+)?(?:\d+\s+a\s+\d+\s+a(?:ñ|n)os|PM|[A-Z]))\s+Relay\)?$",
+    re.IGNORECASE,
+)
+
+SPANISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE = re.compile(
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metro\s+(?P<stroke>.+?)\s+(?P<age_group>\d+\s+a\s+\d+\s+a(?:ñ|n)os)\s+Relevo\)?$",
     re.IGNORECASE,
 )
 
@@ -938,7 +954,13 @@ def should_skip_line(line: str) -> bool:
 def parse_event_header(line: str) -> Optional[EventContext]:
     candidate = clean_extracted_text(line.strip()) or line.strip()
     candidate = re.sub(r"^E\s+vento\b", "Evento", candidate, flags=re.IGNORECASE)
-    m = EVENT_HEADER_RE.match(candidate)
+    m = ENGLISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE.match(candidate)
+    if not m:
+        m = ENGLISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE.match(candidate)
+    if not m:
+        m = SPANISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE.match(candidate)
+    if not m:
+        m = EVENT_HEADER_RE.match(candidate)
     if not m:
         m = SPANISH_EVENT_HEADER_RE.match(candidate)
     if not m:
@@ -955,6 +977,10 @@ def parse_event_header(line: str) -> Optional[EventContext]:
     if m.re is SPANISH_RELAY_EVENT_HEADER_RE:
         stroke_raw = f"relevo {stroke_raw}"
     if m.re is SPANISH_RELAY_AGE_SUFFIX_EVENT_HEADER_RE:
+        stroke_raw = f"{stroke_raw} relevo"
+    if m.re is ENGLISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE:
+        stroke_raw = f"{stroke_raw} relay"
+    if m.re is SPANISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE:
         stroke_raw = f"{stroke_raw} relevo"
     return EventContext(
         event_number=int(m.group("event_number")),

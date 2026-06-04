@@ -142,6 +142,8 @@ Bloquean la carga y dejan el lote en `requires_review`:
 - El parser no encontro eventos.
 - El parser no encontro resultados individuales ni relevos.
 - `debug_unparsed_lines.csv` supera el umbral permitido.
+- `debug_unparsed_lines.csv` conserva encabezados de relevos sin parsear, aunque
+  el ratio global de debug sea bajo.
 - Hay valores fuera del canon documentado para genero, estilo o status.
 - Hay filas de resultado sin `event_name` o sin identidad observable de atleta/equipo.
 - `result.csv` trae resultados individuales cuya `age_at_event` no calza con
@@ -180,6 +182,8 @@ Bloquean la carga y dejan el lote en `requires_review`:
 Umbral inicial:
 
 - `debug_unparsed_lines / lineas_relevantes_parseadas > 0.20` requiere revision.
+- Cualquier encabezado `Event|Evento ... Relay|Relevo` remanente en debug
+  requiere revision: puede evidenciar una perdida completa o parcial de relevos.
 
 Este umbral es conservador y debe validarse con fixtures antes de automatizar
 cargas masivas.
@@ -254,9 +258,10 @@ Batch runner:
   bloquea. Una revisión oficial debe tratarse como reemplazo controlado y solo
   puede saltar la compuerta con `--allow-competition-source-revision`.
 - Antes de crear una competencia nueva, el pipeline debe intentar reutilizar una
-  competencia planificada sin resultados ni `load_run` cuando tenga la misma
-  fecha, curso compatible y nombre similar. Esto conecta calendario planificado
-  con resultados oficiales publicados posteriormente.
+  competencia planificada sin resultados ni `load_run` cuando pertenezca a la
+  misma temporada y tenga nombre similar. La fecha y el curso inferido desde los
+  eventos del PDF reemplazan los valores planificados si el calendario quedó
+  desactualizado.
 - Ejecuta pipeline solo si el lote esta validado.
 - Si se usa `--load`, exige que cada documento tenga un `competition_scope`
   curado que coincida con `--required-competition-scope` (`fchmn_local` por

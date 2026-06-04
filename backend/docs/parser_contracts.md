@@ -72,6 +72,11 @@ Tambien puede generar archivos de trazabilidad/debug:
 - `relay_team.csv` puede incluir `club_name`. Cuando existe, representa el club observado del equipo de relevo y debe preservarse hacia la carga; cuando falta o viene vacio, el pipeline puede inferir el club desde `club.csv` y `relay_team_name`.
 - Las heuristicas propias del PDF viven en el parser; el pipeline solo debe hacer limpieza generica y carga.
 - El parser normaliza sufijos de categorias de edad pegados al estilo en encabezados HY-TEK, por ejemplo `Breast 40 a 99 años` o `Medley 120 a 159 años Relay`, sin cambiar el canon de `event.stroke`.
+- Desde parser `0.1.21`, también reconoce relevos HY-TEK con categoría agregada
+  al final del encabezado, por ejemplo
+  `Event 10 Women 400 SC Meter Freestyle Relay 240 a 279`,
+  `Event 7 Mixed 200 SC Meter Medley C 160 a 199 años Relay` o
+  `Evento 11 Mixto 200 CL Metro Combinado 120 a 159 años Relevo`.
 - El parser puede omitir parciales/splits de carrera en `debug_unparsed_lines.csv` cuando no son filas de resultado; esto evita bloquear la validacion por lineas auxiliares de HY-TEK.
 - Si una fila con resultado tipo status deja el tiempo de seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`, el parser debe separar `club_name = Club Sparta A C`, `seed_time_text = 49,33` y `result_time_text = DQ`.
 - Ningun resultado `valid` individual o de relevo debe materializarse con

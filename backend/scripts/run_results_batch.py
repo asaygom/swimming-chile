@@ -43,6 +43,10 @@ STATUSES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
 VOWEL_PLUS_ACCENTED_VOWEL_RE = re.compile(r"[aeiouAEIOUáéíóúüÁÉÍÓÚÜ][áéíóúüÁÉÍÓÚÜ]")
 SPLIT_ENYE_RE = re.compile(r"(?:ñ\s+ñ|n\s+ñ|ñ\s+n)", re.IGNORECASE)
 EVENT_DISTANCE_RE = re.compile(r"\b(\d+)(?:x\d+)?\s+(?:LC|SC)\s+Meter\b", re.IGNORECASE)
+UNPARSED_RELAY_EVENT_HEADER_RE = re.compile(
+    r"^(?:Event|Evento)\s+\d+\b.*\b(?:Relay|Relevo)\b",
+    re.IGNORECASE,
+)
 EVENT_AGE_GROUP_RE = re.compile(r"\b(?:women|men)\s+(\d{1,3})-(\d{1,3})\b", re.IGNORECASE)
 
 DEFAULT_DEBUG_THRESHOLD = 0.20
@@ -631,6 +635,21 @@ def validate_debug_ratio(input_dir: Path, parsed_rows: int, threshold: float, co
 
     _, debug_rows = read_csv_rows(debug_path)
     counts["debug_unparsed_lines"] = len(debug_rows)
+    unparsed_relay_headers = sum(
+        1
+        for row in debug_rows
+        if UNPARSED_RELAY_EVENT_HEADER_RE.search((row.get("raw_line") or "").strip())
+    )
+    counts["debug_unparsed_relay_event_headers"] = unparsed_relay_headers
+    if unparsed_relay_headers:
+        issues.append(
+            BatchIssue(
+                "error",
+                "unparsed_relay_event_headers",
+                "Hay encabezados de relevo sin parsear en debug_unparsed_lines.csv.",
+                unparsed_relay_headers,
+            )
+        )
     if parsed_rows <= 0:
         return
     ratio = len(debug_rows) / parsed_rows

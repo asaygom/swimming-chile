@@ -38,6 +38,7 @@ def test_stroke_normalization_uses_domain_canons():
     assert normalize_stroke("Estilo Libre Novicios") == "freestyle"
     assert normalize_stroke("4x50 Comb 200 a 239") == "medley_relay"
     assert normalize_stroke("4x50 Crol") == "freestyle_relay"
+    assert normalize_stroke("4x100 mts Libres Relay") == "freestyle_relay"
     assert normalize_stroke("Medley Relay 280 y mas") == "medley_relay"
     assert normalize_stroke("Medley Relay Pre Master") == "medley_relay"
 

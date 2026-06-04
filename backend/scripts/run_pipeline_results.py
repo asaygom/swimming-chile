@@ -694,6 +694,17 @@ def competition_name_similarity(left: Optional[str], right: Optional[str]) -> fl
     return SequenceMatcher(None, left_key, right_key).ratio()
 
 
+def choose_planned_competition_candidate(competition_name: str, candidates: list[tuple[int, str]]) -> Optional[tuple[float, int, str]]:
+    scored_candidates = [
+        (competition_name_similarity(competition_name, candidate_name), candidate_id, candidate_name)
+        for candidate_id, candidate_name in candidates
+    ]
+    scored_candidates.sort(reverse=True)
+    if scored_candidates and scored_candidates[0][0] >= PLANNED_COMPETITION_MATCH_THRESHOLD:
+        return scored_candidates[0]
+    return None
+
+
 def update_competition_scope(conn, config: Config, competition_id: int, competition_scope: Optional[str]) -> None:
     if competition_scope is None:
         return
@@ -750,8 +761,11 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
             cur.execute(f"""
                 SELECT c.id, c.name
                 FROM {fqtn(config.schema, 'competition')} c
-                WHERE c.start_date = %s
-                  AND (%s = 'unknown' OR c.course_type IS NULL OR c.course_type = %s)
+                WHERE c.status = 'planned'
+                  AND (
+                        (%s IS NOT NULL AND c.season_year = %s)
+                     OR (%s IS NULL AND c.start_date = %s)
+                  )
                   AND NOT EXISTS (
                       SELECT 1 FROM {fqtn(config.schema, 'load_run')} lr
                       WHERE lr.competition_id = c.id
@@ -769,23 +783,24 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
                       WHERE e.competition_id = c.id
                   )
                 ORDER BY c.id;
-            """, (start_date, course_type, course_type))
-            scored_candidates = [
-                (competition_name_similarity(competition_name, candidate_name), candidate_id, candidate_name)
-                for candidate_id, candidate_name in cur.fetchall()
-            ]
-            scored_candidates.sort(reverse=True)
-            if scored_candidates and scored_candidates[0][0] >= PLANNED_COMPETITION_MATCH_THRESHOLD:
-                score, competition_id, planned_name = scored_candidates[0]
+            """, (season_year_int, season_year_int, season_year_int, start_date))
+            # El calendario puede cambiar luego de planificarse una fecha. El nombre,
+            # año y que no tenga resultados permiten conservar la fila planificada
+            # en vez de duplicarla; fecha y curso los corrige el resultado oficial.
+            planned_candidate = choose_planned_competition_candidate(competition_name, cur.fetchall())
+            if planned_candidate is not None:
+                score, competition_id, planned_name = planned_candidate
                 update_competition_scope(conn, config, int(competition_id), competition_scope)
                 cur.execute(f"""
                     UPDATE {fqtn(config.schema, 'competition')}
-                    SET course_type = COALESCE(course_type, %s),
+                    SET course_type = CASE WHEN %s <> 'unknown' THEN %s ELSE course_type END,
                         source_url = COALESCE(source_url, %s),
+                        start_date = COALESCE(%s, start_date),
+                        end_date = COALESCE(%s, end_date),
                         status = 'finished',
                         updated_at = NOW()
                     WHERE id = %s;
-                """, (course_type, source_url, competition_id))
+                """, (course_type, course_type, source_url, start_date, end_date, competition_id))
                 info(
                     f"Se reutilizará competition_id={competition_id} para competencia planificada "
                     f"'{planned_name}' (match={score:.2f}) desde '{competition_name}'."
