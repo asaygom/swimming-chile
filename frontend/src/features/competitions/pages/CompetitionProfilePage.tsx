@@ -220,7 +220,9 @@ export const CompetitionProfilePage: React.FC = () => {
   if (!data) return <EmptyState title="Competencia no encontrada" description="La competencia que buscas no existe o fue removida." />;
 
   const { competition } = data;
-  const dateObj = new Date(competition.date_start);
+  // Avoid timezone shifts when the API returns a date-only value (YYYY-MM-DD).
+  const dateString = competition.date_start.includes('T') ? competition.date_start : `${competition.date_start}T12:00:00`;
+  const dateObj = new Date(dateString);
   const formattedDate = dateObj.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const isSearching = searchQuery.trim().length > 0;
   const course = getCourseMeta(competition.course_type);
