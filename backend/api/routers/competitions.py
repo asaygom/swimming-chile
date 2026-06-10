@@ -5,6 +5,13 @@ from ..database import get_db_connection
 
 router = APIRouter()
 
+GOVERNING_BODY_SCOPE_FALLBACKS = {
+    "fchmn": "fchmn_local",
+    "consanat": "sudamericano_master",
+    "fechida": "fechida_local",
+}
+
+
 @router.get("")
 def list_competitions(
     search: Optional[str] = Query(None),
@@ -39,9 +46,15 @@ def list_competitions(
                 params.append(competition_scope)
 
             if governing_body and governing_body != 'all':
-                query += " AND governing_body_code = %s"
-                count_query += " AND governing_body_code = %s"
-                params.append(governing_body)
+                scope_fallback = GOVERNING_BODY_SCOPE_FALLBACKS.get(governing_body)
+                if scope_fallback:
+                    query += " AND (governing_body_code = %s OR (governing_body_code IS NULL AND competition_scope = %s))"
+                    count_query += " AND (governing_body_code = %s OR (governing_body_code IS NULL AND competition_scope = %s))"
+                    params.extend([governing_body, scope_fallback])
+                else:
+                    query += " AND governing_body_code = %s"
+                    count_query += " AND governing_body_code = %s"
+                    params.append(governing_body)
                 
             if timeframe == 'upcoming':
                 query += " AND start_date >= CURRENT_DATE"
@@ -107,9 +120,35 @@ def get_competition_filter_options():
             scopes = [row['competition_scope'] for row in cur.fetchall()]
 
             cur.execute("""
-                SELECT DISTINCT governing_body_code, governing_body_name
+                SELECT DISTINCT
+                    COALESCE(
+                        governing_body_code,
+                        CASE competition_scope
+                            WHEN 'fchmn_local' THEN 'fchmn'
+                            WHEN 'sudamericano_master' THEN 'consanat'
+                            WHEN 'fechida_local' THEN 'fechida'
+                            ELSE NULL
+                        END
+                    ) AS governing_body_code,
+                    COALESCE(
+                        governing_body_name,
+                        CASE competition_scope
+                            WHEN 'fchmn_local' THEN 'FCHMN'
+                            WHEN 'sudamericano_master' THEN 'CONSANAT'
+                            WHEN 'fechida_local' THEN 'FECHIDA'
+                            ELSE NULL
+                        END
+                    ) AS governing_body_name
                 FROM core.competition
-                WHERE governing_body_code IS NOT NULL
+                WHERE COALESCE(
+                    governing_body_code,
+                    CASE competition_scope
+                        WHEN 'fchmn_local' THEN 'fchmn'
+                        WHEN 'sudamericano_master' THEN 'consanat'
+                        WHEN 'fechida_local' THEN 'fechida'
+                        ELSE NULL
+                    END
+                ) IS NOT NULL
                 ORDER BY governing_body_name ASC NULLS LAST, governing_body_code ASC
             """)
             governing_bodies = cur.fetchall()
