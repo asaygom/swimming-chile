@@ -105,6 +105,10 @@ CREATE TABLE competition (
     venue_name TEXT,
     pool_id BIGINT REFERENCES pool(id),
     organizer TEXT,
+    governing_body_code TEXT CHECK (
+        governing_body_code IS NULL OR governing_body_code ~ '^[a-z][a-z0-9_]*$'
+    ),
+    governing_body_name TEXT,
     competition_type TEXT CHECK (
         competition_type IN ('national', 'regional', 'master', 'open', 'school', 'other')
     ),

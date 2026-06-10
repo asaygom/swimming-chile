@@ -9,6 +9,10 @@ export const CompetitionSchema = z.object({
   date_end: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
   course_type: CourseTypeSchema.nullable().optional(),
+  competition_scope: z.string().nullable().optional(),
+  governing_body_code: z.string().nullable().optional(),
+  governing_body_name: z.string().nullable().optional(),
+  organizer: z.string().nullable().optional(),
 });
 
 export type Competition = z.infer<typeof CompetitionSchema>;
@@ -19,6 +23,17 @@ export const CompetitionsResponseSchema = z.object({
 });
 
 export type CompetitionsResponse = z.infer<typeof CompetitionsResponseSchema>;
+
+export const CompetitionFilterOptionsSchema = z.object({
+  years: z.array(z.number().int()),
+  scopes: z.array(z.string()),
+  governing_bodies: z.array(z.object({
+    governing_body_code: z.string(),
+    governing_body_name: z.string().nullable().optional(),
+  })),
+});
+
+export type CompetitionFilterOptions = z.infer<typeof CompetitionFilterOptionsSchema>;
 
 import { EventGenderSchema, StrokeSchema, ResultStatusSchema } from './canon';
 

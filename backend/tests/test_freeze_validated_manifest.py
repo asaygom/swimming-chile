@@ -93,6 +93,8 @@ def test_freeze_validated_manifest_includes_only_allowed_validated_documents():
             "fchmn_local",
             default_source_id=7,
             allowed_source_urls={"https://fchmn.cl/local-a.pdf"},
+            governing_body_code="fchmn",
+            governing_body_name="FCHMN",
         )
         entries = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines()]
     finally:
@@ -107,6 +109,8 @@ def test_freeze_validated_manifest_includes_only_allowed_validated_documents():
             "input_dir": "backend/data/raw/results_csv/local_a",
             "default_source_id": 7,
             "competition_scope": "fchmn_local",
+            "governing_body_code": "fchmn",
+            "governing_body_name": "FCHMN",
             "source_url": "https://fchmn.cl/local-a.pdf",
         }
     ]

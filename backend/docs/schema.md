@@ -136,7 +136,7 @@ Valores esperados:
 - `lcm`
 - `unknown`
 
-### 6.6 `competition.competition_type` y `competition.competition_scope`
+### 6.6 `competition.competition_type`, `competition.competition_scope` y organismo rector
 
 `competition_type` describe el tipo deportivo general de la competencia, por
 ejemplo `master`, `open` o `school`.
@@ -149,6 +149,19 @@ debe usar `snake_case` simple, por ejemplo:
 - `fchmn_local`
 - `sudamericano_master`
 - `fechida_local`
+
+`governing_body_code` y `governing_body_name` describen el organismo deportivo
+rector o circuito federativo de la competencia, separado de:
+
+- `source_id`: origen documental desde donde se obtuvo el PDF.
+- `organizer`: organizador local, sede, club anfitrion o comite local cuando se
+  conoce.
+
+Valores iniciales esperados:
+
+- `fchmn` / `FCHMN`
+- `consanat` / `CONSANAT`
+- `fechida` / `FECHIDA`
 
 ## 7. Resumen de entidades core
 
@@ -277,6 +290,8 @@ Campos principales:
 - `venue_name`
 - `pool_id`
 - `organizer`
+- `governing_body_code`
+- `governing_body_name`
 - `competition_type`
 - `competition_scope`
 - `course_type`

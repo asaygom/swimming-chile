@@ -12,6 +12,13 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - `backend/README.md`, `frontend/README.md` y `frontend/docs/api_contracts.md` se alinean para explicar el flujo PostgreSQL/FastAPI/React y el estado transicional de contratos manuales hacia OpenAPI.
 
 ### Estado operativo vigente
+- Se inicio la etapa **Sudamericanos Master + filtros reales de circuito/organismo**.
+  El modelo separa `source` (origen documental), `organizer` (organizador local)
+  y `competition.governing_body_code/name` (organismo rector: `fchmn`,
+  `consanat`, `fechida`). Se agrega migracion
+  `backend/sql/migrations/005_competition_governing_body.sql`, el freezer y el
+  batch runner propagan `governing_body_*` desde manifests curados, y la API/UI
+  dejan de depender de un filtro hardcodeado para competencias.
 - El 2026-06-02 se detecto la publicacion de VII Copa Smart Swim Team desde la
   portada FCHMN. Parser `0.1.21` agrega soporte para encabezados HY-TEK de relevo
   con categoria agregada al final (`Freestyle Relay 240 a 279`) y el batch

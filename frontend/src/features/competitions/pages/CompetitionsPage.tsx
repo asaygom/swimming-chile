@@ -98,15 +98,15 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [year, setYear] = React.useState('all');
-  const [circuit, setCircuit] = React.useState('FCHMN'); // Default FCHMN
+  const [governingBody, setGoverningBody] = React.useState('fchmn');
   const [page, setPage] = React.useState(1);
-  const hasActiveFilters = searchTerm.trim() !== '' || year !== 'all' || circuit !== 'FCHMN';
+  const hasActiveFilters = searchTerm.trim() !== '' || year !== 'all' || governingBody !== 'fchmn';
 
   const clearFilters = () => {
     setSearchTerm('');
     setDebouncedQuery('');
     setYear('all');
-    setCircuit('FCHMN');
+    setGoverningBody('fchmn');
     setPage(1);
   };
 
@@ -119,16 +119,23 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
   }, [searchTerm]);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['competitions', debouncedQuery, year, page, mode],
-    queryFn: () => competitionService.getCompetitions(debouncedQuery, year, page, mode),
+    queryKey: ['competitions', debouncedQuery, year, governingBody, page, mode],
+    queryFn: () => competitionService.getCompetitions(debouncedQuery, year, page, mode, 'all', governingBody),
   });
 
-  const { data: yearsData } = useQuery({
-    queryKey: ['competition-years'],
-    queryFn: competitionService.getCompetitionYears,
+  const { data: filterOptions } = useQuery({
+    queryKey: ['competition-filter-options'],
+    queryFn: competitionService.getCompetitionFilterOptions,
   });
 
-  const availableYears = yearsData || [];
+  const availableYears = filterOptions?.years || [];
+  const governingBodyOptions = filterOptions?.governing_bodies.length
+    ? filterOptions.governing_bodies
+    : [
+        { governing_body_code: 'fchmn', governing_body_name: 'FCHMN' },
+        { governing_body_code: 'consanat', governing_body_name: 'CONSANAT' },
+        { governing_body_code: 'fechida', governing_body_name: 'FECHIDA' },
+      ];
 
   // Filtrado local removido, el backend ahora filtra por date_start
   const competitionsList = React.useMemo(() => {
@@ -195,16 +202,19 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
             )}
 
             <select 
-              value={circuit} 
+              value={governingBody} 
               onChange={(e) => {
-                setCircuit(e.target.value);
+                setGoverningBody(e.target.value);
                 setPage(1);
               }}
               className="flex-1 sm:w-32 py-2 pl-3 pr-8 border border-slate-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
             >
-              <option value="FCHMN">FCHMN</option>
-              <option value="FECHIDA">FECHIDA</option>
               <option value="all">Todos</option>
+              {governingBodyOptions.map((option) => (
+                <option key={option.governing_body_code} value={option.governing_body_code}>
+                  {option.governing_body_name || option.governing_body_code.toUpperCase()}
+                </option>
+              ))}
             </select>
             {hasActiveFilters && (
               <button

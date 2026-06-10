@@ -7,10 +7,22 @@ import pytest
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = BACKEND_DIR / "scripts"
+PIPELINE_SCRIPT = SCRIPTS_DIR / "run_pipeline_results.py"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 import run_pipeline_results as pipeline
+
+
+def test_pipeline_accepts_and_persists_governing_body_metadata():
+    source = PIPELINE_SCRIPT.read_text(encoding="utf-8").lower()
+
+    assert "--governing-body-code" in source
+    assert "--governing-body-name" in source
+    assert "def normalize_governing_body_code" in source
+    assert "governing_body_code" in source
+    assert "governing_body_name" in source
+    assert "insert into {fqtn(config.schema, 'competition')} (name, season_year, start_date, end_date, competition_scope, governing_body_code, governing_body_name" in source
 
 
 def test_count_input_rows_for_load_run():

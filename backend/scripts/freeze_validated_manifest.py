@@ -17,6 +17,8 @@ class FreezeManifestResult:
     included_documents: int
     skipped_documents: int
     competition_scope: str
+    governing_body_code: str | None
+    governing_body_name: str | None
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -42,7 +44,13 @@ def read_allowed_source_urls(path: Path | None) -> set[str]:
     return urls
 
 
-def build_manifest_entry(document: dict[str, Any], competition_scope: str, default_source_id: int) -> dict[str, Any]:
+def build_manifest_entry(
+    document: dict[str, Any],
+    competition_scope: str,
+    default_source_id: int,
+    governing_body_code: str | None = None,
+    governing_body_name: str | None = None,
+) -> dict[str, Any]:
     input_dir = document.get("input_dir")
     if not input_dir:
         raise SystemExit("[ERROR] Un documento validated no tiene input_dir.")
@@ -54,6 +62,10 @@ def build_manifest_entry(document: dict[str, Any], competition_scope: str, defau
     }
     if document.get("source_url"):
         entry["source_url"] = document["source_url"]
+    if governing_body_code:
+        entry["governing_body_code"] = governing_body_code
+    if governing_body_name:
+        entry["governing_body_name"] = governing_body_name
     return entry
 
 
@@ -64,6 +76,8 @@ def freeze_validated_manifest(
     default_source_id: int,
     allowed_source_urls: set[str],
     allow_all_validated: bool = False,
+    governing_body_code: str | None = None,
+    governing_body_name: str | None = None,
 ) -> FreezeManifestResult:
     return freeze_validated_manifests(
         [batch_summary_path],
@@ -72,6 +86,8 @@ def freeze_validated_manifest(
         default_source_id,
         allowed_source_urls,
         allow_all_validated=allow_all_validated,
+        governing_body_code=governing_body_code,
+        governing_body_name=governing_body_name,
     )
 
 
@@ -82,6 +98,8 @@ def freeze_validated_manifests(
     default_source_id: int,
     allowed_source_urls: set[str],
     allow_all_validated: bool = False,
+    governing_body_code: str | None = None,
+    governing_body_name: str | None = None,
 ) -> FreezeManifestResult:
     if not competition_scope:
         raise SystemExit("[ERROR] --competition-scope es requerido.")
@@ -116,7 +134,15 @@ def freeze_validated_manifests(
                 continue
             if source_url:
                 seen_source_urls.add(source_url)
-            entries.append(build_manifest_entry(document, competition_scope, default_source_id))
+            entries.append(
+                build_manifest_entry(
+                    document,
+                    competition_scope,
+                    default_source_id,
+                    governing_body_code=governing_body_code,
+                    governing_body_name=governing_body_name,
+                )
+            )
 
     if not entries:
         return FreezeManifestResult(
@@ -127,6 +153,8 @@ def freeze_validated_manifests(
             included_documents=0,
             skipped_documents=skipped,
             competition_scope=competition_scope,
+            governing_body_code=governing_body_code,
+            governing_body_name=governing_body_name,
         )
 
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -140,6 +168,8 @@ def freeze_validated_manifests(
         included_documents=len(entries),
         skipped_documents=skipped,
         competition_scope=competition_scope,
+        governing_body_code=governing_body_code,
+        governing_body_name=governing_body_name,
     )
 
 
@@ -155,6 +185,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--manifest", required=True, help="Manifest JSONL congelado a escribir.")
     parser.add_argument("--competition-scope", required=True, help="Scope curado que se agregara a cada documento incluido.")
+    parser.add_argument("--governing-body-code", help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consanat.")
+    parser.add_argument("--governing-body-name", help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSANAT.")
     parser.add_argument("--default-source-id", type=int, default=1)
     parser.add_argument(
         "--allow-source-url-file",
@@ -178,6 +210,8 @@ def main() -> None:
         args.default_source_id,
         read_allowed_source_urls(Path(args.allow_source_url_file) if args.allow_source_url_file else None),
         allow_all_validated=args.allow_all_validated,
+        governing_body_code=args.governing_body_code,
+        governing_body_name=args.governing_body_name,
     )
 
     if args.json:

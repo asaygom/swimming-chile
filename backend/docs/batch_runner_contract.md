@@ -71,6 +71,10 @@ Campos por entrada:
   coincide con `fchmn_local` por defecto. El valor se persiste en
   `competition.competition_scope` al cargar para permitir filtros posteriores
   por circuito/ambito curado.
+- `governing_body_code` y `governing_body_name`: opcionales; se propagan al
+  loader y se persisten en `competition.governing_body_*`. Representan el
+  organismo deportivo rector (`fchmn`, `consanat`, `fechida`) y no reemplazan a
+  `source_id` ni a `organizer`.
 - `default_source_id`: opcional; hereda el valor global cuando no se declara.
 - `excel_name`: opcional; hereda el valor global cuando no se declara.
 
@@ -253,6 +257,9 @@ Batch runner:
   `--competition-source-url` cuando se ejecuta `--load`.
 - Conserva `competition_scope` desde el manifest y la pasa al pipeline como
   `--competition-scope` cuando se ejecuta `--load`.
+- Conserva `governing_body_code` y `governing_body_name` desde el manifest y los
+  pasa al pipeline como `--governing-body-code` y `--governing-body-name` cuando
+  se ejecuta `--load`.
 - Por defecto, si el pipeline resuelve una competencia ya cargada y el PDF
   entrante tiene checksum/URL distinta a la fuente existente, la carga se
   bloquea. Una revisión oficial debe tratarse como reemplazo controlado y solo
@@ -277,7 +284,9 @@ Manifest freezer:
   en un unico manifest congelado.
 - Incluye solo documentos con estado `validated`.
 - Excluye documentos `failed` y `requires_review`.
-- Agrega `competition_scope` curado a cada entrada incluida.
+- Agrega `competition_scope` curado a cada entrada incluida. Tambien puede
+  agregar `governing_body_code` y `governing_body_name` cuando el flujo curado
+  distingue organismo rector.
 - Requiere una lista curada de `source_url` permitidas, salvo que se use
   `--allow-all-validated` de forma explicita.
 - Deduplica documentos repetidos por `source_url`.
@@ -320,6 +329,9 @@ Pipeline:
   eliminar el resultado real.
 - Persiste `--competition-scope` en `competition.competition_scope` cuando crea
   o reutiliza una competencia.
+- Persiste `--governing-body-code` y `--governing-body-name` en
+  `competition.governing_body_code` y `competition.governing_body_name` cuando
+  crea o reutiliza una competencia.
 - Registra `source_document`, `load_run` y `validation_issue`.
 - No debe implementar heuristicas agresivas del PDF.
 

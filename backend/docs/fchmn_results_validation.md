@@ -142,12 +142,15 @@ backend\.venv\Scripts\python.exe backend\scripts\freeze_validated_manifest.py `
   --batch-summary backend\data\raw\batch_summaries\fchmn_resultados_e2e_YYYYMMDD_batch.json `
   --manifest backend\data\raw\manifests\fchmn_resultados_e2e_YYYYMMDD_frozen_local.jsonl `
   --competition-scope fchmn_local `
+  --governing-body-code fchmn `
+  --governing-body-name FCHMN `
   --allow-source-url-file backend\data\raw\manifests\fchmn_resultados_e2e_YYYYMMDD_allowed_urls.txt `
   --json
 ```
 
 El freezer no descarga, no parsea, no valida y no carga. Solo copia documentos
-`validated`, excluye `requires_review`/`failed` y agrega `competition_scope`.
+`validated`, excluye `requires_review`/`failed` y agrega `competition_scope` y,
+cuando se declara, `governing_body_*`.
 
 ---
 

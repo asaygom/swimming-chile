@@ -129,6 +129,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-name", type=str, help="Nombre de competencia opcional para auto-upsert cuando no se indique competition_id")
     parser.add_argument("--competition-source-url", type=str, help="URL fuente opcional para competition cuando se cree automáticamente")
     parser.add_argument("--competition-scope", type=str, help="Scope curado opcional para filtrar circuito/federacion/ambito de la competencia")
+    parser.add_argument("--governing-body-code", type=str, help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consanat")
+    parser.add_argument("--governing-body-name", type=str, help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSANAT")
     parser.add_argument(
         "--allow-competition-source-revision",
         action="store_true",
@@ -670,13 +672,21 @@ def parse_iso_date(value: Optional[str]) -> Optional[str]:
     return None
 
 
-def normalize_competition_scope(value: Optional[str]) -> Optional[str]:
-    scope = normalize_string(value)
-    if scope is None:
+def normalize_snake_case_option(value: Optional[str], option_name: str, example: str) -> Optional[str]:
+    normalized = normalize_string(value)
+    if normalized is None:
         return None
-    if not re.fullmatch(r"[a-z][a-z0-9_]*", scope):
-        fail("--competition-scope debe usar snake_case simple, por ejemplo fchmn_local.")
-    return scope
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", normalized):
+        fail(f"{option_name} debe usar snake_case simple, por ejemplo {example}.")
+    return normalized
+
+
+def normalize_competition_scope(value: Optional[str]) -> Optional[str]:
+    return normalize_snake_case_option(value, "--competition-scope", "fchmn_local")
+
+
+def normalize_governing_body_code(value: Optional[str]) -> Optional[str]:
+    return normalize_snake_case_option(value, "--governing-body-code", "consanat")
 
 
 def competition_name_similarity(left: Optional[str], right: Optional[str]) -> float:
@@ -706,23 +716,54 @@ def choose_planned_competition_candidate(competition_name: str, candidates: list
     return None
 
 
-def update_competition_scope(conn, config: Config, competition_id: int, competition_scope: Optional[str]) -> None:
-    if competition_scope is None:
+def update_competition_metadata(
+    conn,
+    config: Config,
+    competition_id: int,
+    competition_scope: Optional[str],
+    governing_body_code: Optional[str],
+    governing_body_name: Optional[str],
+) -> None:
+    if competition_scope is None and governing_body_code is None and governing_body_name is None:
         return
     with conn.cursor() as cur:
         cur.execute(f"""
             UPDATE {fqtn(config.schema, 'competition')}
-            SET competition_scope = %s,
+            SET competition_scope = COALESCE(%s, competition_scope),
+                governing_body_code = COALESCE(%s, governing_body_code),
+                governing_body_name = COALESCE(%s, governing_body_name),
                 updated_at = NOW()
             WHERE id = %s
-              AND competition_scope IS DISTINCT FROM %s;
-        """, (competition_scope, competition_id, competition_scope))
+              AND (
+                    (%s IS NOT NULL AND competition_scope IS DISTINCT FROM %s)
+                 OR (%s IS NOT NULL AND governing_body_code IS DISTINCT FROM %s)
+                 OR (%s IS NOT NULL AND governing_body_name IS DISTINCT FROM %s)
+              );
+        """, (
+            competition_scope,
+            governing_body_code,
+            governing_body_name,
+            competition_id,
+            competition_scope,
+            competition_scope,
+            governing_body_code,
+            governing_body_code,
+            governing_body_name,
+            governing_body_name,
+        ))
 
 
 def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data: Dict[str, pd.DataFrame], metadata: Dict[str, Optional[str]]) -> int:
     if config.competition_id is not None:
         competition_id = int(config.competition_id)
-        update_competition_scope(conn, config, competition_id, normalize_competition_scope(getattr(args, "competition_scope", None)))
+        update_competition_metadata(
+            conn,
+            config,
+            competition_id,
+            normalize_competition_scope(getattr(args, "competition_scope", None)),
+            normalize_governing_body_code(getattr(args, "governing_body_code", None)),
+            normalize_string(getattr(args, "governing_body_name", None)),
+        )
         return competition_id
 
     competition_name = normalize_string(getattr(args, "competition_name", None)) or normalize_string(metadata.get("competition_name")) or normalize_string(metadata.get("pdf_name"))
@@ -740,6 +781,8 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
     course_type = infer_course_type_from_events(data.get("event"))
     source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
     competition_scope = normalize_competition_scope(getattr(args, "competition_scope", None))
+    governing_body_code = normalize_governing_body_code(getattr(args, "governing_body_code", None))
+    governing_body_name = normalize_string(getattr(args, "governing_body_name", None))
     start_date = parse_iso_date(metadata.get("competition_start_date"))
     end_date = parse_iso_date(metadata.get("competition_end_date")) or start_date
     with conn.cursor() as cur:
@@ -754,7 +797,7 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
         row = cur.fetchone()
         if row and row[0] is not None:
             competition_id = int(row[0])
-            update_competition_scope(conn, config, competition_id, competition_scope)
+            update_competition_metadata(conn, config, competition_id, competition_scope, governing_body_code, governing_body_name)
             info(f"Se reutilizará competition_id={competition_id} para '{competition_name}'.")
             return competition_id
 
@@ -791,17 +834,19 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
             planned_candidate = choose_planned_competition_candidate(competition_name, cur.fetchall())
             if planned_candidate is not None:
                 score, competition_id, planned_name = planned_candidate
-                update_competition_scope(conn, config, int(competition_id), competition_scope)
+                update_competition_metadata(conn, config, int(competition_id), competition_scope, governing_body_code, governing_body_name)
                 cur.execute(f"""
                     UPDATE {fqtn(config.schema, 'competition')}
                     SET course_type = CASE WHEN %s <> 'unknown' THEN %s ELSE course_type END,
                         source_url = COALESCE(source_url, %s),
+                        governing_body_code = COALESCE(%s, governing_body_code),
+                        governing_body_name = COALESCE(%s, governing_body_name),
                         start_date = COALESCE(%s, start_date),
                         end_date = COALESCE(%s, end_date),
                         status = 'finished',
                         updated_at = NOW()
                     WHERE id = %s;
-                """, (course_type, course_type, source_url, start_date, end_date, competition_id))
+                """, (course_type, course_type, source_url, governing_body_code, governing_body_name, start_date, end_date, competition_id))
                 info(
                     f"Se reutilizará competition_id={competition_id} para competencia planificada "
                     f"'{planned_name}' (match={score:.2f}) desde '{competition_name}'."
@@ -809,10 +854,10 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
                 return int(competition_id)
 
         cur.execute(f"""
-            INSERT INTO {fqtn(config.schema, 'competition')} (name, season_year, start_date, end_date, competition_scope, course_type, status, source_id, source_url)
-            VALUES (%s, %s, %s, %s, %s, %s, 'finished', %s, %s)
+            INSERT INTO {fqtn(config.schema, 'competition')} (name, season_year, start_date, end_date, competition_scope, governing_body_code, governing_body_name, course_type, status, source_id, source_url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'finished', %s, %s)
             RETURNING id;
-        """, (competition_name, season_year_int, start_date, end_date, competition_scope, course_type, config.default_source_id, source_url))
+        """, (competition_name, season_year_int, start_date, end_date, competition_scope, governing_body_code, governing_body_name, course_type, config.default_source_id, source_url))
         competition_id = int(cur.fetchone()[0])
     conn.commit()
     info(f"Se creó competition_id={competition_id} para '{competition_name}'.")

@@ -10,6 +10,8 @@ def list_competitions(
     search: Optional[str] = Query(None),
     year: Optional[str] = Query(None),
     timeframe: Optional[str] = Query(None, description="upcoming or past"),
+    competition_scope: Optional[str] = Query(None, description="Curated competition scope, e.g. fchmn_local"),
+    governing_body: Optional[str] = Query(None, description="Governing body code, e.g. fchmn or consanat"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100)
 ):
@@ -17,7 +19,7 @@ def list_competitions(
         with conn.cursor() as cur:
             offset = (page - 1) * page_size
             
-            query = "SELECT id, name, start_date as date_start, end_date as date_end, city as location, region as country, course_type FROM core.competition WHERE 1=1"
+            query = "SELECT id, name, start_date as date_start, end_date as date_end, city as location, region as country, course_type, competition_scope, governing_body_code, governing_body_name, organizer FROM core.competition WHERE 1=1"
             count_query = "SELECT COUNT(*) as total FROM core.competition WHERE 1=1"
             params = []
             
@@ -30,6 +32,16 @@ def list_competitions(
                 query += " AND CAST(EXTRACT(YEAR FROM start_date) AS TEXT) = %s"
                 count_query += " AND CAST(EXTRACT(YEAR FROM start_date) AS TEXT) = %s"
                 params.append(year)
+
+            if competition_scope and competition_scope != 'all':
+                query += " AND competition_scope = %s"
+                count_query += " AND competition_scope = %s"
+                params.append(competition_scope)
+
+            if governing_body and governing_body != 'all':
+                query += " AND governing_body_code = %s"
+                count_query += " AND governing_body_code = %s"
+                params.append(governing_body)
                 
             if timeframe == 'upcoming':
                 query += " AND start_date >= CURRENT_DATE"
@@ -74,11 +86,45 @@ def get_competition_years():
             years = [row['year'] for row in cur.fetchall()]
             return {"years": years}
 
+@router.get("/filter-options")
+def get_competition_filter_options():
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT DISTINCT CAST(EXTRACT(YEAR FROM start_date) AS INTEGER) as year
+                FROM core.competition
+                WHERE start_date IS NOT NULL
+                ORDER BY year DESC
+            """)
+            years = [row['year'] for row in cur.fetchall()]
+
+            cur.execute("""
+                SELECT DISTINCT competition_scope
+                FROM core.competition
+                WHERE competition_scope IS NOT NULL
+                ORDER BY competition_scope ASC
+            """)
+            scopes = [row['competition_scope'] for row in cur.fetchall()]
+
+            cur.execute("""
+                SELECT DISTINCT governing_body_code, governing_body_name
+                FROM core.competition
+                WHERE governing_body_code IS NOT NULL
+                ORDER BY governing_body_name ASC NULLS LAST, governing_body_code ASC
+            """)
+            governing_bodies = cur.fetchall()
+
+            return {
+                "years": years,
+                "scopes": scopes,
+                "governing_bodies": governing_bodies,
+            }
+
 @router.get("/{competition_id}")
 def get_competition(competition_id: int):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, start_date as date_start, city as location, course_type FROM core.competition WHERE id = %s", (competition_id,))
+            cur.execute("SELECT id, name, start_date as date_start, city as location, course_type, competition_scope, governing_body_code, governing_body_name, organizer FROM core.competition WHERE id = %s", (competition_id,))
             competition = cur.fetchone()
             
             if not competition:

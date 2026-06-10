@@ -30,6 +30,9 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
 - Confirmar que la base tiene aplicada la migracion
   `backend/sql/migrations/004_athlete_current_club_view.sql`, para exponer
   `core.athlete_current_club` antes de usar la API/frontend de club vigente.
+- Confirmar que la base tiene aplicada la migracion
+  `backend/sql/migrations/005_competition_governing_body.sql`, para separar
+  organismo rector (`governing_body_*`) de fuente documental y organizador local.
 
 ## 2. Manifest congelado
 
@@ -89,6 +92,8 @@ Revisar dependencias reales en `backend/sql/schema.sql` antes de ejecutar.
 - Confirmar que los comandos registrados tienen password redactado.
 - Confirmar que `--competition-scope` fue pasado al pipeline desde el manifest
   congelado.
+- Confirmar que `--governing-body-code` y `--governing-body-name` fueron
+  pasados al pipeline cuando el manifest los declara.
 
 ## 6. Validacion post-load
 
@@ -107,6 +112,8 @@ Validar trazabilidad:
 - `source_document.checksum_sha256` presente cuando hubo PDF.
 - `source_document.source_url` presente cuando venia desde manifest.
 - `competition.competition_scope` coincide con el scope curado del manifest.
+- `competition.governing_body_code` y `competition.governing_body_name`
+  coinciden con el organismo rector curado del manifest cuando aplica.
 - `load_run.input_dir` apunta a la carpeta parseada esperada.
 - `load_run.parser_version` coincide con `metadata.json`.
 

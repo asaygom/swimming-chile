@@ -1,14 +1,23 @@
-import { CompetitionsResponseSchema, CompetitionDetailResponseSchema } from '../../../lib/schemas/competition';
-import type { CompetitionsResponse, CompetitionDetailResponse } from '../../../lib/schemas/competition';
+import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionsResponseSchema } from '../../../lib/schemas/competition';
+import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionsResponse } from '../../../lib/schemas/competition';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export const competitionService = {
-  async getCompetitions(query: string = '', year: string = 'all', page: number = 1, timeframe: string = 'all'): Promise<CompetitionsResponse> {
+  async getCompetitions(
+    query: string = '',
+    year: string = 'all',
+    page: number = 1,
+    timeframe: string = 'all',
+    competitionScope: string = 'all',
+    governingBody: string = 'all'
+  ): Promise<CompetitionsResponse> {
     const url = new URL(`${API_BASE_URL}/api/competitions`);
     if (query) url.searchParams.append('search', query);
     if (year !== 'all') url.searchParams.append('year', year);
     if (timeframe !== 'all') url.searchParams.append('timeframe', timeframe);
+    if (competitionScope !== 'all') url.searchParams.append('competition_scope', competitionScope);
+    if (governingBody !== 'all') url.searchParams.append('governing_body', governingBody);
     url.searchParams.append('page', page.toString());
     
     const response = await fetch(url);
@@ -31,5 +40,12 @@ export const competitionService = {
     if (!response.ok) throw new Error('Failed to fetch competition years');
     const data = await response.json();
     return data.years;
+  },
+
+  async getCompetitionFilterOptions(): Promise<CompetitionFilterOptions> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/filter-options`);
+    if (!response.ok) throw new Error('Failed to fetch competition filter options');
+    const data = await response.json();
+    return CompetitionFilterOptionsSchema.parse(data);
   }
 };
