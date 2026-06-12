@@ -5,20 +5,13 @@ from ..database import get_db_connection
 
 router = APIRouter()
 
-GOVERNING_BODY_SCOPE_FALLBACKS = {
-    "fchmn": "fchmn_local",
-    "consanat": "sudamericano_master",
-    "fechida": "fechida_local",
-}
-
-
 @router.get("")
 def list_competitions(
     search: Optional[str] = Query(None),
     year: Optional[str] = Query(None),
     timeframe: Optional[str] = Query(None, description="upcoming or past"),
     competition_scope: Optional[str] = Query(None, description="Curated competition scope, e.g. fchmn_local"),
-    governing_body: Optional[str] = Query(None, description="Governing body code, e.g. fchmn or consanat"),
+    governing_body: Optional[str] = Query(None, description="Governing body code, e.g. fchmn or consada"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100)
 ):
@@ -46,15 +39,9 @@ def list_competitions(
                 params.append(competition_scope)
 
             if governing_body and governing_body != 'all':
-                scope_fallback = GOVERNING_BODY_SCOPE_FALLBACKS.get(governing_body)
-                if scope_fallback:
-                    query += " AND (governing_body_code = %s OR (governing_body_code IS NULL AND competition_scope = %s))"
-                    count_query += " AND (governing_body_code = %s OR (governing_body_code IS NULL AND competition_scope = %s))"
-                    params.extend([governing_body, scope_fallback])
-                else:
-                    query += " AND governing_body_code = %s"
-                    count_query += " AND governing_body_code = %s"
-                    params.append(governing_body)
+                query += " AND governing_body_code = %s"
+                count_query += " AND governing_body_code = %s"
+                params.append(governing_body)
                 
             if timeframe == 'upcoming':
                 query += " AND start_date >= CURRENT_DATE"
@@ -100,57 +87,43 @@ def get_competition_years():
             return {"years": years}
 
 @router.get("/filter-options")
-def get_competition_filter_options():
+def get_competition_filter_options(
+    timeframe: Optional[str] = Query(None, description="upcoming or past"),
+):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
+            timeframe_filter = ""
+            params = []
+            if timeframe == "upcoming":
+                timeframe_filter = " AND start_date >= CURRENT_DATE"
+            elif timeframe == "past":
+                timeframe_filter = " AND start_date < CURRENT_DATE"
+
             cur.execute("""
                 SELECT DISTINCT CAST(EXTRACT(YEAR FROM start_date) AS INTEGER) as year
                 FROM core.competition
                 WHERE start_date IS NOT NULL
+            """ + timeframe_filter + """
                 ORDER BY year DESC
-            """)
+            """, params)
             years = [row['year'] for row in cur.fetchall()]
 
             cur.execute("""
                 SELECT DISTINCT competition_scope
                 FROM core.competition
                 WHERE competition_scope IS NOT NULL
+            """ + timeframe_filter + """
                 ORDER BY competition_scope ASC
-            """)
+            """, params)
             scopes = [row['competition_scope'] for row in cur.fetchall()]
 
             cur.execute("""
-                SELECT DISTINCT
-                    COALESCE(
-                        governing_body_code,
-                        CASE competition_scope
-                            WHEN 'fchmn_local' THEN 'fchmn'
-                            WHEN 'sudamericano_master' THEN 'consanat'
-                            WHEN 'fechida_local' THEN 'fechida'
-                            ELSE NULL
-                        END
-                    ) AS governing_body_code,
-                    COALESCE(
-                        governing_body_name,
-                        CASE competition_scope
-                            WHEN 'fchmn_local' THEN 'FCHMN'
-                            WHEN 'sudamericano_master' THEN 'CONSANAT'
-                            WHEN 'fechida_local' THEN 'FECHIDA'
-                            ELSE NULL
-                        END
-                    ) AS governing_body_name
+                SELECT DISTINCT governing_body_code, governing_body_name
                 FROM core.competition
-                WHERE COALESCE(
-                    governing_body_code,
-                    CASE competition_scope
-                        WHEN 'fchmn_local' THEN 'fchmn'
-                        WHEN 'sudamericano_master' THEN 'consanat'
-                        WHEN 'fechida_local' THEN 'fechida'
-                        ELSE NULL
-                    END
-                ) IS NOT NULL
+                WHERE governing_body_code IS NOT NULL
+            """ + timeframe_filter + """
                 ORDER BY governing_body_name ASC NULLS LAST, governing_body_code ASC
-            """)
+            """, params)
             governing_bodies = cur.fetchall()
 
             return {

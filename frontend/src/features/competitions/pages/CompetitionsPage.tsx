@@ -124,18 +124,12 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
   });
 
   const { data: filterOptions } = useQuery({
-    queryKey: ['competition-filter-options'],
-    queryFn: competitionService.getCompetitionFilterOptions,
+    queryKey: ['competition-filter-options', mode],
+    queryFn: () => competitionService.getCompetitionFilterOptions(mode),
   });
 
   const availableYears = filterOptions?.years || [];
-  const governingBodyOptions = filterOptions?.governing_bodies.length
-    ? filterOptions.governing_bodies
-    : [
-        { governing_body_code: 'fchmn', governing_body_name: 'FCHMN' },
-        { governing_body_code: 'consanat', governing_body_name: 'CONSANAT' },
-        { governing_body_code: 'fechida', governing_body_name: 'FECHIDA' },
-      ];
+  const governingBodyOptions = filterOptions?.governing_bodies || [];
 
   // Filtrado local removido, el backend ahora filtra por date_start
   const competitionsList = React.useMemo(() => {

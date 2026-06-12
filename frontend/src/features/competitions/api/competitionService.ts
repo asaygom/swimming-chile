@@ -42,8 +42,11 @@ export const competitionService = {
     return data.years;
   },
 
-  async getCompetitionFilterOptions(): Promise<CompetitionFilterOptions> {
-    const response = await fetch(`${API_BASE_URL}/api/competitions/filter-options`);
+  async getCompetitionFilterOptions(timeframe: string = 'all'): Promise<CompetitionFilterOptions> {
+    const url = new URL(`${API_BASE_URL}/api/competitions/filter-options`);
+    if (timeframe !== 'all') url.searchParams.append('timeframe', timeframe);
+
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch competition filter options');
     const data = await response.json();
     return CompetitionFilterOptionsSchema.parse(data);

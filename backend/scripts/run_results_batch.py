@@ -102,8 +102,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
     parser.add_argument("--source-url", help="URL original del documento para trazabilidad cuando exista.")
     parser.add_argument("--competition-scope", help="Ambito curado del documento; requerido para cargar a core.")
-    parser.add_argument("--governing-body-code", help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consanat.")
-    parser.add_argument("--governing-body-name", help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSANAT.")
+    parser.add_argument("--governing-body-code", help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consada.")
+    parser.add_argument("--governing-body-name", help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSADA.")
     parser.add_argument(
         "--required-competition-scope",
         default=DEFAULT_REQUIRED_COMPETITION_SCOPE,

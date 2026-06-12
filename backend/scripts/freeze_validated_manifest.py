@@ -185,8 +185,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--manifest", required=True, help="Manifest JSONL congelado a escribir.")
     parser.add_argument("--competition-scope", required=True, help="Scope curado que se agregara a cada documento incluido.")
-    parser.add_argument("--governing-body-code", help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consanat.")
-    parser.add_argument("--governing-body-name", help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSANAT.")
+    parser.add_argument("--governing-body-code", help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consada.")
+    parser.add_argument("--governing-body-name", help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSADA.")
     parser.add_argument("--default-source-id", type=int, default=1)
     parser.add_argument(
         "--allow-source-url-file",

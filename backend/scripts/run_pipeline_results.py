@@ -129,8 +129,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-name", type=str, help="Nombre de competencia opcional para auto-upsert cuando no se indique competition_id")
     parser.add_argument("--competition-source-url", type=str, help="URL fuente opcional para competition cuando se cree automáticamente")
     parser.add_argument("--competition-scope", type=str, help="Scope curado opcional para filtrar circuito/federacion/ambito de la competencia")
-    parser.add_argument("--governing-body-code", type=str, help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consanat")
-    parser.add_argument("--governing-body-name", type=str, help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSANAT")
+    parser.add_argument("--governing-body-code", type=str, help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consada")
+    parser.add_argument("--governing-body-name", type=str, help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSADA")
     parser.add_argument(
         "--allow-competition-source-revision",
         action="store_true",
@@ -686,7 +686,7 @@ def normalize_competition_scope(value: Optional[str]) -> Optional[str]:
 
 
 def normalize_governing_body_code(value: Optional[str]) -> Optional[str]:
-    return normalize_snake_case_option(value, "--governing-body-code", "consanat")
+    return normalize_snake_case_option(value, "--governing-body-code", "consada")
 
 
 def competition_name_similarity(left: Optional[str], right: Optional[str]) -> float:

@@ -160,7 +160,7 @@ rector o circuito federativo de la competencia, separado de:
 Valores iniciales esperados:
 
 - `fchmn` / `FCHMN`
-- `consanat` / `CONSANAT`
+- `consada` / `CONSADA`
 - `fechida` / `FECHIDA`
 
 ## 7. Resumen de entidades core

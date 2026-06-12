@@ -73,7 +73,7 @@ Campos por entrada:
   por circuito/ambito curado.
 - `governing_body_code` y `governing_body_name`: opcionales; se propagan al
   loader y se persisten en `competition.governing_body_*`. Representan el
-  organismo deportivo rector (`fchmn`, `consanat`, `fechida`) y no reemplazan a
+  organismo deportivo rector (`fchmn`, `consada`, `fechida`) y no reemplazan a
   `source_id` ni a `organizer`.
 - `default_source_id`: opcional; hereda el valor global cuando no se declara.
 - `excel_name`: opcional; hereda el valor global cuando no se declara.

@@ -13,11 +13,12 @@ def normalized_source(path: Path) -> str:
 def test_competitions_api_filters_by_scope_and_governing_body():
     source = normalized_source(COMPETITIONS_ROUTER)
 
-    assert "governing_body_scope_fallbacks" in source
     assert "competition_scope: optional[str]" in source
     assert "governing_body: optional[str]" in source
     assert "and competition_scope = %s" in source
-    assert "governing_body_code = %s or (governing_body_code is null and competition_scope = %s)" in source
+    assert "and governing_body_code = %s" in source
+    assert "governing_body_scope_fallbacks" not in source
+    assert "governing_body_code is null and competition_scope" not in source
     assert "competition_scope," in source
     assert "governing_body_code" in source
     assert "governing_body_name" in source
@@ -28,10 +29,12 @@ def test_competitions_api_exposes_filter_options_from_database():
     source = normalized_source(COMPETITIONS_ROUTER)
 
     assert '@router.get("/filter-options")' in COMPETITIONS_ROUTER.read_text(encoding="utf-8")
+    assert "timeframe: optional[str]" in source
+    assert "start_date >= current_date" in source
+    assert "start_date < current_date" in source
     assert "select distinct competition_scope" in source
-    assert "when 'fchmn_local' then 'fchmn'" in source
-    assert "when 'sudamericano_master' then 'consanat'" in source
-    assert "when 'fechida_local' then 'fechida'" in source
+    assert "select distinct governing_body_code, governing_body_name" in source
+    assert "when 'sudamericano_master'" not in source
     assert '"governing_bodies": governing_bodies' in source
 
 
