@@ -187,6 +187,7 @@ def test_parse_event_header_in_english_and_spanish():
     relay_trailing_age = parser.parse_event_header("Event 7 Mixed 200 SC Meter Medley C 160 a 199 años Relay")
     relay_trailing_label = parser.parse_event_header("Event 11 Mixed 100 SC Meter 4x100 mts Libres PM Relay")
     spanish_relay_trailing_age = parser.parse_event_header("Evento 11 Mixto 200 CL Metro Combinado 120 a 159 años Relevo")
+    sudamericano_mixed_relay = parser.parse_event_header("Evento 17 Mixed 72-99 4x50 SC Metros Combinado Relay")
 
     sudamericano = parser.parse_event_header("Evento 1 Damas 18-24 400 SC Metros Comb. Ind.")
     compact = parser.parse_event_header("#1 Women 18-24 100 Meter IM")
@@ -209,6 +210,10 @@ def test_parse_event_header_in_english_and_spanish():
     assert relay_trailing_label.stroke == "freestyle_relay"
     assert spanish_relay_trailing_age.age_group == "120 a 159 años"
     assert spanish_relay_trailing_age.stroke == "medley_relay"
+    assert sudamericano_mixed_relay.gender == "mixed"
+    assert sudamericano_mixed_relay.age_group == "72-99"
+    assert sudamericano_mixed_relay.distance_m == 200
+    assert sudamericano_mixed_relay.stroke == "medley_relay"
     assert sudamericano.gender == "women"
     assert sudamericano.stroke == "individual_medley"
     assert compact.course_code == "SC"

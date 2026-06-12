@@ -568,6 +568,10 @@ def test_canonicalize_space_ordered_name_preserves_surname_particles():
         curate.canonicalize_space_ordered_name("Maria Antonieta de La Maza")
         == "de La Maza, Maria Antonieta"
     )
+    assert (
+        curate.canonicalize_space_ordered_name("CAIO CUNHA FRANCO (FORTALEZA RAIA 4)")
+        == "FRANCO, CAIO CUNHA"
+    )
     assert curate.canonicalize_space_ordered_name("Rojas, Jorge") == "Rojas, Jorge"
 
 

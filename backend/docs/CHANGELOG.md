@@ -15,7 +15,7 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - Se inicio la etapa **Sudamericanos Master + filtros reales de circuito/organismo**.
   El modelo separa `source` (origen documental), `organizer` (organizador local)
   y `competition.governing_body_code/name` (organismo rector: `fchmn`,
-  `consanat`, `fechida`). Se agrega migracion
+  `consada`, `fechida`). Se agrega migracion
   `backend/sql/migrations/005_competition_governing_body.sql`, el freezer y el
   batch runner propagan `governing_body_*` desde manifests curados, y la API/UI
   dejan de depender de un filtro hardcodeado para competencias.
@@ -25,6 +25,14 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   bloquea cualquier encabezado de relevo remanente en debug aunque el ratio
   global sea bajo. La validacion aislada sin `--load` extrae 504 resultados
   individuales, 42 relevos y 168 integrantes con 0 lineas no parseadas.
+- Parser `0.1.22` agrega soporte para encabezados Sudamericanos HY-TEK mixtos
+  con `Evento ... Mixed ... SC Metros ... Relay`. La curaduria pre-load tambien
+  remueve sufijos de club/equipo entre parentesis antes de canonizar nombres
+  sin coma. Para carga Sudamericanos, la fuente candidata queda limitada a
+  `https://fchmn.cl/sudamericanos-master/` desde 2022 en adelante, no a PDFs
+  publicados en portada. El manifest candidato actual es
+  `backend/data/raw/manifests/sudamericanos_master_sourcepage_2022_2026_parser022_consada_curated_20260612.jsonl`;
+  valida 2/5 sin `--load` y deja 2025, 2024 y 2022 en `requires_review`.
 - La compuerta nueva expuso deuda historica en cinco PDFs 2022-2023 que antes
   pasaban por ratio global: SBDO 2023, Santiago Deporte 2023, Delfines 2022,
   LQBLO 2022 y Santiago Master 2022. Se reparsearon con `0.1.21`, recuperando
@@ -140,6 +148,8 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - **0.1.20**: Lectura HY-TEK multicolumna por columna logica completa para preservar el contexto correcto de evento antes de avanzar a otra columna, evitando resultados asignados a pruebas/generos/edades incorrectos.
 - **0.1.21**: Soporte para encabezados HY-TEK de relevos con categoria agregada
   al final y compuerta batch contra encabezados de relevo no parseados en debug.
+- **0.1.22**: Soporte para encabezados Sudamericanos mixtos
+  `Evento ... Mixed ... SC Metros ... Relay`.
 
 ### Curaduría de Atletas y Alias de Clubes
 - Se automatizó la detección pre-load de errores OCR conocidos en nombres de atletas.

@@ -456,6 +456,11 @@ def ordered_name_key(value: Optional[str]) -> str:
 
 def canonicalize_space_ordered_name(value: Optional[str]) -> Optional[str]:
     cleaned = clean_extracted_text(value)
+    if cleaned and "," not in cleaned:
+        # Sudamericanos-style rows can append team qualifiers to the swimmer
+        # name, e.g. "CAIO CUNHA FRANCO (FORTALEZA RAIA 4)". Strip that
+        # qualifier before the digit guard so the athlete name can be ordered.
+        cleaned = re.sub(r"\s+\([^)]*\)?$", "", cleaned).strip()
     if not cleaned or "," in cleaned or re.search(r"\d", cleaned):
         return cleaned
     tokens = NAME_TOKEN_RE.findall(cleaned)

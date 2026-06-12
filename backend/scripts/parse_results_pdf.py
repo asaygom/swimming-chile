@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.21"
+PARSER_VERSION = "0.1.22"
 
 try:
     import pdfplumber
@@ -70,17 +70,17 @@ ENGLISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE = re.compile(
 )
 
 SPANISH_RELAY_TRAILING_CATEGORY_EVENT_HEADER_RE = re.compile(
-    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metro\s+(?P<stroke>.+?)\s+(?P<age_group>\d+\s+a\s+\d+\s+a(?:ñ|n)os)\s+Relevo\)?$",
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto|Mixed)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metro\s+(?P<stroke>.+?)\s+(?P<age_group>\d+\s+a\s+\d+\s+a(?:ñ|n)os)\s+Relevo\)?$",
     re.IGNORECASE,
 )
 
 SPANISH_EVENT_HEADER_RE = re.compile(
-    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metros?\s+(?P<stroke>.+?)\)?$",
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metros?\s+(?P<stroke>.+?)\)?$",
     re.IGNORECASE,
 )
 
 SPANISH_RELAY_EVENT_HEADER_RE = re.compile(
-    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+x\d+)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metros?\s+Relevo\s+(?P<stroke>.+?)\)?$",
+    r"^\(?Evento\s+(?P<event_number>\d+)\s+(?P<gender>Mujeres|Hombres|Damas|Varones|Mixto|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+x\d+)\s+(?P<course>CL|CP|CC|LC|SC)\s+Metros?\s+Relevo\s+(?P<stroke>.+?)\)?$",
     re.IGNORECASE,
 )
 
