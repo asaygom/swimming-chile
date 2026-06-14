@@ -29,7 +29,7 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 
-PARSER_VERSION = "0.1.22"
+PARSER_VERSION = "0.1.24"
 
 try:
     import pdfplumber
@@ -111,12 +111,12 @@ BRAZIL_EVENT_HEADER_RE = re.compile(
 BRAZIL_AGE_GROUP_RE = re.compile(r"^FAIXA:\s*(?P<age_group>(?:PRÉ\s*)?\d+\s*\+)", re.IGNORECASE)
 
 RESULT_LINE_RE = re.compile(
-    rf"^(?P<rank>\*?\d+|---)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
+    rf"^(?P<rank>\*?\d+|---|--)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
 )
 
 RESULT_NO_SEED_LINE_RE = re.compile(
-    rf"^(?P<rank>\*?\d+|---)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
+    rf"^(?P<rank>\*?\d+|---|--)\s+(?P<name>.+?)\s+(?P<age>\d{{1,3}})\s+(?P<team>.+?)\s+(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
 )
 
@@ -126,7 +126,7 @@ FRAGMENTED_TIME_RE = re.compile(r"\b(?P<minute>\d)\s*:\s*(?P<tens>\d)\s+(?P<ones
 FRAGMENTED_AGE_TEAM_RE = re.compile(r"\b(?P<age_tens>\d)\s+(?P<age_ones>\d)\s+(?P<team>(?:[A-ZÑ]\s+){2,}[A-ZÑ])\b")
 
 RELAY_TEAM_RE = re.compile(
-    rf"^(?P<rank>\*?\d+|---)\s+(?P<team>.+?)\s+(?:(?P<seed>{TIME_OR_STATUS_PATTERN})\s+)?(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
+    rf"^(?P<rank>\*?\d+|---|--)\s+(?P<team>.+?)\s+(?:(?P<seed>{TIME_OR_STATUS_PATTERN})\s+)?(?P<final>{TIME_OR_STATUS_PATTERN})(?:\s+(?P<points>\d+(?:[\.,]\s*\d+)?))?$",
     re.IGNORECASE,
 )
 
@@ -159,9 +159,11 @@ HEADER_SKIP_PATTERNS = [
     re.compile(r"^Resultados\s*$", re.IGNORECASE),
     re.compile(r"^Resultados\s*-", re.IGNORECASE),
     re.compile(r"^(?:Combined Events|Eventos combinados)$", re.IGNORECASE),
+    re.compile(r"^=+$"),
     re.compile(r"^Name\s+Age\s+Team\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Name\s+Age\s+Team\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
     re.compile(r"^Team\s+Relay\s+Seed\s+Time\s+Finals\s+Time(?:\s+Points)?$", re.IGNORECASE),
+    re.compile(r"^Nombre\s+Edad\s+Equipo\s+Sembrar\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Nombre\s+Edad\s+Equipo\s+Seed\s+Time\s+Finals\s+Time(?:\s+Puntos)?$", re.IGNORECASE),
     re.compile(r"^Nombre\s+Edad\s+Equipo\s+Tiempo\s+para\s+Sembrado\s*Tiempo\s+de\s+Finales(?:\s+Puntos)?$", re.IGNORECASE),
@@ -181,6 +183,8 @@ HEADER_SKIP_PATTERNS = [
     # Líneas explicativas HY-TEK para DQ/DNF; el resultado ya queda en la fila del nadador.
     re.compile(r"^(?:DNF|DQ)\s+No\s+", re.IGNORECASE),
     re.compile(r"^SW\d+(?:\.\d+)*\s+", re.IGNORECASE),
+    re.compile(r"^(?:WORLD|SUDAMERICANO|20\d{2}SUDAMERI|SUDAMERI)\s*:", re.IGNORECASE),
+    re.compile(r"^(?=.*\d[:\.,]\d)[0-9:,\.\s\(\)DQNSF]+$", re.IGNORECASE),
 ]
 
 
@@ -612,6 +616,9 @@ def clean_athlete_name(value: str | None) -> str | None:
     value = clean_extracted_text(value)
     if value is None:
         return None
+    # HY-TEK marks some exhibition/non-scoring athletes with a leading "*";
+    # it is not part of the identity and must not reach athlete.csv.
+    value = re.sub(r"^\*+\s*", "", value).strip()
     value = value.replace("Mª", "Maria")
     value = value.replace("M?", "Maria")
     value = value.replace("(cid:976)", "f")
@@ -690,6 +697,10 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
     value = normalize_string(value)
     if value is None:
         return None
+    # Sudamericanos can label individual medley as "CI Piscina ..." or
+    # "CI Mayores ..."; those suffixes describe the event group, not the stroke.
+    if re.match(r"^CI\b", value, flags=re.IGNORECASE):
+        return "individual_medley"
     # Limpieza propia del layout PDF: algunos encabezados pegan categorias de edad al estilo.
     value = re.sub(
         r"\s+(?:(?:\d+\s+a\s+\d+|\d+\s+y\s+(?:m[aá]s|\d+)|\d+)\s+a(?:ñ|n)os|\d+\s+a(?:ñ|n)os\s+y\s+m[aá]s)(?=\s+relay$|$)",
@@ -905,7 +916,7 @@ def should_drop_status_trailing_time_as_points(final_raw: Optional[str], points_
 def should_drop_unranked_status_points(rank_raw: str, final_raw: Optional[str]) -> bool:
     final_key = normalize_match_text(final_raw)
     final_text = normalize_string(final_raw)
-    return rank_raw.strip() == "---" and (
+    return rank_raw.strip() in {"---", "--"} and (
         final_key in {"dns", "dnf", "dq", "dsq"} or (isinstance(final_text, str) and final_text.upper().startswith("X"))
     )
 
@@ -1173,7 +1184,7 @@ def parse_result_line(line: str, ctx: EventContext, page_number: int, line_numbe
                 seed_raw = team_seed_match.group("seed")
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
-    rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
+    rank_position: Optional[str] = None if rank_raw in {"---", "--"} else rank_raw.lstrip("*").lstrip("*")
 
     if isinstance(normalized_final, str) and normalized_final.upper().startswith("X"):
         rank_position = None
@@ -1232,7 +1243,7 @@ def parse_relay_team_line(line: str, ctx: EventContext, page_number: int, line_n
         points_raw = None
     status = normalize_result_status(None, final_raw)
     normalized_final = normalize_swim_time_text(final_raw)
-    rank_position: Optional[str] = None if rank_raw == "---" else rank_raw.lstrip("*").lstrip("*")
+    rank_position: Optional[str] = None if rank_raw in {"---", "--"} else rank_raw.lstrip("*").lstrip("*")
 
     if isinstance(normalized_final, str) and normalized_final.upper().startswith("X"):
         rank_position = None

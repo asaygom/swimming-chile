@@ -92,9 +92,20 @@ def test_normalize_stroke_to_domain_canon():
     assert parser.normalize_stroke("Medley 280 y mas años Relay") == "medley_relay"
     assert parser.normalize_stroke("Medley Relay 280 y mas") == "medley_relay"
     assert parser.normalize_stroke("Medley Relay Pre Master") == "medley_relay"
+    assert parser.normalize_stroke("CI Piscina Estadio") == "individual_medley"
+    assert parser.normalize_stroke("CI Mayores de 50") == "individual_medley"
 
 
     assert parser.normalize_stroke("Estilo Libre Pre Master - Master") == "freestyle"
+
+
+def test_should_skip_sudamericano_auxiliary_lines():
+    assert parser.should_skip_line("==================================================================")
+    assert parser.should_skip_line("Nombre Edad Equipo Sembrar Finales")
+    assert parser.should_skip_line("SUDAMERICANO: 4:38.88")
+    assert parser.should_skip_line("2024SUDAMERI: 9:51.01")
+    assert parser.should_skip_line("1:16,69 2:43,68 (1:26,99) 4:11,76 (1:28,08)")
+    assert not parser.should_skip_line("-- *Unda, Mariana 32 Tiburones Tolima 12:27.13 NS")
 
 
 def test_competition_name_similarity_matches_planned_calendar_name():
@@ -159,6 +170,7 @@ def test_clean_athlete_name_removes_layout_artifacts_without_source_suffix():
     assert parser.clean_athlete_name("Sebastiaón, Claudio") == "Sebastián, Claudio"
     assert parser.clean_athlete_name("Gonzaólez, Andrés") == "González, Andrés"
     assert parser.clean_athlete_name("Rodríóguez, Alexandra") == "Rodríguez, Alexandra"
+    assert parser.clean_athlete_name("*Unda, Mariana") == "Unda, Mariana"
 
 
 def test_compute_file_sha256():
@@ -473,6 +485,24 @@ def test_parse_result_line_recovers_seed_time_before_status_result():
     assert row.result_time_text == "DQ"
     assert row.result_time_ms is None
     assert row.status == "dsq"
+
+
+def test_parse_result_line_accepts_double_dash_unranked_status_result():
+    row = parser.parse_result_line(
+        "-- *Unda, Mariana 32 Tiburones Tolima 12:27.13 NS",
+        individual_context(),
+        page_number=1,
+        line_number=12,
+        competition_year=2022,
+    )
+
+    assert row is not None
+    assert row.rank_position is None
+    assert row.athlete_name == "Unda, Mariana"
+    assert row.club_name == "Tiburones Tolima"
+    assert row.seed_time_text == "12:27,13"
+    assert row.result_time_text == "NS"
+    assert row.status == "unknown"
 
 
 def test_parse_fragmented_result_line_from_hytek_multicolumn_ocr():
