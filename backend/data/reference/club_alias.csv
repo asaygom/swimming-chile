@@ -436,3 +436,12 @@ Weyelfe Master,Weyelfe Master,canonical
 Club Deportivo Workout,Workout,alias detectado en auditoria historica de PDFs
 Workout,Workout,canonical
 Workout Villa Alemana,Workout,athlete-year cross-competition candidate; expanded existing alias group from Workout; shared=9; cross=2
+H20,Club H2o,decision=merge pre-suda 20260616; variante sin prefijo Club
+Aqua Master Chillan,Aquamaster Chillan,decision=merge pre-suda 20260616; espacio OCR/ingreso manual
+Iron Swin Master,Iron Swim Master,decision=merge pre-suda 20260616; typo Swin/Swim
+Amateur Talca,Club Amateur Natacion Talca,decision=merge pre-suda 20260616; nombre abreviado
+Nómades Los Ríos,Club Nomades Los Rios,decision=merge pre-suda 20260616; alias acentuado
+Nomades Los Rios,Club Nomades Los Rios,decision=merge pre-suda 20260616; alias sin prefijo Club
+Deportivo Natacion Constitucio,Club de Natacion Constitucion,decision=merge pre-suda 20260616; nombre truncado
+Toninas de Puerto Montt,Club Toninas Pto Montt,decision=merge pre-suda 20260616; Puerto/Pto
+Club Stade Frances,Stade Francais,decision=merge pre-suda 20260616; alias con prefijo Club
