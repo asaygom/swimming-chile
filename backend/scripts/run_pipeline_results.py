@@ -729,15 +729,15 @@ def update_competition_metadata(
     with conn.cursor() as cur:
         cur.execute(f"""
             UPDATE {fqtn(config.schema, 'competition')}
-            SET competition_scope = COALESCE(%s, competition_scope),
-                governing_body_code = COALESCE(%s, governing_body_code),
-                governing_body_name = COALESCE(%s, governing_body_name),
+            SET competition_scope = COALESCE(%s::text, competition_scope),
+                governing_body_code = COALESCE(%s::text, governing_body_code),
+                governing_body_name = COALESCE(%s::text, governing_body_name),
                 updated_at = NOW()
             WHERE id = %s
               AND (
-                    (%s IS NOT NULL AND competition_scope IS DISTINCT FROM %s)
-                 OR (%s IS NOT NULL AND governing_body_code IS DISTINCT FROM %s)
-                 OR (%s IS NOT NULL AND governing_body_name IS DISTINCT FROM %s)
+                    (%s::text IS NOT NULL AND competition_scope IS DISTINCT FROM %s::text)
+                 OR (%s::text IS NOT NULL AND governing_body_code IS DISTINCT FROM %s::text)
+                 OR (%s::text IS NOT NULL AND governing_body_name IS DISTINCT FROM %s::text)
               );
         """, (
             competition_scope,
