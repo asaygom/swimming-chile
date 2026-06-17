@@ -268,7 +268,9 @@ def normalize_birth_year(value: Optional[str]) -> str:
     if not cleaned:
         return ""
     match = re.match(r"^(\d{4})(?:\.0)?$", cleaned)
-    return match.group(1) if match else cleaned
+    # Category-derived ranges such as 1962-1966 are evidence only; never
+    # materialize them into integer birth_year fields consumed by the loader.
+    return match.group(1) if match else ""
 
 
 def curation_group_key(row: dict) -> Optional[Tuple[str, str, str, str]]:
@@ -616,6 +618,14 @@ def load_result_event_corrections(path: Path) -> List[dict]:
     return rows
 
 
+
+def decision_birth_year(row: dict) -> str:
+    bucket = normalize_match_text(row.get("confidence_bucket")) or ""
+    kind = normalize_match_text(row.get("source_identity_kind")) or ""
+    if bucket == "suda 2026 birth year range" or kind == "suda name range 2026":
+        return normalize_birth_year(row.get("core_birth_year"))
+    return normalize_birth_year(row.get("birth_year") or row.get("core_birth_year"))
+
 def load_fuzzy_identity_decisions(path: Path) -> List[dict]:
     rows: List[dict] = []
     if not path.exists():
@@ -630,7 +640,7 @@ def load_fuzzy_identity_decisions(path: Path) -> List[dict]:
             or row.get("core_full_name")
             or row.get("target_full_name")
         )
-        birth_year = normalize_birth_year(row.get("birth_year") or row.get("core_birth_year"))
+        birth_year = decision_birth_year(row)
         gender = normalize_match_text(row.get("gender") or row.get("suda_gender") or row.get("core_gender")) or ""
         if not canonical_name:
             continue
@@ -673,7 +683,7 @@ def load_fuzzy_identity_birth_year_decisions(path: Path) -> List[dict]:
         canonical_name = clean_extracted_text(
             row.get("suggested_canonical_full_name") or row.get("canonical_full_name")
         )
-        canonical_birth_year = normalize_birth_year(row.get("birth_year"))
+        canonical_birth_year = decision_birth_year(row)
         gender = normalize_match_text(row.get("gender")) or ""
         if not canonical_name or not canonical_birth_year:
             continue
@@ -705,10 +715,13 @@ def load_fuzzy_identity_merge_keys(path: Path) -> List[dict]:
         if decision != "merge":
             continue
         canonical_name = clean_extracted_text(
-            row.get("suggested_canonical_full_name") or row.get("canonical_full_name")
+            row.get("suggested_canonical_full_name")
+            or row.get("canonical_full_name")
+            or row.get("core_full_name")
+            or row.get("target_full_name")
         )
-        birth_year = normalize_birth_year(row.get("birth_year"))
-        gender = normalize_match_text(row.get("gender")) or ""
+        birth_year = decision_birth_year(row)
+        gender = normalize_match_text(row.get("gender") or row.get("suda_gender") or row.get("core_gender")) or ""
         if canonical_name and birth_year:
             rows.append(
                 {
@@ -1524,8 +1537,8 @@ def prune_duplicate_athlete_rows_for_reviewed_identity_merges(
     local_seen: Set[Tuple[str, str, str]] = set()
     for index, row in athlete_df.iterrows():
         name_key = ordered_name_key(row.get("full_name"))
-        birth_year = normalize_birth_year(row.get("birth_year"))
-        gender = normalize_match_text(row.get("gender")) or ""
+        birth_year = decision_birth_year(row)
+        gender = normalize_match_text(row.get("gender") or row.get("suda_gender") or row.get("core_gender")) or ""
         merge_key = (name_key, birth_year, gender)
         if _matches_identity_merge_key(row, rules):
             if merge_key in seen_identity_merge_keys or merge_key in local_seen:

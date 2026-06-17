@@ -19,6 +19,47 @@ def _workspace_tmp_dir() -> Path:
     return path
 
 
+
+
+def test_decision_birth_year_uses_core_year_for_suda_range_evidence():
+    row = {
+        "confidence_bucket": "suda_2026_birth_year_range",
+        "source_identity_kind": "suda_name_range_2026",
+        "birth_year": "1962-1966",
+        "core_birth_year": "1962",
+    }
+
+    assert curate.decision_birth_year(row) == "1962"
+
+
+def test_decision_birth_year_does_not_materialize_suda_range_without_core_year():
+    row = {
+        "confidence_bucket": "suda_2026_birth_year_range",
+        "source_identity_kind": "suda_name_range_2026",
+        "birth_year": "1962-1966",
+        "core_birth_year": "",
+    }
+
+    assert curate.decision_birth_year(row) == ""
+
+
+def test_fuzzy_identity_merge_keys_use_core_year_for_suda_range_rows(tmp_path):
+    decisions_path = tmp_path / "suda_range.csv"
+    decisions_path.write_text(
+        "decision;confidence_bucket;suda_full_name;suda_gender;birth_year;core_full_name;core_gender;core_birth_year\n"
+        'merge;suda_2026_birth_year_range;"DE QUEIROZ, MANOEL ELPIDIO PEREIRA";male;1962-1966;"Queiroz, Manoel";male;1962\n',
+        encoding="utf-8",
+    )
+
+    assert curate.load_fuzzy_identity_merge_keys(decisions_path) == [
+        {"name_key": "queiroz manoel", "birth_year": "1962", "gender": "male"}
+    ]
+
+def test_normalize_birth_year_rejects_category_ranges():
+    assert curate.normalize_birth_year("1962") == "1962"
+    assert curate.normalize_birth_year("1962.0") == "1962"
+    assert curate.normalize_birth_year("1962-1966") == ""
+
 def test_athlete_name_signature_groups_common_ocr_variants():
     assert curate.athlete_name_signature("Pasarin, Claudia") == curate.athlete_name_signature(
         "Pasar\u00ed\u00f3n, Claudia"
