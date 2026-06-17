@@ -17,6 +17,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
+import pandas as pd
+
 from audit_athlete_names import load_manifest, load_overrides, read_csv_if_exists, resolve_path
 from audit_expected_athlete_identity import load_birth_year_evidence, load_partial_name_decisions
 from run_pipeline_results import clean_extracted_text, normalize_match_text
@@ -623,16 +625,30 @@ def load_fuzzy_identity_decisions(path: Path) -> List[dict]:
         if decision != "merge":
             continue
         canonical_name = clean_extracted_text(
-            row.get("suggested_canonical_full_name") or row.get("canonical_full_name")
+            row.get("suggested_canonical_full_name")
+            or row.get("canonical_full_name")
+            or row.get("core_full_name")
+            or row.get("target_full_name")
         )
-        birth_year = normalize_birth_year(row.get("birth_year"))
-        gender = normalize_match_text(row.get("gender")) or ""
-        if not canonical_name or not birth_year:
+        birth_year = normalize_birth_year(row.get("birth_year") or row.get("core_birth_year"))
+        gender = normalize_match_text(row.get("gender") or row.get("suda_gender") or row.get("core_gender")) or ""
+        if not canonical_name:
             continue
-        for field in ("left_full_name", "right_full_name"):
+        old_name_fields = (
+            "left_full_name",
+            "right_full_name",
+            "source_full_name",
+            "target_full_name",
+            "suda_full_name",
+            "core_full_name",
+        )
+        for field in old_name_fields:
             old_name = clean_extracted_text(row.get(field))
             if not old_name or ordered_name_key(old_name) == ordered_name_key(canonical_name):
                 continue
+            # Some Sudamericanos 2026 rows only have an age-group range, not an exact
+            # result birth_year. Keep the reviewed name merge applicable to result.csv
+            # rows with empty birth_year, without inventing a year in the source row.
             rows.append(
                 {
                     "old_key": ordered_name_key(old_name),
@@ -960,6 +976,8 @@ def _identity_rule_matches_context(rule: dict, context: dict) -> bool:
         return False
     if rule.get("gender") and context.get("gender") and rule["gender"] != context["gender"]:
         return False
+    if not rule.get("birth_year"):
+        return not context["birth_year"]
     if not context["birth_year"]:
         return True
     return rule["birth_year"] == context["birth_year"]
@@ -1251,6 +1269,17 @@ def apply_result_event_corrections(result_df, source_url: str, rules: dict) -> T
     return corrected_df, corrected
 
 
+
+def drop_invalid_relay_swimmer_leg_order(relay_swimmer_df) -> Tuple[object, int]:
+    if relay_swimmer_df.empty or "leg_order" not in relay_swimmer_df.columns:
+        return relay_swimmer_df, 0
+    leg_order = pd.to_numeric(relay_swimmer_df["leg_order"], errors="coerce")
+    valid_mask = leg_order.between(1, 4)
+    dropped = int((~valid_mask).sum())
+    if dropped == 0:
+        return relay_swimmer_df, 0
+    return relay_swimmer_df.loc[valid_mask].reset_index(drop=True), dropped
+
 def result_identity_key(row: object) -> Optional[Tuple[str, str, str]]:
     key = (
         ordered_name_key(row.get("athlete_name")),
@@ -1520,6 +1549,14 @@ def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
             or relative.parts[0].startswith("fchmn_parser")
         ):
             relative = Path(*relative.parts[1:])
+        if relative.parts and (
+            relative.parts[0].startswith("suda")
+            or relative.parts[0].startswith("sudamericanos")
+        ):
+            for index, part in enumerate(relative.parts):
+                if re.fullmatch(r"20\d{2}", part):
+                    relative = Path(*relative.parts[index:])
+                    break
     else:
         relative = Path(source_input_dir.name)
     return output_root / relative
@@ -1549,6 +1586,10 @@ def materialize_document_inputs(
             continue
         df = read_csv_if_exists(csv_path)
         curated_df, table_counts = apply_athlete_curations_to_df(df, table_name, rules)
+        if table_name == "relay_swimmer":
+            curated_df, dropped = drop_invalid_relay_swimmer_leg_order(curated_df)
+            if dropped:
+                counts["relay_swimmer_invalid_leg_order_dropped"] += dropped
         for key, value in table_counts.items():
             counts[f"{table_name}_{key}"] += value
         curated_tables[table_name] = (csv_path, curated_df)

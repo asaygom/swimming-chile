@@ -2,6 +2,13 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-06-17 - Fix pre-load Sudamericanos replay blockers
+
+- `run_pipeline_results.py` now reuses empty calendar competitions with status `planned` or `finished` when scope/body/date/year/name are compatible, avoiding a duplicate competition when official results arrive after calendar metadata was synced.
+- Sudamericanos identity decisions with age-range evidence now materialize reviewed names into `result.csv` rows without inventing exact birth years.
+- Relay member staging now carries relay rank/time disambiguators so repeated same-team relay rows do not cross-link swimmers into 8-member relays.
+- Added migration `backend/sql/migrations/006_relay_member_match_fields.sql` for the new staging fields.
+
 ## Abril - Mayo 2026 (Consolidación de Pipeline FCHMN 2022-2026)
 
 

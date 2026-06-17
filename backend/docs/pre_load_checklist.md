@@ -33,6 +33,10 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
 - Confirmar que la base tiene aplicada la migracion
   `backend/sql/migrations/005_competition_governing_body.sql`, para separar
   organismo rector (`governing_body_*`) de fuente documental y organizador local.
+- Confirmar que la base tiene aplicada la migracion
+  `backend/sql/migrations/006_relay_member_match_fields.sql`, para que los
+  integrantes de relevos puedan enlazarse al resultado correcto cuando una
+  fuente repite el mismo equipo/evento/club.
 
 ## 2. Manifest congelado
 

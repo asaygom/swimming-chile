@@ -47,7 +47,7 @@ EXPECTED_COLUMNS = {
     "athlete": ["full_name", "gender", "club_name", "birth_year", "source_id"],
     "result": ["event_name", "athlete_name", "club_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "age_at_event", "birth_year_estimated", "points", "status", "source_id"],
     "relay_result": ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"],
-    "relay_result_member": ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"],
+    "relay_result_member": ["event_name", "club_name", "relay_team_name", "relay_rank_position", "relay_result_time_ms", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"],
 }
 
 PARSER_RELAY_INPUT_COLUMNS = {
@@ -500,10 +500,40 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
         explicit_club_names = pd.Series([None] * len(relay_team_df), index=relay_team_df.index, dtype=object)
     inferred_club_names = relay_team_df["relay_team_name"].map(lambda x: infer_relay_club_name(x, club_names))
     relay_team_df["club_name"] = explicit_club_names.combine_first(inferred_club_names)
-    relay_club_by_team = {
-        (normalize_match_text(row.get("event_name")), normalize_match_text(row.get("relay_team_name"))): row.get("club_name")
-        for _, row in relay_team_df.iterrows()
-    }
+    relay_team_df["_event_key"] = relay_team_df["event_name"].map(normalize_match_text)
+    relay_team_df["_team_key"] = relay_team_df["relay_team_name"].map(normalize_match_text)
+    relay_team_df["_page_number_int"] = pd.to_numeric(relay_team_df.get("page_number"), errors="coerce")
+    relay_team_df["_line_number_int"] = pd.to_numeric(relay_team_df.get("line_number"), errors="coerce")
+    relay_team_df["_document_order"] = range(len(relay_team_df))
+
+    def relay_team_for_swimmer(row):
+        event_key = normalize_match_text(row.get("event_name"))
+        team_key = normalize_match_text(row.get("relay_team_name"))
+        candidates = relay_team_df[(relay_team_df["_event_key"] == event_key) & (relay_team_df["_team_key"] == team_key)]
+        if candidates.empty:
+            return None
+        swimmer_page = pd.to_numeric(pd.Series([row.get("page_number")]), errors="coerce").iloc[0]
+        swimmer_line = pd.to_numeric(pd.Series([row.get("line_number")]), errors="coerce").iloc[0]
+        if pd.notna(swimmer_page) and pd.notna(swimmer_line):
+            same_page_previous = candidates[
+                (candidates["_page_number_int"] == swimmer_page)
+                & (candidates["_line_number_int"].notna())
+                & (candidates["_line_number_int"] <= swimmer_line)
+            ]
+            if not same_page_previous.empty:
+                # Layouts Sudamericanos pueden repetir mismo club/equipo/evento;
+                # la linea previa del relay_team mantiene el set correcto de 4 integrantes.
+                return same_page_previous.sort_values(["_line_number_int", "_document_order"]).iloc[-1]
+        return candidates.sort_values("_document_order").iloc[-1]
+
+    relay_team_matches = [relay_team_for_swimmer(row) for _, row in relay_swimmer_df.iterrows()]
+    relay_swimmer_df["club_name"] = [
+        match.get("club_name") if match is not None else infer_relay_club_name(row.get("relay_team_name"), club_names)
+        for match, (_, row) in zip(relay_team_matches, relay_swimmer_df.iterrows())
+    ]
+    relay_swimmer_df["relay_rank_position"] = [match.get("rank_position") if match is not None else None for match in relay_team_matches]
+    relay_swimmer_df["relay_result_time_ms"] = [match.get("result_time_ms") if match is not None else None for match in relay_team_matches]
+
     relay_team_df["lane"] = None
     relay_team_df["heat_number"] = None
     relay_team_df["points"] = relay_team_df.get("points")
@@ -515,14 +545,9 @@ def transform_parser_relay_outputs(relay_team_df: pd.DataFrame, relay_swimmer_df
         ["event_name", "club_name", "relay_team_name", "lane", "heat_number", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "reaction_time", "record_flag", "status", "source_id", "source_url"]
     ]
 
-    relay_swimmer_df["club_name"] = relay_swimmer_df.apply(
-        lambda row: relay_club_by_team.get((normalize_match_text(row.get("event_name")), normalize_match_text(row.get("relay_team_name"))))
-        or infer_relay_club_name(row.get("relay_team_name"), club_names),
-        axis=1,
-    )
     relay_swimmer_df["athlete_name"] = relay_swimmer_df["swimmer_name"]
     relay_member_df = relay_swimmer_df[
-        ["event_name", "club_name", "relay_team_name", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"]
+        ["event_name", "club_name", "relay_team_name", "relay_rank_position", "relay_result_time_ms", "leg_order", "athlete_name", "gender", "age_at_event", "birth_year_estimated"]
     ]
 
     return {
@@ -696,13 +721,20 @@ def competition_name_similarity(left: Optional[str], right: Optional[str]) -> fl
         return 0.0
     if left_key == right_key:
         return 1.0
+    if left_key in right_key or right_key in left_key:
+        return 0.95
+    score = SequenceMatcher(None, left_key, right_key).ratio()
     left_tokens = set(left_key.split())
     right_tokens = set(right_key.split())
     if left_tokens and right_tokens:
         overlap_ratio = len(left_tokens & right_tokens) / min(len(left_tokens), len(right_tokens))
         if overlap_ratio >= 0.80:
-            return max(overlap_ratio, SequenceMatcher(None, left_key, right_key).ratio())
-    return SequenceMatcher(None, left_key, right_key).ratio()
+            score = max(score, overlap_ratio)
+    # Sudamericanos calendar/results titles can differ by edition notation and
+    # wording, while date/scope/body already constrain the DB candidates.
+    if {"sudamericano", "master", "premaster"}.issubset(left_tokens) and {"sudamericano", "master", "premaster"}.issubset(right_tokens):
+        score = max(score, 0.85)
+    return score
 
 
 def choose_planned_competition_candidate(competition_name: str, candidates: list[tuple[int, str]]) -> Optional[tuple[float, int, str]]:
@@ -805,7 +837,9 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
             cur.execute(f"""
                 SELECT c.id, c.name
                 FROM {fqtn(config.schema, 'competition')} c
-                WHERE c.status = 'planned'
+                WHERE c.status IN ('planned', 'finished')
+                  AND COALESCE(c.competition_scope, %s) = COALESCE(%s, c.competition_scope, %s)
+                  AND COALESCE(c.governing_body_code, %s) = COALESCE(%s, c.governing_body_code, %s)
                   AND (
                         (%s IS NOT NULL AND c.season_year = %s)
                      OR (%s IS NULL AND c.start_date = %s)
@@ -827,7 +861,18 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
                       WHERE e.competition_id = c.id
                   )
                 ORDER BY c.id;
-            """, (season_year_int, season_year_int, season_year_int, start_date))
+            """, (
+                competition_scope,
+                competition_scope,
+                competition_scope,
+                governing_body_code,
+                governing_body_code,
+                governing_body_code,
+                season_year_int,
+                season_year_int,
+                season_year_int,
+                start_date,
+            ))
             # El calendario puede cambiar luego de planificarse una fecha. El nombre,
             # año y que no tenga resultados permiten conservar la fila planificada
             # en vez de duplicarla; fecha y curso los corrige el resultado oficial.
@@ -838,7 +883,7 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
                 cur.execute(f"""
                     UPDATE {fqtn(config.schema, 'competition')}
                     SET course_type = CASE WHEN %s <> 'unknown' THEN %s ELSE course_type END,
-                        source_url = COALESCE(source_url, %s),
+                        source_url = COALESCE(%s, source_url),
                         governing_body_code = COALESCE(%s, governing_body_code),
                         governing_body_name = COALESCE(%s, governing_body_name),
                         start_date = COALESCE(%s, start_date),
@@ -848,7 +893,7 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
                     WHERE id = %s;
                 """, (course_type, course_type, source_url, governing_body_code, governing_body_name, start_date, end_date, competition_id))
                 info(
-                    f"Se reutilizará competition_id={competition_id} para competencia planificada "
+                    f"Se reutilizará competition_id={competition_id} para competencia de calendario vacia "
                     f"'{planned_name}' (match={score:.2f}) desde '{competition_name}'."
                 )
                 return int(competition_id)
@@ -1421,6 +1466,14 @@ def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> No
         LEFT JOIN {fqtn(schema, 'relay_result')} rr ON rr.event_id = e.id
              AND LOWER(TRIM(rr.relay_team_name)) = LOWER(TRIM(m.relay_team_name))
              AND ((rr.club_id IS NULL AND c.id IS NULL) OR rr.club_id = c.id)
+             AND (
+                  NULLIF(TRIM(m.relay_result_time_ms), '') IS NULL
+                  OR COALESCE(rr.result_time_ms, -1) = COALESCE(NULLIF(TRIM(m.relay_result_time_ms), '')::BIGINT, -1)
+             )
+             AND (
+                  NULLIF(TRIM(m.relay_rank_position), '') IS NULL
+                  OR COALESCE(rr.rank_position, -1) = COALESCE(NULLIF(TRIM(m.relay_rank_position), '')::INTEGER, -1)
+             )
         LEFT JOIN LATERAL (
             SELECT at.id
             FROM {fqtn(schema, 'athlete')} at

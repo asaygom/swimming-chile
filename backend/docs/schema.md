@@ -608,11 +608,17 @@ Columnas principales por CSV operativo:
 - `event_name`
 - `club_name`
 - `relay_team_name`
+- `relay_rank_position`
+- `relay_result_time_ms`
 - `leg_order`
 - `athlete_name`
 - `gender`
 - `age_at_event`
 - `birth_year_estimated`
+
+`relay_rank_position` y `relay_result_time_ms` son campos operativos de enlace.
+Permiten asociar integrantes al resultado correcto cuando una fuente repite el
+mismo `event_name` + `club_name` + `relay_team_name` para mas de un relevo.
 
 ## 10. Flujo actual de carga
 

@@ -1,4 +1,4 @@
-import shutil
+﻿import shutil
 import sys
 import uuid
 from pathlib import Path
@@ -404,6 +404,61 @@ def test_fuzzy_identity_rules_apply_by_birth_year_and_gender_without_club_lock()
     assert curated.loc[1, "full_name"] == "Zonsa, Marcela"
     assert counts == {"fuzzy_identity_consolidations": 1}
 
+
+
+
+def test_drop_invalid_relay_swimmer_leg_order_removes_non_swimmer_rows():
+    df = pd.DataFrame(
+        [
+            {"leg_order": "1", "swimmer_name": "Uno"},
+            {"leg_order": "4", "swimmer_name": "Cuatro"},
+            {"leg_order": "5", "swimmer_name": "Footer"},
+            {"leg_order": "", "swimmer_name": "Header"},
+        ]
+    )
+
+    filtered, dropped = curate.drop_invalid_relay_swimmer_leg_order(df)
+
+    assert dropped == 2
+    assert filtered["swimmer_name"].tolist() == ["Uno", "Cuatro"]
+
+def test_suda_range_identity_decisions_apply_to_result_rows_without_birth_year():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        decisions_path = tmp_dir / "suda_range_decisions.csv"
+        decisions_path.write_text(
+            "decision;status;suda_full_name;suda_gender;suda_birth_year_range;suda_clubs;core_athlete_id;core_full_name;core_gender;core_birth_year\n"
+            'merge;no_birth_year_2026_range_candidate;"GALLEGUILLOS, ROSARIO SOLEDAD PINTO";female;1957-1961;"PE?ALOLEN MASTER";1138;"Pinto Galleguillos, Rosario Soledad";female;1959\n',
+            encoding="utf-8",
+        )
+        rules = curate.load_fuzzy_identity_decisions(decisions_path)
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    result_df = pd.DataFrame(
+        [
+            {
+                "athlete_name": "GALLEGUILLOS, ROSARIO SOLEDAD PINTO",
+                "club_name": "PE?ALOLEN MASTER",
+                "birth_year_estimated": "",
+            }
+        ]
+    )
+    curated, counts = curate.apply_athlete_curations_to_df(
+        result_df,
+        "result",
+        {
+            "ocr_name_rules": [],
+            "birth_year_rules": {},
+            "missing_birth_year_rules": [],
+            "partial_name_rules": [],
+            "fuzzy_identity_rules": rules,
+        },
+    )
+
+    assert curated.loc[0, "athlete_name"] == "Pinto Galleguillos, Rosario Soledad"
+    assert curated.loc[0, "birth_year_estimated"] in {"", None}
+    assert counts == {"fuzzy_identity_consolidations": 1}
 
 def test_fuzzy_identity_birth_year_decisions_correct_same_name_delta_one():
     tmp_dir = _workspace_tmp_dir()

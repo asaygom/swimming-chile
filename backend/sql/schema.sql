@@ -406,6 +406,8 @@ CREATE TABLE stg_relay_result_member (
     event_name TEXT,
     club_name TEXT,
     relay_team_name TEXT,
+    relay_rank_position TEXT,
+    relay_result_time_ms TEXT,
     leg_order TEXT,
     athlete_name TEXT,
     gender TEXT,

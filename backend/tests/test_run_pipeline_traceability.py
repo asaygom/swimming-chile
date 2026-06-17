@@ -264,6 +264,138 @@ def test_result_and_relay_member_match_athletes_by_normalized_key():
     assert "TRANSLATE(LOWER(TRIM(m.athlete_name))" in joined_sql
 
 
+
+def test_planned_competition_lookup_accepts_empty_finished_calendar_rows():
+    class Cursor:
+        def __init__(self):
+            self.statements = []
+            self.fetchone_calls = 0
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, statement, params=None):
+            self.statements.append((statement, params))
+
+        def fetchone(self):
+            self.fetchone_calls += 1
+            if self.fetchone_calls == 1:
+                return None
+            return [21]
+
+        def fetchall(self):
+            return [(4, "XIV Campeonato Sudamericano Master y Premaster de Deportes Acu?ticos (P/C)")]
+
+    class Conn:
+        def __init__(self):
+            self.cursor_instance = Cursor()
+            self.commits = 0
+
+        def cursor(self):
+            return self.cursor_instance
+
+        def commit(self):
+            self.commits += 1
+
+    conn = Conn()
+    config = argparse.Namespace(schema="core", competition_id=None, default_source_id=1)
+    args = argparse.Namespace(
+        competition_name="14? CAMPEONATO SUDAMERICANO DE NATACI?N Y AGUAS ABIERTAS MASTER Y PREMASTER",
+        competition_year="2026",
+        competition_scope="sudamericano_master",
+        governing_body_code="consada",
+        governing_body_name="CONSADA",
+        competition_source_url="https://example.test/results.pdf",
+    )
+    metadata = {"competition_start_date": "2026-04-13", "competition_end_date": "2026-04-17"}
+    data = {"event": pd.DataFrame([{"event_name": "women 25-29 50 SC Meter freestyle"}])}
+
+    competition_id = pipeline.resolve_competition_id(conn, config, args, data, metadata)
+
+    assert competition_id == 4
+    planned_query, params = conn.cursor_instance.statements[1]
+    assert "c.status IN ('planned', 'finished')" in planned_query
+    assert "c.competition_scope" in planned_query
+    assert "c.governing_body_code" in planned_query
+    assert "source_url = COALESCE(%s, source_url)" in "\n".join(stmt for stmt, _ in conn.cursor_instance.statements)
+
+
+def test_transform_parser_relay_outputs_disambiguates_repeated_team_by_source_line():
+    relay_team_df = pd.DataFrame(
+        [
+            {
+                "event_name": "Men 200 SC Meter Medley Relay",
+                "club_name": "Brasil Masters",
+                "relay_team_name": 'Brasil Masters "A"',
+                "rank_position": "3",
+                "seed_time_text": None,
+                "seed_time_ms": None,
+                "result_time_text": "1:52,67",
+                "result_time_ms": "112670",
+                "points": "12",
+                "status": "valid",
+                "source_id": "1",
+                "page_number": "10",
+                "line_number": "100",
+            },
+            {
+                "event_name": "Men 200 SC Meter Medley Relay",
+                "club_name": "Brasil Masters",
+                "relay_team_name": 'Brasil Masters "A"',
+                "rank_position": "1",
+                "seed_time_text": None,
+                "seed_time_ms": None,
+                "result_time_text": "2:12,37",
+                "result_time_ms": "132370",
+                "points": "18",
+                "status": "valid",
+                "source_id": "1",
+                "page_number": "10",
+                "line_number": "200",
+            },
+        ]
+    )
+    relay_swimmer_df = pd.DataFrame(
+        [
+            {"event_name": "Men 200 SC Meter Medley Relay", "relay_team_name": 'Brasil Masters "A"', "leg_order": "1", "swimmer_name": "Uno", "gender": "male", "age_at_event": "60", "birth_year_estimated": "1966", "page_number": "10", "line_number": "101"},
+            {"event_name": "Men 200 SC Meter Medley Relay", "relay_team_name": 'Brasil Masters "A"', "leg_order": "1", "swimmer_name": "Cinco", "gender": "male", "age_at_event": "60", "birth_year_estimated": "1966", "page_number": "10", "line_number": "201"},
+        ]
+    )
+
+    transformed = pipeline.transform_parser_relay_outputs(
+        relay_team_df,
+        relay_swimmer_df,
+        pd.DataFrame(columns=pipeline.EXPECTED_COLUMNS["club"]),
+        default_source_id=1,
+    )
+
+    members = transformed["relay_result_member"]
+    assert members.loc[0, "relay_result_time_ms"] == "112670"
+    assert members.loc[0, "relay_rank_position"] == "3"
+    assert members.loc[1, "relay_result_time_ms"] == "132370"
+    assert members.loc[1, "relay_rank_position"] == "1"
+
+
+def test_relay_member_insert_uses_relay_result_disambiguation_fields():
+    class Cursor:
+        def __init__(self):
+            self.statements = []
+
+        def execute(self, statement, params=None):
+            self.statements.append((statement, params))
+
+    cursor = Cursor()
+    pipeline.insert_core_relay_result_member(cursor, "core", 1)
+    sql = "\n".join(statement for statement, _ in cursor.statements)
+
+    assert "m.relay_result_time_ms" in sql
+    assert "m.relay_rank_position" in sql
+    assert "rr.result_time_ms" in sql
+    assert "rr.rank_position" in sql
+
 def test_expected_points_case_uses_fchmn_scoring_rules():
     individual_sql = pipeline.expected_points_case_sql("rank_position", relay=False)
     relay_sql = pipeline.expected_points_case_sql("rank_position", relay=True)
