@@ -2,6 +2,7 @@ import math
 from fastapi import APIRouter, Query
 from typing import Optional
 from ..database import get_db_connection
+from ..search import build_token_search_clause, search_tokens
 
 router = APIRouter()
 
@@ -25,9 +26,14 @@ def list_clubs(
             params = []
             
             if search:
-                query += " AND (c.name ILIKE %s OR c.short_name ILIKE %s)"
-                count_query += " AND (c.name ILIKE %s OR c.short_name ILIKE %s)"
-                params.extend([f"%{search}%", f"%{search}%"])
+                tokens = search_tokens(search)
+                if tokens:
+                    search_clause, search_params = build_token_search_clause(
+                        ["c.name", "COALESCE(c.short_name, '')"], tokens
+                    )
+                    query += f" AND {search_clause}"
+                    count_query += f" AND {search_clause}"
+                    params.extend(search_params)
                 
             query += " ORDER BY c.name LIMIT %s OFFSET %s"
             

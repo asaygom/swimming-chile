@@ -19,16 +19,11 @@ def test_athletes_api_uses_current_club_view_not_static_athlete_club():
     assert "left join core.club c on a.club_id = c.id" not in source
 
 
-def test_athletes_api_search_accepts_natural_name_order():
+def test_athletes_api_uses_shared_token_search():
     source = normalized_source(ATHLETES_ROUTER)
 
-    assert "full_name is stored as" in ATHLETES_ROUTER.read_text(encoding="utf-8").lower()
-    assert "concat(" in source
-    assert "substring(a.full_name" in source
-    assert "position(',' in a.full_name)" in source
-    assert "a.full_name ilike %s" in source
-    assert "translate(" in source
-    assert "normalized_search" in source
+    assert "search_tokens" in source
+    assert "build_token_search_clause" in source
 
 
 def test_athlete_search_text_normalization_removes_accents_for_search():
@@ -42,9 +37,55 @@ def test_athlete_search_text_normalization_removes_accents_for_search():
     assert normalize_search_text("Daniel Briceño") == "daniel briceno"
 
 
+def test_partial_non_contiguous_athlete_name_builds_all_token_conditions():
+    import sys
+
+    if str(BACKEND_DIR) not in sys.path:
+        sys.path.insert(0, str(BACKEND_DIR))
+
+    from api.search import build_token_search_clause, search_tokens
+
+    tokens = search_tokens("Alexis Sayago")
+    clause, params = build_token_search_clause(["a.full_name"], tokens)
+
+    assert tokens == ["alexis", "sayago"]
+    assert clause.count("LIKE %s") == 2
+    assert " AND " in clause
+    assert params == ["%alexis%", "%sayago%"]
+
+
 def test_clubs_api_counts_current_athletes_from_current_club_view():
     source = normalized_source(CLUBS_ROUTER)
 
     assert "core.athlete_current_club acc" in source
     assert "where acc.club_id = c.id" in source
     assert "from core.athlete a where a.club_id = c.id" not in source
+
+
+def test_clubs_api_uses_shared_token_search():
+    source = normalized_source(CLUBS_ROUTER)
+
+    assert "search_tokens" in source
+    assert "build_token_search_clause" in source
+
+
+def test_club_search_requires_every_token_across_name_fields():
+    import sys
+
+    if str(BACKEND_DIR) not in sys.path:
+        sys.path.insert(0, str(BACKEND_DIR))
+
+    from api.search import build_token_search_clause, search_tokens
+
+    tokens = search_tokens("Natacion San Bernardo")
+    clause, params = build_token_search_clause(
+        ["c.name", "COALESCE(c.short_name, '')"], tokens
+    )
+
+    assert clause.count("LIKE %s") == 6
+    assert clause.count(" AND ") == 2
+    assert params == [
+        "%natacion%", "%natacion%",
+        "%san%", "%san%",
+        "%bernardo%", "%bernardo%",
+    ]
