@@ -2,6 +2,22 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-06-25 - Consolidación de identidad Sudamericanos revisada
+
+- Se consolidan las bandejas globales de identidad de Sudamericanos con las
+  decisiones manuales revisadas: high priority, remaining, decisiones históricas,
+  parser028 y Recife 2026.
+- El consolidado efectivo revisado queda en
+  `backend/data/raw/batch_summaries/suda_global_identity_decisions_effective_preload_reviewed_20260625.csv`
+  con 2.474 merges aplicables y 0 colisiones canónicas pendientes.
+- Los solapamientos de misma fuente se aceptan cuando corresponden a variantes
+  incompletas/completas del mismo nombre dentro del PDF, no a homónimos.
+- Se rematerializan los cinco Sudamericanos 2022-2026 en
+  `backend/data/raw/results_csv/suda_parser029_identity_curated_reviewed_20260625`
+  y el manifest
+  `backend/data/raw/manifests/suda_src_2022_2026_parser029_identity_curated_reviewed_20260625.jsonl`
+  valida 5/5 sin `--load`.
+
 ## 2026-06-23 - Parser 0.1.29 y nombres brasileños
 
 - Recife declara orden de nombres `given_family`; la curaduría deja de inventar
@@ -95,7 +111,7 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   relevo con `leg_order` mayor a 4, y el batch runner bloquea esos residuos
   antes de llegar a la restriccion de PostgreSQL. La carga Sudamericanos debe
   ejecutarse con `--required-competition-scope sudamericano_master`.
-- El loader castea explicitamente a `text` los parametros opcionales de
+- El loader castea explícitamente a `text` los parametros opcionales de
   metadata de competencia para evitar errores de inferencia de tipo en
   PostgreSQL al actualizar `competition_scope` y `governing_body_*`.
 - La compuerta nueva expuso deuda historica en cinco PDFs 2022-2023 que antes

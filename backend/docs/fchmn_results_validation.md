@@ -13,14 +13,20 @@ validar y cargar a core solo cuando se pida explícitamente.
 - Guardar evidencia auditable en `backend/data/raw/batch_summaries/`.
 - Si un documento queda `failed` o `requires_review`, no cargarlo a core.
 
-### Evidencia Sudamericanos 2022-2026 vigente (2026-06-22)
+### Evidencia Sudamericanos 2022-2026 vigente (2026-06-25)
 
 El flujo internacional permanece separado del manifest FCHMN local. El manifest
-curado `backend/data/raw/manifests/suda_src_2022_2026_parser027_identity_curated_20260622.jsonl`
+curado `backend/data/raw/manifests/suda_src_2022_2026_parser029_identity_curated_reviewed_20260625.jsonl`
 valida 5/5 sin `--load`; la evidencia auditable está en
-`backend/data/raw/batch_summaries/suda_src_2022_2026_parser027_identity_curated_validation_20260622.json`.
-Recife usa parser `0.1.27` y Buenos Aires 2024 conserva cuatro integrantes por
-cada uno de sus 481 relevos mediante correcciones OCR revisadas.
+`backend/data/raw/batch_summaries/suda_src_2022_2026_parser029_identity_curated_reviewed_validation_20260625.json`.
+
+Esta materialización incorpora el consolidado revisado
+`backend/data/raw/batch_summaries/suda_global_identity_decisions_effective_preload_reviewed_20260625.csv`: 2.474
+merges efectivos, 0 colisiones canónicas remanentes y 37 solapamientos de misma
+fuente aceptados como nombres incompletos/completos de la misma persona. Recife
+usa parser `0.1.29`, preserva letras portuguesas y mantiene el orden natural
+cuando no existe un canónico revisado. Buenos Aires 2024 conserva cuatro
+integrantes por cada uno de sus 481 relevos mediante correcciones OCR revisadas.
 
 ---
 

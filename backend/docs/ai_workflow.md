@@ -62,45 +62,18 @@ Si cambia el comportamiento o el contrato:
 4. Actualizar `AGENTS.md` solo si cambia una regla operativa.
 5. Registrar cambios de gran envergadura o decisiones arquitectónicas en `CHANGELOG.md`.
 
-## Estado actual
+## Continuidad operativa
 
-- **Fase activa**: Fase 4, scraper y batch runner con compuertas de calidad.
-- El parser soporta PDFs HY-TEK y Swim It Up, generando CSVs que pasan compuertas estrictas.
-- El proceso ELT (Extract, Load, Transform) está separado y asegurado mediante manifests `.jsonl`.
-- `run_fchmn_results_validation.py` automatiza discovery -> download -> batch validation sin usar `--load` automáticamente.
+Este documento no debe guardar estado puntual de cargas, manifests o próximos pasos,
+porque esa información cambia rápido y tiende a quedar desactualizada. Para retomar
+trabajo operativo:
 
-## Prompt recomendado para retomar
+- Usar `AGENTS.md` como reglas imperativas de ejecución.
+- Usar `docs/plans/implementation_plan.md` como hoja de ruta por fases.
+- Usar `backend/docs/fchmn_results_validation.md` como evidencia vigente de
+  manifests, parser y validaciones.
+- Usar `backend/docs/pre_load_checklist.md` antes de cualquier carga o recarga.
+- Usar `backend/docs/CHANGELOG.md` para hitos históricos y decisiones relevantes.
 
-Usar este texto al iniciar una nueva conversación:
-
-```text
-Lee primero docs/plans/implementation_plan.md, backend/README.md, backend/docs/ai_workflow.md y AGENTS.md.
-Luego revisa git status y los scripts relevantes antes de proponer cambios.
-Continúa según la metodología acordada: diagnóstico, propuesta corta, patch mínimo, tests, git status y propuesta de commit.
-Si hay cambios locales del usuario, respétalos y trabaja alrededor de ellos.
-Explica el qué, el por qué, el dónde y lo aprendido de cada cambio.
-Fase activa: Fase 4. No cargues a core ni uses --load salvo pedido explícito.
-
-Si la conversación retoma una carga o recarga, sigue backend/docs/pre_load_checklist.md sin saltar backup, wipe controlado y validación post-load.
-```
-
-## Siguiente paso sugerido
-
-- Si se retoma una carga explícita, seguir `backend/docs/pre_load_checklist.md`: verificar estado real, ejecutar `--load` con summary auditable y validar duplicados.
-- En identidad de atletas, priorizar la etapa post-parser/pre-load `curate_athlete_names.py` antes de seguir agregando heurísticas puntuales al parser.
-- Las incoherencias `event_name` vs genero/edad deben bloquear la validacion,
-  pero no borrar resultados reales automaticamente. Si el caso evidencia mala
-  lectura de columnas, corregir/reclasificar el evento en la materializacion
-  pre-load y dejar evidencia auditable.
-- La materialización vigente para FCHMN local 2022-2026 es
-  `backend/data/raw/manifests/fchmn_historical_2022_2026_frozen_local_parser020_tracefixed_curated_20260512_identity_fix.jsonl`.
-  Usa parser `0.1.20`, incluye 62 documentos, decisiones manuales fuzzy con
-  `decision=merge`, exclusiones revisadas, homónimos aceptados versionados y
-  valida 62/62 sin `--load`.
-- Antes de cerrar una nueva recarga, generar y revisar la bandeja ampliada de
-  identidad con `audit_expected_athlete_identity.py --expanded-identity-candidates-csv`.
-  Esta bandeja cubre segundo apellido/segundo nombre omitido e indicios de
-  `birth_year` +/-1; solo las filas revisadas como `merge` deben pasar luego a
-  `curate_athlete_names.py`.
-- Diseñar automatización futura para detectar PDFs nuevos o cambios de checksum, validar y reportar sin cargar automáticamente.
-- No crear tablas nuevas sin una migración explícita.
+Si una conversación necesita contexto inicial, debe pedir explícitamente leer esas
+fuentes y revisar `git status` antes de proponer cambios.
