@@ -6,10 +6,46 @@ import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { CourseBadge } from '../../../components/ui/CourseBadge';
+import { getCourseMeta } from '../../../lib/courseMeta';
+import type { CourseType } from '../../../lib/schemas/canon';
+
+const strokeTranslations: Record<string, string> = {
+  freestyle: 'Libre',
+  backstroke: 'Espalda',
+  breaststroke: 'Pecho',
+  butterfly: 'Mariposa',
+  individual_medley: 'Combinado',
+  medley_relay: 'Relevo Combinado',
+  freestyle_relay: 'Relevo Libre',
+};
+
+const genderTranslations: Record<string, string> = {
+  female: 'Dama',
+  male: 'Varón',
+};
+
+type BestTimesCourseFilter = 'scm' | 'lcm' | 'all' ;
+
+const courseFilterLabels: Record<BestTimesCourseFilter, string> = {
+  scm: 'Piscina corta',
+  lcm: 'Piscina larga',
+  all: 'Ambas',
+};
+
+const formatMonthYear = (date?: string | null) => {
+  if (!date) return null;
+
+  const dateString = date.includes('T') ? date : `${date}T12:00:00`;
+  const dateObj = new Date(dateString);
+  if (Number.isNaN(dateObj.getTime())) return null;
+
+  return dateObj.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+};
 
 export const AthleteProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [courseFilter, setCourseFilter] = React.useState<BestTimesCourseFilter>('all');
 
   const { data: athlete, isLoading, isError, refetch } = useQuery({
     queryKey: ['athlete', id],
@@ -46,6 +82,16 @@ export const AthleteProfilePage: React.FC = () => {
     return { pbs: pbArray, groupedRecent: grouped };
   }, [athlete]);
 
+  const availablePoolFilters = React.useMemo(
+    () => new Set(pbs.map(res => res.course_type).filter((course): course is 'scm' | 'lcm' => course === 'scm' || course === 'lcm')),
+    [pbs],
+  );
+
+  const filteredPbs = React.useMemo(
+    () => courseFilter === 'all' ? pbs : pbs.filter(res => res.course_type === courseFilter),
+    [pbs, courseFilter],
+  );
+
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!athlete) return <EmptyState title="Atleta no encontrado" />;
@@ -79,7 +125,7 @@ export const AthleteProfilePage: React.FC = () => {
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{athlete.full_name}</h1>
             <div className="mt-2 flex flex-wrap gap-3">
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100 capitalize">
-                {athlete.gender}
+                {athlete.gender ? genderTranslations[athlete.gender] : 'Sin género'}
               </span>
               {athlete.birth_year && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200">
@@ -99,12 +145,38 @@ export const AthleteProfilePage: React.FC = () => {
       {/* Mejores Tiempos */}
       {pbs.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold text-slate-900 mb-4 px-1">Mejores Tiempos</h2>
+          <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Mejores Tiempos</h2>
+            <div className="flex flex-wrap gap-2">
+              {(['scm', 'lcm', 'all'] as const).map(course => {
+                const meta = course === 'all' ? null : getCourseMeta(course as CourseType);
+                const isActive = courseFilter === course;
+                const isDisabled = course !== 'all' && !availablePoolFilters.has(course);
+
+                return (
+                  <button
+                    key={course}
+                    type="button"
+                    disabled={isDisabled}
+                    onClick={() => setCourseFilter(course)}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors ${
+                      isActive ? (meta?.light || 'border-slate-300 bg-slate-100 text-slate-700') : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
+                    } ${isDisabled ? 'cursor-not-allowed opacity-40' : ''}`}
+                  >
+                    {courseFilterLabels[course]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pbs.map(res => (
+            {filteredPbs.map(res => {
+              const achievedAt = formatMonthYear(res.competition_date);
+
+              return (
               <div key={res.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
                 <div>
-                  <div className="font-bold text-slate-900">{res.distance_m}m <span className="capitalize">{res.stroke}</span></div>
+                  <div className="font-bold text-slate-900">{res.distance_m}m {res.stroke ? strokeTranslations[res.stroke] : 'Estilo no informado'}</div>
                   <div className="text-xs text-slate-500 uppercase flex items-center gap-2 mt-0.5 tracking-wider">
                     <CourseBadge courseType={res.course_type} variant="compact" />
                     {res.age_group && (
@@ -117,10 +189,14 @@ export const AthleteProfilePage: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <div className="font-mono text-blue-700 font-bold text-lg">{res.result_time_text}</div>
-                  <div className="text-xs text-slate-500 truncate max-w-[120px]" title={res.competition_name}>{res.competition_name}</div>
+                  <div className="text-xs text-slate-500 truncate max-w-[150px]" title={res.competition_name}>
+                    {achievedAt && <span className="ml-1 text-slate-400">({achievedAt}) </span>}
+                    {res.competition_name}
+                  </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -146,7 +222,7 @@ export const AthleteProfilePage: React.FC = () => {
                           {res.rank_position ? `${res.rank_position}°` : '-'}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900">{res.distance_m}m <span className="capitalize">{res.stroke}</span></div>
+                          <div className="font-semibold text-slate-900">{res.distance_m}m {res.stroke ? strokeTranslations[res.stroke] : 'Estilo no informado'}</div>
                           <div className="text-xs text-slate-500 uppercase flex items-center gap-2">
                             <CourseBadge courseType={res.course_type} variant="compact" />
                             {res.age_group && (
