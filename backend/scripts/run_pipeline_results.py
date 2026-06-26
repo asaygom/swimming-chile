@@ -755,8 +755,22 @@ def update_competition_metadata(
     competition_scope: Optional[str],
     governing_body_code: Optional[str],
     governing_body_name: Optional[str],
+    source_url: Optional[str] = None,
+    course_type: Optional[str] = None,
+    start_date=None,
+    end_date=None,
+    mark_finished: bool = False,
 ) -> None:
-    if competition_scope is None and governing_body_code is None and governing_body_name is None:
+    if (
+        competition_scope is None
+        and governing_body_code is None
+        and governing_body_name is None
+        and source_url is None
+        and (course_type is None or course_type == "unknown")
+        and start_date is None
+        and end_date is None
+        and not mark_finished
+    ):
         return
     with conn.cursor() as cur:
         cur.execute(f"""
@@ -764,17 +778,34 @@ def update_competition_metadata(
             SET competition_scope = COALESCE(%s::text, competition_scope),
                 governing_body_code = COALESCE(%s::text, governing_body_code),
                 governing_body_name = COALESCE(%s::text, governing_body_name),
+                source_url = COALESCE(%s::text, source_url),
+                course_type = CASE WHEN %s::text IS NOT NULL AND %s::text <> 'unknown' THEN %s::text ELSE course_type END,
+                start_date = COALESCE(%s::date, start_date),
+                end_date = COALESCE(%s::date, end_date),
+                status = CASE WHEN %s THEN 'finished' ELSE status END,
                 updated_at = NOW()
             WHERE id = %s
               AND (
                     (%s::text IS NOT NULL AND competition_scope IS DISTINCT FROM %s::text)
                  OR (%s::text IS NOT NULL AND governing_body_code IS DISTINCT FROM %s::text)
                  OR (%s::text IS NOT NULL AND governing_body_name IS DISTINCT FROM %s::text)
+                 OR (%s::text IS NOT NULL AND source_url IS DISTINCT FROM %s::text)
+                 OR (%s::text IS NOT NULL AND %s::text <> 'unknown' AND course_type IS DISTINCT FROM %s::text)
+                 OR (%s::date IS NOT NULL AND start_date IS DISTINCT FROM %s::date)
+                 OR (%s::date IS NOT NULL AND end_date IS DISTINCT FROM %s::date)
+                 OR (%s AND status IS DISTINCT FROM 'finished')
               );
         """, (
             competition_scope,
             governing_body_code,
             governing_body_name,
+            source_url,
+            course_type,
+            course_type,
+            course_type,
+            start_date,
+            end_date,
+            mark_finished,
             competition_id,
             competition_scope,
             competition_scope,
@@ -782,12 +813,26 @@ def update_competition_metadata(
             governing_body_code,
             governing_body_name,
             governing_body_name,
+            source_url,
+            source_url,
+            course_type,
+            course_type,
+            course_type,
+            start_date,
+            start_date,
+            end_date,
+            end_date,
+            mark_finished,
         ))
 
 
 def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data: Dict[str, pd.DataFrame], metadata: Dict[str, Optional[str]]) -> int:
     if config.competition_id is not None:
         competition_id = int(config.competition_id)
+        source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+        course_type = infer_course_type_from_events(data.get("event"))
+        start_date = parse_iso_date(metadata.get("competition_start_date"))
+        end_date = parse_iso_date(metadata.get("competition_end_date")) or start_date
         update_competition_metadata(
             conn,
             config,
@@ -795,6 +840,11 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
             normalize_competition_scope(getattr(args, "competition_scope", None)),
             normalize_governing_body_code(getattr(args, "governing_body_code", None)),
             normalize_string(getattr(args, "governing_body_name", None)),
+            source_url=source_url,
+            course_type=course_type,
+            start_date=start_date,
+            end_date=end_date,
+            mark_finished=True,
         )
         return competition_id
 
@@ -829,7 +879,21 @@ def resolve_competition_id(conn, config: Config, args: argparse.Namespace, data:
         row = cur.fetchone()
         if row and row[0] is not None:
             competition_id = int(row[0])
-            update_competition_metadata(conn, config, competition_id, competition_scope, governing_body_code, governing_body_name)
+            # Una competencia planificada puede matchear exactamente por nombre/anio.
+            # Al cargar resultados oficiales debe reemplazar la fuente calendario por el PDF y cerrar su estado.
+            update_competition_metadata(
+                conn,
+                config,
+                competition_id,
+                competition_scope,
+                governing_body_code,
+                governing_body_name,
+                source_url=source_url,
+                course_type=course_type,
+                start_date=start_date,
+                end_date=end_date,
+                mark_finished=True,
+            )
             info(f"Se reutilizará competition_id={competition_id} para '{competition_name}'.")
             return competition_id
 
