@@ -72,5 +72,91 @@ def get_club(club_id: int):
             
             if not club:
                 raise HTTPException(status_code=404, detail="Club not found")
+
+            cur.execute("""
+                WITH attendance AS (
+                    SELECT
+                        r.athlete_id,
+                        a.full_name AS athlete_name,
+                        comp.id AS competition_id,
+                        comp.name AS competition_name,
+                        comp.start_date AS competition_date,
+                        COUNT(*) AS entries,
+                        BOOL_OR(COALESCE(r.status, 'unknown') NOT IN ('dns', 'scratch')) AS attended
+                    FROM core.result r
+                    JOIN core.athlete a ON a.id = r.athlete_id
+                    JOIN core.athlete_current_club acc ON acc.athlete_id = a.id
+                    JOIN core.event e ON e.id = r.event_id
+                    JOIN core.competition comp ON comp.id = e.competition_id
+                    WHERE r.club_id = %(club_id)s
+                      AND acc.club_id = %(club_id)s
+                    GROUP BY r.athlete_id, a.full_name, comp.id, comp.name, comp.start_date
+
+                    UNION ALL
+
+                    SELECT
+                        rrm.athlete_id,
+                        a.full_name AS athlete_name,
+                        comp.id AS competition_id,
+                        comp.name AS competition_name,
+                        comp.start_date AS competition_date,
+                        COUNT(*) AS entries,
+                        BOOL_OR(COALESCE(rr.status, 'unknown') NOT IN ('dns', 'scratch')) AS attended
+                    FROM core.relay_result rr
+                    JOIN core.relay_result_member rrm ON rrm.relay_result_id = rr.id
+                    JOIN core.athlete a ON a.id = rrm.athlete_id
+                    JOIN core.athlete_current_club acc ON acc.athlete_id = a.id
+                    JOIN core.event e ON e.id = rr.event_id
+                    JOIN core.competition comp ON comp.id = e.competition_id
+                    WHERE rr.club_id = %(club_id)s
+                      AND rrm.athlete_id IS NOT NULL
+                      AND acc.club_id = %(club_id)s
+                    GROUP BY rrm.athlete_id, a.full_name, comp.id, comp.name, comp.start_date
+                )
+                SELECT
+                    athlete_id,
+                    athlete_name,
+                    competition_id,
+                    competition_name,
+                    competition_date,
+                    SUM(entries)::INTEGER AS entries,
+                    BOOL_OR(attended) AS attended
+                FROM attendance
+                GROUP BY athlete_id, athlete_name, competition_id, competition_name, competition_date
+                ORDER BY athlete_name ASC, competition_date DESC NULLS LAST, competition_name ASC
+            """, {"club_id": club_id})
+            attendance_rows = cur.fetchall()
+
+            competitions_by_id = {}
+            athletes_by_id = {}
+            for row in attendance_rows:
+                competition_id = row["competition_id"]
+                athlete_id = row["athlete_id"]
+
+                competitions_by_id[competition_id] = {
+                    "id": competition_id,
+                    "name": row["competition_name"],
+                    "date": row["competition_date"],
+                }
+
+                athlete = athletes_by_id.setdefault(athlete_id, {
+                    "athlete_id": athlete_id,
+                    "athlete_name": row["athlete_name"],
+                    "competitions": [],
+                })
+                athlete["competitions"].append({
+                    "competition_id": competition_id,
+                    "entries": row["entries"],
+                    "status": "attended" if row["attended"] else "no_show",
+                })
+
+            club["attendance_matrix"] = {
+                "competitions": sorted(
+                    competitions_by_id.values(),
+                    key=lambda item: (item["date"] or "", item["name"]),
+                    reverse=True,
+                ),
+                "athletes": list(athletes_by_id.values()),
+            }
             
             return club

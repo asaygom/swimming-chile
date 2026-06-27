@@ -7,6 +7,16 @@ import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
 
+const formatCompetitionMonthYear = (date?: string | null) => {
+  if (!date) return null;
+
+  const dateString = date.includes('T') ? date : `${date}T12:00:00`;
+  const dateObj = new Date(dateString);
+  if (Number.isNaN(dateObj.getTime())) return null;
+
+  return dateObj.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+};
+
 export const ClubProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -16,6 +26,7 @@ export const ClubProfilePage: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [gender, setGender] = React.useState('all');
   const [page, setPage] = React.useState(1);
+  const [attendanceYear, setAttendanceYear] = React.useState('all');
   const hasActiveFilters = searchTerm.trim() !== '' || gender !== 'all';
 
   const clearFilters = () => {
@@ -56,6 +67,21 @@ export const ClubProfilePage: React.FC = () => {
   if (errorClub) return <ErrorState onRetry={() => refetchClub()} />;
   if (!club) return <EmptyState title="Club no encontrado" />;
 
+  const attendanceMatrix = club.attendance_matrix;
+  const attendanceYears = attendanceMatrix
+    ? Array.from(new Set(
+        attendanceMatrix.competitions
+          .map(competition => competition.date ? new Date(`${competition.date}T12:00:00`).getFullYear() : null)
+          .filter((year): year is number => Boolean(year))
+      )).sort((a, b) => b - a)
+    : [];
+  const visibleAttendanceCompetitions = attendanceMatrix
+    ? attendanceMatrix.competitions.filter(competition => (
+        attendanceYear === 'all' ||
+        (competition.date && new Date(`${competition.date}T12:00:00`).getFullYear().toString() === attendanceYear)
+      ))
+    : [];
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="mb-6">
@@ -93,6 +119,104 @@ export const ClubProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Asistencia por Competencia */}
+      {attendanceMatrix && attendanceMatrix.competitions.length > 0 && attendanceMatrix.athletes.length > 0 && (
+        <div>
+          <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Asistencia a Competencias</h2>
+            <select
+              value={attendanceYear}
+              onChange={(event) => setAttendanceYear(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 sm:w-40"
+            >
+              <option value="all">Todos los años</option>
+              {attendanceYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+              <p className="text-sm text-slate-600">
+                Atletas inscritos representando a {club.name}. ✓ indica que compitió; × indica inscripción sin participación registrada.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-white border-b border-slate-200">
+                  <tr>
+                    <th className="sticky left-0 z-10 bg-white px-4 py-3 text-left font-semibold text-slate-700 min-w-56">
+                      Atleta
+                    </th>
+                    {visibleAttendanceCompetitions.map(competition => (
+                      <th key={competition.id} className="px-3 py-3 text-center font-semibold text-slate-700 min-w-32">
+                        <Link
+                          to={`/competitions/${competition.id}`}
+                          className="block text-blue-700 hover:text-blue-900 hover:underline"
+                          title={competition.name}
+                        >
+                          <span className="line-clamp-2">{competition.name}</span>
+                        </Link>
+                        {formatCompetitionMonthYear(competition.date) && (
+                          <span className="mt-1 block text-xs font-medium text-slate-400">
+                            {formatCompetitionMonthYear(competition.date)}
+                          </span>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {attendanceMatrix.athletes.map(athlete => {
+                    const attendanceByCompetition = new Map(
+                      athlete.competitions.map(entry => [String(entry.competition_id), entry])
+                    );
+                    const hasAttendanceInVisibleYear = visibleAttendanceCompetitions.some(competition => (
+                      attendanceByCompetition.get(String(competition.id))?.status === 'attended'
+                    ));
+                    const highlightNoAttendance = attendanceYear !== 'all' && !hasAttendanceInVisibleYear;
+
+                    return (
+                      <tr key={athlete.athlete_id} className={highlightNoAttendance ? 'bg-red-50/60 hover:bg-red-50' : 'hover:bg-slate-50/60'}>
+                        <th className={`sticky left-0 z-10 px-4 py-3 text-left font-semibold min-w-56 ${highlightNoAttendance ? 'bg-red-50 text-red-800' : 'bg-white text-slate-900'}`}>
+                          <Link to={`/athletes/${athlete.athlete_id}`} className="hover:text-blue-700 hover:underline">
+                            {athlete.athlete_name}
+                          </Link>
+                          {highlightNoAttendance && (
+                            <span className="ml-2 text-xs font-medium text-red-600">
+                              Sin participación
+                            </span>
+                          )}
+                        </th>
+                        {visibleAttendanceCompetitions.map(competition => {
+                          const attendance = attendanceByCompetition.get(String(competition.id));
+
+                          return (
+                            <td key={`${athlete.athlete_id}-${competition.id}`} className="px-3 py-3 text-center">
+                              {attendance?.status === 'attended' ? (
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700 border border-emerald-100" title="Compitió">
+                                  ✓
+                                </span>
+                              ) : attendance?.status === 'no_show' ? (
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-700 border border-red-100" title="Inscrito, no compitió">
+                                  ×
+                                </span>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filtros de Atletas */}
       <div>

@@ -64,6 +64,20 @@ def test_clubs_api_counts_current_athletes_from_current_club_view():
     assert "from core.athlete a where a.club_id = c.id" not in source
 
 
+def test_club_profile_exposes_attendance_from_represented_club_results():
+    source = normalized_source(CLUBS_ROUTER)
+
+    assert "attendance_matrix" in source
+    assert "where r.club_id = %(club_id)s" in source
+    assert "where rr.club_id = %(club_id)s" in source
+    assert "join core.athlete_current_club acc on acc.athlete_id = a.id" in source
+    assert "and acc.club_id = %(club_id)s" in source
+    assert "join core.relay_result_member rrm" in source
+    assert "not in ('dns', 'scratch')" in source
+    assert '"status": "attended" if row["attended"] else "no_show"' in source
+    assert "athlete_current_club" in source
+
+
 def test_clubs_api_uses_shared_token_search():
     source = normalized_source(CLUBS_ROUTER)
 
