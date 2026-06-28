@@ -59,10 +59,103 @@ const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | nul
   );
 };
 
+type TrendPoint = {
+  id: string | number;
+  competition_name: string;
+  competition_date?: string | null;
+  course_type?: CourseType | null;
+  result_time_text?: string | null;
+  result_time_ms: number;
+};
+
+const PerformanceTrendChart: React.FC<{ points: TrendPoint[] }> = ({ points }) => {
+  if (points.length === 0) return null;
+
+  const chartWidth = 720;
+  const chartHeight = 260;
+  const padding = { top: 24, right: 24, bottom: 72, left: 64 };
+  const plotWidth = chartWidth - padding.left - padding.right;
+  const plotHeight = chartHeight - padding.top - padding.bottom;
+  const times = points.map(point => point.result_time_ms);
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+  const range = maxTime - minTime || 1000;
+  const yMin = minTime - range * 0.08;
+  const yMax = maxTime + range * 0.08;
+  const xForIndex = (index: number) => padding.left + (points.length === 1 ? plotWidth / 2 : (index / (points.length - 1)) * plotWidth);
+  const yForTime = (timeMs: number) => padding.top + ((yMax - timeMs) / (yMax - yMin)) * plotHeight;
+  const yTicks = [yMin, (yMin + yMax) / 2, yMax];
+
+  return (
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="min-w-[680px]">
+        <line x1={padding.left} y1={padding.top} x2={padding.left} y2={padding.top + plotHeight} stroke="#cbd5e1" />
+        <line x1={padding.left} y1={padding.top + plotHeight} x2={padding.left + plotWidth} y2={padding.top + plotHeight} stroke="#cbd5e1" />
+        {yTicks.map(tick => (
+          <g key={tick}>
+            <line x1={padding.left - 4} y1={yForTime(tick)} x2={padding.left + plotWidth} y2={yForTime(tick)} stroke="#e2e8f0" />
+            <text x={padding.left - 10} y={yForTime(tick) + 4} textAnchor="end" className="fill-slate-500 text-[11px]">
+              {(tick / 1000).toFixed(2)}s
+            </text>
+          </g>
+        ))}
+        {points.slice(1).map((point, index) => {
+          const previous = points[index];
+          const improved = point.result_time_ms < previous.result_time_ms;
+
+          return (
+            <line
+              key={`${previous.id}-${point.id}`}
+              x1={xForIndex(index)}
+              y1={yForTime(previous.result_time_ms)}
+              x2={xForIndex(index + 1)}
+              y2={yForTime(point.result_time_ms)}
+              stroke={improved ? '#059669' : '#dc2626'}
+              strokeWidth="3"
+              strokeDasharray="6 4"
+              strokeLinecap="round"
+            />
+          );
+        })}
+        {points.map((point, index) => {
+          const x = xForIndex(index);
+          const y = yForTime(point.result_time_ms);
+          const date = formatMonthYear(point.competition_date);
+          const course = getCourseMeta(point.course_type);
+
+          return (
+            <g key={point.id}>
+              <circle cx={x} cy={y} r="5" className={point.course_type === 'lcm' ? 'fill-violet-600 stroke-white' : 'fill-blue-600 stroke-white'} strokeWidth="2">
+                <title>{`${point.competition_name}: ${point.result_time_text || `${(point.result_time_ms / 1000).toFixed(2)}s`} · ${course.description}`}</title>
+              </circle>
+              <text x={x} y={y - 10} textAnchor="middle" className="fill-slate-700 text-[11px] font-semibold">
+                {point.result_time_text}
+              </text>
+              <text x={x} y={padding.top + plotHeight + 20} textAnchor="middle" className="fill-slate-500 text-[10px]">
+                {date || `Registro ${index + 1}`}
+              </text>
+              <text x={x} y={padding.top + plotHeight + 36} textAnchor="middle" className="fill-slate-400 text-[10px]">
+                {point.competition_name.length > 16 ? `${point.competition_name.slice(0, 16)}…` : point.competition_name}
+              </text>
+            </g>
+          );
+        })}
+        <g transform={`translate(${padding.left}, ${chartHeight - 10})`}>
+          <circle cx="0" cy="0" r="4" className="fill-blue-600" />
+          <text x="10" y="4" className="fill-slate-500 text-[11px]">Piscina corta</text>
+          <circle cx="110" cy="0" r="4" className="fill-violet-600" />
+          <text x="120" y="4" className="fill-slate-500 text-[11px]">Piscina larga</text>
+        </g>
+      </svg>
+    </div>
+  );
+};
+
 export const AthleteProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [courseFilter, setCourseFilter] = React.useState<BestTimesCourseFilter>('all');
+  const [trendSelection, setTrendSelection] = React.useState('');
 
   const { data: athlete, isLoading, isError, refetch } = useQuery({
     queryKey: ['athlete', id],
@@ -108,6 +201,55 @@ export const AthleteProfilePage: React.FC = () => {
     () => courseFilter === 'all' ? pbs : pbs.filter(res => res.course_type === courseFilter),
     [pbs, courseFilter],
   );
+
+  const trendOptions = React.useMemo(() => {
+    if (!athlete?.recent_results) return [];
+
+    const options = new Map<string, { key: string; label: string }>();
+    athlete.recent_results.forEach(result => {
+      if (result.status !== 'valid' || !result.result_time_ms || !result.distance_m || !result.stroke) return;
+      const key = `${result.distance_m}-${result.stroke}`;
+      options.set(key, {
+        key,
+        label: `${result.distance_m}m ${strokeTranslations[result.stroke]}`,
+      });
+    });
+
+    return Array.from(options.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [athlete]);
+
+  const selectedTrendKey = trendOptions.some(option => option.key === trendSelection)
+    ? trendSelection
+    : trendOptions[0]?.key || '';
+
+  const trendPoints = React.useMemo(() => {
+    if (!athlete?.recent_results || !selectedTrendKey) return [];
+
+    const [distance, stroke] = selectedTrendKey.split('-');
+    return athlete.recent_results
+      .map((result, index) => ({ result, index }))
+      .filter(({ result }) => (
+        result.status === 'valid' &&
+        result.result_time_ms &&
+        result.distance_m?.toString() === distance &&
+        result.stroke === stroke
+      ))
+      .sort((a, b) => {
+        const leftDate = a.result.competition_date ? new Date(`${a.result.competition_date}T12:00:00`).getTime() : 0;
+        const rightDate = b.result.competition_date ? new Date(`${b.result.competition_date}T12:00:00`).getTime() : 0;
+        return rightDate - leftDate || a.index - b.index;
+      })
+      .slice(0, 5)
+      .reverse()
+      .map(({ result }) => ({
+        id: result.id,
+        competition_name: result.competition_name,
+        competition_date: result.competition_date,
+        course_type: result.course_type,
+        result_time_text: result.result_time_text,
+        result_time_ms: result.result_time_ms!,
+      }));
+  }, [athlete, selectedTrendKey]);
 
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -214,6 +356,36 @@ export const AthleteProfilePage: React.FC = () => {
               </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Evolución de Tiempos */}
+      {trendOptions.length > 0 && (
+        <div>
+          <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Evolución de Tiempos</h2>
+              <p className="text-sm text-slate-500">
+                Últimos 5 registros ordenados de más antiguo a más reciente.
+              </p>
+            </div>
+            <select
+              value={selectedTrendKey}
+              onChange={(event) => setTrendSelection(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 sm:w-72"
+            >
+              {trendOptions.map(option => (
+                <option key={option.key} value={option.key}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            {trendPoints.length > 0 ? (
+              <PerformanceTrendChart points={trendPoints} />
+            ) : (
+              <EmptyState title="Sin registros suficientes" description="No hay tiempos válidos para esta selección." />
+            )}
           </div>
         </div>
       )}
