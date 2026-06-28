@@ -81,6 +81,7 @@ export const ClubProfilePage: React.FC = () => {
         (competition.date && new Date(`${competition.date}T12:00:00`).getFullYear().toString() === attendanceYear)
       ))
     : [];
+  const currentAthleteTotal = club.total_athletes || attendanceMatrix?.athletes.length || 0;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -136,21 +137,21 @@ export const ClubProfilePage: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
             <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
               <p className="text-sm text-slate-600">
                 Atletas inscritos representando a {club.name}. ✓ indica que compitió; × indica inscripción sin participación registrada.
               </p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="max-h-[70vh] overflow-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-white border-b border-slate-200">
                   <tr>
-                    <th className="sticky left-0 z-10 bg-white px-4 py-3 text-left font-semibold text-slate-700 min-w-56">
+                    <th className="sticky left-0 top-0 z-40 bg-white px-4 py-3 text-left font-semibold text-slate-700 min-w-56 shadow-sm">
                       Atleta
                     </th>
                     {visibleAttendanceCompetitions.map(competition => (
-                      <th key={competition.id} className="px-3 py-3 text-center font-semibold text-slate-700 min-w-32">
+                      <th key={competition.id} className="sticky top-0 z-30 bg-white px-3 py-3 text-center font-semibold text-slate-700 min-w-32 shadow-sm">
                         <Link
                           to={`/competitions/${competition.id}`}
                           className="block text-blue-700 hover:text-blue-900 hover:underline"
@@ -212,6 +213,32 @@ export const ClubProfilePage: React.FC = () => {
                     );
                   })}
                 </tbody>
+                <tfoot className="border-t-2 border-slate-200 bg-slate-50">
+                  <tr>
+                    <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 min-w-56">
+                      Asistencia
+                      <span className="block text-xs font-medium text-slate-500">
+                        sobre {currentAthleteTotal} atletas vigentes
+                      </span>
+                    </th>
+                    {visibleAttendanceCompetitions.map(competition => {
+                      const attendedCount = attendanceMatrix.athletes.reduce((count, athlete) => {
+                        const attendance = athlete.competitions.find(entry => String(entry.competition_id) === String(competition.id));
+                        return attendance?.status === 'attended' ? count + 1 : count;
+                      }, 0);
+                      const attendancePercentage = currentAthleteTotal > 0
+                        ? Math.round((attendedCount / currentAthleteTotal) * 100)
+                        : 0;
+
+                      return (
+                        <td key={`summary-${competition.id}`} className="px-3 py-3 text-center">
+                          <span className="block font-bold text-slate-900">{attendedCount}</span>
+                          <span className="text-xs font-medium text-slate-500">{attendancePercentage}%</span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
