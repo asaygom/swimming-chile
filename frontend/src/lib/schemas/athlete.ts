@@ -25,6 +25,8 @@ export const AthleteResultSchema = z.object({
   age_group: z.string().nullable().optional(),
   competition_name: z.string(),
   competition_date: z.string().nullable().optional(),
+  seed_time_text: z.string().nullable().optional(),
+  seed_time_ms: z.number().int().nullable().optional(),
   result_time_text: z.string().nullable().optional(),
   result_time_ms: z.number().int().nullable().optional(),
   points: z.coerce.number().nullable().optional(),

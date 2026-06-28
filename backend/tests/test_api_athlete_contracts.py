@@ -17,6 +17,8 @@ def test_athletes_api_uses_current_club_view_not_static_athlete_club():
     assert "acc.club_id = %s" in source
     assert "current_club_name" in source
     assert "left join core.club c on a.club_id = c.id" not in source
+    assert "r.seed_time_text" in source
+    assert "r.seed_time_ms" in source
 
 
 def test_athletes_api_uses_shared_token_search():

@@ -182,7 +182,7 @@ def get_competition(competition_id: int):
                     SELECT 
                         r.rank_position as rank, a.full_name as athlete_name, a.id as athlete_id,
                         c.name as club_name, r.result_time_text as time_text, r.status,
-                        r.result_time_ms
+                        r.seed_time_text, r.seed_time_ms, r.result_time_ms
                     FROM core.result r
                     JOIN core.athlete a ON r.athlete_id = a.id
                     LEFT JOIN core.club c ON r.club_id = c.id
@@ -193,7 +193,7 @@ def get_competition(competition_id: int):
                     SELECT 
                         rr.rank_position as rank, rr.relay_team_name as athlete_name, NULL::bigint as athlete_id,
                         c.name as club_name, rr.result_time_text as time_text, rr.status,
-                        rr.result_time_ms
+                        rr.seed_time_text, rr.seed_time_ms, rr.result_time_ms
                     FROM core.relay_result rr
                     LEFT JOIN core.club c ON rr.club_id = c.id
                     WHERE rr.event_id = %(event_id)s

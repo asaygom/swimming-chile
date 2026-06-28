@@ -110,6 +110,7 @@ def get_athlete(athlete_id: int):
                     r.id, e.distance_m || 'm ' || e.stroke as event_name, 
                     e.stroke, e.distance_m, comp.course_type, e.age_group,
                     comp.name as competition_name, comp.start_date as competition_date,
+                    r.seed_time_text, r.seed_time_ms,
                     r.result_time_text, r.result_time_ms, r.status,
                     r.rank_position, r.points
                 FROM core.result r

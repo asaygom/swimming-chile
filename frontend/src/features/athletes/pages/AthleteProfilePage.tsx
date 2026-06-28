@@ -42,6 +42,23 @@ const formatMonthYear = (date?: string | null) => {
   return dateObj.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
 };
 
+const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | null }> = ({ seedMs, resultMs }) => {
+  if (!seedMs || !resultMs) return null;
+
+  const diffSeconds = (resultMs - seedMs) / 1000;
+  if (diffSeconds === 0) {
+    return <span className="text-xs font-semibold text-slate-500">±0.00s</span>;
+  }
+
+  const improved = diffSeconds < 0;
+
+  return (
+    <span className={`text-xs font-bold ${improved ? 'text-emerald-600' : 'text-red-600'}`}>
+      {improved ? '' : '+'}{diffSeconds.toFixed(2)}s
+    </span>
+  );
+};
+
 export const AthleteProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -238,10 +255,16 @@ export const AthleteProfilePage: React.FC = () => {
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-slate-900 font-semibold">{res.result_time_text}</span>
+                          <TimeComparison seedMs={res.seed_time_ms} resultMs={res.result_time_ms} />
                           {res.status !== 'valid' && (
                             <span className="text-xs font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">{res.status}</span>
                           )}
                         </div>
+                        {res.seed_time_text && (
+                          <div className="text-xs text-slate-500 mt-1">
+                            Seed {res.seed_time_text}
+                          </div>
+                        )}
                         {res.points && (
                           <div className="text-xs text-slate-500 mt-1">
                             <span className="font-semibold text-emerald-600">{res.points}</span> pts

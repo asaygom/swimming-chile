@@ -44,6 +44,9 @@ export const CompetitionResultSchema = z.object({
   athlete_id: z.union([z.string(), z.number()]).nullable().optional(),
   club_name: z.string().nullable().optional(),
   time_text: z.string(),
+  seed_time_text: z.string().nullable().optional(),
+  seed_time_ms: z.number().int().nullable().optional(),
+  result_time_ms: z.number().int().nullable().optional(),
   status: ResultStatusSchema,
 });
 

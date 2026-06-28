@@ -42,6 +42,23 @@ type PruebaGroup = {
   ageGroups: AgeGroupCategory[];
 };
 
+const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | null }> = ({ seedMs, resultMs }) => {
+  if (!seedMs || !resultMs) return null;
+
+  const diffSeconds = (resultMs - seedMs) / 1000;
+  if (diffSeconds === 0) {
+    return <span className="text-xs font-semibold text-slate-500">±0.00s</span>;
+  }
+
+  const improved = diffSeconds < 0;
+
+  return (
+    <span className={`text-xs font-bold ${improved ? 'text-emerald-600' : 'text-red-600'}`}>
+      {improved ? '' : '+'}{diffSeconds.toFixed(2)}s
+    </span>
+  );
+};
+
 const CategoryResults: React.FC<{ cat: AgeGroupCategory; isRelay: boolean; isSearching: boolean }> = ({ cat, isRelay, isSearching }) => {
   const [expanded, setExpanded] = useState(false);
   const showContent = isSearching || expanded;
@@ -70,6 +87,7 @@ const CategoryResults: React.FC<{ cat: AgeGroupCategory; isRelay: boolean; isSea
                 <th className="px-6 py-2 w-16 text-center">Pos</th>
                 <th className="px-6 py-2">{isRelay ? 'Equipo' : 'Nadador'}</th>
                 <th className="px-6 py-2 hidden sm:table-cell">Club</th>
+                <th className="px-6 py-2 text-right hidden md:table-cell">Seed</th>
                 <th className="px-6 py-2 text-right">Tiempo</th>
               </tr>
             </thead>
@@ -103,9 +121,15 @@ const CategoryResults: React.FC<{ cat: AgeGroupCategory; isRelay: boolean; isSea
                     <div className="text-xs text-slate-500 sm:hidden mt-0.5">{result.club_name}</div>
                   </td>
                   <td className="px-6 py-2 text-slate-600 hidden sm:table-cell">{result.club_name}</td>
+                  <td className="px-6 py-2 text-right hidden md:table-cell">
+                    <span className="font-mono text-slate-500">{result.seed_time_text || '-'}</span>
+                  </td>
                   <td className="px-6 py-2 text-right">
                     {result.status === 'valid' ? (
-                      <span className="font-mono font-bold text-slate-900">{result.time_text}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono font-bold text-slate-900">{result.time_text}</span>
+                        <TimeComparison seedMs={result.seed_time_ms} resultMs={result.result_time_ms} />
+                      </div>
                     ) : (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 uppercase">
                         {result.status}
