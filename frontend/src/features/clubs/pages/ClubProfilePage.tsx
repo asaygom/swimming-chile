@@ -17,6 +17,91 @@ const formatCompetitionMonthYear = (date?: string | null) => {
   return dateObj.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
 };
 
+type AttendanceTrendPoint = {
+  competition_id: string | number;
+  competition_name: string;
+  competition_date?: string | null;
+  attended_count: number;
+  attendance_percentage: number;
+};
+
+const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ points }) => {
+  if (points.length === 0) return null;
+
+  const chartHeight = 240;
+  const minChartWidth = 720;
+  const pointSpacing = 112;
+  const padding = { top: 24, right: 24, bottom: 68, left: 56 };
+  const chartWidth = Math.max(minChartWidth, padding.left + padding.right + Math.max(points.length - 1, 1) * pointSpacing);
+  const plotWidth = chartWidth - padding.left - padding.right;
+  const plotHeight = chartHeight - padding.top - padding.bottom;
+  const xForIndex = (index: number) => padding.left + (points.length === 1 ? plotWidth / 2 : (index / (points.length - 1)) * plotWidth);
+  const yForPercent = (percent: number) => padding.top + ((100 - percent) / 100) * plotHeight;
+  const yTicks = [0, 50, 100];
+
+  return (
+    <div className="overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        width={chartWidth}
+        height={chartHeight}
+        className="min-w-full max-w-none"
+      >
+        <line x1={padding.left} y1={padding.top} x2={padding.left} y2={padding.top + plotHeight} stroke="#cbd5e1" />
+        <line x1={padding.left} y1={padding.top + plotHeight} x2={padding.left + plotWidth} y2={padding.top + plotHeight} stroke="#cbd5e1" />
+        {yTicks.map(tick => (
+          <g key={tick}>
+            <line x1={padding.left - 4} y1={yForPercent(tick)} x2={padding.left + plotWidth} y2={yForPercent(tick)} stroke="#e2e8f0" />
+            <text x={padding.left - 10} y={yForPercent(tick) + 4} textAnchor="end" className="fill-slate-500 text-[11px]">
+              {tick}%
+            </text>
+          </g>
+        ))}
+        {points.slice(1).map((point, index) => {
+          const previous = points[index];
+          const improved = point.attendance_percentage >= previous.attendance_percentage;
+
+          return (
+            <line
+              key={`${previous.competition_id}-${point.competition_id}`}
+              x1={xForIndex(index)}
+              y1={yForPercent(previous.attendance_percentage)}
+              x2={xForIndex(index + 1)}
+              y2={yForPercent(point.attendance_percentage)}
+              stroke={improved ? '#059669' : '#dc2626'}
+              strokeWidth="3"
+              strokeDasharray="6 4"
+              strokeLinecap="round"
+            />
+          );
+        })}
+        {points.map((point, index) => {
+          const x = xForIndex(index);
+          const y = yForPercent(point.attendance_percentage);
+          const date = formatCompetitionMonthYear(point.competition_date);
+
+          return (
+            <g key={point.competition_id}>
+              <circle cx={x} cy={y} r="5" className="fill-blue-600 stroke-white" strokeWidth="2">
+                <title>{`${point.competition_name}: ${point.attended_count} asistentes (${point.attendance_percentage}%)`}</title>
+              </circle>
+              <text x={x} y={y - 10} textAnchor="middle" className="fill-slate-700 text-[11px] font-semibold">
+                {point.attendance_percentage}% ({point.attended_count})
+              </text>
+              <text x={x} y={padding.top + plotHeight + 20} textAnchor="middle" className="fill-slate-500 text-[10px]">
+                {date || `Competencia ${index + 1}`}
+              </text>
+              <text x={x} y={padding.top + plotHeight + 36} textAnchor="middle" className="fill-slate-400 text-[10px]">
+                {point.competition_name.length > 16 ? `${point.competition_name.slice(0, 16)}…` : point.competition_name}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
 export const ClubProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -82,6 +167,28 @@ export const ClubProfilePage: React.FC = () => {
       ))
     : [];
   const currentAthleteTotal = club.total_athletes || attendanceMatrix?.athletes.length || 0;
+  const attendanceTrendPoints = attendanceMatrix
+    ? visibleAttendanceCompetitions
+        .map(competition => {
+          const attendedCount = attendanceMatrix.athletes.reduce((count, athlete) => {
+            const attendance = athlete.competitions.find(entry => String(entry.competition_id) === String(competition.id));
+            return attendance?.status === 'attended' ? count + 1 : count;
+          }, 0);
+
+          return {
+            competition_id: competition.id,
+            competition_name: competition.name,
+            competition_date: competition.date,
+            attended_count: attendedCount,
+            attendance_percentage: currentAthleteTotal > 0 ? Math.round((attendedCount / currentAthleteTotal) * 100) : 0,
+          };
+        })
+        .sort((a, b) => {
+          const leftDate = a.competition_date ? new Date(`${a.competition_date}T12:00:00`).getTime() : 0;
+          const rightDate = b.competition_date ? new Date(`${b.competition_date}T12:00:00`).getTime() : 0;
+          return leftDate - rightDate || a.competition_name.localeCompare(b.competition_name);
+        })
+    : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -242,6 +349,20 @@ export const ClubProfilePage: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {attendanceTrendPoints.length > 0 && (
+            <div className="mt-6">
+              <div className="mb-4 px-1">
+                <h3 className="text-lg font-bold text-slate-900">Evolución de Asistencia</h3>
+                <p className="text-sm text-slate-500">
+                  Porcentaje de atletas vigentes que participaron por competencia. El eje X usa una unidad por competencia visible.
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <AttendanceTrendChart points={attendanceTrendPoints} />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
