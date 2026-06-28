@@ -49,6 +49,44 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
 - Si existen decisiones manuales de atletas, materializar copias curadas antes de cargar y usar el manifest materializado.
 - Validar el manifest materializado sin `--load` para confirmar que todos los documentos queden `validated` antes de la carga a core.
 
+## 2.1 Auditoria DB-aware de identidad pre-load
+
+Antes de la validacion final y de cualquier `--load`, auditar el manifest
+curado contra la base local para detectar nombres parciales que ya existen en
+`core.athlete` con un nombre mas completo.
+
+El criterio de evidencia es:
+
+- `gender` y `birth_year` deben coincidir.
+- El club fuente puede diferir de `core.athlete.club_id`; ese campo no es
+  identidad estable.
+- Un candidato es de alta confianza si el club fuente coincide con
+  `core.athlete_current_club` o con algun club historico observado en
+  `core.result` / `core.relay_result`.
+- Si el club fuente no aparece como actual ni historico, el caso queda en
+  revision (`cross_club_review`), no se auto-curan nombres.
+- Solo filas revisadas con `decision=merge` se materializan despues con
+  `curate_athlete_names.py`.
+
+Plantilla de comando:
+
+```powershell
+python backend\scripts\audit_expected_athlete_identity.py `
+  --core-aware-manifest <manifest_curado.jsonl> `
+  --core-identity-candidates-csv backend\data\raw\batch_summaries\<competencia>_core_identity_candidates_semicolon.csv `
+  --review-csv backend\data\raw\batch_summaries\<competencia>_core_identity_dummy_review.csv `
+  --summary-json backend\data\raw\batch_summaries\<competencia>_core_identity_summary.json `
+  --club-alias-csv backend\data\reference\club_alias.csv `
+  --host localhost --port 5432 --dbname natacion_chile --user postgres --password $env:PGPASSWORD --schema core --json
+```
+
+La bandeja `core_identity_candidates` debe revisarse antes de la carga:
+
+- `same_or_contextual_club_high_confidence`: candidato fuerte, pero igualmente
+  requiere decision humana si va a materializarse.
+- `cross_club_review`: dejar fuera salvo evidencia manual adicional.
+- `multiple_core_candidates_review`: resolver manualmente o bloquear la carga.
+
 ## 3. Backup
 
 - Crear backup de PostgreSQL antes de cargar.

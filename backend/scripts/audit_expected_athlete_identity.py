@@ -12,6 +12,7 @@ import csv
 import json
 import re
 import unicodedata
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -25,9 +26,23 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit same-name groups from an expected core.athlete CSV."
     )
-    parser.add_argument("--input-csv", required=True, help="Expected core.athlete preview CSV.")
+    parser.add_argument("--input-csv", help="Expected core.athlete preview CSV.")
     parser.add_argument("--review-csv", required=True, help="Output CSV grouped by same athlete_key + gender.")
     parser.add_argument("--summary-json", required=True, help="Output JSON summary.")
+    parser.add_argument(
+        "--core-aware-manifest",
+        help="Optional manifest JSONL with parsed/curated CSV folders to audit against the current core DB.",
+    )
+    parser.add_argument(
+        "--core-identity-candidates-csv",
+        help="Output CSV for DB-aware source-vs-core identity candidates. Uses semicolon delimiter.",
+    )
+    parser.add_argument("--host", default="localhost", help="PostgreSQL host for --core-aware-manifest.")
+    parser.add_argument("--port", default="5432", help="PostgreSQL port for --core-aware-manifest.")
+    parser.add_argument("--dbname", default="natacion_chile", help="PostgreSQL database for --core-aware-manifest.")
+    parser.add_argument("--user", default="postgres", help="PostgreSQL user for --core-aware-manifest.")
+    parser.add_argument("--password", help="PostgreSQL password for --core-aware-manifest.")
+    parser.add_argument("--schema", default="core", help="PostgreSQL schema for --core-aware-manifest.")
     parser.add_argument(
         "--birth-year-evidence-csv",
         help="Optional CSV with same-club delta-1 birth_year evidence.",
@@ -175,6 +190,17 @@ def apply_club_alias_keys(
     return output
 
 
+def canonical_club_key(value: object, aliases: Optional[Dict[str, str]] = None) -> str:
+    key = normalize_token_text(value)
+    aliases = aliases or {}
+    if key in aliases:
+        return aliases[key]
+    # Relay teams often arrive as "Club Name A/B". For identity context, the
+    # club evidence is the base club, not the relay squad suffix.
+    base = re.sub(r"\s+[a-z]$", "", key).strip()
+    return aliases.get(base, base)
+
+
 def name_token_key(value: object) -> str:
     tokens = [token for token in normalize_token_text(value).split() if token]
     return " ".join(sorted(tokens))
@@ -298,6 +324,44 @@ def compatible_first_given(left: str, right: str) -> bool:
 def source_url_set(value: object) -> set[str]:
     text = "" if value is None else str(value)
     return {part.strip() for part in text.split(" | ") if part.strip()}
+
+
+def pipe_key_set(value: object) -> set[str]:
+    text = "" if value is None else str(value)
+    return {normalize_token_text(part) for part in text.split(" | ") if normalize_token_text(part)}
+
+
+def row_contextual_club_keys(row: dict, prefixes: Sequence[str]) -> set[str]:
+    keys: set[str] = set()
+    for prefix in prefixes:
+        for suffix in ("club_key", "club_name", "club", "clubs", "club_keys", "club_names"):
+            value = row.get(f"{prefix}_{suffix}")
+            keys.update(pipe_key_set(value))
+    return keys
+
+
+def athlete_current_club_keys(row: dict) -> set[str]:
+    return row_contextual_club_keys(row, ("current", "athlete_current", "core_current"))
+
+
+def athlete_historical_club_keys(row: dict) -> set[str]:
+    return row_contextual_club_keys(row, ("historical", "history", "athlete_historical", "core_historical"))
+
+
+def contextual_club_match(left: dict, right: dict) -> str:
+    left_club = str(left.get("club_key") or "").strip()
+    right_club = str(right.get("club_key") or "").strip()
+    if left_club and right_club and left_club == right_club:
+        return "same_observed_club"
+    if left_club and left_club in athlete_current_club_keys(right):
+        return "left_observed_matches_right_current_club"
+    if right_club and right_club in athlete_current_club_keys(left):
+        return "right_observed_matches_left_current_club"
+    if left_club and left_club in athlete_historical_club_keys(right):
+        return "left_observed_matches_right_historical_club"
+    if right_club and right_club in athlete_historical_club_keys(left):
+        return "right_observed_matches_left_historical_club"
+    return "no_contextual_club_match"
 
 
 def expanded_identity_match(left_name: object, right_name: object, same_birth_year: bool, birth_year_delta: int) -> Optional[dict]:
@@ -618,6 +682,20 @@ def build_partial_name_candidate_rows(df: pd.DataFrame) -> List[dict]:
                     "tokens": tokens,
                     "club_name": row.get("club_name", ""),
                     "source_url": row.get("source_url", ""),
+                    "current_club_key": row.get("current_club_key", ""),
+                    "current_club_name": row.get("current_club_name", ""),
+                    "athlete_current_club_key": row.get("athlete_current_club_key", ""),
+                    "athlete_current_club_name": row.get("athlete_current_club_name", ""),
+                    "core_current_club_key": row.get("core_current_club_key", ""),
+                    "core_current_club_name": row.get("core_current_club_name", ""),
+                    "historical_club_keys": row.get("historical_club_keys", ""),
+                    "historical_club_names": row.get("historical_club_names", ""),
+                    "history_club_keys": row.get("history_club_keys", ""),
+                    "history_club_names": row.get("history_club_names", ""),
+                    "athlete_historical_club_keys": row.get("athlete_historical_club_keys", ""),
+                    "athlete_historical_club_names": row.get("athlete_historical_club_names", ""),
+                    "core_historical_club_keys": row.get("core_historical_club_keys", ""),
+                    "core_historical_club_names": row.get("core_historical_club_names", ""),
                 }
             )
 
@@ -653,15 +731,27 @@ def build_partial_name_candidate_rows(df: pd.DataFrame) -> List[dict]:
                     reason = "same_gender_birth_year_club_token_subset"
                 else:
                     reason = "same_gender_birth_year_cross_club_token_subset"
+                club_context_match = contextual_club_match(shorter, longer)
+                contextual_club_supported = club_context_match != "no_contextual_club_match"
                 rows.append(
                     {
                         "candidate_reason": reason,
                         "gender": gender,
                         "birth_year": birth_year,
                         "same_club": "yes" if same_club else "no",
+                        "club_context_match": club_context_match,
+                        "review_hint": (
+                            "same_or_contextual_club_high_confidence"
+                            if contextual_club_supported
+                            else "cross_club_review"
+                        ),
                         "shorter_club_key": shorter["club_key"],
                         "longer_club_key": longer["club_key"],
-                        "club_key": shorter["club_key"] if same_club else "",
+                        # Use the source/shorter observed club as guardrail when
+                        # the longer core identity is supported by current or
+                        # historical club context. Cross-club matches without
+                        # such evidence stay review-only and do not auto-apply.
+                        "club_key": shorter["club_key"] if contextual_club_supported else "",
                         "club_name": shorter["club_name"] or longer["club_name"],
                         "shorter_club_name": shorter["club_name"],
                         "longer_club_name": longer["club_name"],
@@ -742,6 +832,8 @@ def build_expanded_identity_candidate_rows(df: pd.DataFrame) -> List[dict]:
                 emitted_pairs.add(pair_key)
                 same_club = str(left.get("club_key") or "") == str(right.get("club_key") or "")
                 candidate_reason = match["candidate_reason"]
+                club_context_match = contextual_club_match(left, right)
+                contextual_club_supported = club_context_match != "no_contextual_club_match"
                 rows.append(
                     {
                         "decision": "",
@@ -749,8 +841,8 @@ def build_expanded_identity_candidate_rows(df: pd.DataFrame) -> List[dict]:
                             left, right, candidate_reason
                         ),
                         "review_hint": (
-                            "same_club_high_confidence"
-                            if same_club and birth_year_delta == 0
+                            "same_or_contextual_club_high_confidence"
+                            if contextual_club_supported and birth_year_delta == 0
                             else "birth_year_delta_1_review"
                             if birth_year_delta == 1
                             else "cross_club_review"
@@ -762,6 +854,7 @@ def build_expanded_identity_candidate_rows(df: pd.DataFrame) -> List[dict]:
                         "right_birth_year": right_year,
                         "birth_year_delta": birth_year_delta,
                         "same_club": "yes" if same_club else "no",
+                        "club_context_match": club_context_match,
                         "left_full_name": left.get("full_name", ""),
                         "left_club": left.get("club_name_canonical") or left.get("club_name", ""),
                         "left_club_raw": left.get("club_name", ""),
@@ -1002,11 +1095,309 @@ def write_dict_csv(path: Path, rows: Sequence[dict], fieldnames: Sequence[str]) 
         writer.writerows(rows)
 
 
+def write_semicolon_dict_csv(path: Path, rows: Sequence[dict], fieldnames: Sequence[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8-sig") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames, delimiter=";")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def load_manifest(path: Path) -> List[dict]:
+    documents: List[dict] = []
+    with path.open("r", encoding="utf-8-sig") as fh:
+        for line in fh:
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                documents.append(json.loads(stripped))
+    return documents
+
+
+def read_csv_if_exists(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
+
+
+def collect_manifest_athlete_observations(manifest_path: Path, club_aliases: Optional[Dict[str, str]] = None) -> List[dict]:
+    rows: List[dict] = []
+    for document in load_manifest(manifest_path):
+        input_dir = resolve_path(str(document.get("input_dir") or document.get("out_dir") or ""))
+        source_url = str(document.get("source_url") or "").strip()
+        for _, row in read_csv_if_exists(input_dir / "athlete.csv").iterrows():
+            name = str(row.get("full_name") or "").strip()
+            birth_year = birth_year_text(row.get("birth_year"))
+            club_name = str(row.get("club_name") or "").strip()
+            gender = str(row.get("gender") or "").strip()
+            if name and birth_year:
+                rows.append(
+                    {
+                        "source_table": "athlete",
+                        "source_url": source_url,
+                        "full_name": name,
+                        "athlete_key": ordered_name_key(name),
+                        "gender": gender,
+                        "birth_year": birth_year,
+                        "club_name": club_name,
+                        "club_key": canonical_club_key(club_name, club_aliases),
+                    }
+                )
+        relay_df = read_csv_if_exists(input_dir / "relay_swimmer.csv")
+        if {"swimmer_name", "birth_year_estimated"}.issubset(set(relay_df.columns)):
+            for _, row in relay_df.iterrows():
+                name = str(row.get("swimmer_name") or "").strip()
+                birth_year = birth_year_text(row.get("birth_year_estimated"))
+                gender = str(row.get("gender") or "").strip()
+                club_name = str(row.get("club_name") or row.get("relay_team_name") or "").strip()
+                if name and birth_year:
+                    rows.append(
+                        {
+                            "source_table": "relay_swimmer",
+                            "source_url": source_url,
+                            "full_name": name,
+                            "athlete_key": ordered_name_key(name),
+                            "gender": gender,
+                            "birth_year": birth_year,
+                            "club_name": club_name,
+                            "club_key": canonical_club_key(club_name, club_aliases),
+                        }
+                    )
+    unique: Dict[Tuple[str, str, str, str], dict] = {}
+    for row in rows:
+        key = (row["athlete_key"], row["gender"], row["birth_year"], row["club_key"])
+        existing = unique.get(key)
+        if existing:
+            existing["source_url"] = " | ".join(sorted(source_url_set(existing["source_url"]) | source_url_set(row["source_url"])))
+            existing["source_table"] = " | ".join(sorted(set(existing["source_table"].split(" | ")) | {row["source_table"]}))
+        else:
+            unique[key] = row
+    return list(unique.values())
+
+
+def db_identifier(value: str) -> str:
+    return '"' + value.replace('"', '""') + '"'
+
+
+def load_core_athletes(args: argparse.Namespace, club_aliases: Optional[Dict[str, str]] = None) -> List[dict]:
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise SystemExit("Falta psycopg. Instala backend/requirements.txt para usar --core-aware-manifest.") from exc
+
+    password = args.password or ""
+    conninfo = (
+        f"host={args.host} port={args.port} dbname={args.dbname} "
+        f"user={args.user} password={password}"
+    )
+    schema = db_identifier(args.schema)
+    sql = f"""
+        WITH historical AS (
+            SELECT athlete_id,
+                   string_agg(DISTINCT club_name, ' | ' ORDER BY club_name) AS historical_club_names
+            FROM (
+                SELECT r.athlete_id, cl.name AS club_name
+                FROM {schema}.result r
+                JOIN {schema}.club cl ON cl.id = r.club_id
+                WHERE r.athlete_id IS NOT NULL AND r.club_id IS NOT NULL
+                UNION
+                SELECT rrm.athlete_id, cl.name AS club_name
+                FROM {schema}.relay_result_member rrm
+                JOIN {schema}.relay_result rr ON rr.id = rrm.relay_result_id
+                JOIN {schema}.club cl ON cl.id = rr.club_id
+                WHERE rrm.athlete_id IS NOT NULL AND rr.club_id IS NOT NULL
+            ) clubs
+            GROUP BY athlete_id
+        )
+        SELECT a.id,
+               a.full_name,
+               a.gender,
+               a.birth_year,
+               base_club.name AS club_name,
+               acc.club_name AS current_club_name,
+               historical.historical_club_names
+        FROM {schema}.athlete a
+        LEFT JOIN {schema}.club base_club ON base_club.id = a.club_id
+        LEFT JOIN {schema}.athlete_current_club acc ON acc.athlete_id = a.id
+        LEFT JOIN historical ON historical.athlete_id = a.id
+        WHERE a.birth_year IS NOT NULL
+          AND NULLIF(TRIM(a.full_name), '') IS NOT NULL;
+    """
+    with psycopg.connect(conninfo) as conn, conn.cursor() as cur:
+        cur.execute(sql)
+        rows = []
+        for athlete_id, full_name, gender, birth_year, club_name, current_club_name, historical_club_names in cur.fetchall():
+            rows.append(
+                {
+                    "core_athlete_id": athlete_id,
+                    "full_name": full_name,
+                    "athlete_key": ordered_name_key(full_name),
+                    "gender": gender or "",
+                    "birth_year": str(birth_year),
+                    "club_name": club_name or "",
+                    "club_key": canonical_club_key(club_name, club_aliases),
+                    "current_club_name": current_club_name or "",
+                    "current_club_key": canonical_club_key(current_club_name, club_aliases),
+                    "historical_club_names": historical_club_names or "",
+                    "historical_club_keys": " | ".join(
+                        sorted(
+                            key
+                            for key in (
+                                canonical_club_key(part, club_aliases)
+                                for part in str(historical_club_names or "").split(" | ")
+                            )
+                            if key
+                        )
+                    ),
+                }
+            )
+        return rows
+
+
+def build_core_identity_candidate_rows(source_rows: Sequence[dict], core_rows: Sequence[dict]) -> List[dict]:
+    candidates: List[dict] = []
+    core_by_year: Dict[Tuple[str, str], List[dict]] = defaultdict(list)
+    for row in core_rows:
+        core_by_year[(row["gender"], row["birth_year"])].append(row)
+        if row["gender"]:
+            core_by_year[("", row["birth_year"])].append(row)
+
+    for source in source_rows:
+        source_gender = source.get("gender", "")
+        possible_core = core_by_year.get((source_gender, source["birth_year"]), [])
+        if not possible_core and source_gender:
+            possible_core = core_by_year.get(("", source["birth_year"]), [])
+        for core in possible_core:
+            if source_gender and core.get("gender") and source_gender != core["gender"]:
+                continue
+            if source["athlete_key"] == core["athlete_key"]:
+                continue
+            partial = partial_name_match(source["full_name"], core["full_name"])
+            expanded = expanded_identity_match(source["full_name"], core["full_name"], True, 0)
+            if not partial and not expanded:
+                continue
+            club_context = contextual_club_match(source, core)
+            supported = club_context != "no_contextual_club_match"
+            source_tokens = len(name_token_key(source["full_name"]).split())
+            core_tokens = len(name_token_key(core["full_name"]).split())
+            review_hint = "same_or_contextual_club_high_confidence" if supported else "cross_club_review"
+            candidates.append(
+                {
+                    "decision": "",
+                    "suggested_canonical_full_name": core["full_name"] if core_tokens >= source_tokens else source["full_name"],
+                    "canonical_birth_year": source["birth_year"],
+                    "review_hint": review_hint,
+                    "candidate_reason": (
+                        partial.get("candidate_reason", "partial_name_match") if partial else expanded["candidate_reason"]
+                    ),
+                    "gender": source_gender or core.get("gender", ""),
+                    "birth_year": source["birth_year"],
+                    "club_key": source["club_key"] if supported else "",
+                    "shorter_full_name": source["full_name"],
+                    "longer_full_name": core["full_name"],
+                    "shorter_athlete_key": source["athlete_key"],
+                    "longer_athlete_key": core["athlete_key"],
+                    "source_full_name": source["full_name"],
+                    "source_athlete_key": source["athlete_key"],
+                    "source_club_name": source["club_name"],
+                    "source_club_key": source["club_key"],
+                    "source_table": source["source_table"],
+                    "source_urls": source["source_url"],
+                    "core_athlete_id": core["core_athlete_id"],
+                    "core_full_name": core["full_name"],
+                    "core_athlete_key": core["athlete_key"],
+                    "core_base_club_name": core["club_name"],
+                    "core_current_club_name": core["current_club_name"],
+                    "core_historical_club_names": core["historical_club_names"],
+                    "club_context_match": club_context,
+                }
+            )
+
+    grouped_counts = Counter(
+        (row["source_athlete_key"], row["gender"], row["birth_year"], row["source_club_key"])
+        for row in candidates
+    )
+    for row in candidates:
+        count = grouped_counts[(row["source_athlete_key"], row["gender"], row["birth_year"], row["source_club_key"])]
+        row["candidate_count_for_source"] = count
+        if count > 1:
+            row["review_hint"] = "multiple_core_candidates_review"
+
+    candidates.sort(
+        key=lambda row: (
+            row["review_hint"],
+            row["source_full_name"],
+            row["core_full_name"],
+            row["core_athlete_id"],
+        )
+    )
+    return candidates
+
+
 def main() -> int:
     args = parse_args()
-    input_path = resolve_path(args.input_csv)
     review_path = resolve_path(args.review_csv)
     summary_path = resolve_path(args.summary_json)
+
+    core_identity_candidate_count = None
+    if args.core_aware_manifest:
+        if not args.core_identity_candidates_csv:
+            raise SystemExit("--core-identity-candidates-csv es requerido con --core-aware-manifest.")
+        club_aliases = load_club_alias_key_map(resolve_path(args.club_alias_csv)) if args.club_alias_csv else {}
+        source_rows = collect_manifest_athlete_observations(resolve_path(args.core_aware_manifest), club_aliases)
+        core_rows = load_core_athletes(args, club_aliases)
+        candidate_rows = build_core_identity_candidate_rows(source_rows, core_rows)
+        write_semicolon_dict_csv(
+            resolve_path(args.core_identity_candidates_csv),
+            candidate_rows,
+            [
+                "decision",
+                "suggested_canonical_full_name",
+                "canonical_birth_year",
+                "review_hint",
+                "candidate_reason",
+                "gender",
+                "birth_year",
+                "club_key",
+                "shorter_full_name",
+                "longer_full_name",
+                "shorter_athlete_key",
+                "longer_athlete_key",
+                "source_full_name",
+                "source_athlete_key",
+                "source_club_name",
+                "source_club_key",
+                "source_table",
+                "source_urls",
+                "core_athlete_id",
+                "core_full_name",
+                "core_athlete_key",
+                "core_base_club_name",
+                "core_current_club_name",
+                "core_historical_club_names",
+                "club_context_match",
+                "candidate_count_for_source",
+            ],
+        )
+        core_identity_candidate_count = len(candidate_rows)
+
+    if not args.input_csv:
+        summary = {
+            "core_aware_manifest": str(resolve_path(args.core_aware_manifest)) if args.core_aware_manifest else "",
+            "core_identity_candidates_csv": str(resolve_path(args.core_identity_candidates_csv))
+            if args.core_identity_candidates_csv
+            else "",
+            "core_identity_candidate_count": core_identity_candidate_count,
+        }
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if args.json:
+            print(json.dumps(summary, indent=2, ensure_ascii=False))
+        return 0
+
+    input_path = resolve_path(args.input_csv)
 
     df = pd.read_csv(input_path, dtype=str, encoding="utf-8-sig").fillna("")
     if args.club_alias_csv:
@@ -1168,6 +1559,8 @@ def main() -> int:
                 "gender",
                 "birth_year",
                 "same_club",
+                "club_context_match",
+                "review_hint",
                 "shorter_club_name",
                 "longer_club_name",
                 "shorter_club_key",
@@ -1201,6 +1594,7 @@ def main() -> int:
                 "right_birth_year",
                 "birth_year_delta",
                 "same_club",
+                "club_context_match",
                 "left_full_name",
                 "left_club",
                 "left_club_raw",
