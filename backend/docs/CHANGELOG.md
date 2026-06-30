@@ -2,6 +2,25 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-06-30 - Identidad civil y membresia Ñuñoa Master
+
+- Se agrega la migracion `backend/sql/migrations/007_identity_membership_accounts.sql`
+  para separar identidad civil/contacto, membresia de clubes y futuras cuentas
+  de usuario del modelo publico de resultados.
+- `core.athlete` se mantiene como identidad deportiva observada; RUT, fecha de
+  nacimiento civil y contactos viven en `identity.person` e
+  `identity.contact_point`.
+- `club_ops.membership` permite registrar miembros activos aunque falte RUT; el
+  RUT se trata como evidencia fuerte de identidad, no como requisito operativo
+  para membresia.
+- Se agrega `backend/scripts/preview_nunoa_master_identity_import.py`, un script
+  read-only que genera previews locales para `identity.person`,
+  `identity.contact_point` y `club_ops.membership` desde la planilla privada de
+  Ñuñoa Master.
+- Los Excels de staging y la carpeta
+  `backend/data/staging/nunoa_master_identity_preview/` quedan ignorados por
+  Git porque contienen PII. Solo se versiona el codigo/documentacion.
+
 ## 2026-06-25 - Consolidación de identidad Sudamericanos revisada
 
 - Se consolidan las bandejas globales de identidad de Sudamericanos con las

@@ -20,6 +20,9 @@ PostgreSQL es la fuente final de verdad para datos consultables. Los CSVs, Excel
 - PDFs descargados desde FCHMN u otras fuentes.
 - CSVs completos generados desde PDFs reales.
 - Excels consolidados generados por el parser.
+- Excels, CSVs o previews con datos personales de clubes, incluyendo RUT,
+  fecha de nacimiento, correos, telefonos, membresias o candidatos de vinculo
+  persona-atleta.
 - Manifests, summaries y reportes reales generados durante discovery, descarga,
   validacion o carga.
 - Dumps de base de datos.
@@ -32,9 +35,40 @@ PostgreSQL es la fuente final de verdad para datos consultables. Los CSVs, Excel
 - `backend/data/raw/results_pdf/fchmn/<año>/`: PDFs FCHMN descargados, agrupados por año de competencia o fuente.
 - `backend/data/raw/results_csv/fchmn/<año>/`: CSVs/debug generados por el parser, agrupados igual que el PDF de origen.
 - `backend/data/staging/csv/`: zona de trabajo para CSVs generados o preparados para carga. Solo se versiona `.gitkeep`.
+- `backend/data/staging/*.xlsx`: planillas operativas locales. Si contienen datos personales, deben permanecer ignoradas por Git.
+- `backend/data/staging/nunoa_master_identity_preview/`: salidas locales del preview de identidad/membresia. Contienen PII y no se versionan.
 - `backend/data/reference/`: datos curados pequenos que ayudan a normalizar o resolver entidades.
 - `backend/tests/fixtures/`: entradas minimas y esperados pequenos para prevenir regresiones.
 - `backend/docs/`: contratos, decisiones y documentacion del modelo vigente.
+
+
+## Politica para datos personales de clubes
+
+Los datos personales de clubes son informacion privada, no artefactos de
+pipeline publico. Esto incluye RUT, fecha de nacimiento civil, correo, telefono,
+membresia y cualquier preview que permita asociar una persona real a un club o
+atleta.
+
+Reglas:
+
+- Versionar solo el codigo que procesa esos datos, nunca los archivos fuente ni
+  las salidas con PII.
+- Mantener las planillas fuente y previews bajo rutas ignoradas por Git.
+- No copiar PII a documentacion, logs, summaries versionables ni fixtures.
+- Tratar RUT como evidencia fuerte de identidad, no como requisito para que una
+  persona exista como miembro activo.
+- El vinculo entre `identity.person` y `core.athlete` debe quedar en bandeja de
+  revision humana antes de persistirse.
+
+Script vigente:
+
+```powershell
+.\backend\.venv\Scripts\python.exe backend\scripts\preview_nunoa_master_identity_import.py
+```
+
+El script lee la planilla local de Nunoa Master, normaliza datos para
+`identity.person`, `identity.contact_point` y `club_ops.membership`, y genera
+previews locales ignorados. No escribe en la base de datos.
 
 ## Politica para CSVs
 

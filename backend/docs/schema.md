@@ -77,6 +77,26 @@ Las tablas core definidas en `backend/sql/schema.sql` son:
 - `relay_result_member`
 - `record`
 
+La migracion `backend/sql/migrations/007_identity_membership_accounts.sql`
+agrega un modelo separado para identidad civil, membresias de club y futuras
+cuentas de usuario. Estos datos no pertenecen al flujo publico de resultados y
+no deben exponerse por APIs publicas sin autenticacion/autorizacion explicita.
+
+Schemas agregados:
+
+- `identity`: identidad civil y medios de contacto.
+- `club_ops`: operacion interna de clubes y membresias.
+- `auth`: cuentas de usuario y roles.
+
+Tablas agregadas:
+
+- `identity.person`
+- `identity.contact_point`
+- `core.athlete_person_link`
+- `club_ops.membership`
+- `auth.user_account`
+- `auth.user_role`
+
 ## 5. Tablas staging
 
 Las tablas staging vigentes son:
@@ -698,6 +718,38 @@ mantiene cruces normalizados.
   `relay_result.club_id` via `relay_result_member`.
 - Las APIs deben exponer `current_club_name`/`current_club_id` desde esa vista
   cuando el producto necesite mostrar "club vigente".
+
+### 11.7 Identidad civil, membresia y cuentas
+
+`core.athlete` representa una identidad deportiva observada en resultados. No
+debe almacenar RUT, correos ni fecha de nacimiento civil. Esos datos pertenecen
+al schema `identity`.
+
+- `identity.person`: persona real/civil. Puede tener `rut_normalized`,
+  `date_of_birth`, nombres y metadata de origen. El RUT es evidencia fuerte de
+  identidad, pero no es obligatorio para registrar membresia activa.
+- `identity.contact_point`: correos, telefonos u otros contactos asociados a la
+  persona. La misma direccion de correo puede pertenecer a mas de una persona
+  si corresponde a un contacto compartido.
+- `core.athlete_person_link`: vinculo revisado entre una persona civil y una
+  identidad deportiva. Este vinculo debe pasar por revision humana cuando venga
+  desde fuentes de club o matching por nombre.
+- `club_ops.membership`: membresia de una persona en un club. La actividad del
+  miembro no depende de que exista un vinculo con `core.athlete`.
+- `auth.user_account` y `auth.user_role`: base para futuras cuentas de atletas,
+  gestores de club y administradores. La cuenta se vincula a `identity.person`,
+  no directamente a `core.athlete`.
+
+El flujo recomendado es:
+
+```text
+auth.user_account -> identity.person -> core.athlete_person_link -> core.athlete
+                                  \-> club_ops.membership -> core.club
+```
+
+El vinculo `person -> athlete` es deliberadamente separado para permitir que
+los datos civiles de club se carguen antes de resolver, con revision humana, que
+atleta deportivo corresponde a cada persona.
 
 ## 12. Propuestas de proximos cambios
 
