@@ -20,6 +20,18 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - Los Excels de staging y la carpeta
   `backend/data/staging/nunoa_master_identity_preview/` quedan ignorados por
   Git porque contienen PII. Solo se versiona el codigo/documentacion.
+- La carga de identidad/membresia queda aplicada y auditada con 155 personas,
+  121 contactos email, 155 membresias activas de Ñuñoa Master y 13 personas
+  sin RUT cargadas como identidad incompleta no bloqueante.
+- La carga revisada de `core.athlete_person_link` queda aplicada con 151
+  vinculos manuales (`manual_club_registry`), sin duplicados por persona ni por
+  atleta, sin huerfanos, y 4 personas activas quedan deliberadamente sin link.
+- Los SQL privados de carga se generan localmente mediante
+  `backend/scripts/prepare_nunoa_master_identity_import_sql.py` y
+  `backend/scripts/prepare_nunoa_master_athlete_link_sql.py`; contienen PII o
+  asociaciones persona-atleta y no se versionan.
+- Los SQL generados declaran `\encoding UTF8` para evitar fallos de `psql` en
+  Windows cuando el cliente intenta leer UTF-8 como WIN1252.
 
 ## 2026-06-25 - Consolidación de identidad Sudamericanos revisada
 

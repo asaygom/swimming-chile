@@ -61,7 +61,8 @@ def render_values(rows: list[dict[str, str]]) -> str:
 
 def render_sql(rows: list[dict[str, str]]) -> str:
     values = render_values(rows)
-    return f"""-- Generated from reviewed Ñuñoa Master athlete link decisions.
+    return f"""\\encoding UTF8
+-- Generated from reviewed Ñuñoa Master athlete link decisions.
 -- Contains person-athlete associations. Do not commit this file.
 
 BEGIN;

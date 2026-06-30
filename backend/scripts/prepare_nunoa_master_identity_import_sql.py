@@ -58,7 +58,8 @@ def render_values(rows: Iterable[dict[str, str]]) -> str:
 
 def render_sql(rows: list[dict[str, str]], *, club_id: int) -> str:
     values = render_values(rows)
-    return f"""-- Generated from ignored Ñuñoa Master identity preview.
+    return f"""\\encoding UTF8
+-- Generated from ignored Ñuñoa Master identity preview.
 -- Contains personal data. Do not commit this file.
 
 BEGIN;

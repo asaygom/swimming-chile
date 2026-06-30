@@ -70,6 +70,19 @@ El script lee la planilla local de Nunoa Master, normaliza datos para
 `identity.person`, `identity.contact_point` y `club_ops.membership`, y genera
 previews locales ignorados. No escribe en la base de datos.
 
+Scripts de carga derivados:
+
+```powershell
+.\backend\.venv\Scripts\python.exe backend\scripts\prepare_nunoa_master_identity_import_sql.py
+.\backend\.venv\Scripts\python.exe backend\scripts\preview_nunoa_master_athlete_links.py
+.\backend\.venv\Scripts\python.exe backend\scripts\prepare_nunoa_master_athlete_link_sql.py
+```
+
+Los SQL generados bajo `backend/data/staging/nunoa_master_identity_preview/`
+contienen PII o asociaciones persona-atleta y no se versionan. Estos SQL deben
+revisarse antes de ejecutar y declaran `\encoding UTF8` para que `psql` en
+Windows no interprete nombres con diacriticos como WIN1252.
+
 ## Politica para CSVs
 
 Los CSVs operativos son efimeros. Sirven para conectar parser, revision manual y pipeline, pero deben poder regenerarse desde fuentes raw o desde fixtures controlados. Si un CSV se usa en tests, debe ser minimo y representar un caso especifico, no una competencia completa.
