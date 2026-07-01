@@ -79,6 +79,12 @@ function genderLabel(gender: RelayAthlete['gender'] | null): string {
   return 'Sin género';
 }
 
+function isAthleteAllowedByRelayGender(athlete: RelayAthlete, relayType: RelayType): boolean {
+  if (relayType.gender_rule === 'women') return athlete.gender === 'female';
+  if (relayType.gender_rule === 'men') return athlete.gender === 'male';
+  return true;
+}
+
 function sourceLabel(source: string | null | undefined): string {
   if (source === 'db') return 'BD';
   if (source === 'excel') return 'Excel';
@@ -97,12 +103,12 @@ function strokeLabel(stroke: string): string {
 }
 
 function relayOptionLabel(athlete: RelayAthlete, slot: RelaySlot, assignedElsewhere: boolean, unavailable: boolean): string {
-  const ageLabel = athlete.age === null ? 'sin edad' : `${athlete.age} años`;
+  const ageLabel = athlete.age === null ? 's/e' : `${athlete.age}a`;
   const time = athlete.times[slot.stroke];
-  const timeLabel = time?.text ?? formatTime(time?.ms ?? null) ?? `sin registro en ${slot.stroke_label}`;
+  const timeLabel = time?.text ?? formatTime(time?.ms ?? null) ?? 'sin marca';
   const statusLabels = [assignedElsewhere ? 'ya usado' : null, unavailable ? 'no disponible' : null].filter(Boolean);
-  const statusSuffix = statusLabels.length > 0 ? ` — ${statusLabels.join(', ')}` : '';
-  return `${athlete.full_name} — ${ageLabel} — ${slot.stroke_label}: ${timeLabel}${statusSuffix}`;
+  const statusSuffix = statusLabels.length > 0 ? ` (${statusLabels.join(', ')})` : '';
+  return `${athlete.full_name} | ${ageLabel} | ${timeLabel}${statusSuffix}`;
 }
 
 function manualTimeKey(relayId: string, slotKey: string): string {
@@ -167,12 +173,20 @@ function AthleteCard({
   assignedElsewhere = false,
   dragPayload,
   onToggleAvailability,
+  consideredStroke,
+  consideredTimeText,
+  consideredTimeSource,
+  consideredTimeInput,
 }: {
   athlete: RelayAthlete;
   unavailable?: boolean;
   assignedElsewhere?: boolean;
   dragPayload?: DragPayload;
   onToggleAvailability?: () => void;
+  consideredStroke?: string;
+  consideredTimeText?: string | null;
+  consideredTimeSource?: string | null;
+  consideredTimeInput?: React.ReactNode;
 }) {
   return (
     <div
@@ -200,11 +214,24 @@ function AthleteCard({
         )}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-1 text-xs text-slate-600">
-        {Object.entries(athlete.times).map(([stroke, time]) => (
-          <span key={stroke} className="rounded bg-slate-50 px-2 py-1">
-            {strokeLabel(stroke)}: {time.text ?? '—'} <strong>({sourceLabel(time.source)})</strong>
-          </span>
-        ))}
+        {Object.entries(athlete.times).map(([stroke, time]) => {
+          const isConsidered = stroke === consideredStroke;
+          const displayTime = isConsidered ? (consideredTimeText ?? time.text ?? '—') : (time.text ?? '—');
+          const displaySource = isConsidered ? (consideredTimeSource ?? time.source) : time.source;
+          return (
+            <div
+              key={stroke}
+              className={`rounded border px-2 py-1 ${
+                isConsidered
+                  ? 'border-blue-300 bg-blue-50 font-semibold text-blue-800 ring-1 ring-blue-100'
+                  : 'border-transparent bg-slate-50 text-slate-600'
+              }`}
+            >
+              {strokeLabel(stroke)}: {displayTime} <strong>({sourceLabel(displaySource)})</strong>
+              {isConsidered && consideredTimeInput}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -251,6 +278,11 @@ export const RelaysPage: React.FC = () => {
     [analysis],
   );
 
+  const genderEligibleAthletes = React.useMemo(
+    () => (analysis?.athletes ?? []).filter((athlete) => isAthleteAllowedByRelayGender(athlete, relayType)),
+    [analysis, relayType],
+  );
+
   const assignedIdCounts = React.useMemo(() => {
     const counts = new Map<string, number>();
     for (const id of relays.flatMap((relay) => Object.values(relay.assignments)).filter((value): value is string => value !== null)) {
@@ -260,8 +292,8 @@ export const RelaysPage: React.FC = () => {
   }, [relays]);
 
   const availableAthletes = React.useMemo(
-    () => (analysis?.athletes ?? []).filter((athlete) => !assignedIdCounts.has(athlete.id) && !unavailableAthleteIds.has(athlete.id)),
-    [analysis, assignedIdCounts, unavailableAthleteIds],
+    () => genderEligibleAthletes.filter((athlete) => !assignedIdCounts.has(athlete.id) && !unavailableAthleteIds.has(athlete.id)),
+    [genderEligibleAthletes, assignedIdCounts, unavailableAthleteIds],
   );
 
   function resetEditor() {
@@ -349,7 +381,7 @@ export const RelaysPage: React.FC = () => {
   }
 
   function selectAllAthletes() {
-    setSelectedAthleteIds(new Set((analysis?.athletes ?? []).map((athlete) => athlete.id)));
+    setSelectedAthleteIds(new Set(genderEligibleAthletes.map((athlete) => athlete.id)));
   }
 
   function clearSelectedAthletes() {
@@ -377,7 +409,8 @@ export const RelaysPage: React.FC = () => {
       setError('Primero seleccione un club.');
       return;
     }
-    const eligibleAthleteIds = Array.from(selectedAthleteIds).filter((id) => !unavailableAthleteIds.has(id));
+    const genderEligibleIds = new Set(genderEligibleAthletes.map((athlete) => athlete.id));
+    const eligibleAthleteIds = Array.from(selectedAthleteIds).filter((id) => genderEligibleIds.has(id) && !unavailableAthleteIds.has(id));
     if (eligibleAthleteIds.length < 4) {
       setError('Seleccione al menos 4 asistentes disponibles para relevos.');
       return;
@@ -555,7 +588,7 @@ export const RelaysPage: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Asistentes</h2>
               <p className="text-sm text-slate-500">
-                Club: {selectedClub.name}. {analysis.athletes.length} asistentes cargados, {unavailableAthleteIds.size} no disponibles para relevos.
+                Club: {selectedClub.name}. {analysis.athletes.length} asistentes cargados, {genderEligibleAthletes.length} compatibles con este relevo, {unavailableAthleteIds.size} no disponibles para relevos.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -580,7 +613,7 @@ export const RelaysPage: React.FC = () => {
 
           {!isAttendanceCollapsed && (
             <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-              {analysis.athletes.map((athlete) => (
+              {genderEligibleAthletes.map((athlete) => (
                 <label key={athlete.id} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-slate-50 ${unavailableAthleteIds.has(athlete.id) ? 'border-red-200 bg-red-50' : 'border-slate-200'}`}>
                   <input type="checkbox" checked={selectedAthleteIds.has(athlete.id)} onChange={() => toggleAthlete(athlete.id)} disabled={Boolean(attendanceFile)} className="mt-1" />
                   <span className="min-w-0 flex-1">
@@ -644,7 +677,7 @@ export const RelaysPage: React.FC = () => {
                             className="mb-3 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700"
                           >
                             <option value="">Seleccionar atleta...</option>
-                            {(analysis.athletes ?? []).map((optionAthlete) => {
+                            {genderEligibleAthletes.map((optionAthlete) => {
                               const assignedElsewhere = isAssignedElsewhere(optionAthlete.id, relay.id, slot.key);
                               const unavailable = unavailableAthleteIds.has(optionAthlete.id);
                               return (
@@ -661,18 +694,21 @@ export const RelaysPage: React.FC = () => {
                               unavailable={unavailableAthleteIds.has(athlete.id)}
                               assignedElsewhere={isAssignedElsewhere(athlete.id, relay.id, slot.key)}
                               dragPayload={{ athleteId: athlete.id, sourceRelayId: relay.id, sourceSlotKey: slot.key }}
+                              consideredStroke={slot.stroke}
+                              consideredTimeText={formatTime(resolvedTime.ms) ?? rawTime?.text ?? null}
+                              consideredTimeSource={resolvedTime.source}
+                              consideredTimeInput={rawTime?.ms === null ? (
+                                <input
+                                  value={manualTimes[slotManualKey] ?? ''}
+                                  onChange={(event) => setManualTimes((current) => ({ ...current, [slotManualKey]: event.target.value }))}
+                                  placeholder="Tiempo manual ej. 00:35.20"
+                                  className="mt-2 w-full rounded-lg border border-amber-200 bg-white px-2 py-2 text-xs font-normal text-slate-700 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
+                                />
+                              ) : null}
                             />
                           ) : <div className="flex h-24 items-center justify-center rounded-lg border border-slate-200 bg-white text-center text-sm text-slate-400">Seleccione o arrastre a un atleta</div>}
 
-                          <p className={`mt-2 text-xs ${resolvedTime.ms !== null ? 'text-slate-500' : 'text-amber-600'}`}>{slot.stroke_label}: {formatTime(resolvedTime.ms) ?? rawTime?.text ?? 'sin marca'} · {sourceLabel(resolvedTime.source)}</p>
-                          {athlete && rawTime?.ms === null && (
-                            <input
-                              value={manualTimes[slotManualKey] ?? ''}
-                              onChange={(event) => setManualTimes((current) => ({ ...current, [slotManualKey]: event.target.value }))}
-                              placeholder="Tiempo manual ej. 00:35.20"
-                              className="mt-2 w-full rounded-lg border border-amber-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
-                            />
-                          )}
+                          {athlete && resolvedTime.ms === null && <p className="mt-2 text-xs font-medium text-amber-600">Sin marca para {slot.stroke_label}; ingrese un tiempo manual si corresponde.</p>}
                         </div>
                       );
                     })}
