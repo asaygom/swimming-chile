@@ -42,6 +42,22 @@ type PruebaGroup = {
   ageGroups: AgeGroupCategory[];
 };
 
+const normalizeSearchText = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const searchTokens = (value: string) => {
+  const tokens = normalizeSearchText(value).match(/[a-z0-9]+/g) ?? [];
+  return Array.from(new Set(tokens));
+};
+
+const matchesSearchTokens = (value: string, tokens: string[]) => {
+  const normalizedValue = normalizeSearchText(value);
+  return tokens.every(token => normalizedValue.includes(token));
+};
+
 const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | null }> = ({ seedMs, resultMs }) => {
   if (!seedMs || !resultMs) return null;
 
@@ -213,18 +229,18 @@ export const CompetitionProfilePage: React.FC = () => {
       const pruebaTitle = `${event.distance_m}m ${strokeTranslations[event.stroke]} ${genderTranslations[event.gender]}`;
       const categoryTitle = `Categoría: ${event.age_group} años`;
 
-      const query = searchQuery.toLowerCase().trim();
+      const queryTokens = searchTokens(searchQuery);
       
       let matchingResults = event.results;
       let matchesSearch = false;
 
-      if (query) {
-        const matchesPruebaTitle = pruebaTitle.toLowerCase().includes(query);
-        const matchesCategory = categoryTitle.toLowerCase().includes(query);
+      if (queryTokens.length > 0) {
+        const matchesPruebaTitle = matchesSearchTokens(pruebaTitle, queryTokens);
+        const matchesCategory = matchesSearchTokens(categoryTitle, queryTokens);
         
         matchingResults = event.results.filter(r => 
-          r.athlete_name.toLowerCase().includes(query) ||
-          (r.club_name || '').toLowerCase().includes(query)
+          matchesSearchTokens(r.athlete_name, queryTokens) ||
+          matchesSearchTokens(r.club_name || '', queryTokens)
         );
 
         if (matchesPruebaTitle || matchesCategory) {
