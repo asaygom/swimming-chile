@@ -14,6 +14,7 @@ def test_athletes_api_uses_current_club_view_not_static_athlete_club():
     source = normalized_source(ATHLETES_ROUTER)
 
     assert "core.athlete_current_club acc" in source
+    assert "left join core.club acc_club on acc_club.id = acc.club_id" in source
     assert "acc.club_id = %s" in source
     assert "current_club_name" in source
     assert "left join core.club c on a.club_id = c.id" not in source
@@ -26,6 +27,15 @@ def test_athletes_api_uses_shared_token_search():
 
     assert "search_tokens" in source
     assert "build_token_search_clause" in source
+
+
+def test_athletes_api_filters_public_list_by_local_club_when_available():
+    source = normalized_source(ATHLETES_ROUTER)
+
+    assert "has_club_local_flag" in source
+    assert "coalesce(acc_club.is_local, false) = true" in source
+    assert "membership_club.is_local" in source
+    assert "selected_club.is_local" in source
 
 
 def test_athlete_search_text_normalization_removes_accents_for_search():
@@ -60,6 +70,7 @@ def test_clubs_api_counts_current_athletes_from_current_club_view():
     source = normalized_source(CLUBS_ROUTER)
 
     assert "core.athlete_current_club acc" in source
+    assert "coalesce(c.is_local, false) = true" in source
     assert "where acc.club_id = c.id" in source
     assert "c.city" in source
     assert "c.short_name as city" not in source

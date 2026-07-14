@@ -16,6 +16,19 @@ def has_membership_schema(cur) -> bool:
     return bool(cur.fetchone()["available"])
 
 
+def has_club_local_flag(cur) -> bool:
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'core'
+              AND table_name = 'club'
+              AND column_name = 'is_local'
+        ) AS available
+    """)
+    return bool(cur.fetchone()["available"])
+
+
 @router.get("")
 def list_clubs(
     search: Optional[str] = Query(None),
@@ -30,6 +43,7 @@ def list_clubs(
         with conn.cursor() as cur:
             offset = (page - 1) * page_size
             use_membership_schema = has_membership_schema(cur)
+            local_club_filter = "COALESCE(c.is_local, FALSE) = TRUE" if has_club_local_flag(cur) else "TRUE"
 
             if use_membership_schema:
                 roster_count_sql = """
@@ -70,9 +84,15 @@ def list_clubs(
                 SELECT c.id, c.name, c.city, c.region, c.region as country, c.association_name,
                        ({roster_count_sql}) as total_athletes
                 FROM core.club c
-                WHERE EXISTS ({roster_exists_sql})
+                WHERE {local_club_filter}
+                  AND EXISTS ({roster_exists_sql})
             """
-            count_query = f"SELECT COUNT(*) as total FROM core.club c WHERE EXISTS ({roster_exists_sql})"
+            count_query = f"""
+                SELECT COUNT(*) as total
+                FROM core.club c
+                WHERE {local_club_filter}
+                  AND EXISTS ({roster_exists_sql})
+            """
             params = []
             
             if search:
@@ -114,6 +134,7 @@ def get_club(club_id: int):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             use_membership_schema = has_membership_schema(cur)
+            local_club_filter = "COALESCE(c.is_local, FALSE) = TRUE" if has_club_local_flag(cur) else "TRUE"
 
             if use_membership_schema:
                 roster_count_sql = """
@@ -171,6 +192,7 @@ def get_club(club_id: int):
                        ({roster_count_sql}) as total_athletes
                 FROM core.club c
                 WHERE c.id = %s
+                  AND {local_club_filter}
             """, (club_id,))
             club = cur.fetchone()
             

@@ -16,6 +16,19 @@ def has_membership_schema(cur) -> bool:
     return bool(cur.fetchone()["available"])
 
 
+def has_club_local_flag(cur) -> bool:
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'core'
+              AND table_name = 'club'
+              AND column_name = 'is_local'
+        ) AS available
+    """)
+    return bool(cur.fetchone()["available"])
+
+
 @router.get("")
 def list_athletes(
     search: Optional[str] = Query(None),
@@ -28,6 +41,7 @@ def list_athletes(
         with conn.cursor() as cur:
             offset = (page - 1) * page_size
             use_membership_schema = has_membership_schema(cur)
+            use_local_club_filter = has_club_local_flag(cur)
             
             query = """
                 SELECT
@@ -41,15 +55,38 @@ def list_athletes(
                     acc.competition_date AS current_club_observed_at
                 FROM core.athlete a
                 LEFT JOIN core.athlete_current_club acc ON acc.athlete_id = a.id
+                LEFT JOIN core.club acc_club ON acc_club.id = acc.club_id
                 WHERE 1=1
             """
             count_query = """
                 SELECT COUNT(*) as total
                 FROM core.athlete a
                 LEFT JOIN core.athlete_current_club acc ON acc.athlete_id = a.id
+                LEFT JOIN core.club acc_club ON acc_club.id = acc.club_id
                 WHERE 1=1
             """
             params = []
+
+            if use_local_club_filter:
+                if use_membership_schema:
+                    local_athlete_filter = """
+                        AND (
+                            EXISTS (
+                                SELECT 1
+                                FROM club_ops.membership m
+                                JOIN core.athlete_person_link apl ON apl.person_id = m.person_id
+                                JOIN core.club membership_club ON membership_club.id = m.club_id
+                                WHERE apl.athlete_id = a.id
+                                  AND m.status = 'active'
+                                  AND COALESCE(membership_club.is_local, FALSE) = TRUE
+                            )
+                            OR COALESCE(acc_club.is_local, FALSE) = TRUE
+                        )
+                    """
+                else:
+                    local_athlete_filter = " AND COALESCE(acc_club.is_local, FALSE) = TRUE"
+                query += local_athlete_filter
+                count_query += local_athlete_filter
             
             if search:
                 tokens = search_tokens(search)
@@ -62,6 +99,19 @@ def list_athletes(
                     params.extend(search_params)
                 
             if club_id:
+                if use_local_club_filter:
+                    selected_local_club_filter = """
+                        AND EXISTS (
+                            SELECT 1
+                            FROM core.club selected_club
+                            WHERE selected_club.id = %s
+                              AND COALESCE(selected_club.is_local, FALSE) = TRUE
+                        )
+                    """
+                    query += selected_local_club_filter
+                    count_query += selected_local_club_filter
+                    params.append(club_id)
+
                 if use_membership_schema:
                     club_filter = """
                         AND (

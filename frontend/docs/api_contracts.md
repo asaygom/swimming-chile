@@ -24,7 +24,7 @@ The backend API returns numeric PostgreSQL identifiers. The frontend may keep co
 
 ### `GET /api/athletes`
 
-General athlete search.
+General athlete search. Public listing endpoints only include athletes associated with local clubs (`core.club.is_local = true`) when that metadata is available. Competition result details can still display international athletes.
 
 **Query params:**
 
@@ -109,7 +109,7 @@ Best-time cards are derived from result data in the UI and intentionally do not 
 
 ### `GET /api/clubs`
 
-Club list.
+Club list. Public listing endpoints only include local clubs (`core.club.is_local = true`) when that metadata is available.
 
 **Query params:**
 
@@ -141,7 +141,7 @@ Club list.
 
 ### `GET /api/clubs/{id}`
 
-Club detail with current athletes and attendance matrix.
+Club detail with current athletes and attendance matrix. Non-local clubs are hidden from this public profile endpoint when `core.club.is_local` metadata is available.
 
 **Response (200 OK):**
 
