@@ -126,7 +126,7 @@ Club list.
       "id": 1,
       "name": "Estadio Español",
       "city": "Santiago",
-      "country": "Chile",
+      "region": "Región Metropolitana",
       "association_name": "FCHMN"
     }
   ],
@@ -151,7 +151,7 @@ Club detail with current athletes and attendance matrix.
     "id": 1,
     "name": "Estadio Español",
     "city": "Santiago",
-    "country": "Chile",
+    "region": "Región Metropolitana",
     "total_athletes": 24,
     "attendance_matrix": {
       "competitions": [

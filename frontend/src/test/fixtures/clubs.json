@@ -5,14 +5,14 @@
         "id": "e458e0a2-2d12-40f4-9041-331006573c71",
         "name": "Club de Natación Master",
         "city": "Santiago",
-        "country": "Chile",
+        "region": "Región Metropolitana",
         "total_athletes": 45
       },
       {
         "id": "23c2a6d7-84bc-44a6-89ba-73f135ea5408",
         "name": "Estadio Español",
         "city": "Las Condes",
-        "country": "Chile",
+        "region": "Región Metropolitana",
         "total_athletes": 120
       }
     ],

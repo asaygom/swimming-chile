@@ -67,7 +67,7 @@ def list_clubs(
                 roster_exists_sql = "SELECT 1 FROM core.athlete_current_club acc WHERE acc.club_id = c.id"
 
             query = f"""
-                SELECT c.id, c.name, c.city, c.region as country, c.association_name,
+                SELECT c.id, c.name, c.city, c.region, c.region as country, c.association_name,
                        ({roster_count_sql}) as total_athletes
                 FROM core.club c
                 WHERE EXISTS ({roster_exists_sql})
@@ -167,7 +167,7 @@ def get_club(club_id: int):
                 """
 
             cur.execute(f"""
-                SELECT c.id, c.name, c.city, c.region as country, c.association_name,
+                SELECT c.id, c.name, c.city, c.region, c.region as country, c.association_name,
                        ({roster_count_sql}) as total_athletes
                 FROM core.club c
                 WHERE c.id = %s

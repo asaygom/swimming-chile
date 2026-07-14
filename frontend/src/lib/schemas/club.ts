@@ -28,6 +28,8 @@ export const ClubSchema = z.object({
   id: z.union([z.string(), z.number()]),
   name: z.string(),
   city: z.string().nullable().optional(),
+  region: z.string().nullable().optional(),
+  // Backward-compatible alias while deployed APIs/clients converge on `region`.
   country: z.string().nullable().optional(),
   total_athletes: z.number().int().nullable().optional(),
   attendance_matrix: ClubAttendanceMatrixSchema.optional(),
