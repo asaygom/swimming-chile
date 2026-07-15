@@ -206,6 +206,8 @@ def get_club(club_id: int):
                     SELECT
                         r.athlete_id,
                         a.full_name AS athlete_name,
+                        a.gender,
+                        a.birth_year,
                         comp.id AS competition_id,
                         comp.name AS competition_name,
                         comp.start_date AS competition_date,
@@ -217,13 +219,15 @@ def get_club(club_id: int):
                     JOIN core.event e ON e.id = r.event_id
                     JOIN core.competition comp ON comp.id = e.competition_id
                     WHERE r.club_id = %(club_id)s
-                    GROUP BY r.athlete_id, a.full_name, comp.id, comp.name, comp.start_date
+                    GROUP BY r.athlete_id, a.full_name, a.gender, a.birth_year, comp.id, comp.name, comp.start_date
 
                     UNION ALL
 
                     SELECT
                         rrm.athlete_id,
                         a.full_name AS athlete_name,
+                        a.gender,
+                        a.birth_year,
                         comp.id AS competition_id,
                         comp.name AS competition_name,
                         comp.start_date AS competition_date,
@@ -237,18 +241,20 @@ def get_club(club_id: int):
                     JOIN core.competition comp ON comp.id = e.competition_id
                     WHERE rr.club_id = %(club_id)s
                       AND rrm.athlete_id IS NOT NULL
-                    GROUP BY rrm.athlete_id, a.full_name, comp.id, comp.name, comp.start_date
+                    GROUP BY rrm.athlete_id, a.full_name, a.gender, a.birth_year, comp.id, comp.name, comp.start_date
                 )
                 SELECT
                     athlete_id,
                     athlete_name,
+                    gender,
+                    birth_year,
                     competition_id,
                     competition_name,
                     competition_date,
                     SUM(entries)::INTEGER AS entries,
                     BOOL_OR(attended) AS attended
                 FROM attendance
-                GROUP BY athlete_id, athlete_name, competition_id, competition_name, competition_date
+                GROUP BY athlete_id, athlete_name, gender, birth_year, competition_id, competition_name, competition_date
                 ORDER BY athlete_name ASC, competition_date DESC NULLS LAST, competition_name ASC
             """, {"club_id": club_id})
             attendance_rows = cur.fetchall()
@@ -268,6 +274,8 @@ def get_club(club_id: int):
                 athlete = athletes_by_id.setdefault(athlete_id, {
                     "athlete_id": athlete_id,
                     "athlete_name": row["athlete_name"],
+                    "gender": row["gender"],
+                    "birth_year": row["birth_year"],
                     "competitions": [],
                 })
                 athlete["competitions"].append({

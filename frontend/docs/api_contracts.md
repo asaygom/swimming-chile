@@ -165,6 +165,8 @@ Club detail with current athletes and attendance matrix. Non-local clubs are hid
         {
           "athlete_id": 10,
           "athlete_name": "Soto, Juan",
+          "gender": "male",
+          "birth_year": 1990,
           "competitions": [
             {
               "competition_id": 501,

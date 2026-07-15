@@ -26,6 +26,13 @@ type AttendanceTrendPoint = {
 };
 
 const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ points }) => {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const firstPointId = points[0]?.competition_id;
+
+  React.useLayoutEffect(() => {
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollLeft = 0;
+  }, [firstPointId, points.length]);
+
   if (points.length === 0) return null;
 
   const chartHeight = 240;
@@ -40,7 +47,7 @@ const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ po
   const yTicks = [0, 50, 100];
 
   return (
-    <div className="overflow-x-auto">
+    <div ref={scrollContainerRef} className="overflow-x-auto">
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
         width={chartWidth}
@@ -59,7 +66,7 @@ const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ po
         ))}
         {points.slice(1).map((point, index) => {
           const previous = points[index];
-          const improved = point.attendance_percentage >= previous.attendance_percentage;
+          const improved = previous.attendance_percentage >= point.attendance_percentage;
 
           return (
             <line
@@ -186,12 +193,15 @@ export const ClubProfilePage: React.FC = () => {
         .sort((a, b) => {
           const leftDate = a.competition_date ? new Date(`${a.competition_date}T12:00:00`).getTime() : 0;
           const rightDate = b.competition_date ? new Date(`${b.competition_date}T12:00:00`).getTime() : 0;
-          return leftDate - rightDate || a.competition_name.localeCompare(b.competition_name);
+          return rightDate - leftDate || a.competition_name.localeCompare(b.competition_name);
         })
     : [];
+  const attendanceSummaryByCompetition = new Map(
+    attendanceTrendPoints.map(point => [String(point.competition_id), point])
+  );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-8 animate-in fade-in duration-500">
       <div className="mb-6">
         <button 
           onClick={() => navigate(-1)}
@@ -230,7 +240,7 @@ export const ClubProfilePage: React.FC = () => {
 
       {/* Asistencia por Competencia */}
       {attendanceMatrix && attendanceMatrix.competitions.length > 0 && attendanceMatrix.athletes.length > 0 && (
-        <div>
+        <div className="order-2 flex flex-col">
           <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-bold text-slate-900">Asistencia a Competencias</h2>
             <select
@@ -244,7 +254,7 @@ export const ClubProfilePage: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="order-2 bg-white rounded-xl shadow-sm border border-slate-200">
             <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
               <p className="text-sm text-slate-600">
                 Atletas inscritos representando a {club.name}. ✓ indica que compitió; × indica inscripción sin participación registrada.
@@ -256,23 +266,36 @@ export const ClubProfilePage: React.FC = () => {
                   <tr>
                     <th className="sticky left-0 top-0 z-40 bg-white px-4 py-3 text-left font-semibold text-slate-700 min-w-56 shadow-sm">
                       Atleta
+                      <span className="mt-1 block text-xs font-medium text-slate-400">
+                        Asistencia sobre {currentAthleteTotal} atletas vigentes
+                      </span>
                     </th>
-                    {visibleAttendanceCompetitions.map(competition => (
-                      <th key={competition.id} className="sticky top-0 z-30 bg-white px-3 py-3 text-center font-semibold text-slate-700 min-w-32 shadow-sm">
-                        <Link
-                          to={`/competitions/${competition.id}`}
-                          className="block text-blue-700 hover:text-blue-900 hover:underline"
-                          title={competition.name}
-                        >
-                          <span className="line-clamp-2">{competition.name}</span>
-                        </Link>
-                        {formatCompetitionMonthYear(competition.date) && (
-                          <span className="mt-1 block text-xs font-medium text-slate-400">
-                            {formatCompetitionMonthYear(competition.date)}
+                    {visibleAttendanceCompetitions.map(competition => {
+                      const summary = attendanceSummaryByCompetition.get(String(competition.id));
+
+                      return (
+                        <th key={competition.id} className="sticky top-0 z-30 bg-white px-3 py-3 text-center font-semibold text-slate-700 min-w-32 shadow-sm">
+                          <Link
+                            to={`/competitions/${competition.id}`}
+                            className="block text-blue-700 hover:text-blue-900 hover:underline"
+                            title={competition.name}
+                          >
+                            <span className="line-clamp-2">{competition.name}</span>
+                          </Link>
+                          {formatCompetitionMonthYear(competition.date) && (
+                            <span className="mt-1 block text-xs font-medium text-slate-400">
+                              {formatCompetitionMonthYear(competition.date)}
+                            </span>
+                          )}
+                          <span className="mt-2 block border-t border-slate-100 pt-2 font-bold text-slate-900">
+                            {summary?.attended_count ?? 0}
+                            <span className="ml-1 text-xs font-medium text-slate-500">
+                              ({summary?.attendance_percentage ?? 0}%)
+                            </span>
                           </span>
-                        )}
-                      </th>
-                    ))}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -291,6 +314,11 @@ export const ClubProfilePage: React.FC = () => {
                           <Link to={`/athletes/${athlete.athlete_id}`} className="hover:text-blue-700 hover:underline">
                             {athlete.athlete_name}
                           </Link>
+                          <span className="mt-1 block text-xs font-normal text-slate-400">
+                            {athlete.gender === 'female' ? 'Dama' : athlete.gender === 'male' ? 'Varón' : 'Género no informado'}
+                            <span className="mx-1">•</span>
+                            {athlete.birth_year ? `Nacido en ${athlete.birth_year}` : 'Año no informado'}
+                          </span>
                           {highlightNoAttendance && (
                             <span className="ml-2 text-xs font-medium text-red-600">
                               Sin participación
@@ -320,38 +348,12 @@ export const ClubProfilePage: React.FC = () => {
                     );
                   })}
                 </tbody>
-                <tfoot className="border-t-2 border-slate-200 bg-slate-50">
-                  <tr>
-                    <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 min-w-56">
-                      Asistencia
-                      <span className="block text-xs font-medium text-slate-500">
-                        sobre {currentAthleteTotal} atletas vigentes
-                      </span>
-                    </th>
-                    {visibleAttendanceCompetitions.map(competition => {
-                      const attendedCount = attendanceMatrix.athletes.reduce((count, athlete) => {
-                        const attendance = athlete.competitions.find(entry => String(entry.competition_id) === String(competition.id));
-                        return attendance?.status === 'attended' ? count + 1 : count;
-                      }, 0);
-                      const attendancePercentage = currentAthleteTotal > 0
-                        ? Math.round((attendedCount / currentAthleteTotal) * 100)
-                        : 0;
-
-                      return (
-                        <td key={`summary-${competition.id}`} className="px-3 py-3 text-center">
-                          <span className="block font-bold text-slate-900">{attendedCount}</span>
-                          <span className="text-xs font-medium text-slate-500">{attendancePercentage}%</span>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>
 
           {attendanceTrendPoints.length > 0 && (
-            <div className="mt-6">
+            <div className="order-1 mb-6">
               <div className="mb-4 px-1">
                 <h3 className="text-lg font-bold text-slate-900">Evolución de Asistencia</h3>
                 <p className="text-sm text-slate-500">
@@ -367,7 +369,7 @@ export const ClubProfilePage: React.FC = () => {
       )}
 
       {/* Filtros de Atletas */}
-      <div>
+      <div className="order-1">
         <h2 className="text-xl font-bold text-slate-900 mb-4 px-1">Atletas del Club</h2>
         
         <div className="flex flex-col md:flex-row gap-4 mb-6">

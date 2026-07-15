@@ -98,15 +98,15 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
   const [searchTerm, setSearchTerm] = React.useState('');
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [year, setYear] = React.useState('all');
-  const [governingBody, setGoverningBody] = React.useState('fchmn');
+  const [governingBody, setGoverningBody] = React.useState('all');
   const [page, setPage] = React.useState(1);
-  const hasActiveFilters = searchTerm.trim() !== '' || year !== 'all' || governingBody !== 'fchmn';
+  const hasActiveFilters = searchTerm.trim() !== '' || year !== 'all' || governingBody !== 'all';
 
   const clearFilters = () => {
     setSearchTerm('');
     setDebouncedQuery('');
     setYear('all');
-    setGoverningBody('fchmn');
+    setGoverningBody('all');
     setPage(1);
   };
 

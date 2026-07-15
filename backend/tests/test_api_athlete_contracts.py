@@ -87,6 +87,8 @@ def test_club_profile_exposes_attendance_from_represented_club_results():
     assert "and acc.club_id = %(club_id)s" in source
     assert "join core.relay_result_member rrm" in source
     assert "not in ('dns', 'scratch')" in source
+    assert '"gender": row["gender"]' in source
+    assert '"birth_year": row["birth_year"]' in source
     assert '"status": "attended" if row["attended"] else "no_show"' in source
     assert "athlete_current_club" in source
 

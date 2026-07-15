@@ -16,6 +16,8 @@ export const ClubAttendanceEntrySchema = z.object({
 export const ClubAttendanceAthleteSchema = z.object({
   athlete_id: z.union([z.string(), z.number()]),
   athlete_name: z.string(),
+  gender: z.enum(['female', 'male']).nullable().optional(),
+  birth_year: z.number().int().nullable().optional(),
   competitions: z.array(ClubAttendanceEntrySchema),
 });
 
