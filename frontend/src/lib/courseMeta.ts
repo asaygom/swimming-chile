@@ -4,26 +4,26 @@ const courseMeta: Record<CourseType, { label: string; description: string; light
   scm: {
     label: 'SCM',
     description: 'Piscina corta (25m)',
-    light: 'bg-blue-50 text-blue-700 border-blue-200',
-    dark: 'bg-blue-500/20 text-blue-200 border-blue-400/40',
+    light: 'bg-course-scm/10 text-course-scm border-course-scm/30',
+    dark: 'bg-course-scm/20 text-brand-white border-course-scm/40',
   },
   lcm: {
     label: 'LCM',
     description: 'Piscina larga (50m)',
-    light: 'bg-violet-50 text-violet-700 border-violet-200',
-    dark: 'bg-violet-500/20 text-violet-200 border-violet-400/40',
+    light: 'bg-course-lcm/10 text-course-lcm border-course-lcm/30',
+    dark: 'bg-course-lcm/20 text-brand-white border-course-lcm/40',
   },
   owy: {
     label: 'OWY',
     description: 'Aguas abiertas',
-    light: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dark: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40',
+    light: 'bg-course-open/10 text-course-open border-course-open/30',
+    dark: 'bg-course-open/20 text-brand-white border-course-open/40',
   },
   unknown: {
     label: 'N/D',
     description: 'Piscina desconocida',
-    light: 'bg-slate-50 text-slate-600 border-slate-200',
-    dark: 'bg-slate-500/20 text-slate-200 border-slate-400/40',
+    light: 'bg-canvas text-content-muted border-line',
+    dark: 'bg-brand-steel/20 text-brand-muted border-brand-subtle/40',
   },
 };
 

@@ -22,4 +22,5 @@ Este documento define la forma de trabajar en el código del Frontend para Natac
    - Prueba el layout de Tailwind localmente.
 5. **Cierre**:
    - Evalúa si la funcionalidad cambió contratos API, comportamiento de UI o reglas de presentación; si cambió, actualiza esta documentación o `api_contracts.md`.
+   - Evalúa colores y contraste contra la paleta y las reglas de `visual_identity.md`.
    - Asegura que pasen las verificaciones relevantes (`npm run lint` para cambios de UI; pruebas cuando existan o cuando se modifique lógica cubierta por tests).

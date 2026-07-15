@@ -20,14 +20,14 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
   
   const innerContent = (
     <>
-      <div className="flex bg-slate-50 border-b border-slate-100">
-        <div className="w-20 bg-blue-600 text-white flex flex-col items-center justify-center p-3 text-center">
+      <div className="flex bg-canvas border-b border-line">
+        <div className="w-20 bg-brand-cyan text-ink flex flex-col items-center justify-center p-3 text-center">
           <span className="text-xs font-bold tracking-widest">{month}</span>
           <span className="text-2xl font-black leading-none my-1">{day}</span>
           <span className="text-xs opacity-80">{yearStr}</span>
         </div>
         <div className="p-4 flex-1 flex flex-col justify-center">
-          <h3 className={`text-lg font-bold text-slate-900 leading-tight transition-colors ${!isUpcoming ? 'group-hover:text-blue-700' : ''}`}>
+          <h3 className={`text-lg font-bold text-ink leading-tight transition-colors ${!isUpcoming ? 'group-hover:text-action' : ''}`}>
             {comp.name}
           </h3>
           <div className="mt-2">
@@ -38,31 +38,31 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
 
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div className="space-y-3 mb-6">
-          <div className="flex items-start gap-2 text-slate-600 text-sm">
-            <svg className="w-4 h-4 mt-0.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-start gap-2 text-content-muted text-sm">
+            <svg className="w-4 h-4 mt-0.5 text-content-subtle shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span>{comp.location || 'Sede por confirmar'}</span>
           </div>
-          <div className="flex items-center gap-2 text-slate-600 text-sm">
-            <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-2 text-content-muted text-sm">
+            <svg className="w-4 h-4 text-content-subtle shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <span>{course.description}</span>
           </div>
         </div>
 
-        <div className="flex justify-end mt-auto pt-4 border-t border-slate-100">
+        <div className="flex justify-end mt-auto pt-4 border-t border-line">
           {isUpcoming ? (
-            <span className="text-slate-400 text-sm font-medium flex items-center gap-1">
+            <span className="text-content-subtle text-sm font-medium flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Calendario
             </span>
           ) : (
-            <span className="text-blue-600 text-sm font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <span className="text-action text-sm font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
               Ver Resultados
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -76,7 +76,7 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
 
   if (isUpcoming) {
     return (
-      <div className="group bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full opacity-90 transition-all">
+      <div className="group bg-surface rounded-2xl shadow-sm border border-line overflow-hidden flex flex-col h-full opacity-90 transition-all">
         {innerContent}
       </div>
     );
@@ -85,7 +85,7 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
   return (
     <Link 
       to={`/competitions/${comp.id}`}
-      className="group bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full transition-all hover:shadow-md hover:border-blue-300 cursor-pointer"
+      className="group bg-surface rounded-2xl shadow-sm border border-line overflow-hidden flex flex-col h-full transition-all hover:shadow-md hover:border-brand-pool cursor-pointer"
     >
       {innerContent}
     </Link>
@@ -154,10 +154,10 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
       {/* Header & Search */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-ink tracking-tight">
             {mode === 'upcoming' ? 'Calendario' : 'Resultados de Competencias'}
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-content-subtle mt-1">
             {mode === 'upcoming' 
               ? 'Revisa las próximas competencias programadas.' 
               : 'Explora las competencias y sus resultados detallados.'}
@@ -168,12 +168,12 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
           <div className="relative flex-1 lg:w-64">
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none bg-white text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-brand-pool focus:border-brand-pool transition-shadow outline-none bg-surface text-sm"
               placeholder="Buscar torneo o sede..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -186,7 +186,7 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
                   setYear(e.target.value);
                   setPage(1);
                 }}
-                className="flex-1 sm:w-28 py-2 pl-3 pr-8 border border-slate-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="flex-1 sm:w-28 py-2 pl-3 pr-8 border border-line bg-surface rounded-lg shadow-sm focus:ring-2 focus:ring-brand-pool focus:border-brand-pool text-sm"
               >
                 <option value="all">Año</option>
                 {availableYears.map(y => (
@@ -201,7 +201,7 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
                 setGoverningBody(e.target.value);
                 setPage(1);
               }}
-              className="flex-1 sm:w-32 py-2 pl-3 pr-8 border border-slate-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
+              className="flex-1 sm:w-32 py-2 pl-3 pr-8 border border-line bg-surface rounded-lg shadow-sm focus:ring-2 focus:ring-brand-pool focus:border-brand-pool text-sm font-medium"
             >
               <option value="all">Todos</option>
               {governingBodyOptions.map((option) => (
@@ -214,7 +214,7 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
               <button
                 type="button"
                 onClick={clearFilters}
-                className="whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink"
               >
                 Limpiar
               </button>
@@ -236,7 +236,7 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
                 <div className="space-y-12">
                   {Object.entries(groupedByMonth).map(([month, comps]) => (
                     <div key={month} className="space-y-6">
-                      <h2 className="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">{month}</h2>
+                      <h2 className="text-2xl font-bold text-ink border-b border-line pb-2">{month}</h2>
                       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {(comps as Competition[]).map((comp) => (
                           <CompetitionCard key={comp.id} comp={comp} isUpcoming={true} />
@@ -254,22 +254,22 @@ export const CompetitionsPage: React.FC<{ mode: 'upcoming' | 'past' }> = ({ mode
               )}
 
               {/* Paginación */}
-              <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-                <p className="text-sm text-slate-500">
+              <div className="flex items-center justify-between border-t border-line pt-4">
+                <p className="text-sm text-content-subtle">
                   Mostrando página {data.meta.page} de {data.meta.total_pages} ({data.meta.total_results} resultados)
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={data.meta.page === 1}
-                    className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-line rounded-lg text-sm font-medium text-content-muted bg-surface hover:bg-canvas disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Anterior
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(data.meta.total_pages, p + 1))}
                     disabled={data.meta.page >= data.meta.total_pages}
-                    className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-line rounded-lg text-sm font-medium text-content-muted bg-surface hover:bg-canvas disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Siguiente
                   </button>

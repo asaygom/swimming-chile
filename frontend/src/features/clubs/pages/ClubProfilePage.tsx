@@ -54,12 +54,12 @@ const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ po
         height={chartHeight}
         className="min-w-full max-w-none"
       >
-        <line x1={padding.left} y1={padding.top} x2={padding.left} y2={padding.top + plotHeight} stroke="#cbd5e1" />
-        <line x1={padding.left} y1={padding.top + plotHeight} x2={padding.left + plotWidth} y2={padding.top + plotHeight} stroke="#cbd5e1" />
+        <line x1={padding.left} y1={padding.top} x2={padding.left} y2={padding.top + plotHeight} stroke="var(--color-chart-axis)" />
+        <line x1={padding.left} y1={padding.top + plotHeight} x2={padding.left + plotWidth} y2={padding.top + plotHeight} stroke="var(--color-chart-axis)" />
         {yTicks.map(tick => (
           <g key={tick}>
-            <line x1={padding.left - 4} y1={yForPercent(tick)} x2={padding.left + plotWidth} y2={yForPercent(tick)} stroke="#e2e8f0" />
-            <text x={padding.left - 10} y={yForPercent(tick) + 4} textAnchor="end" className="fill-slate-500 text-[11px]">
+            <line x1={padding.left - 4} y1={yForPercent(tick)} x2={padding.left + plotWidth} y2={yForPercent(tick)} stroke="var(--color-chart-grid)" />
+            <text x={padding.left - 10} y={yForPercent(tick) + 4} textAnchor="end" className="fill-content-subtle text-[11px]">
               {tick}%
             </text>
           </g>
@@ -75,7 +75,7 @@ const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ po
               y1={yForPercent(previous.attendance_percentage)}
               x2={xForIndex(index + 1)}
               y2={yForPercent(point.attendance_percentage)}
-              stroke={improved ? '#059669' : '#dc2626'}
+              stroke={improved ? 'var(--color-trend-improve)' : 'var(--color-trend-regress)'}
               strokeWidth="3"
               strokeDasharray="6 4"
               strokeLinecap="round"
@@ -89,16 +89,16 @@ const AttendanceTrendChart: React.FC<{ points: AttendanceTrendPoint[] }> = ({ po
 
           return (
             <g key={point.competition_id}>
-              <circle cx={x} cy={y} r="5" className="fill-blue-600 stroke-white" strokeWidth="2">
+              <circle cx={x} cy={y} r="5" fill="var(--color-chart-primary)" stroke="var(--color-surface)" strokeWidth="2">
                 <title>{`${point.competition_name}: ${point.attended_count} asistentes (${point.attendance_percentage}%)`}</title>
               </circle>
-              <text x={x} y={y - 10} textAnchor="middle" className="fill-slate-700 text-[11px] font-semibold">
+              <text x={x} y={y - 10} textAnchor="middle" className="fill-content-muted text-[11px] font-semibold">
                 {point.attendance_percentage}% ({point.attended_count})
               </text>
-              <text x={x} y={padding.top + plotHeight + 20} textAnchor="middle" className="fill-slate-500 text-[10px]">
+              <text x={x} y={padding.top + plotHeight + 20} textAnchor="middle" className="fill-content-subtle text-[10px]">
                 {date || `Competencia ${index + 1}`}
               </text>
-              <text x={x} y={padding.top + plotHeight + 36} textAnchor="middle" className="fill-slate-400 text-[10px]">
+                <text x={x} y={padding.top + plotHeight + 36} textAnchor="middle" className="fill-content-subtle text-[10px]">
                 {point.competition_name.length > 16 ? `${point.competition_name.slice(0, 16)}…` : point.competition_name}
               </text>
             </g>
@@ -205,7 +205,7 @@ export const ClubProfilePage: React.FC = () => {
       <div className="mb-6">
         <button 
           onClick={() => navigate(-1)}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
+          className="text-sm font-medium text-action hover:text-brand-steel flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -215,22 +215,22 @@ export const ClubProfilePage: React.FC = () => {
       </div>
 
       {/* Header Club */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+      <div className="bg-surface rounded-xl shadow-sm border border-line p-6 md:p-8">
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-          <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-4xl shadow-sm flex-shrink-0">
+          <div className="w-20 h-20 bg-brand-cyan text-brand-night rounded-2xl flex items-center justify-center font-bold text-4xl shadow-sm flex-shrink-0">
             {club.name.charAt(0)}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{club.name}</h1>
+            <h1 className="text-3xl font-bold text-ink tracking-tight">{club.name}</h1>
             <div className="mt-2 flex flex-wrap gap-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                <svg className="w-4 h-4 mr-1 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-canvas text-content-muted border border-line">
+                <svg className="w-4 h-4 mr-1 text-content-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 {club.city || 'Desconocido'}, {club.region || club.country || 'Región desconocida'}
               </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success/20 text-success-strong border border-success">
                 {club.total_athletes || 0} Nadadores registrados
               </span>
             </div>
@@ -242,11 +242,11 @@ export const ClubProfilePage: React.FC = () => {
       {attendanceMatrix && attendanceMatrix.competitions.length > 0 && attendanceMatrix.athletes.length > 0 && (
         <div className="order-2 flex flex-col">
           <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Asistencia a Competencias</h2>
+            <h2 className="text-xl font-bold text-ink">Asistencia a Competencias</h2>
             <select
               value={attendanceYear}
               onChange={(event) => setAttendanceYear(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 sm:w-40"
+              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-muted shadow-sm focus:ring-2 focus:ring-action sm:w-40"
             >
               <option value="all">Todos los años</option>
               {attendanceYears.map(year => (
@@ -254,19 +254,19 @@ export const ClubProfilePage: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="order-2 bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-              <p className="text-sm text-slate-600">
+          <div className="order-2 bg-surface rounded-xl shadow-sm border border-line">
+            <div className="px-4 py-3 border-b border-line bg-canvas">
+              <p className="text-sm text-content-muted">
                 Atletas inscritos representando a {club.name}. ✓ indica que compitió; × indica inscripción sin participación registrada.
               </p>
             </div>
             <div className="max-h-[70vh] overflow-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-white border-b border-slate-200">
+                <thead className="bg-surface border-b border-line">
                   <tr>
-                    <th className="sticky left-0 top-0 z-40 bg-white px-4 py-3 text-left font-semibold text-slate-700 min-w-56 shadow-sm">
+                    <th className="sticky left-0 top-0 z-40 bg-surface px-4 py-3 text-left font-semibold text-content-muted min-w-56 shadow-sm">
                       Atleta
-                      <span className="mt-1 block text-xs font-medium text-slate-400">
+                      <span className="mt-1 block text-xs font-medium text-content-subtle">
                         Asistencia sobre {currentAthleteTotal} atletas vigentes
                       </span>
                     </th>
@@ -274,22 +274,22 @@ export const ClubProfilePage: React.FC = () => {
                       const summary = attendanceSummaryByCompetition.get(String(competition.id));
 
                       return (
-                        <th key={competition.id} className="sticky top-0 z-30 bg-white px-3 py-3 text-center font-semibold text-slate-700 min-w-32 shadow-sm">
+                        <th key={competition.id} className="sticky top-0 z-30 bg-surface px-3 py-3 text-center font-semibold text-content-muted min-w-32 shadow-sm">
                           <Link
                             to={`/competitions/${competition.id}`}
-                            className="block text-blue-700 hover:text-blue-900 hover:underline"
+                            className="block text-action hover:text-brand-night hover:underline"
                             title={competition.name}
                           >
                             <span className="line-clamp-2">{competition.name}</span>
                           </Link>
                           {formatCompetitionMonthYear(competition.date) && (
-                            <span className="mt-1 block text-xs font-medium text-slate-400">
+                            <span className="mt-1 block text-xs font-medium text-content-subtle">
                               {formatCompetitionMonthYear(competition.date)}
                             </span>
                           )}
-                          <span className="mt-2 block border-t border-slate-100 pt-2 font-bold text-slate-900">
+                          <span className="mt-2 block border-t border-line pt-2 font-bold text-ink">
                             {summary?.attended_count ?? 0}
-                            <span className="ml-1 text-xs font-medium text-slate-500">
+                            <span className="ml-1 text-xs font-medium text-content-subtle">
                               ({summary?.attendance_percentage ?? 0}%)
                             </span>
                           </span>
@@ -298,7 +298,7 @@ export const ClubProfilePage: React.FC = () => {
                     })}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-line">
                   {attendanceMatrix.athletes.map(athlete => {
                     const attendanceByCompetition = new Map(
                       athlete.competitions.map(entry => [String(entry.competition_id), entry])
@@ -309,18 +309,18 @@ export const ClubProfilePage: React.FC = () => {
                     const highlightNoAttendance = attendanceYear !== 'all' && !hasAttendanceInVisibleYear;
 
                     return (
-                      <tr key={athlete.athlete_id} className={highlightNoAttendance ? 'bg-red-50/60 hover:bg-red-50' : 'hover:bg-slate-50/60'}>
-                        <th className={`sticky left-0 z-10 px-4 py-3 text-left font-semibold min-w-56 ${highlightNoAttendance ? 'bg-red-50 text-red-800' : 'bg-white text-slate-900'}`}>
-                          <Link to={`/athletes/${athlete.athlete_id}`} className="hover:text-blue-700 hover:underline">
+                      <tr key={athlete.athlete_id} className={highlightNoAttendance ? 'bg-danger/10 hover:bg-danger/15' : 'hover:bg-canvas/60'}>
+                        <th className={`sticky left-0 z-10 px-4 py-3 text-left font-semibold min-w-56 ${highlightNoAttendance ? 'bg-danger/15 text-danger-strong' : 'bg-surface text-ink'}`}>
+                          <Link to={`/athletes/${athlete.athlete_id}`} className="hover:text-action hover:underline">
                             {athlete.athlete_name}
                           </Link>
-                          <span className="mt-1 block text-xs font-normal text-slate-400">
+                          <span className="mt-1 block text-xs font-normal text-content-subtle">
                             {athlete.gender === 'female' ? 'Dama' : athlete.gender === 'male' ? 'Varón' : 'Género no informado'}
                             <span className="mx-1">•</span>
                             {athlete.birth_year ? `Nacido en ${athlete.birth_year}` : 'Año no informado'}
                           </span>
                           {highlightNoAttendance && (
-                            <span className="ml-2 text-xs font-medium text-red-600">
+                            <span className="ml-2 text-xs font-medium text-danger-strong">
                               Sin participación
                             </span>
                           )}
@@ -331,15 +331,15 @@ export const ClubProfilePage: React.FC = () => {
                           return (
                             <td key={`${athlete.athlete_id}-${competition.id}`} className="px-3 py-3 text-center">
                               {attendance?.status === 'attended' ? (
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700 border border-emerald-100" title="Compitió">
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-success/20 text-sm font-bold text-success-strong border border-success" title="Compitió">
                                   ✓
                                 </span>
                               ) : attendance?.status === 'no_show' ? (
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-700 border border-red-100" title="Inscrito, no compitió">
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-danger/15 text-sm font-bold text-danger-strong border border-danger" title="Inscrito, no compitió">
                                   ×
                                 </span>
                               ) : (
-                                <span className="text-slate-300">—</span>
+                                <span className="text-brand-muted">—</span>
                               )}
                             </td>
                           );
@@ -355,12 +355,12 @@ export const ClubProfilePage: React.FC = () => {
           {attendanceTrendPoints.length > 0 && (
             <div className="order-1 mb-6">
               <div className="mb-4 px-1">
-                <h3 className="text-lg font-bold text-slate-900">Evolución de Asistencia</h3>
-                <p className="text-sm text-slate-500">
+                <h3 className="text-lg font-bold text-ink">Evolución de Asistencia</h3>
+                <p className="text-sm text-content-subtle">
                   Porcentaje de atletas vigentes que participaron por competencia.
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
                 <AttendanceTrendChart points={attendanceTrendPoints} />
               </div>
             </div>
@@ -370,18 +370,18 @@ export const ClubProfilePage: React.FC = () => {
 
       {/* Filtros de Atletas */}
       <div className="order-1">
-        <h2 className="text-xl font-bold text-slate-900 mb-4 px-1">Atletas del Club</h2>
+        <h2 className="text-xl font-bold text-ink mb-4 px-1">Atletas del Club</h2>
         
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative w-full md:w-96">
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none bg-white text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action transition-shadow outline-none bg-surface text-sm"
               placeholder="Buscar nadador..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -392,7 +392,7 @@ export const ClubProfilePage: React.FC = () => {
               setGender(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm text-slate-700 cursor-pointer"
+            className="px-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action outline-none bg-surface text-sm text-content-muted cursor-pointer"
           >
             <option value="all">Todos los géneros</option>
             <option value="female">Damas</option>
@@ -402,7 +402,7 @@ export const ClubProfilePage: React.FC = () => {
             <button
               type="button"
               onClick={clearFilters}
-              className="whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+              className="whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink"
             >
               Limpiar
             </button>
@@ -424,11 +424,11 @@ export const ClubProfilePage: React.FC = () => {
                     <Link 
                       key={athlete.id} 
                       to={`/athletes/${athlete.id}`}
-                      className="group bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md hover:border-blue-300 transition-all flex items-center justify-between"
+                      className="group bg-surface rounded-xl shadow-sm border border-line p-5 hover:shadow-md hover:border-action transition-all flex items-center justify-between"
                     >
                       <div>
-                        <p className="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">{athlete.full_name}</p>
-                        <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                        <p className="font-semibold text-ink group-hover:text-action transition-colors">{athlete.full_name}</p>
+                        <p className="text-sm text-content-subtle mt-1 flex items-center gap-2">
                           <span className="capitalize">{athlete.gender === 'female' ? 'Dama' : 'Varón'}</span>
                           {athlete.birth_year && (
                             <>
@@ -438,7 +438,7 @@ export const ClubProfilePage: React.FC = () => {
                           )}
                         </p>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                        <div className="w-10 h-10 rounded-full bg-canvas flex items-center justify-center text-content-subtle group-hover:bg-brand-cyan group-hover:text-brand-night transition-colors">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
@@ -448,22 +448,22 @@ export const ClubProfilePage: React.FC = () => {
                 </div>
 
                 {/* Paginación */}
-                <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-                  <p className="text-sm text-slate-500">
+                <div className="flex items-center justify-between border-t border-line pt-4">
+                  <p className="text-sm text-content-subtle">
                     Mostrando página {athletesData.meta.page} de {athletesData.meta.total_pages} ({athletesData.meta.total_results} atletas)
                   </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={athletesData.meta.page === 1}
-                      className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 border border-line rounded-lg text-sm font-medium text-content-muted bg-surface hover:bg-canvas disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Anterior
                     </button>
                     <button
                       onClick={() => setPage((p) => Math.min(athletesData.meta.total_pages, p + 1))}
                       disabled={athletesData.meta.page >= athletesData.meta.total_pages}
-                      className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 border border-line rounded-lg text-sm font-medium text-content-muted bg-surface hover:bg-canvas disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Siguiente
                     </button>

@@ -1,11 +1,14 @@
 import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 
 export const MainLayout: React.FC = () => {
+  const { pathname } = useLocation();
+  const isHome = pathname === '/';
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
+    <div className={`min-h-screen font-sans flex flex-col ${isHome ? 'bg-brand-night text-brand-white' : 'bg-canvas text-ink'}`}>
       {/* Header Premium con gradiente sutil y blur */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-slate-200 shadow-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-brand-steel bg-brand-night/90 shadow-sm backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <NavLink to="/" className="flex items-center gap-2">
@@ -14,7 +17,7 @@ export const MainLayout: React.FC = () => {
                 alt="SwimStats Chile"
                 className="h-8 w-8"
               />
-              <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
+              <span className="bg-gradient-to-r from-brand-white to-brand-muted bg-clip-text text-xl font-bold tracking-tight text-transparent">
                 SwimStats Chile
               </span>
             </NavLink>
@@ -34,8 +37,8 @@ export const MainLayout: React.FC = () => {
                   className={({ isActive }) =>
                     `px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ease-in-out ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-700/10'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-brand-cyan text-brand-night shadow-sm ring-1 ring-brand-cyan/20'
+                        : 'text-brand-muted hover:bg-brand-panel hover:text-brand-white'
                     }`
                   }
                 >
@@ -48,16 +51,16 @@ export const MainLayout: React.FC = () => {
       </header>
 
       {/* Contenido Principal */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className={isHome ? 'flex-1 w-full bg-brand-night' : 'mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8'}>
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Outlet />
         </div>
       </main>
 
       {/* Footer Minimalista */}
-      <footer className="w-full border-t border-slate-200 bg-white py-6 mt-auto pb-24 md:pb-6">
+      <footer className="mt-auto w-full border-t border-brand-steel bg-brand-night py-6 pb-24 md:pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className='flex flex-col items-center justify-between gap-2 text-center text-sm text-slate-500 md:flex-row md:text-left'>
+          <div className='flex flex-col items-center justify-between gap-2 text-center text-sm text-brand-subtle md:flex-row md:text-left'>
             <p>
               &copy; {new Date().getFullYear()} SwimStats Chile. Plataforma de Datos No Oficial.
             </p>
@@ -67,7 +70,7 @@ export const MainLayout: React.FC = () => {
                 href="https://asaygom.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-slate-700 underline underline-offset-4 hover:text-blue-700"
+                className="font-medium text-brand-muted underline underline-offset-4 hover:text-brand-cyan"
               >
                 Alexis Sayago
               </a>
@@ -77,13 +80,13 @@ export const MainLayout: React.FC = () => {
       </footer>
 
       {/* Navegación Móvil (Bottom Tab Bar) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-slate-200 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-brand-steel bg-brand-navy/95 pb-safe backdrop-blur-md md:hidden">
         <div className="flex justify-around items-center h-16 px-2">
           <NavLink
             to="/athletes"
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:bg-slate-50'
+                isActive ? 'text-brand-cyan' : 'text-brand-muted hover:bg-brand-panel'
               }`
             }
           >
@@ -97,7 +100,7 @@ export const MainLayout: React.FC = () => {
             to="/clubs"
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:bg-slate-50'
+                isActive ? 'text-brand-cyan' : 'text-brand-muted hover:bg-brand-panel'
               }`
             }
           >
@@ -111,7 +114,7 @@ export const MainLayout: React.FC = () => {
             to="/calendar"
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:bg-slate-50'
+                isActive ? 'text-brand-cyan' : 'text-brand-muted hover:bg-brand-panel'
               }`
             }
           >
@@ -125,7 +128,7 @@ export const MainLayout: React.FC = () => {
             to="/competitions"
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:bg-slate-50'
+                isActive ? 'text-brand-cyan' : 'text-brand-muted hover:bg-brand-panel'
               }`
             }
           >
@@ -139,7 +142,7 @@ export const MainLayout: React.FC = () => {
             to="/rankings"
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:bg-slate-50'
+                isActive ? 'text-brand-cyan' : 'text-brand-muted hover:bg-brand-panel'
               }`
             }
           >

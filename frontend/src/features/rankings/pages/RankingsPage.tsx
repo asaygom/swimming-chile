@@ -126,20 +126,20 @@ export const RankingsPage: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Rankings y estadísticas</h1>
-        <p className="text-slate-500 mt-1">Elige si quieres ver rankings de nadadores o estadísticas de participación.</p>
+        <h1 className="text-3xl font-bold text-ink tracking-tight">Rankings y estadísticas</h1>
+        <p className="text-content-subtle mt-1">Elige si quieres ver rankings de nadadores o estadísticas de participación.</p>
       </div>
 
       <div className="grid min-w-0 gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-          <nav className="flex gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white p-2 shadow-sm lg:grid lg:grid-cols-1 lg:overflow-visible">
+          <nav className="flex gap-2 overflow-x-auto rounded-xl border border-brand-steel bg-brand-night p-2 shadow-sm lg:grid lg:grid-cols-1 lg:overflow-visible">
             <button
               type="button"
               onClick={() => setActiveView('swimmers')}
               className={`min-w-[180px] rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors lg:min-w-0 ${
                 activeView === 'swimmers'
-                  ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-700/10'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-brand-cyan text-brand-night ring-1 ring-brand-cyan/30'
+                  : 'text-brand-muted hover:bg-brand-panel hover:text-brand-white'
               }`}
             >
               Rankings de nadadores
@@ -149,8 +149,8 @@ export const RankingsPage: React.FC = () => {
               onClick={() => setActiveView('clubs')}
               className={`min-w-[180px] rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors lg:min-w-0 ${
                 activeView === 'clubs'
-                  ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-700/10'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-brand-cyan text-brand-night ring-1 ring-brand-cyan/30'
+                  : 'text-brand-muted hover:bg-brand-panel hover:text-brand-white'
               }`}
             >
               Estadísticas de clubes
@@ -161,36 +161,36 @@ export const RankingsPage: React.FC = () => {
         <div className="min-w-0 space-y-6">
           {activeView === 'swimmers' && (
             <>
-              <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+              <section className="bg-surface rounded-xl shadow-sm border border-line p-4">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                  <select value={normalizedStroke} onChange={(event) => updateStroke(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <select value={normalizedStroke} onChange={(event) => updateStroke(event.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink">
                     {strokeOptions.map((value) => (
                       <option key={value} value={value}>{strokeLabels[value] || value}</option>
                     ))}
                   </select>
-                  <select value={normalizedDistance} onChange={(event) => updateDistance(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <select value={normalizedDistance} onChange={(event) => updateDistance(event.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink">
                     {distanceOptions.map((value) => (
                       <option key={value} value={value}>{value}m</option>
                     ))}
                   </select>
-                  <select value={gender} onChange={(event) => resetPage(setGender)(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <select value={gender} onChange={(event) => resetPage(setGender)(event.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink">
                     <option value="women">Damas</option>
                     <option value="men">Varones</option>
                     <option value="mixed">Mixto</option>
                   </select>
-                  <select value={ageGroup} onChange={(event) => resetPage(setAgeGroup)(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <select value={ageGroup} onChange={(event) => resetPage(setAgeGroup)(event.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink">
                     <option value="all">Todas las categorías</option>
                     {filtersQuery.data?.age_groups.map((value) => (
                       <option key={value} value={value}>{value}</option>
                     ))}
                   </select>
-                  <select value={courseType} onChange={(event) => resetPage(setCourseType)(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <select value={courseType} onChange={(event) => resetPage(setCourseType)(event.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink">
                     <option value="all">Todas las piscinas</option>
                     <option value="scm">Piscina corta</option>
                     <option value="lcm">Piscina larga</option>
                     <option value="unknown">Sin dato</option>
                   </select>
-                  <select value={year} onChange={(event) => resetPage(setYear)(event.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                  <select value={year} onChange={(event) => resetPage(setYear)(event.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink">
                     <option value="all">Últimos 12 meses</option>
                     {filtersQuery.data?.years.map((value) => (
                       <option key={value} value={value}>{value}</option>
@@ -204,14 +204,14 @@ export const RankingsPage: React.FC = () => {
                     value={athleteSearchInput}
                     onChange={(event) => setAthleteSearchInput(event.target.value)}
                     placeholder="Buscar atleta en este ranking"
-                    className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                    className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
                   />
                   <div className="flex gap-2">
-                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                    <button type="submit" className="rounded-lg bg-action px-4 py-2 text-sm font-semibold text-brand-white hover:bg-brand-steel">
                       Buscar
                     </button>
                     {athleteSearch && (
-                      <button type="button" onClick={clearAthleteSearch} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                      <button type="button" onClick={clearAthleteSearch} className="rounded-lg border border-line px-4 py-2 text-sm font-semibold text-content-muted hover:bg-canvas">
                         Limpiar
                       </button>
                     )}
@@ -219,16 +219,16 @@ export const RankingsPage: React.FC = () => {
                 </form>
 
                 {athleteSearch && (
-                  <p className="mt-3 text-sm text-slate-500">
-                    Mostrando coincidencias para <span className="font-semibold text-slate-700">{athleteSearch}</span> dentro del ranking filtrado.
+                  <p className="mt-3 text-sm text-content-subtle">
+                    Mostrando coincidencias para <span className="font-semibold text-content-muted">{athleteSearch}</span> dentro del ranking filtrado.
                   </p>
                 )}
               </section>
 
               <section className="space-y-4">
-                <div className="bg-slate-900 rounded-xl p-6 text-white shadow-lg shadow-slate-900/20">
+                <div className="bg-brand-night rounded-xl border border-brand-steel p-6 text-brand-white shadow-lg shadow-brand-night/20">
                   <h2 className="text-xl font-bold">Top marcas - {title}</h2>
-                  <p className="text-slate-300 text-sm mt-1">{subtitle}</p>
+                  <p className="text-brand-muted text-sm mt-1">{subtitle}</p>
                 </div>
 
                 {rankingsQuery.isLoading && <LoadingState />}
@@ -238,30 +238,30 @@ export const RankingsPage: React.FC = () => {
                   rankingsQuery.data.data.length === 0 ? (
                     <EmptyState title="No hay marcas para estos filtros" description="Prueba con otra categoría, prueba o piscina." />
                   ) : (
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="divide-y divide-slate-100 md:hidden">
+                    <div className="bg-surface rounded-xl shadow-sm border border-line overflow-hidden">
+                      <div className="divide-y divide-line md:hidden">
                         {rankingsQuery.data.data.map((entry) => (
                           <article key={`mobile-${entry.rank}-${entry.athlete_id}-${entry.time_ms}`} className="p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <p className="text-xs font-bold uppercase tracking-widest text-blue-600">#{entry.rank}</p>
-                                <Link to={`/athletes/${entry.athlete_id}`} className="mt-1 block truncate font-semibold text-slate-900 hover:text-blue-600 hover:underline">
+                                <p className="text-xs font-bold uppercase tracking-widest text-action">#{entry.rank}</p>
+                                <Link to={`/athletes/${entry.athlete_id}`} className="mt-1 block truncate font-semibold text-action hover:underline">
                                   {entry.athlete_name}
                                 </Link>
-                                <p className="mt-1 truncate text-sm text-slate-500">{entry.club_name || 'Sin club'}</p>
+                                <p className="mt-1 truncate text-sm text-content-subtle">{entry.club_name || 'Sin club'}</p>
                               </div>
-                              <span className="shrink-0 font-mono text-lg font-bold text-blue-700">{entry.time_text}</span>
+                              <span className="shrink-0 font-mono text-lg font-bold text-action">{entry.time_text}</span>
                             </div>
-                            <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-500">
+                            <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-content-subtle">
                               <div>
-                                <p className="font-semibold text-slate-700">{entry.age_group}</p>
+                                <p className="font-semibold text-content-muted">{entry.age_group}</p>
                                 {entry.current_age && <p>{entry.current_age} años</p>}
                               </div>
                               <div className="text-right">
-                                <Link to={`/competitions/${entry.competition_id}`} className="block truncate hover:text-blue-600 hover:underline">
+                                <Link to={`/competitions/${entry.competition_id}`} className="block truncate text-action hover:underline">
                                   {entry.competition_name}
                                 </Link>
-                                <p className="text-slate-400">
+                                <p className="text-content-subtle">
                                   {entry.date ? new Date(`${entry.date}T12:00:00`).getFullYear() : 's/f'}
                                   {' '}• categoría {entry.event_age_group}
                                 </p>
@@ -273,7 +273,7 @@ export const RankingsPage: React.FC = () => {
 
                       <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-sm text-left">
-                          <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                          <thead className="bg-canvas text-content-muted font-medium border-b border-line">
                             <tr>
                               <th className="px-6 py-4 w-16 text-center">Pos</th>
                               <th className="px-6 py-4">Atleta</th>
@@ -283,40 +283,40 @@ export const RankingsPage: React.FC = () => {
                               <th className="px-6 py-4">Competencia</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-line">
                             {rankingsQuery.data.data.map((entry) => (
-                              <tr key={`${entry.rank}-${entry.athlete_id}-${entry.time_ms}`} className="hover:bg-slate-50 transition-colors">
+                              <tr key={`${entry.rank}-${entry.athlete_id}-${entry.time_ms}`} className="hover:bg-canvas transition-colors">
                                 <td className="px-6 py-4 text-center">
                                   <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                                    entry.rank === 1 ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' :
-                                    entry.rank === 2 ? 'bg-slate-100 text-slate-600 ring-1 ring-slate-300' :
-                                    entry.rank === 3 ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-200' :
-                                    'text-slate-500'
+                                    entry.rank === 1 ? 'bg-medal-gold/15 text-medal-gold ring-1 ring-medal-gold/40' :
+                                    entry.rank === 2 ? 'bg-medal-silver/15 text-medal-silver ring-1 ring-medal-silver/40' :
+                                    entry.rank === 3 ? 'bg-medal-bronze/15 text-medal-bronze ring-1 ring-medal-bronze/40' :
+                                    'text-content-subtle'
                                   }`}>
                                     {entry.rank}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 font-semibold text-slate-900">
-                                  <Link to={`/athletes/${entry.athlete_id}`} className="hover:text-blue-600 hover:underline">
+                                <td className="px-6 py-4 font-semibold">
+                                  <Link to={`/athletes/${entry.athlete_id}`} className="text-action hover:underline">
                                     {entry.athlete_name}
                                   </Link>
                                 </td>
-                                <td className="px-6 py-4 text-slate-600">{entry.club_name || 'Sin club'}</td>
+                                <td className="px-6 py-4 text-content-muted">{entry.club_name || 'Sin club'}</td>
                                 <td className="px-6 py-4 ">
-                                  <span className="font-mono font-bold text-blue-700 text-base">{entry.time_text}</span>
+                                  <span className="font-mono font-bold text-action text-base">{entry.time_text}</span>
                                 </td>
-                                <td className="px-6 py-4 text-slate-600 text-center">
-                                  <span className="font-medium text-slate-800">{entry.age_group}</span>
+                                <td className="px-6 py-4 text-content-muted text-center">
+                                  <span className="font-medium text-ink">{entry.age_group}</span>
                                   {entry.current_age && (
-                                    <span className="block text-xs text-slate-400">{entry.current_age} años</span>
+                                    <span className="block text-xs text-content-subtle">{entry.current_age} años</span>
                                   )}
                                 </td>
-                                <td className="px-6 py-4 text-slate-500 text-xs">
-                                  <Link to={`/competitions/${entry.competition_id}`} className="hover:text-blue-600 hover:underline">
+                                <td className="px-6 py-4 text-content-subtle text-xs">
+                                  <Link to={`/competitions/${entry.competition_id}`} className="text-action hover:underline">
                                     {entry.competition_name}
                                   </Link>
                                   <br />
-                                  <span className="text-slate-400">
+                                  <span className="text-content-subtle">
                                     {entry.date ? new Date(`${entry.date}T12:00:00`).getFullYear() : 's/f'}
                                     {' '}• categoría {entry.event_age_group}
                                   </span>
@@ -326,15 +326,15 @@ export const RankingsPage: React.FC = () => {
                           </tbody>
                         </table>
                       </div>
-                      <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                        <p className="text-sm text-slate-500">
+                      <div className="flex flex-col gap-3 border-t border-line px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                        <p className="text-sm text-content-subtle">
                           Página {rankingsQuery.data.meta.page} de {rankingsQuery.data.meta.total_pages}
                         </p>
                         <div className="flex gap-2">
-                          <button onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))} disabled={page === 1} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium disabled:opacity-50">
+                          <button onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))} disabled={page === 1} className="px-4 py-2 border border-line rounded-lg text-sm font-medium text-content-muted hover:bg-canvas disabled:opacity-50">
                             Anterior
                           </button>
-                          <button onClick={() => setPage((currentPage) => Math.min(rankingsQuery.data.meta.total_pages, currentPage + 1))} disabled={page >= rankingsQuery.data.meta.total_pages} className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium disabled:opacity-50">
+                          <button onClick={() => setPage((currentPage) => Math.min(rankingsQuery.data.meta.total_pages, currentPage + 1))} disabled={page >= rankingsQuery.data.meta.total_pages} className="px-4 py-2 border border-line rounded-lg text-sm font-medium text-content-muted hover:bg-canvas disabled:opacity-50">
                             Siguiente
                           </button>
                         </div>
@@ -349,8 +349,8 @@ export const RankingsPage: React.FC = () => {
           {activeView === 'clubs' && (
             <section className="space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Clubes con mayor participación</h2>
-                <p className="text-slate-500 text-sm">Ordenado por nadadores únicos, competencias disputadas y entradas.</p>
+                <h2 className="text-2xl font-bold text-ink tracking-tight">Clubes con mayor participación</h2>
+                <p className="text-content-subtle text-sm">Ordenado por nadadores únicos, competencias disputadas y entradas.</p>
               </div>
 
               {clubParticipationQuery.isLoading && <LoadingState />}
@@ -358,24 +358,24 @@ export const RankingsPage: React.FC = () => {
               {!clubParticipationQuery.isLoading && !clubParticipationQuery.isError && clubParticipationQuery.data && (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {clubParticipationQuery.data.data.slice(0, 6).map((club) => (
-                    <Link key={club.club_id} to={`/clubs/${club.club_id}`} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:border-blue-300 hover:shadow-md transition-all">
+                    <Link key={club.club_id} to={`/clubs/${club.club_id}`} className="bg-surface rounded-xl border border-line p-5 text-action shadow-sm hover:border-action hover:shadow-md transition-all">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-widest text-blue-600">#{club.rank}</p>
-                          <h3 className="mt-1 text-lg font-bold text-slate-900">{club.club_name}</h3>
+                          <p className="text-xs font-bold uppercase tracking-widest text-action">#{club.rank}</p>
+                          <h3 className="mt-1 text-lg font-bold text-action">{club.club_name}</h3>
                         </div>
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-blue-700">
+                        <span className="rounded-full bg-brand-cyan px-3 py-1 text-sm font-bold text-brand-night">
                           {club.unique_athletes}
                         </span>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <p className="text-slate-500">Competencias</p>
-                          <p className="font-bold text-slate-900">{club.competitions_count}</p>
+                          <p className="text-content-subtle">Competencias</p>
+                          <p className="font-bold text-ink">{club.competitions_count}</p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Entradas</p>
-                          <p className="font-bold text-slate-900">{club.entries_count}</p>
+                          <p className="text-content-subtle">Entradas</p>
+                          <p className="font-bold text-ink">{club.entries_count}</p>
                         </div>
                       </div>
                     </Link>

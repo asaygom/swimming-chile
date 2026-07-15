@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { clubService } from '../../clubs/api/clubService';
 import { relayService } from '../api/relayService';
 import type { Club } from '../../../lib/schemas/club';
@@ -234,24 +234,24 @@ function AthleteCard({
         event.dataTransfer.setData('application/json', JSON.stringify(dragPayload));
         event.dataTransfer.effectAllowed = 'move';
       }}
-      className={`rounded-lg border p-2 shadow-sm sm:p-3 ${unavailable ? 'border-red-200 bg-red-50' : assignedElsewhere ? 'border-red-200 bg-red-50/70' : 'border-slate-200 bg-white'} ${dragPayload && !unavailable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`rounded-lg border p-2 shadow-sm sm:p-3 ${unavailable ? 'border-danger/30 bg-danger/10' : assignedElsewhere ? 'border-danger/30 bg-danger/10' : 'border-line bg-surface'} ${dragPayload && !unavailable ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0">
-          <p className="truncate text-xs font-semibold text-slate-900 sm:text-sm">{athlete.full_name}</p>
-          <p className="mt-1 text-[11px] text-slate-500 sm:text-xs">
+          <p className="truncate text-xs font-semibold text-ink sm:text-sm">{athlete.full_name}</p>
+          <p className="mt-1 text-[11px] text-content-subtle sm:text-xs">
             {genderLabel(athlete.gender)} · {athlete.age ?? 'sin edad'} años <span className="hidden sm:inline">· atleta #{athlete.core_athlete_id ?? athlete.id}</span>
           </p>
-          {assignedElsewhere && <p className="mt-1 text-xs font-semibold text-red-700">Ya está considerado en otro relevo.</p>}
-          {unavailable && <p className="mt-1 text-xs font-semibold text-red-700">Marcado como no disponible.</p>}
+          {assignedElsewhere && <p className="mt-1 text-xs font-semibold text-danger-strong">Ya está considerado en otro relevo.</p>}
+          {unavailable && <p className="mt-1 text-xs font-semibold text-danger-strong">Marcado como no disponible.</p>}
         </div>
         {onToggleAvailability && (
-          <button type="button" onClick={onToggleAvailability} className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={onToggleAvailability} className="rounded-md border border-line bg-surface px-2 py-1 text-xs font-medium text-content-muted hover:bg-canvas">
             {unavailable ? 'Habilitar' : 'No disponible'}
           </button>
         )}
       </div>
-      <div className="mt-2 grid grid-cols-1 gap-1 text-[11px] text-slate-600 sm:mt-3 sm:grid-cols-2 sm:text-xs">
+      <div className="mt-2 grid grid-cols-1 gap-1 text-[11px] text-content-muted sm:mt-3 sm:grid-cols-2 sm:text-xs">
         {Object.entries(athlete.times).map(([stroke, time]) => {
           const isConsidered = stroke === consideredStroke;
           const displayTime = isConsidered ? (consideredTimeText ?? time.text ?? '') : (time.text ?? '');
@@ -261,8 +261,8 @@ function AthleteCard({
               key={stroke}
               className={`rounded border px-2 py-1 ${!isConsidered ? 'hidden sm:block' : ''} ${
                 isConsidered
-                  ? 'border-blue-300 bg-blue-50 font-semibold text-blue-800 ring-1 ring-blue-100'
-                  : 'border-transparent bg-slate-50 text-slate-600'
+                  ? 'border-brand-cyan bg-brand-cyan/10 font-semibold text-brand-night ring-1 ring-brand-cyan/30'
+                  : 'border-transparent bg-canvas text-content-muted'
               }`}
             >
               {strokeLabel(stroke)}: {displayTime} <strong>({sourceLabel(displaySource)})</strong>
@@ -780,39 +780,39 @@ export const RelaysPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {toastMessage && (
-        <div className="fixed inset-x-4 bottom-24 z-[60] rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800 shadow-lg sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md">
+        <div className="fixed inset-x-4 bottom-24 z-[60] rounded-xl border border-warning/60 bg-warning/20 p-4 text-sm font-medium text-warning-strong shadow-lg sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">!</span>
+            <span className="mt-0.5 rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-brand-night">!</span>
             <p className="flex-1">{toastMessage}</p>
-            <button type="button" onClick={() => setToastMessage(null)} className="text-amber-700 hover:text-amber-900" aria-label="Cerrar alerta">
+            <button type="button" onClick={() => setToastMessage(null)} className="text-warning-strong hover:text-brand-night" aria-label="Cerrar alerta">
               ×
             </button>
           </div>
         </div>
       )}
       {proposalStatus && (
-        <div className="fixed inset-x-4 bottom-24 z-[70] rounded-xl border border-blue-200 bg-white p-4 text-sm text-slate-700 shadow-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md">
+        <div className="fixed inset-x-4 bottom-24 z-[70] rounded-xl border border-action/30 bg-surface p-4 text-sm text-content-muted shadow-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md">
           <div className="flex items-center gap-3">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" aria-hidden="true" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-action/30 border-t-action" aria-hidden="true" />
             <p className="flex-1 font-medium">{proposalStatus}</p>
-            <button type="button" onClick={cancelProposal} className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
+            <button type="button" onClick={cancelProposal} className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-1.5 text-xs font-semibold text-danger-strong hover:bg-danger/20">
               Cancelar
             </button>
           </div>
-          <p className="mt-2 text-xs text-slate-500">Puede tardar si hay muchos asistentes disponibles.</p>
+          <p className="mt-2 text-xs text-content-subtle">Puede tardar si hay muchos asistentes disponibles.</p>
         </div>
       )}
-      <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-brand-steel bg-brand-night p-6 shadow-sm">
         {isSetupCollapsed && selectedClub ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Preparar relevos</p>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="text-sm font-semibold uppercase tracking-wide text-brand-cyan">Preparar relevos</p>
+              <p className="mt-1 text-sm text-brand-muted">
                 {selectedClub.name} - {relayType.label} - {analysis?.athletes.length ?? 0} asistentes - tiempos cargados
               </p>
-              {attendanceFile && <p className="mt-1 text-xs text-emerald-700">Excel: <strong>{attendanceFile.name}</strong></p>}
+              {attendanceFile && <p className="mt-1 text-xs text-success">Excel: <strong>{attendanceFile.name}</strong></p>}
             </div>
-            <button type="button" onClick={() => { setIsSetupCollapsed(false); setIsAttendanceCollapsed(false); }} className="rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm cursor-pointer hover:bg-blue-50">
+            <button type="button" onClick={() => { setIsSetupCollapsed(false); setIsAttendanceCollapsed(false); }} className="rounded-lg border border-brand-cyan bg-brand-cyan px-4 py-2 text-sm font-semibold text-brand-night shadow-sm cursor-pointer hover:bg-brand-turquoise">
               Editar preparacion
             </button>
           </div>
@@ -820,21 +820,21 @@ export const RelaysPage: React.FC = () => {
           <>
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Preparar relevos</p>
+                <p className="text-sm font-semibold uppercase tracking-wide text-brand-cyan">Preparar relevos</p>
                 <button
                   type="button"
                   onClick={() => setShowSetupHelp((current) => !current)}
-                  className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm hover:bg-blue-50"
+                  className="rounded-lg border border-brand-cyan bg-brand-cyan px-3 py-1.5 text-xs font-semibold text-brand-night shadow-sm hover:bg-brand-turquoise"
                   aria-expanded={showSetupHelp}
                 >
                   {showSetupHelp ? 'Ocultar ayuda' : '¿Cómo usar?'}
                 </button>
               </div>
               {showSetupHelp && (
-                <ol className="grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-                  <li className="rounded-lg bg-white/70 px-3 py-2"><span className="font-semibold text-blue-700">1.</span> Seleccione club y tipo de relevo</li>
-                  <li className="rounded-lg bg-white/70 px-3 py-2"><span className="font-semibold text-blue-700">2.</span> Defina asistentes o cargue Excel</li>
-                  <li className="rounded-lg bg-white/70 px-3 py-2"><span className="font-semibold text-blue-700">3.</span> Cargue tiempos para proponer por categoria</li>
+                <ol className="grid gap-2 text-sm text-brand-muted sm:grid-cols-3">
+                  <li className="rounded-lg bg-brand-panel px-3 py-2"><span className="font-semibold text-brand-cyan">1.</span> Seleccione club y tipo de relevo</li>
+                  <li className="rounded-lg bg-brand-panel px-3 py-2"><span className="font-semibold text-brand-cyan">2.</span> Defina asistentes o cargue Excel</li>
+                  <li className="rounded-lg bg-brand-panel px-3 py-2"><span className="font-semibold text-brand-cyan">3.</span> Cargue tiempos para proponer por categoria</li>
                 </ol>
               )}
             </div>
@@ -853,72 +853,72 @@ export const RelaysPage: React.FC = () => {
                     setUnavailableAthleteIds(new Set());
                   }}
                   placeholder="Buscar club vigente..."
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-content-muted shadow-sm outline-none focus:border-action focus:ring-2 focus:ring-action/30"
                 />
                 {!selectedClub && clubSearch && (
-                  <div className="absolute z-20 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
-                    {isLoadingClubs ? <p className="p-3 text-sm text-slate-500">Buscando clubes...</p> : clubs.map((club) => (
-                      <button key={String(club.id)} type="button" onClick={() => void selectClub(club)} className="block w-full px-4 py-3 text-left text-sm hover:bg-blue-50">
-                        <span className="font-semibold text-slate-900">{club.name}</span>
-                        <span className="ml-2 text-slate-500">{club.total_athletes ?? 0} atletas</span>
+                  <div className="absolute z-20 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-line bg-surface shadow-lg">
+                    {isLoadingClubs ? <p className="p-3 text-sm text-content-subtle">Buscando clubes...</p> : clubs.map((club) => (
+                      <button key={String(club.id)} type="button" onClick={() => void selectClub(club)} className="block w-full px-4 py-3 text-left text-sm hover:bg-action/10">
+                        <span className="font-semibold text-ink">{club.name}</span>
+                        <span className="ml-2 text-content-subtle">{club.total_athletes ?? 0} atletas</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              <select value={selectedRelayType} onChange={handleRelayTypeChange} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
+              <select value={selectedRelayType} onChange={handleRelayTypeChange} className="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium text-content-muted shadow-sm">
                 {relayTypes.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
               </select>
             </div>
 
             {analysis && selectedClub && (
-              <div className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+              <div className="mt-6 rounded-2xl border border-line bg-surface p-4 shadow-sm">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">Asistentes</h2>
-                    <p className="text-sm text-slate-500">
+                    <h2 className="text-lg font-bold text-ink">Asistentes</h2>
+                    <p className="text-sm text-content-subtle">
                       {analysis.athletes.length} asistentes cargados, {genderEligibleAthletes.length} compatibles con este relevo, {unavailableAthleteIds.size} no disponibles para relevos.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-action/30 bg-action/10 px-3 py-2 text-sm font-medium text-action hover:bg-action/20">
                       {attendanceFile ? "Reemplazar Excel" : "Cargar Excel"}
                       <input type="file" accept=".xlsx,.xlsm" className="hidden" onChange={handleFileChange} disabled={isAnalyzing} />
                     </label>
-                    {attendanceFile && <button type="button" onClick={clearAttendanceFilter} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 cursor-pointer hover:bg-red-100">Quitar Excel</button>}
+                    {attendanceFile && <button type="button" onClick={clearAttendanceFilter} className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger-strong cursor-pointer hover:bg-danger/20">Quitar Excel</button>}
                     {!attendanceFile && (
                       <>
-                        <button type="button" onClick={selectAllAthletes} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-blue-100">Todos</button>
-                        <button type="button" onClick={clearSelectedAthletes} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-blue-100">Ninguno</button>
+                        <button type="button" onClick={selectAllAthletes} className="rounded-lg border border-line px-3 py-2 text-sm font-medium text-content-muted cursor-pointer hover:bg-action/20">Todos</button>
+                        <button type="button" onClick={clearSelectedAthletes} className="rounded-lg border border-line px-3 py-2 text-sm font-medium text-content-muted cursor-pointer hover:bg-action/20">Ninguno</button>
                       </>
                     )}
                   </div>
                 </div>
 
                 {attendanceFile && (
-                  <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">
+                  <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-success/15 p-3 text-sm text-success-strong">
                     <span>Excel de asistencia cargado: <strong>{attendanceFile.name}</strong></span>
                     <span>El analisis usara solo asistentes encontrados en ese archivo y excluira a los no disponibles.</span>
                   </div>
                 )}
 
                 {!attendanceFile && (
-                  <p className="mt-3 rounded-lg border border-dashed border-blue-200 bg-blue-50/50 p-3 text-sm text-blue-700">
+                  <p className="mt-3 rounded-lg border border-dashed border-action/30 bg-action/10 p-3 text-sm text-action">
                     Puede seleccionar asistentes manualmente o cargar la planilla de inscripcion en formato Excel para limitar el listado a los inscritos confirmados.
                   </p>
                 )}
 
                 <div className="mt-4 grid max-h-[50vh] gap-2 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
                   {genderEligibleAthletes.map((athlete) => (
-                    <label key={athlete.id} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-slate-50 ${unavailableAthleteIds.has(athlete.id) ? 'border-red-200 bg-red-50' : 'border-slate-200'}`}>
+                    <label key={athlete.id} className={`flex items-start gap-3 rounded-lg border p-3 hover:bg-canvas ${attendanceFile ? 'cursor-default' : 'cursor-pointer'} ${unavailableAthleteIds.has(athlete.id) ? 'border-danger/30 bg-danger/10' : selectedAthleteIds.has(athlete.id) ? 'border-brand-cyan bg-brand-cyan/10' : 'border-line bg-surface'}`}>
                       <input type="checkbox" checked={selectedAthleteIds.has(athlete.id)} onChange={() => toggleAthlete(athlete.id)} disabled={Boolean(attendanceFile)} className="mt-1" />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-semibold text-slate-900">{athlete.full_name}</span>
-                        <span className="text-xs text-slate-500">{genderLabel(athlete.gender)} - {athlete.age ?? 'sin edad'} anos</span>
-                        {unavailableAthleteIds.has(athlete.id) && <span className="block text-xs font-semibold text-red-700">No disponible para relevos</span>}
+                        <span className="block text-sm font-semibold text-ink">{athlete.full_name}</span>
+                        <span className="text-xs text-content-subtle">{genderLabel(athlete.gender)} - {athlete.age ?? 'sin edad'} anos</span>
+                        {unavailableAthleteIds.has(athlete.id) && <span className="block text-xs font-semibold text-danger-strong">No disponible para relevos</span>}
                       </span>
-                      <button type="button" onClick={(event) => { event.preventDefault(); toggleAvailability(athlete.id); }} className={`rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 ${unavailableAthleteIds.has(athlete.id) ? 'hover:bg-blue-50' : 'hover:bg-red-50'} `}>
+                      <button type="button" onClick={(event) => { event.preventDefault(); toggleAvailability(athlete.id); }} className={`cursor-pointer rounded-md border border-line bg-surface px-2 py-1 text-xs font-medium text-content-muted ${unavailableAthleteIds.has(athlete.id) ? 'hover:bg-action/10' : 'hover:bg-danger/10'} `}>
                         {unavailableAthleteIds.has(athlete.id) ? 'Habilitar' : 'No relevo'}
                       </button>
                     </label>
@@ -928,7 +928,7 @@ export const RelaysPage: React.FC = () => {
             )}
 
             <div className="mt-6 flex justify-end">
-              <button type="button" onClick={() => void loadRelayTimes()} disabled={!selectedClub || isAnalyzing || isLoadingRoster} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 cursor-pointer">
+              <button type="button" onClick={() => void loadRelayTimes()} disabled={!selectedClub || isAnalyzing || isLoadingRoster} className="rounded-xl bg-action px-5 py-3 text-sm font-semibold text-brand-white shadow-sm transition hover:bg-brand-steel disabled:cursor-not-allowed disabled:bg-line disabled:text-content-subtle cursor-pointer">
                 {isAnalyzing ? 'Cargando...' : 'Cargar tiempos'}
               </button>
             </div>
@@ -936,17 +936,17 @@ export const RelaysPage: React.FC = () => {
         )}
       </div>
 
-      {error && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
-      {isLoadingRoster && <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700">Cargando roster vigente del club...</div>}
+      {error && <div className="rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger-strong">{error}</div>}
+      {isLoadingRoster && <div className="rounded-xl border border-action/30 bg-action/10 p-4 text-sm text-action">Cargando roster vigente del club...</div>}
 
       {analysis && selectedClub && isAttendanceCollapsed && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Generador automático por categoría</h2>
-              <p className="text-sm text-slate-500">Seleccione una categoria y genere una propuesta automática.</p>
+              <h2 className="text-xl font-bold text-ink">Generador automático por categoría</h2>
+              <p className="text-sm text-content-subtle">Seleccione una categoria y genere una propuesta automática.</p>
             </div>
-            <button type="button" onClick={() => void reproposeUnlockedCategories()} disabled={isAnalyzing} className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">
+            <button type="button" onClick={() => void reproposeUnlockedCategories()} disabled={isAnalyzing} className="rounded-lg border border-action/30 bg-action/10 px-4 py-2 text-sm font-medium text-action shadow-sm hover:bg-action/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-canvas disabled:text-content-subtle">
               Reproponer no fijados
             </button>
           </div>
@@ -962,8 +962,8 @@ export const RelaysPage: React.FC = () => {
                   disabled={isAnalyzing || isFixedCategory}
                   className={`rounded-xl border p-3 text-left text-sm shadow-sm transition ${
                     isFixedCategory
-                      ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400'
-                      : 'cursor-pointer border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100'
+                      ? 'cursor-not-allowed border-line bg-canvas text-content-subtle'
+                      : 'cursor-pointer border-action/30 bg-action/10 text-action hover:bg-action/20'
                   }`}
                 >
                   <span className="block font-semibold">{category.label}</span>
@@ -980,19 +980,19 @@ export const RelaysPage: React.FC = () => {
           <section className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Propuesta y edición manual</h2>
-                <p className="text-sm text-slate-500">{relays.length} relevos en tablero · {fixedRelays.length} fijados · {availableAthletes.length} atletas disponibles</p>
+                <h2 className="text-xl font-bold text-ink">Propuesta y edición manual</h2>
+                <p className="text-sm text-content-subtle">{relays.length} relevos en tablero · {fixedRelays.length} fijados · {availableAthletes.length} atletas disponibles</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setRelays((current) => [...current, emptyRelay(current.length + 1, slots)])} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm cursor-pointer hover:bg-slate-50">Agregar relevo manual</button>
-                <button type="button" onClick={discardAllRelays} disabled={relays.length === 0} className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm cursor-pointer hover:bg-red-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">Descartar todos</button>
+                <button type="button" onClick={() => setRelays((current) => [...current, emptyRelay(current.length + 1, slots)])} className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-content-muted shadow-sm cursor-pointer hover:bg-canvas">Agregar relevo manual</button>
+                <button type="button" onClick={discardAllRelays} disabled={relays.length === 0} className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-2 text-sm font-medium text-danger-strong shadow-sm cursor-pointer hover:bg-danger/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-canvas disabled:text-content-subtle">Descartar todos</button>
               </div>
             </div>
 
             {relays.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
-                <p className="text-sm font-semibold text-slate-700">No hay relevos en el tablero.</p>
-                <p className="mt-1 text-sm text-slate-500">Puede proponer una categoría o comenzar manualmente agregando un relevo.</p>
+              <div className="rounded-2xl border border-dashed border-line bg-surface p-6 text-center">
+                <p className="text-sm font-semibold text-content-muted">No hay relevos en el tablero.</p>
+                <p className="mt-1 text-sm text-content-subtle">Puede proponer una categoría o comenzar manualmente agregando un relevo.</p>
               </div>
             )}
 
@@ -1000,22 +1000,22 @@ export const RelaysPage: React.FC = () => {
               const evaluation = evaluateRelay(relay, slots, relayType, athletesById, analysis.categories, manualTimes, unavailableAthleteIds, assignedIdCounts, categoryKeyCounts);
               const isFixed = fixedRelayIds.has(relay.id);
               return (
-                <article key={relay.id} className={`rounded-2xl border bg-white p-3 shadow-sm sm:p-4 ${isFixed ? 'border-blue-300 ring-1 ring-blue-100' : 'border-slate-200'}`}>
+                <article key={relay.id} className={`rounded-2xl border bg-surface p-3 shadow-sm sm:p-4 ${isFixed ? 'border-brand-cyan ring-1 ring-brand-cyan/30' : 'border-line'}`}>
                   <div className="mb-3 flex flex-col gap-2 md:mb-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-slate-900 sm:text-lg">Relevo {index + 1}</h3>
-                        {isFixed && <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">Fijado</span>}
+                        <h3 className="text-base font-semibold text-ink sm:text-lg">Relevo {index + 1}</h3>
+                        {isFixed && <span className="rounded-full bg-brand-cyan px-2 py-1 text-xs font-semibold text-brand-night">Fijado</span>}
                       </div>
-                      <p className="text-xs text-slate-500 sm:text-sm">{evaluation.category ? `Categoría ${evaluation.category.label}` : 'Sin categoría'} · suma edades {evaluation.ageSum ?? 'sin datos'}</p>
+                      <p className="text-xs text-content-subtle sm:text-sm">{evaluation.category ? `Categoría ${evaluation.category.label}` : 'Sin categoría'} · suma edades {evaluation.ageSum ?? 'sin datos'}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={`rounded-full px-2 py-1 text-xs font-semibold sm:px-3 sm:text-sm ${evaluation.isValid ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{evaluation.isValid ? 'Válido' : 'Revisar'}</span>
-                      <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 sm:px-3 sm:text-sm">{evaluation.totalTimeText ?? 'sin tiempo'}</span>
-                      <button type="button" onClick={() => toggleFixedRelay(relay.id)} className={`cursor-pointer rounded-full px-2 py-1 text-xs font-semibold sm:px-3 sm:text-sm ${isFixed ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                      <span className={`rounded-full px-2 py-1 text-xs font-semibold sm:px-3 sm:text-sm ${evaluation.isValid ? 'bg-success/15 text-success-strong' : 'bg-warning/20 text-warning-strong'}`}>{evaluation.isValid ? 'Válido' : 'Revisar'}</span>
+                      <span className="rounded-full bg-brand-cyan px-2 py-1 text-xs font-semibold text-brand-night sm:px-3 sm:text-sm">{evaluation.totalTimeText ?? 'sin tiempo'}</span>
+                      <button type="button" onClick={() => toggleFixedRelay(relay.id)} className={`cursor-pointer rounded-full px-2 py-1 text-xs font-semibold sm:px-3 sm:text-sm ${isFixed ? 'bg-canvas text-content-muted hover:bg-line' : 'bg-brand-cyan text-brand-night hover:bg-brand-turquoise'}`}>
                         {isFixed ? 'Liberar' : 'Fijar'}
                       </button>
-                      <button type="button" onClick={() => discardRelay(relay.id)} className="cursor-pointer rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 sm:px-3 sm:text-sm">
+                      <button type="button" onClick={() => discardRelay(relay.id)} className="cursor-pointer rounded-full bg-danger/10 px-2 py-1 text-xs font-semibold text-danger-strong hover:bg-danger/20 sm:px-3 sm:text-sm">
                         Descartar
                       </button>
                     </div>
@@ -1029,24 +1029,24 @@ export const RelaysPage: React.FC = () => {
                       const resolvedTime = getSlotTimeMs(athlete, slot, relay.id, manualTimes);
                       const slotManualKey = manualTimeKey(relay.id, slot.key);
                       return (
-                        <div key={slot.key} onDragOver={(event) => { if (!isFixed) event.preventDefault(); }} onDrop={(event) => { if (!isFixed) handleDrop(event, relay.id, slot.key); }} className={`min-h-0 rounded-xl border-2 border-dashed p-2 transition sm:min-h-36 sm:p-3 ${isFixed ? 'border-blue-100 bg-blue-50/40' : 'border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/50'}`}>
+                        <div key={slot.key} onDragOver={(event) => { if (!isFixed) event.preventDefault(); }} onDrop={(event) => { if (!isFixed) handleDrop(event, relay.id, slot.key); }} className={`min-h-0 rounded-xl border-2 border-dashed p-2 transition sm:min-h-36 sm:p-3 ${isFixed ? 'border-brand-cyan/40 bg-brand-cyan/10' : 'border-line bg-canvas hover:border-action/50 hover:bg-action/10'}`}>
                           <div className="mb-1 flex items-center justify-between sm:mb-2">
-                            <p className="text-xs font-semibold text-slate-700 sm:text-sm">{slot.label}</p>
-                            {athlete && !isFixed && <button type="button" onClick={() => clearLeg(relay.id, slot.key)} className="text-xs font-medium text-slate-400 hover:text-red-600">Quitar</button>}
+                            <p className="text-xs font-semibold text-content-muted sm:text-sm">{slot.label}</p>
+                            {athlete && !isFixed && <button type="button" onClick={() => clearLeg(relay.id, slot.key)} className="text-xs font-medium text-content-subtle hover:text-danger-strong">Quitar</button>}
                           </div>
 
                           {!isFixed && <select
                             value={athleteId ?? ''}
                             onChange={(event) => setSlotAssignment(relay.id, slot.key, event.target.value || null)}
                             disabled={isFixed}
-                            className="mb-2 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-700 sm:mb-3 sm:py-2 sm:text-sm"
+                            className="mb-2 w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-xs text-content-muted sm:mb-3 sm:py-2 sm:text-sm"
                           >
                             <option value="">Seleccionar atleta...</option>
                             {genderEligibleAthletes.map((optionAthlete) => {
                               const assignedElsewhere = isAssignedElsewhere(optionAthlete.id, relay.id, slot.key);
                               const unavailable = unavailableAthleteIds.has(optionAthlete.id);
                               return (
-                                <option key={optionAthlete.id} value={optionAthlete.id} className={assignedElsewhere || unavailable ? 'bg-red-50 text-red-700' : undefined}>
+                                <option key={optionAthlete.id} value={optionAthlete.id} className={assignedElsewhere || unavailable ? 'bg-danger/10 text-danger-strong' : undefined}>
                                   {relayOptionLabel(optionAthlete, slot, assignedElsewhere, unavailable)}
                                 </option>
                               );
@@ -1068,19 +1068,19 @@ export const RelaysPage: React.FC = () => {
                                   onChange={(event) => setManualTimes((current) => ({ ...current, [slotManualKey]: event.target.value }))}
                                   placeholder="Tiempo manual ej. 00:35.20"
                                   hidden={isFixed}
-                                  className="mt-2 w-full rounded-lg border border-amber-200 bg-white px-2 py-2 text-xs font-normal text-slate-700 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
+                                  className="mt-2 w-full rounded-lg border border-warning/60 bg-surface px-2 py-2 text-xs font-normal text-content-muted outline-none focus:border-warning-strong focus:ring-2 focus:ring-warning/40"
                                 />
                               ) : null}
                             />
-                          ) : <div className="flex h-24 items-center justify-center rounded-lg border border-slate-200 bg-white text-center text-sm text-slate-400">Seleccione o arrastre a un atleta</div>}
+                          ) : <div className="flex h-24 items-center justify-center rounded-lg border border-line bg-surface text-center text-sm text-content-subtle">Seleccione o arrastre a un atleta</div>}
 
-                          {athlete && resolvedTime.ms === null && <p className="mt-2 text-xs font-medium text-amber-600">Sin marca para {slot.stroke_label}; ingrese un tiempo manual si corresponde.</p>}
+                          {athlete && resolvedTime.ms === null && <p className="mt-2 text-xs font-medium text-warning-strong">Sin marca para {slot.stroke_label}; ingrese un tiempo manual si corresponde.</p>}
                         </div>
                       );
                     })}
                   </div>
 
-                  {evaluation.errors.length > 0 && <ul className="mt-4 space-y-1 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{evaluation.errors.map((item) => <li key={item}>• {item}</li>)}</ul>}
+                  {evaluation.errors.length > 0 && <ul className="mt-4 space-y-1 rounded-xl bg-warning/20 p-3 text-sm text-warning-strong">{evaluation.errors.map((item) => <li key={item}>• {item}</li>)}</ul>}
                 </article>
               );
             })}

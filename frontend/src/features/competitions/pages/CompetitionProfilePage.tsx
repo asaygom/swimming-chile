@@ -63,13 +63,13 @@ const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | nul
 
   const diffSeconds = (resultMs - seedMs) / 1000;
   if (diffSeconds === 0) {
-    return <span className="text-xs font-semibold text-slate-500">±0.00s</span>;
+    return <span className="text-xs font-semibold text-content-subtle">±0.00s</span>;
   }
 
   const improved = diffSeconds < 0;
 
   return (
-    <span className={`text-xs font-bold ${improved ? 'text-emerald-600' : 'text-red-600'}`}>
+    <span className={`text-xs font-bold ${improved ? 'text-success-strong' : 'text-danger-strong'}`}>
       {improved ? '' : '+'}{diffSeconds.toFixed(2)}s
     </span>
   );
@@ -80,25 +80,25 @@ const CategoryResults: React.FC<{ cat: AgeGroupCategory; isRelay: boolean; isSea
   const showContent = isSearching || expanded;
 
   return (
-    <div className="border-b border-slate-100 last:border-0">
+    <div className="border-b border-line last:border-0">
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-3 bg-slate-50/50 px-6 py-2 text-left border-b border-slate-200 hover:bg-slate-100 transition-colors"
+        className="flex w-full items-center justify-between gap-3 bg-canvas/50 px-6 py-2 text-left border-b border-line hover:bg-canvas transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
-          <svg className={`w-4 h-4 text-slate-400 transition-transform ${showContent ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`w-4 h-4 text-content-subtle transition-transform ${showContent ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          <h4 className="font-semibold text-slate-700 text-sm">{cat.categoryTitle}</h4>
+          <h4 className="font-semibold text-content-muted text-sm">{cat.categoryTitle}</h4>
         </div>
-        <span className="text-xs font-medium text-slate-500">{cat.results.length} {isRelay ? 'equipos' : 'nadadores'}</span>
+        <span className="text-xs font-medium text-content-subtle">{cat.results.length} {isRelay ? 'equipos' : 'nadadores'}</span>
       </button>
 
       {showContent && (
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-white text-slate-500 font-medium border-b border-slate-100">
+            <thead className="bg-surface text-content-subtle font-medium border-b border-line">
               <tr>
                 <th className="px-6 py-2 w-16 text-center">Pos</th>
                 <th className="px-6 py-2">{isRelay ? 'Equipo' : 'Nadador'}</th>
@@ -107,47 +107,47 @@ const CategoryResults: React.FC<{ cat: AgeGroupCategory; isRelay: boolean; isSea
                 <th className="px-6 py-2 text-right">Tiempo</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-line">
               {cat.results.map((result, idx) => (
-                <tr key={`${result.athlete_id || 'relay'}-${idx}`} className="hover:bg-slate-50 transition-colors">
+                <tr key={`${result.athlete_id || 'relay'}-${idx}`} className="hover:bg-canvas transition-colors">
                   <td className="px-6 py-2 text-center">
                     {result.rank ? (
                       <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${
-                        result.rank === 1 ? 'bg-amber-100 text-amber-700' :
-                        result.rank === 2 ? 'bg-slate-100 text-slate-600' :
-                        result.rank === 3 ? 'bg-orange-50 text-orange-700' :
-                        'text-slate-500'
+                        result.rank === 1 ? 'bg-warning/30 text-medal-gold' :
+                        result.rank === 2 ? 'bg-canvas text-medal-silver' :
+                        result.rank === 3 ? 'bg-warning/20 text-medal-bronze' :
+                        'text-content-subtle'
                       }`}>
                         {result.rank}
                       </span>
                     ) : (
-                      <span className="text-slate-400 font-bold">-</span>
+                      <span className="text-content-subtle font-bold">-</span>
                     )}
                   </td>
                   <td className="px-6 py-2">
                     {result.athlete_id ? (
-                      <Link to={`/athletes/${result.athlete_id}`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                      <Link to={`/athletes/${result.athlete_id}`} className="font-semibold text-action hover:text-brand-steel hover:underline">
                         {result.athlete_name}
                       </Link>
                     ) : (
-                      <span className="font-semibold text-slate-800">
+                      <span className="font-semibold text-ink">
                         {result.athlete_name}
                       </span>
                     )}
-                    <div className="text-xs text-slate-500 sm:hidden mt-0.5">{result.club_name}</div>
+                    <div className="text-xs text-content-subtle sm:hidden mt-0.5">{result.club_name}</div>
                   </td>
-                  <td className="px-6 py-2 text-slate-600 hidden sm:table-cell">{result.club_name}</td>
+                  <td className="px-6 py-2 text-content-muted hidden sm:table-cell">{result.club_name}</td>
                   <td className="px-6 py-2 text-right hidden md:table-cell">
-                    <span className="font-mono text-slate-500">{result.seed_time_text || '-'}</span>
+                    <span className="font-mono text-content-subtle">{result.seed_time_text || '-'}</span>
                   </td>
                   <td className="px-6 py-2 text-right">
                     {result.status === 'valid' ? (
                       <div className="flex flex-col items-end">
-                        <span className="font-mono font-bold text-slate-900">{result.time_text}</span>
+                        <span className="font-mono font-bold text-ink">{result.time_text}</span>
                         <TimeComparison seedMs={result.seed_time_ms} resultMs={result.result_time_ms} />
                       </div>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 uppercase">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-danger/15 text-danger-strong uppercase">
                         {result.status}
                       </span>
                     )}
@@ -169,20 +169,20 @@ const PruebaCard: React.FC<{ group: PruebaGroup; isSearching: boolean }> = ({ gr
   const isRelay = group.stroke.includes('relay');
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="bg-surface rounded-xl shadow-sm border border-line overflow-hidden">
       <div 
-        className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-100 transition-colors select-none"
+        className="bg-canvas border-b border-line px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-canvas transition-colors select-none"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3">
-          <svg className={`w-5 h-5 text-slate-400 transition-transform ${showContent ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`w-5 h-5 text-content-subtle transition-transform ${showContent ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          <h3 className="text-lg font-bold text-slate-900">{group.pruebaTitle}</h3>
+          <h3 className="text-lg font-bold text-ink">{group.pruebaTitle}</h3>
         </div>
         <div className="flex items-center gap-3">
-           <span className="text-sm text-slate-500 font-medium">{totalParticipants} {isRelay ? 'equipos' : 'nadadores'}</span>
-           <span className="text-xs font-mono font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded hidden sm:inline-block">{group.ageGroups.length} categorías</span>
+           <span className="text-sm text-content-subtle font-medium">{totalParticipants} {isRelay ? 'equipos' : 'nadadores'}</span>
+           <span className="text-xs font-mono font-medium text-content-subtle bg-line px-2 py-1 rounded hidden sm:inline-block">{group.ageGroups.length} categorías</span>
         </div>
       </div>
       
@@ -307,7 +307,7 @@ export const CompetitionProfilePage: React.FC = () => {
       <div className="mb-6">
         <button 
           onClick={() => navigate(-1)}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
+          className="text-sm font-medium text-action hover:text-brand-steel flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -317,17 +317,17 @@ export const CompetitionProfilePage: React.FC = () => {
       </div>
 
       {/* Header Competencia */}
-      <div className="bg-slate-900 rounded-2xl shadow-xl p-6 md:p-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-blue-600 rounded-full opacity-20 blur-3xl pointer-events-none"></div>
+      <div className="bg-brand-night rounded-2xl shadow-xl p-6 md:p-8 text-brand-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-brand-pool rounded-full opacity-20 blur-3xl pointer-events-none"></div>
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <CourseBadge courseType={competition.course_type} variant="dark" />
-              <span className="text-xs font-medium text-slate-300">{course.description}</span>
+              <span className="text-xs font-medium text-brand-muted">{course.description}</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">{competition.name}</h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-slate-300 text-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-brand-muted text-sm">
               <span className="flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -346,7 +346,7 @@ export const CompetitionProfilePage: React.FC = () => {
                   href={competition.source_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 text-blue-200 hover:text-white hover:underline"
+                  className="flex items-center gap-1.5 text-brand-cyan hover:text-brand-white hover:underline"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.5 6H18m0 0v4.5M18 6l-7.5 7.5" />
@@ -358,9 +358,9 @@ export const CompetitionProfilePage: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center min-w-32 border border-white/10 shadow-inner">
-            <span className="block text-3xl font-black text-white leading-none">{totalUniquePruebas}</span>
-            <span className="text-xs font-medium text-slate-300 uppercase tracking-widest mt-1 block">Pruebas Totales</span>
+          <div className="bg-surface/10 backdrop-blur-sm rounded-xl p-4 text-center min-w-32 border border-brand-white/10 shadow-inner">
+            <span className="block text-3xl font-black text-brand-white leading-none">{totalUniquePruebas}</span>
+            <span className="text-xs font-medium text-brand-muted uppercase tracking-widest mt-1 block">Pruebas Totales</span>
           </div>
         </div>
       </div>
@@ -377,25 +377,25 @@ export const CompetitionProfilePage: React.FC = () => {
             ['DQ', statsQuery.data.dsq_count],
             ['Entradas', statsQuery.data.entries_count],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{label}</p>
-              <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
+            <div key={label} className="rounded-xl border border-line bg-surface p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-widest text-content-subtle">{label}</p>
+              <p className="mt-1 text-2xl font-black text-ink">{value}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Buscador y Filtros */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4">
+      <div className="bg-surface p-4 rounded-xl shadow-sm border border-line flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <input
             type="text"
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none bg-white text-sm"
+            className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action transition-shadow outline-none bg-surface text-sm"
             placeholder="Buscar por prueba (ej: 50m Libre), nombre de atleta o club..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <svg className="w-5 h-5 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -404,7 +404,7 @@ export const CompetitionProfilePage: React.FC = () => {
           <select 
             value={genderFilter} 
             onChange={(e) => setGenderFilter(e.target.value)}
-            className="w-full md:w-48 py-2 pl-3 pr-8 border border-slate-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full md:w-48 py-2 pl-3 pr-8 border border-line bg-surface rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action text-sm"
           >
             <option value="all">Ambos Géneros</option>
             <option value="women">Damas</option>
@@ -416,7 +416,7 @@ export const CompetitionProfilePage: React.FC = () => {
           <button
             type="button"
             onClick={clearFilters}
-            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 md:w-auto"
+            className="w-full rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink md:w-auto"
           >
             Limpiar filtros
           </button>
@@ -425,7 +425,7 @@ export const CompetitionProfilePage: React.FC = () => {
 
       {/* Resultados por Evento */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">Resultados</h2>
+        <h2 className="text-2xl font-bold text-ink tracking-tight mb-6">Resultados</h2>
         
         {groupedEvents.length === 0 ? (
           <EmptyState 

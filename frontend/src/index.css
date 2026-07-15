@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-night: #020B1F;
+  --color-brand-navy: #061A33;
+  --color-brand-panel: #0B2748;
+  --color-brand-steel: #16476F;
+  --color-brand-cyan: #00D8F5;
+  --color-brand-turquoise: #21F2E7;
+  --color-brand-pool: #0096FF;
+  --color-brand-white: #F4F8FF;
+  --color-brand-muted: #B8C7DA;
+  --color-brand-subtle: #7F94AE;
+  --color-canvas: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-ink: #0F172A;
+  --color-content-muted: #475569;
+  --color-content-subtle: #64748B;
+  --color-line: #E2E8F0;
+  --color-action: #0074C8;
+  --color-success: #35F2A5;
+  --color-success-strong: #047857;
+  --color-warning: #FFD166;
+  --color-warning-strong: #92400E;
+  --color-danger: #FF5C7A;
+  --color-danger-strong: #BE123C;
+  --color-chart-axis: #CBD5E1;
+  --color-chart-grid: #E2E8F0;
+  --color-chart-primary: #0096FF;
+  --color-trend-improve: #35F2A5;
+  --color-trend-regress: #FF5C7A;
+  --color-course-scm: #0096FF;
+  --color-course-lcm: #7C3AED;
+  --color-course-open: #059669;
+  --color-medal-gold: #D97706;
+  --color-medal-silver: #64748B;
+  --color-medal-bronze: #C2410C;
+}
