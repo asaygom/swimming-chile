@@ -40,6 +40,29 @@ def test_rankings_api_uses_valid_individual_best_time_per_athlete():
     assert "athlete.club_id" not in source
 
 
+def test_public_rankings_only_include_athletes_linked_to_local_clubs():
+    source = normalized_source(RANKINGS_ROUTER)
+
+    assert "def has_membership_schema(cur)" in source
+    assert "def has_club_local_flag(cur)" in source
+    assert "information_schema.columns" in source
+    assert "column_name = 'is_local'" in source
+    assert "from club_ops.membership m" in source
+    assert "join core.athlete_person_link apl on apl.person_id = m.person_id" in source
+    assert "m.status = 'active'" in source
+    assert "coalesce(membership_club.is_local, false) = true" in source
+    assert "from core.athlete_current_club acc" in source
+    assert "coalesce(current_club.is_local, false) = true" in source
+
+
+def test_ranking_filter_options_only_use_local_athletes():
+    source = normalized_source(RANKINGS_ROUTER)
+
+    assert "def get_ranking_filter_options():" in source
+    assert "local_athlete_filter = get_local_athlete_filter(cur)" in source
+    assert source.count("{local_athlete_filter}") >= 6
+
+
 def test_rankings_filter_category_by_current_athlete_age_not_event_age_group():
     raw_source = RANKINGS_ROUTER.read_text(encoding="utf-8")
     source = " ".join(raw_source.lower().split())
@@ -76,6 +99,15 @@ def test_club_participation_uses_represented_club_from_result_rows():
     assert "count(distinct comp.id)" in source
     assert "join core.club club on club.id = r.club_id" in source
     assert "athlete.club_id" not in source
+
+
+def test_club_participation_only_aggregates_local_clubs():
+    source = normalized_source(STATS_ROUTER)
+
+    assert "def has_club_local_flag(cur)" in source
+    assert "information_schema.columns" in source
+    assert "column_name = 'is_local'" in source
+    assert "coalesce(club.is_local, false) = true" in source
 
 
 def test_competition_stats_contract_counts_participants_gender_clubs_and_dsq():

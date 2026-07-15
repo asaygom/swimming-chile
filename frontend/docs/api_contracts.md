@@ -334,6 +334,7 @@ Best swimmer marks by event filters.
 **Rules:**
 
 - Only individual results are ranked.
+- Public rankings only include athletes linked to a local club through an active membership or their current observed club when `core.club.is_local` is available.
 - Only `status = "valid"` and non-null `result_time_ms` are eligible.
 - Exhibition marks with a leading `X` in source text are eligible when they have valid milliseconds; the API returns display `time_text` without the `X`.
 - One athlete appears once per filtered ranking, using their best eligible time.
@@ -382,6 +383,7 @@ Filter catalog for the rankings page.
 
 **Rules:**
 
+- Options are derived only from athletes eligible for the public local-club ranking when `core.club.is_local` is available.
 - `event_options` lists valid distance/stroke combinations from real result data.
 - `age_groups`, `years` and `scopes` are global lists and must not disappear when the user changes distance or stroke.
 - The under-25 current category is labeled `premaster`.
@@ -415,8 +417,10 @@ Club participation ranking.
 
 **Rules:**
 
+- Only clubs marked as local (`core.club.is_local = true`) are aggregated when that metadata is available.
 - Participation uses unique athletes with at least one result whose status is not `dns` or `scratch`.
 - Club attribution uses `core.result.club_id` to preserve the club represented in that competition.
+- Participant lists and statistics inside a specific competition remain unfiltered and may include international clubs and athletes.
 
 **Response (200 OK):**
 

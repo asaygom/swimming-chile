@@ -8,6 +8,19 @@ from ..database import get_db_connection
 router = APIRouter()
 
 
+def has_club_local_flag(cur) -> bool:
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'core'
+              AND table_name = 'club'
+              AND column_name = 'is_local'
+        ) AS available
+    """)
+    return bool(cur.fetchone()["available"])
+
+
 @router.get("/clubs/participation")
 def list_club_participation(
     year: Optional[int] = Query(None, ge=1900),
@@ -21,6 +34,8 @@ def list_club_participation(
                 "r.club_id IS NOT NULL",
                 "COALESCE(r.status, 'unknown') NOT IN ('dns', 'scratch')",
             ]
+            if has_club_local_flag(cur):
+                filters.append("COALESCE(club.is_local, FALSE) = TRUE")
             params = {}
 
             if year is not None:
