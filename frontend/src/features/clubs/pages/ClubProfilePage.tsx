@@ -370,43 +370,47 @@ export const ClubProfilePage: React.FC = () => {
 
       {/* Filtros de Atletas */}
       <div className="order-1">
-        <h2 className="text-xl font-bold text-ink mb-4 px-1">Atletas del Club</h2>
-        
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative w-full md:w-96">
-            <input
-              type="text"
-              className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action transition-shadow outline-none bg-surface text-sm"
-              placeholder="Buscar nadador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        <div className="mb-6 flex flex-col justify-between gap-4 px-1 lg:flex-row lg:items-center">
+          <h2 className="text-xl font-bold text-ink">Atletas del Club</h2>
+
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <div className="relative flex-1 lg:w-96">
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action transition-shadow outline-none bg-surface text-sm"
+                placeholder="Buscar nadador..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            <div className="flex gap-3">
+              <select
+                value={gender}
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setPage(1);
+                }}
+                className="min-w-0 flex-1 px-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action outline-none bg-surface text-sm text-content-muted cursor-pointer sm:w-44"
+              >
+                <option value="all">Todos los géneros</option>
+                <option value="female">Damas</option>
+                <option value="male">Varones</option>
+              </select>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
           </div>
-          
-          <select
-            value={gender}
-            onChange={(e) => {
-              setGender(e.target.value);
-              setPage(1);
-            }}
-            className="px-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action outline-none bg-surface text-sm text-content-muted cursor-pointer"
-          >
-            <option value="all">Todos los géneros</option>
-            <option value="female">Damas</option>
-            <option value="male">Varones</option>
-          </select>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink"
-            >
-              Limpiar
-            </button>
-          )}
         </div>
 
         {/* Lista de Atletas Paginada */}

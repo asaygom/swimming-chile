@@ -385,47 +385,48 @@ export const CompetitionProfilePage: React.FC = () => {
         </div>
       )}
 
-      {/* Buscador y Filtros */}
-      <div className="bg-surface p-4 rounded-xl shadow-sm border border-line flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action transition-shadow outline-none bg-surface text-sm"
-            placeholder="Buscar por prueba (ej: 50m Libre), nombre de atleta o club..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        
-        <div className="flex w-full md:w-auto">
-          <select 
-            value={genderFilter} 
-            onChange={(e) => setGenderFilter(e.target.value)}
-            className="w-full md:w-48 py-2 pl-3 pr-8 border border-line bg-surface rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action text-sm"
-          >
-            <option value="all">Ambos Géneros</option>
-            <option value="women">Damas</option>
-            <option value="men">Varones</option>
-            <option value="mixed">Mixtos</option>
-          </select>
-        </div>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="w-full rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink md:w-auto"
-          >
-            Limpiar filtros
-          </button>
-        )}
-      </div>
-
       {/* Resultados por Evento */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-ink tracking-tight mb-6">Resultados</h2>
+        <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          <h2 className="text-2xl font-bold text-ink tracking-tight">Resultados</h2>
+
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <div className="relative flex-1 lg:w-96">
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2 border border-line rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action transition-shadow outline-none bg-surface text-sm"
+                placeholder="Buscar por prueba, atleta o club..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <svg className="w-5 h-5 text-content-subtle absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            <div className="flex gap-3">
+              <select
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
+                className="min-w-0 flex-1 py-2 pl-3 pr-8 border border-line bg-surface rounded-lg shadow-sm focus:ring-2 focus:ring-action focus:border-action text-sm sm:w-48"
+              >
+                <option value="all">Ambos Géneros</option>
+                <option value="women">Damas</option>
+                <option value="men">Varones</option>
+                <option value="mixed">Mixtos</option>
+              </select>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="whitespace-nowrap rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-content-muted shadow-sm transition-colors hover:bg-canvas hover:text-ink"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
         
         {groupedEvents.length === 0 ? (
           <EmptyState 
