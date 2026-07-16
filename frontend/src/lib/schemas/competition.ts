@@ -43,7 +43,7 @@ export const CompetitionResultSchema = z.object({
   athlete_name: z.string(),
   athlete_id: z.union([z.string(), z.number()]).nullable().optional(),
   club_name: z.string().nullable().optional(),
-  time_text: z.string(),
+  time_text: z.string().nullable(),
   seed_time_text: z.string().nullable().optional(),
   seed_time_ms: z.number().int().nullable().optional(),
   result_time_ms: z.number().int().nullable().optional(),

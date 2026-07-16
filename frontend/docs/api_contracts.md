@@ -283,6 +283,8 @@ Competition detail with nested event results.
 
 Competition result pages use `source_url` as the official source link and use seed/result fields to display the delta in seconds. Positive deltas mean the result time increased and are shown in red; negative deltas mean the result improved and are shown in green.
 
+`time_text` is nullable when the entry has no recorded mark, such as a result with `status = "unknown"`.
+
 ### `GET /api/competitions/{id}/stats`
 
 Participation statistics and the complete club medal and audited points tables for one competition.
