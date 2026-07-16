@@ -2,6 +2,7 @@ import {
   ClubParticipationMatrixSchema,
   ClubParticipationResponseSchema,
   ClubStatsFilterOptionsSchema,
+  CompetitionStatsTableSchema,
   RankingFilterOptionsSchema,
   RankingsResponseSchema,
 } from '../../../lib/schemas/ranking';
@@ -9,6 +10,7 @@ import type {
   ClubParticipationMatrix,
   ClubParticipationResponse,
   ClubStatsFilterOptions,
+  CompetitionStatsTable,
   RankingFilterOptions,
   RankingsResponse,
 } from '../../../lib/schemas/ranking';
@@ -99,5 +101,17 @@ export const rankingService = {
 
     const data = await response.json();
     return ClubParticipationMatrixSchema.parse(data);
+  },
+
+  async getCompetitionStatsTable(query: ClubStatsQuery = {}): Promise<CompetitionStatsTable> {
+    const url = new URL(`${API_BASE_URL}/api/stats/competitions`);
+    appendFilter(url, 'year', query.year);
+    appendFilter(url, 'governing_body', query.governing_body);
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch competition stats table');
+
+    const data = await response.json();
+    return CompetitionStatsTableSchema.parse(data);
   }
 };

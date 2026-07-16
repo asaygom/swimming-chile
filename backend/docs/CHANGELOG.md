@@ -32,6 +32,10 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   (`governing_body_code`, mostrado con `governing_body_name` igual que en la
   página de competencias); por defecto usa el año en curso y todos los
   circuitos.
+- Se agrega una pestaña de estadísticas por competencia con filas ordenadas de
+  más reciente a más antigua, filtrable por año y organismo rector/circuito,
+  y columnas equivalentes a las tarjetas del perfil de competencia más fecha y
+  largo de piscina.
 - `GET /api/stats/clubs/participation` y
   `GET /api/competitions/{id}/stats` calculan participación desde
   `core.result.club_id`, preservando el club representado históricamente en cada

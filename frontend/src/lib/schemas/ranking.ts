@@ -93,3 +93,28 @@ export const ClubParticipationMatrixSchema = z.object({
 });
 
 export type ClubParticipationMatrix = z.infer<typeof ClubParticipationMatrixSchema>;
+
+export const CompetitionStatsRowSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  name: z.string(),
+  date: z.string().nullable().optional(),
+  course_type: CourseTypeSchema.nullable().optional(),
+  governing_body_code: z.string().nullable().optional(),
+  governing_body_name: z.string().nullable().optional(),
+  participants_count: z.number().int(),
+  women_count: z.number().int(),
+  men_count: z.number().int(),
+  clubs_count: z.number().int(),
+  events_count: z.number().int(),
+  valid_results_count: z.number().int(),
+  dsq_count: z.number().int(),
+  entries_count: z.number().int(),
+});
+
+export const CompetitionStatsTableSchema = z.object({
+  year: z.number().int(),
+  governing_body: z.string(),
+  data: z.array(CompetitionStatsRowSchema),
+});
+
+export type CompetitionStatsTable = z.infer<typeof CompetitionStatsTableSchema>;

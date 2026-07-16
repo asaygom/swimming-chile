@@ -543,6 +543,51 @@ Filter catalog for club participation statistics.
 }
 ```
 
+### `GET /api/stats/competitions`
+
+Competition statistics table for the rankings/statistics page.
+
+**Query params:**
+
+- `year` (number, optional): competition year. Defaults to the current year when omitted.
+- `governing_body` (string, optional): governing body code, using the same circuit filter as the competitions page. Use `all` or omit to include all circuits.
+
+**Rules:**
+
+- Rows are competitions ordered from most recent to oldest.
+- Future competitions are excluded.
+- Competitions without any non-`dns`/`scratch` result are excluded.
+- The metric columns match the statistics cards shown in the competition profile.
+- The first two data columns are `date` and `course_type`.
+- Participants, women, men, clubs, DQ, valid results and entries use the same counting rules as `GET /api/competitions/{id}/stats`.
+
+**Response (200 OK):**
+
+```json
+{
+  "year": 2026,
+  "governing_body": "all",
+  "data": [
+    {
+      "id": 501,
+      "name": "I Copa Master 2026",
+      "date": "2026-03-15",
+      "course_type": "scm",
+      "governing_body_code": "fchmn",
+      "governing_body_name": "Federación Chilena de Deportes Acuáticos",
+      "participants_count": 120,
+      "women_count": 52,
+      "men_count": 68,
+      "clubs_count": 18,
+      "events_count": 34,
+      "valid_results_count": 420,
+      "dsq_count": 3,
+      "entries_count": 435
+    }
+  ]
+}
+```
+
 The `/rankings` frontend route separates swimmer rankings from club statistics in-page. Mobile renders swimmer rankings as cards; desktop renders the full table.
 
 ---

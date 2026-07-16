@@ -26,7 +26,7 @@ const courseLabels: Record<string, string> = {
   unknown: 'Sin dato de piscina',
 };
 
-type AnalyticsView = 'swimmers' | 'clubs';
+type AnalyticsView = 'swimmers' | 'clubs' | 'competitions';
 
 const currentYear = new Date().getFullYear();
 
@@ -101,7 +101,7 @@ export const RankingsPage: React.FC = () => {
   const clubStatsFilterQuery = useQuery({
     queryKey: ['club-stats-filter-options'],
     queryFn: () => rankingService.getClubStatsFilterOptions(),
-    enabled: activeView === 'clubs',
+    enabled: activeView === 'clubs' || activeView === 'competitions',
   });
 
   const clubParticipationMatrixQuery = useQuery({
@@ -111,6 +111,15 @@ export const RankingsPage: React.FC = () => {
       governing_body: clubStatsGoverningBody,
     }),
     enabled: activeView === 'clubs',
+  });
+
+  const competitionStatsQuery = useQuery({
+    queryKey: ['competition-stats-table', clubStatsYear, clubStatsGoverningBody],
+    queryFn: () => rankingService.getCompetitionStatsTable({
+      year: clubStatsYear,
+      governing_body: clubStatsGoverningBody,
+    }),
+    enabled: activeView === 'competitions',
   });
 
   const resetPage = (setter: (value: string) => void) => (value: string) => {
@@ -184,6 +193,17 @@ export const RankingsPage: React.FC = () => {
               }`}
             >
               Estadísticas de clubes
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('competitions')}
+              className={`min-w-[180px] rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors lg:min-w-0 ${
+                activeView === 'competitions'
+                  ? 'bg-brand-cyan text-brand-night ring-1 ring-brand-cyan/30'
+                  : 'text-brand-muted hover:bg-brand-panel hover:text-brand-white'
+              }`}
+            >
+              Estadísticas por competencia
             </button>
           </nav>
         </aside>
@@ -510,6 +530,104 @@ export const RankingsPage: React.FC = () => {
                                   </td>
                                 );
                               })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeView === 'competitions' && (
+            <section className="space-y-4">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-ink tracking-tight">Estadísticas por competencia</h2>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="text-sm font-medium text-content-muted">
+                    Año
+                    <select
+                      value={clubStatsYear}
+                      onChange={(event) => setClubStatsYear(event.target.value)}
+                      className="mt-1 block w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
+                    >
+                      <option value={currentYear}>{currentYear}</option>
+                      {clubStatsFilterQuery.data?.years.filter((value) => value !== currentYear).map((value) => (
+                        <option key={value} value={value}>{value}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="text-sm font-medium text-content-muted">
+                    Circuito
+                    <select
+                      value={clubStatsGoverningBody}
+                      onChange={(event) => setClubStatsGoverningBody(event.target.value)}
+                      className="mt-1 block w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
+                    >
+                      <option value="all">Todos los circuitos</option>
+                      {clubStatsFilterQuery.data?.governing_bodies.map((option) => (
+                        <option key={option.governing_body_code} value={option.governing_body_code}>
+                          {option.governing_body_name || option.governing_body_code.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-surface rounded-xl border border-line shadow-sm">
+
+                {competitionStatsQuery.isLoading && <LoadingState />}
+                {competitionStatsQuery.isError && <ErrorState onRetry={() => competitionStatsQuery.refetch()} />}
+                {!competitionStatsQuery.isLoading && !competitionStatsQuery.isError && competitionStatsQuery.data && (
+                  competitionStatsQuery.data.data.length === 0 ? (
+                    <EmptyState title="No hay competencias para estos filtros" description="Prueba con otro año o circuito." />
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-left text-sm">
+                        <thead className="bg-canvas text-content-muted">
+                          <tr>
+                            <th className="sticky left-0 z-20 min-w-[260px] border-r border-line bg-canvas px-4 py-3 font-semibold shadow-[4px_0_8px_-8px_rgba(15,23,42,0.45)]">Competencia</th>
+                            <th className="min-w-[110px] px-4 py-3 text-center font-semibold">Fecha</th>
+                            <th className="min-w-[130px] px-4 py-3 text-center font-semibold">Piscina</th>
+                            <th className="px-4 py-3 text-center font-semibold">Participantes</th>
+                            <th className="px-4 py-3 text-center font-semibold">Mujeres</th>
+                            <th className="px-4 py-3 text-center font-semibold">Hombres</th>
+                            <th className="px-4 py-3 text-center font-semibold">Clubes</th>
+                            <th className="px-4 py-3 text-center font-semibold">Pruebas</th>
+                            <th className="px-4 py-3 text-center font-semibold">Válidos</th>
+                            <th className="px-4 py-3 text-center font-semibold">DQ</th>
+                            <th className="px-4 py-3 text-center font-semibold">Entradas</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-line">
+                          {competitionStatsQuery.data.data.map((competition) => (
+                            <tr key={competition.id} className="hover:bg-canvas">
+                              <td className="sticky left-0 z-10 border-r border-line bg-surface px-4 py-3 shadow-[4px_0_8px_-8px_rgba(15,23,42,0.45)]">
+                                <Link to={`/competitions/${competition.id}`} className="font-semibold text-action hover:underline">
+                                  {competition.name}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-3 text-center text-content-muted">
+                                {competition.date ? new Date(`${competition.date}T12:00:00`).toLocaleDateString('es-CL') : 's/f'}
+                              </td>
+                              <td className="px-4 py-3 text-center text-content-muted">
+                                {competition.course_type ? courseLabels[competition.course_type] || competition.course_type.toUpperCase() : 'Sin dato'}
+                              </td>
+                              <td className="px-4 py-3 text-center font-semibold text-ink">{competition.participants_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.women_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.men_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.clubs_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.events_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.valid_results_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.dsq_count}</td>
+                              <td className="px-4 py-3 text-center text-content-muted">{competition.entries_count}</td>
                             </tr>
                           ))}
                         </tbody>

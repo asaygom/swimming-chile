@@ -126,6 +126,25 @@ def test_club_stats_filter_options_use_participation_data():
     assert "coalesce(r.status, 'unknown') not in ('dns', 'scratch')" in source
 
 
+def test_competition_stats_table_uses_profile_stats_by_year_and_governing_body():
+    source = normalized_source(STATS_ROUTER)
+
+    assert '@router.get("/competitions")' in source
+    assert "extract(year from current_date)::integer as current_year" in source
+    assert "extract(year from comp.start_date)::integer = %(year)s" in source
+    assert "comp.start_date <= current_date" in source
+    assert "and exists" in source
+    assert "comp.governing_body_code = %(governing_body)s" in source
+    assert "count(distinct athlete_id)::integer as participants_count" in source
+    assert "where athlete_gender = 'female'" in source
+    assert "where athlete_gender = 'male'" in source
+    assert "count(distinct club_id)" in source
+    assert "where status = 'dsq'" in source
+    assert "where status = 'valid'" in source
+    assert "events_count" in source
+    assert "order by fc.date desc nulls last, fc.name asc" in source
+
+
 def test_club_participation_only_aggregates_local_clubs():
     source = normalized_source(STATS_ROUTER)
 
@@ -169,6 +188,7 @@ def test_frontend_rankings_use_api_contract_not_fixture():
     assert "/api/stats/clubs/participation" in service
     assert "/api/stats/clubs/participation-matrix" in service
     assert "/api/stats/clubs/filter-options" in service
+    assert "/api/stats/competitions" in service
     assert "governing_body" in service
     assert "rankingfilteroptionsschema" in schema
     assert "strokes: z.array(strokeschema)" in schema
@@ -176,12 +196,14 @@ def test_frontend_rankings_use_api_contract_not_fixture():
     assert "clubparticipationresponseschema" in schema
     assert "clubparticipationmatrixschema" in schema
     assert "clubstatsfilteroptionsschema" in schema
+    assert "competitionstatstableschema" in schema
     assert "governing_bodies" in schema
     assert "event_age_group" in schema
     assert "current_age" in schema
     assert "filter((option) => option.stroke === normalizedstroke)" in page
     assert "setstroke(nextstroke)" in page
     assert "type analyticsview = 'swimmers' | 'clubs'" in page
+    assert "| 'competitions'" in page
     assert "activeview === 'swimmers'" in page
     assert "activeview === 'clubs'" in page
     assert "enabled: activeview === 'clubs'" in page
@@ -192,6 +214,10 @@ def test_frontend_rankings_use_api_contract_not_fixture():
     assert "rankingservice.getclubparticipation" in page
     assert "rankingservice.getclubparticipationmatrix" in page
     assert "rankingservice.getclubstatsfilteroptions" in page
+    assert "rankingservice.getcompetitionstatstable" in page
+    assert "activeview === 'competitions'" in page
+    assert "estadísticas por competencia" in page
+    assert "resumen anual de competencias" in page
     assert "clubstatsgoverningbody" in page
     assert "governing_body_name" in page
     assert "participación por competencia" in page
