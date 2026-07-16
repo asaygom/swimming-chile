@@ -23,5 +23,6 @@ backend/data/staging/*.xlsx
 backend/data/staging/nunoa_master_identity_preview/
 backend/data/staging/csv/*
 !backend/data/staging/csv/.gitkeep
+outputs
 
 .atl/

@@ -9,6 +9,27 @@ import { CourseBadge } from '../../../components/ui/CourseBadge';
 import { getCourseMeta } from '../../../lib/courseMeta';
 import type { Competition } from '../../../lib/schemas/competition';
 
+const GoverningBodyBadge: React.FC<{ competition: Competition }> = ({ competition }) => {
+  const governingBodyCode = competition.governing_body_code?.trim().toLowerCase();
+  const label = competition.governing_body_code?.trim().toUpperCase()
+    || competition.governing_body_name?.trim()
+    || competition.organizer?.trim();
+
+  if (!label) return null;
+
+  const colorClass = governingBodyCode === 'fchmn'
+    ? 'border-action/30 bg-action/10 text-action'
+    : governingBodyCode === 'fechida'
+      ? 'border-danger/30 bg-danger/10 text-danger-strong'
+      : 'border-line bg-canvas text-content-muted';
+
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${colorClass}`}>
+      {label}
+    </span>
+  );
+};
+
 const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = ({ comp, isUpcoming = false }) => {
   // Ajuste para evitar bugs de zona horaria: agregar T00:00:00 si viene solo YYYY-MM-DD
   const dateString = comp.date_start.includes('T') ? comp.date_start : `${comp.date_start}T12:00:00`;
@@ -30,8 +51,9 @@ const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = (
           <h3 className={`text-lg font-bold text-ink leading-tight transition-colors ${!isUpcoming ? 'group-hover:text-action' : ''}`}>
             {comp.name}
           </h3>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <CourseBadge courseType={comp.course_type} />
+            <GoverningBodyBadge competition={comp} />
           </div>
         </div>
       </div>
