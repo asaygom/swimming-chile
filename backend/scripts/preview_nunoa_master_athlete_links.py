@@ -142,6 +142,21 @@ def resolve_people(preview_rows: list[dict[str, str]]) -> list[PersonPreview]:
     return resolved
 
 
+def load_linked_person_ids(person_ids: list[int]) -> set[int]:
+    if not person_ids:
+        return set()
+    with connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT person_id
+            FROM core.athlete_person_link
+            WHERE person_id = ANY(%s)
+            """,
+            (person_ids,),
+        )
+        return {int(row["person_id"]) for row in cur.fetchall()}
+
+
 def load_current_club_athletes(club_id: int) -> list[Athlete]:
     with connect() as conn, conn.cursor() as cur:
         cur.execute(
@@ -156,6 +171,11 @@ def load_current_club_athletes(club_id: int) -> list[Athlete]:
             FROM core.athlete a
             JOIN core.athlete_current_club acc ON acc.athlete_id = a.id
             WHERE acc.club_id = %s
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM core.athlete_person_link apl
+                  WHERE apl.athlete_id = a.id
+              )
             ORDER BY a.full_name, a.id
             """,
             (club_id,),
@@ -277,6 +297,45 @@ def build_candidates(people: list[PersonPreview], athletes: list[Athlete]) -> li
     return rows
 
 
+def build_review_rows(
+    people: list[PersonPreview], candidates: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    candidates_by_person: dict[int, list[dict[str, Any]]] = {}
+    for candidate in candidates:
+        candidates_by_person.setdefault(int(candidate["person_id"]), []).append(candidate)
+
+    rows: list[dict[str, Any]] = []
+    for person in people:
+        person_candidates = candidates_by_person.get(person.person_id, [])
+        if person_candidates:
+            rows.extend(person_candidates)
+            continue
+        rows.append(
+            {
+                "person_id": person.person_id,
+                "person_row_number": person.row_number,
+                "person_has_rut": "yes" if person.rut_normalized else "no",
+                "person_name": f"{person.last_name}, {person.first_name}",
+                "person_competition_name": person.competition_name,
+                "person_birth_year": person.birth_year,
+                "person_gender": person.gender,
+                "athlete_id": "",
+                "athlete_full_name": "",
+                "athlete_birth_year": "",
+                "athlete_gender": "",
+                "current_club_id": "",
+                "current_club_name": "",
+                "matched_alias": "",
+                "name_score": "",
+                "confidence": "none",
+                "reasons": "no_candidate",
+                "decision": "",
+                "review_notes": "",
+            }
+        )
+    return rows
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
@@ -326,18 +385,30 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    people = resolve_people(load_preview_rows(Path(args.people_preview)))
+    preview_people = resolve_people(load_preview_rows(Path(args.people_preview)))
+    linked_person_ids = load_linked_person_ids(
+        [person.person_id for person in preview_people]
+    )
+    people = [
+        person for person in preview_people if person.person_id not in linked_person_ids
+    ]
     athletes = load_current_club_athletes(args.club_id)
     candidates = build_candidates(people, athletes)
+    review_rows = build_review_rows(people, candidates)
     output_csv = Path(args.output_csv)
     summary_json = Path(args.summary_json)
-    write_csv(output_csv, candidates)
+    write_csv(output_csv, review_rows)
+    people_with_candidates = len({row["person_id"] for row in candidates})
     summary = {
         "state": "candidate_links_generated",
-        "people": len(people),
-        "current_club_athletes": len(athletes),
+        "preview_people": len(preview_people),
+        "already_linked_people": len(linked_person_ids),
+        "unlinked_people": len(people),
+        "available_unlinked_athletes": len(athletes),
+        "review_rows": len(review_rows),
         "candidate_rows": len(candidates),
-        "people_with_candidates": len({row["person_id"] for row in candidates}),
+        "people_with_candidates": people_with_candidates,
+        "people_without_candidates": len(people) - people_with_candidates,
         "high_candidates": sum(1 for row in candidates if row["confidence"] == "high"),
         "medium_candidates": sum(1 for row in candidates if row["confidence"] == "medium"),
         "review_candidates": sum(1 for row in candidates if row["confidence"] == "review"),
