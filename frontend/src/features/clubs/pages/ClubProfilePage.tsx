@@ -201,7 +201,7 @@ export const ClubProfilePage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="mb-6">
         <button 
           onClick={() => navigate(-1)}

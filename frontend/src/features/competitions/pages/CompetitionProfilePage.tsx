@@ -202,6 +202,7 @@ export const CompetitionProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
+  const [expandedMedalTableId, setExpandedMedalTableId] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['competition-detail', id],
@@ -296,6 +297,9 @@ export const CompetitionProfilePage: React.FC = () => {
   const isSearching = searchQuery.trim().length > 0;
   const course = getCourseMeta(competition.course_type);
   const hasActiveFilters = searchQuery.trim() !== '' || genderFilter !== 'all';
+  const clubMedalTable = statsQuery.data?.club_medal_table ?? [];
+  const isMedalTableExpanded = expandedMedalTableId === id;
+  const visibleClubMedals = isMedalTableExpanded ? clubMedalTable : clubMedalTable.slice(0, 10);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -383,6 +387,66 @@ export const CompetitionProfilePage: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {clubMedalTable.length > 0 && (
+        <section className="space-y-4" aria-labelledby="club-medal-table-heading">
+          <div>
+            <h2 id="club-medal-table-heading" className="text-2xl font-bold tracking-tight text-ink">
+              Medallero de Clubes
+            </h2>
+            <p id="club-medal-table-description" className="mt-1 text-sm text-content-subtle">
+              Las categorías Pre-Master están excluidas de este medallero.
+            </p>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
+            <div className="overflow-x-auto">
+              <table id="club-medal-table" className="w-full min-w-[40rem] text-left text-sm" aria-describedby="club-medal-table-description">
+                <thead className="border-b border-line bg-canvas text-xs font-bold uppercase tracking-widest text-content-subtle">
+                  <tr>
+                    <th scope="col" className="w-20 px-4 py-3 text-center">Pos.</th>
+                    <th scope="col" className="px-4 py-3">Club</th>
+                    <th scope="col" className="px-4 py-3 text-right text-medal-gold">Oro</th>
+                    <th scope="col" className="px-4 py-3 text-right text-medal-silver">Plata</th>
+                    <th scope="col" className="px-4 py-3 text-right text-medal-bronze">Bronce</th>
+                    <th scope="col" className="px-4 py-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {visibleClubMedals.map((club, index) => (
+                    <tr key={club.club_id} className="transition-colors hover:bg-canvas">
+                      <td className="px-4 py-3 text-center font-bold text-content-subtle">{index + 1}</td>
+                      <th scope="row" className="px-4 py-3">
+                        <Link to={`/clubs/${club.club_id}`} className="font-semibold text-action hover:text-brand-steel hover:underline">
+                          {club.club_name}
+                        </Link>
+                      </th>
+                      <td className="px-4 py-3 text-right font-bold text-medal-gold">{club.gold_medals}</td>
+                      <td className="px-4 py-3 text-right font-bold text-medal-silver">{club.silver_medals}</td>
+                      <td className="px-4 py-3 text-right font-bold text-medal-bronze">{club.bronze_medals}</td>
+                      <td className="px-4 py-3 text-right font-black text-ink">{club.total_medals}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {clubMedalTable.length > 10 && (
+              <div className="border-t border-line px-4 py-3 text-center">
+                <button
+                  type="button"
+                  onClick={() => setExpandedMedalTableId(isMedalTableExpanded ? null : id ?? null)}
+                  aria-expanded={isMedalTableExpanded}
+                  aria-controls="club-medal-table"
+                  className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-action transition-colors hover:bg-canvas hover:text-brand-steel"
+                >
+                  {isMedalTableExpanded ? 'Ver menos' : 'Ver más'}
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {/* Resultados por Evento */}

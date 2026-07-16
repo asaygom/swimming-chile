@@ -70,6 +70,17 @@ export const CompetitionDetailResponseSchema = z.object({
 
 export type CompetitionDetailResponse = z.infer<typeof CompetitionDetailResponseSchema>;
 
+export const CompetitionClubMedalEntrySchema = z.object({
+  club_id: z.union([z.string(), z.number()]),
+  club_name: z.string(),
+  gold_medals: z.number().int(),
+  silver_medals: z.number().int(),
+  bronze_medals: z.number().int(),
+  total_medals: z.number().int(),
+});
+
+export type CompetitionClubMedalEntry = z.infer<typeof CompetitionClubMedalEntrySchema>;
+
 export const CompetitionStatsSchema = z.object({
   participants_count: z.number().int(),
   women_count: z.number().int(),
@@ -79,6 +90,7 @@ export const CompetitionStatsSchema = z.object({
   valid_results_count: z.number().int(),
   entries_count: z.number().int(),
   events_count: z.number().int(),
+  club_medal_table: z.array(CompetitionClubMedalEntrySchema).default([]),
 });
 
 export type CompetitionStats = z.infer<typeof CompetitionStatsSchema>;

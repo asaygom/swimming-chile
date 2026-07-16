@@ -285,7 +285,7 @@ Competition result pages use `source_url` as the official source link and use se
 
 ### `GET /api/competitions/{id}/stats`
 
-Participation statistics for one competition.
+Participation statistics and the complete club medal table for one competition.
 
 **Rules:**
 
@@ -294,6 +294,12 @@ Participation statistics for one competition.
 - Clubs are counted from historical result representation: `core.result.club_id`.
 - DSQ/DQ count uses `status = "dsq"`.
 - Valid results count uses `status = "valid"`.
+- The club medal table aggregates both individual and relay results; each eligible relay placement counts as one medal.
+- Only valid podium ranks from 1 through 3 are counted.
+- Club attribution uses the historical represented club from `core.result.club_id`, not the athlete's current club.
+- Pre-Master categories are excluded. This includes textual Pre-Master variants and numeric age ranges whose lower bound is under 25; aggregate relay ranges with a lower bound of 25 or more remain eligible.
+- Medal rows are ordered by gold descending, silver descending, bronze descending, and club name ascending.
+- The response returns every club with at least one eligible medal; pagination or frontend display limits do not alter the API response.
 
 **Response (200 OK):**
 
@@ -306,7 +312,17 @@ Participation statistics for one competition.
   "dsq_count": 3,
   "valid_results_count": 420,
   "entries_count": 435,
-  "events_count": 34
+  "events_count": 34,
+  "club_medal_table": [
+    {
+      "club_id": 10,
+      "club_name": "Estadio Español",
+      "gold_medals": 12,
+      "silver_medals": 8,
+      "bronze_medals": 5,
+      "total_medals": 25
+    }
+  ]
 }
 ```
 

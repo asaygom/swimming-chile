@@ -173,6 +173,59 @@ def get_competition_stats(competition_id: int):
             """, (competition_id,))
             stats["events_count"] = cur.fetchone()["events_count"]
 
+            cur.execute("""
+                WITH eligible_events AS (
+                    SELECT e.id
+                    FROM core.event e
+                    WHERE e.competition_id = %(competition_id)s
+                      AND NOT (
+                          -- Normalize textual variants such as Premaster, Pre-Master and Pre Master.
+                          REGEXP_REPLACE(LOWER(COALESCE(e.age_group, '')), '[^a-z0-9]+', '', 'g')
+                              LIKE '%%premaster%%'
+                          OR CASE
+                              -- Only numeric ranges below 25 are Pre-Master; relay totals like 72-99 remain eligible.
+                              WHEN LOWER(TRIM(e.age_group)) ~
+                                  '^[0-9]+[[:space:]]*(-|–|—|a)[[:space:]]*[0-9]+([[:space:]]*años?)?$'
+                              THEN SUBSTRING(TRIM(e.age_group) FROM '^([0-9]+)')::INTEGER < 25
+                              ELSE FALSE
+                          END
+                      )
+                ),
+                medal_results AS (
+                    SELECT r.club_id, r.rank_position
+                    FROM core.result r
+                    JOIN eligible_events ee ON ee.id = r.event_id
+                    WHERE r.club_id IS NOT NULL
+                      AND r.status = 'valid'
+                      AND r.rank_position IN (1, 2, 3)
+
+                    UNION ALL
+
+                    SELECT rr.club_id, rr.rank_position
+                    FROM core.relay_result rr
+                    JOIN eligible_events ee ON ee.id = rr.event_id
+                    WHERE rr.club_id IS NOT NULL
+                      AND rr.status = 'valid'
+                      AND rr.rank_position IN (1, 2, 3)
+                )
+                SELECT
+                    c.id AS club_id,
+                    c.name AS club_name,
+                    COUNT(*) FILTER (WHERE rank_position = 1)::INTEGER AS gold_medals,
+                    COUNT(*) FILTER (WHERE rank_position = 2)::INTEGER AS silver_medals,
+                    COUNT(*) FILTER (WHERE rank_position = 3)::INTEGER AS bronze_medals,
+                    COUNT(*)::INTEGER AS total_medals
+                FROM medal_results mr
+                JOIN core.club c ON c.id = mr.club_id
+                GROUP BY c.id, c.name
+                ORDER BY
+                    gold_medals DESC,
+                    silver_medals DESC,
+                    bronze_medals DESC,
+                    club_name ASC
+            """, {"competition_id": competition_id})
+            stats["club_medal_table"] = cur.fetchall()
+
             return stats
 
 @router.get("/{competition_id}")

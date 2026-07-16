@@ -44,6 +44,34 @@ def test_competitions_api_exposes_filter_options_from_database():
     assert '"governing_bodies": governing_bodies' in source
 
 
+def test_competition_stats_exposes_club_medal_table_for_master_events():
+    source = normalized_source(COMPETITIONS_ROUTER)
+
+    assert "with eligible_events as (" in source
+    assert "e.competition_id = %(competition_id)s" in source
+    assert (
+        "regexp_replace(lower(coalesce(e.age_group, '')), "
+        "'[^a-z0-9]+', '', 'g') like '%%premaster%%'"
+    ) in source
+    assert "substring(trim(e.age_group) from '^([0-9]+)')::integer < 25" in source
+    assert source.count("join eligible_events") == 2
+    assert "from core.result r join eligible_events" in source
+    assert "from core.relay_result rr join eligible_events" in source
+    assert source.count("status = 'valid'") >= 2
+    assert source.count("rank_position in (1, 2, 3)") >= 2
+    assert source.count("club_id is not null") >= 2
+    assert "union all" in source
+    assert "count(*) filter (where rank_position = 1)::integer as gold_medals" in source
+    assert "count(*) filter (where rank_position = 2)::integer as silver_medals" in source
+    assert "count(*) filter (where rank_position = 3)::integer as bronze_medals" in source
+    assert "count(*)::integer as total_medals" in source
+    assert (
+        "order by gold_medals desc, silver_medals desc, bronze_medals desc, "
+        "club_name asc"
+    ) in source
+    assert 'stats["club_medal_table"] = cur.fetchall()' in source
+
+
 def test_governing_body_migration_keeps_source_scope_and_organizer_separate():
     source = normalized_source(GOVERNING_BODY_MIGRATION)
 
