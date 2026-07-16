@@ -285,7 +285,7 @@ Competition result pages use `source_url` as the official source link and use se
 
 ### `GET /api/competitions/{id}/stats`
 
-Participation statistics and the complete club medal table for one competition.
+Participation statistics and the complete club medal and audited points tables for one competition.
 
 **Rules:**
 
@@ -296,10 +296,13 @@ Participation statistics and the complete club medal table for one competition.
 - Valid results count uses `status = "valid"`.
 - The club medal table aggregates both individual and relay results; each eligible relay placement counts as one medal.
 - Only valid podium ranks from 1 through 3 are counted.
+- The club points table recalculates points from valid finishing positions 1 through 8 using exactly `9, 7, 6, 5, 4, 3, 2, 1` points.
+- Relay placements use the same scale multiplied by 2. Points are independent of any source-provided or stored database points.
 - Club attribution uses the historical represented club from `core.result.club_id`, not the athlete's current club.
-- Pre-Master categories are excluded. This includes textual Pre-Master variants and numeric age ranges whose lower bound is under 25; aggregate relay ranges with a lower bound of 25 or more remain eligible.
+- Both club tables share the same Pre-Master exclusion. This includes textual Pre-Master variants and numeric age ranges whose lower bound is under 25; aggregate relay ranges with a lower bound of 25 or more remain eligible.
 - Medal rows are ordered by gold descending, silver descending, bronze descending, and club name ascending.
-- The response returns every club with at least one eligible medal; pagination or frontend display limits do not alter the API response.
+- Points rows are ordered by total points descending and club name ascending.
+- The response returns all qualifying rows in both tables; pagination or frontend display limits do not alter the API response.
 
 **Response (200 OK):**
 
@@ -321,6 +324,15 @@ Participation statistics and the complete club medal table for one competition.
       "silver_medals": 8,
       "bronze_medals": 5,
       "total_medals": 25
+    }
+  ],
+  "club_points_table": [
+    {
+      "club_id": 10,
+      "club_name": "Estadio Español",
+      "individual_points": 148,
+      "relay_points": 54,
+      "total_points": 202
     }
   ]
 }

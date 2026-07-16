@@ -191,40 +191,100 @@ def get_competition_stats(competition_id: int):
                           END
                       )
                 ),
-                medal_results AS (
-                    SELECT r.club_id, r.rank_position
+                placements AS (
+                    SELECT r.club_id, r.rank_position, 'individual' AS placement_type
                     FROM core.result r
                     JOIN eligible_events ee ON ee.id = r.event_id
                     WHERE r.club_id IS NOT NULL
                       AND r.status = 'valid'
-                      AND r.rank_position IN (1, 2, 3)
+                      AND r.rank_position BETWEEN 1 AND 8
 
                     UNION ALL
 
-                    SELECT rr.club_id, rr.rank_position
+                    SELECT rr.club_id, rr.rank_position, 'relay' AS placement_type
                     FROM core.relay_result rr
                     JOIN eligible_events ee ON ee.id = rr.event_id
                     WHERE rr.club_id IS NOT NULL
                       AND rr.status = 'valid'
-                      AND rr.rank_position IN (1, 2, 3)
+                      AND rr.rank_position BETWEEN 1 AND 8
+                ),
+                scored_placements AS (
+                    SELECT
+                        club_id,
+                        rank_position,
+                        placement_type,
+                        CASE
+                            WHEN rank_position = 1 THEN 9
+                            WHEN rank_position = 2 THEN 7
+                            WHEN rank_position = 3 THEN 6
+                            WHEN rank_position = 4 THEN 5
+                            WHEN rank_position = 5 THEN 4
+                            WHEN rank_position = 6 THEN 3
+                            WHEN rank_position = 7 THEN 2
+                            WHEN rank_position = 8 THEN 1
+                        END AS base_points
+                    FROM placements
+                ),
+                club_totals AS (
+                    SELECT
+                        c.id AS club_id,
+                        c.name AS club_name,
+                        COUNT(*) FILTER (WHERE rank_position = 1)::INTEGER AS gold_medals,
+                        COUNT(*) FILTER (WHERE rank_position = 2)::INTEGER AS silver_medals,
+                        COUNT(*) FILTER (WHERE rank_position = 3)::INTEGER AS bronze_medals,
+                        COUNT(*) FILTER (WHERE rank_position BETWEEN 1 AND 3)::INTEGER AS total_medals,
+                        COALESCE(SUM(base_points) FILTER (
+                            WHERE placement_type = 'individual'
+                        ), 0)::INTEGER AS individual_points,
+                        COALESCE(SUM(CASE
+                            WHEN placement_type = 'relay' THEN base_points * 2
+                            ELSE 0
+                        END), 0)::INTEGER AS relay_points
+                    FROM scored_placements sp
+                    JOIN core.club c ON c.id = sp.club_id
+                    GROUP BY c.id, c.name
+                ),
+                club_scores AS (
+                    SELECT
+                        *,
+                        individual_points + relay_points AS total_points
+                    FROM club_totals
                 )
                 SELECT
-                    c.id AS club_id,
-                    c.name AS club_name,
-                    COUNT(*) FILTER (WHERE rank_position = 1)::INTEGER AS gold_medals,
-                    COUNT(*) FILTER (WHERE rank_position = 2)::INTEGER AS silver_medals,
-                    COUNT(*) FILTER (WHERE rank_position = 3)::INTEGER AS bronze_medals,
-                    COUNT(*)::INTEGER AS total_medals
-                FROM medal_results mr
-                JOIN core.club c ON c.id = mr.club_id
-                GROUP BY c.id, c.name
-                ORDER BY
-                    gold_medals DESC,
-                    silver_medals DESC,
-                    bronze_medals DESC,
-                    club_name ASC
+                    COALESCE(
+                        JSONB_AGG(
+                            JSONB_BUILD_OBJECT(
+                                'club_id', club_id,
+                                'club_name', club_name,
+                                'gold_medals', gold_medals,
+                                'silver_medals', silver_medals,
+                                'bronze_medals', bronze_medals,
+                                'total_medals', total_medals
+                            ) ORDER BY
+                                gold_medals DESC,
+                                silver_medals DESC,
+                                bronze_medals DESC,
+                                club_name ASC
+                        ) FILTER (WHERE total_medals > 0),
+                        '[]'::JSONB
+                    ) AS club_medal_table,
+                    COALESCE(
+                        JSONB_AGG(
+                            JSONB_BUILD_OBJECT(
+                                'club_id', club_id,
+                                'club_name', club_name,
+                                'individual_points', individual_points,
+                                'relay_points', relay_points,
+                                'total_points', total_points
+                            ) ORDER BY total_points DESC, club_name ASC
+                        ),
+                        '[]'::JSONB
+                    ) AS club_points_table
+                FROM club_scores
             """, {"competition_id": competition_id})
-            stats["club_medal_table"] = cur.fetchall()
+            club_tables = cur.fetchone()
+            stats["club_medal_table"] = club_tables["club_medal_table"]
+            stats["club_points_table"] = club_tables["club_points_table"]
 
             return stats
 

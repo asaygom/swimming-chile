@@ -81,6 +81,16 @@ export const CompetitionClubMedalEntrySchema = z.object({
 
 export type CompetitionClubMedalEntry = z.infer<typeof CompetitionClubMedalEntrySchema>;
 
+export const CompetitionClubPointsEntrySchema = z.object({
+  club_id: z.union([z.string(), z.number()]),
+  club_name: z.string(),
+  individual_points: z.number().int(),
+  relay_points: z.number().int(),
+  total_points: z.number().int(),
+});
+
+export type CompetitionClubPointsEntry = z.infer<typeof CompetitionClubPointsEntrySchema>;
+
 export const CompetitionStatsSchema = z.object({
   participants_count: z.number().int(),
   women_count: z.number().int(),
@@ -91,6 +101,7 @@ export const CompetitionStatsSchema = z.object({
   entries_count: z.number().int(),
   events_count: z.number().int(),
   club_medal_table: z.array(CompetitionClubMedalEntrySchema).default([]),
+  club_points_table: z.array(CompetitionClubPointsEntrySchema).default([]),
 });
 
 export type CompetitionStats = z.infer<typeof CompetitionStatsSchema>;
