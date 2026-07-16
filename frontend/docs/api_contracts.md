@@ -475,6 +475,74 @@ Club participation ranking.
 }
 ```
 
+### `GET /api/stats/clubs/participation-matrix`
+
+Club-by-competition participation matrix, inspired by the annual master team participation reports.
+
+**Query params:**
+
+- `year` (number, optional): competition year. Defaults to the current year when omitted.
+- `governing_body` (string, optional): governing body code, using the same circuit filter as the competitions page. Use `all` or omit to include all circuits.
+
+**Rules:**
+
+- Rows are clubs ordered by total participation, descending.
+- Columns are competitions for the selected year and circuit, ordered by date.
+- Each cell counts unique athletes that represented that club in that competition.
+- The first table row in the frontend is the total participation per competition.
+- Club attribution uses `core.result.club_id`.
+- `dns` and `scratch` rows are excluded.
+- Only local clubs are aggregated when `core.club.is_local` is available.
+
+**Response (200 OK):**
+
+```json
+{
+  "year": 2026,
+  "governing_body": "all",
+  "competitions": [
+    {
+      "id": 501,
+      "name": "I Copa Master 2026",
+      "date": "2026-03-15"
+    }
+  ],
+  "totals": {
+    "501": 120
+  },
+  "clubs": [
+    {
+      "rank": 1,
+      "club_id": 10,
+      "club_name": "Estadio Español",
+      "total_athletes": 42,
+      "competitions_count": 3,
+      "cells": {
+        "501": 18
+      }
+    }
+  ]
+}
+```
+
+### `GET /api/stats/clubs/filter-options`
+
+Filter catalog for club participation statistics.
+
+**Response (200 OK):**
+
+```json
+{
+  "years": [2026, 2025],
+  "governing_bodies": [
+    {
+      "governing_body_code": "fchmn",
+      "governing_body_name": "Federación Chilena de Deportes Acuáticos"
+    }
+  ]
+}
+```
+
 The `/rankings` frontend route separates swimmer rankings from club statistics in-page. Mobile renders swimmer rankings as cards; desktop renders the full table.
 
 ---

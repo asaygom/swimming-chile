@@ -24,6 +24,14 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
 - El buscador de atleta en rankings se aplica después de calcular el ranking
   filtrado, por lo que las coincidencias conservan su posición real dentro de
   la prueba, categoría, género, piscina y periodo seleccionados.
+- La pestaña de estadísticas de clubes agrega una matriz club × competencia,
+  inspirada en los reportes anuales de participación master: filas de clubes
+  ordenadas por participación total, columnas de competencias, celdas con
+  atletas únicos que representaron al club y primera fila con total por
+  competencia. Se puede filtrar por año y organismo rector/circuito
+  (`governing_body_code`, mostrado con `governing_body_name` igual que en la
+  página de competencias); por defecto usa el año en curso y todos los
+  circuitos.
 - `GET /api/stats/clubs/participation` y
   `GET /api/competitions/{id}/stats` calculan participación desde
   `core.result.club_id`, preservando el club representado históricamente en cada

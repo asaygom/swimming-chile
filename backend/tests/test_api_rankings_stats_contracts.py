@@ -101,6 +101,31 @@ def test_club_participation_uses_represented_club_from_result_rows():
     assert "athlete.club_id" not in source
 
 
+def test_club_participation_matrix_counts_unique_athletes_by_competition():
+    source = normalized_source(STATS_ROUTER)
+
+    assert '@router.get("/clubs/participation-matrix")' in source
+    assert "extract(year from current_date)::integer as current_year" in source
+    assert "extract(year from comp.start_date)::integer = %(year)s" in source
+    assert "comp.governing_body_code = %(governing_body)s" in source
+    assert "count(distinct r.athlete_id)::integer as athletes_count" in source
+    assert "sum(athletes_count)::integer as total_athletes" in source
+    assert "sum(athletes_count)::integer as athletes_count" in source
+    assert '"competitions": competitions' in STATS_ROUTER.read_text(encoding="utf-8")
+    assert '"totals": totals' in STATS_ROUTER.read_text(encoding="utf-8")
+    assert '"clubs": clubs' in STATS_ROUTER.read_text(encoding="utf-8")
+    assert "join core.club club on club.id = r.club_id" in source
+
+
+def test_club_stats_filter_options_use_participation_data():
+    source = normalized_source(STATS_ROUTER)
+
+    assert '@router.get("/clubs/filter-options")' in source
+    assert "select distinct extract(year from comp.start_date)::integer as year" in source
+    assert "select distinct comp.governing_body_code, comp.governing_body_name" in source
+    assert "coalesce(r.status, 'unknown') not in ('dns', 'scratch')" in source
+
+
 def test_club_participation_only_aggregates_local_clubs():
     source = normalized_source(STATS_ROUTER)
 
@@ -142,10 +167,16 @@ def test_frontend_rankings_use_api_contract_not_fixture():
     assert "/api/rankings" in service
     assert "athlete_search" in service
     assert "/api/stats/clubs/participation" in service
+    assert "/api/stats/clubs/participation-matrix" in service
+    assert "/api/stats/clubs/filter-options" in service
+    assert "governing_body" in service
     assert "rankingfilteroptionsschema" in schema
     assert "strokes: z.array(strokeschema)" in schema
     assert "event_options: z.array" in schema
     assert "clubparticipationresponseschema" in schema
+    assert "clubparticipationmatrixschema" in schema
+    assert "clubstatsfilteroptionsschema" in schema
+    assert "governing_bodies" in schema
     assert "event_age_group" in schema
     assert "current_age" in schema
     assert "filter((option) => option.stroke === normalizedstroke)" in page
@@ -159,6 +190,12 @@ def test_frontend_rankings_use_api_contract_not_fixture():
     assert "buscar atleta en este ranking" in page
     assert "mostrando coincidencias" in page
     assert "rankingservice.getclubparticipation" in page
+    assert "rankingservice.getclubparticipationmatrix" in page
+    assert "rankingservice.getclubstatsfilteroptions" in page
+    assert "clubstatsgoverningbody" in page
+    assert "governing_body_name" in page
+    assert "participación por competencia" in page
+    assert "total competencia" in page
     assert "path: 'rankings'" in app_router
     assert "to=\"/rankings\"" in layout
     assert "rankings</span>" in layout

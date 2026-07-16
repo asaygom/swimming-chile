@@ -28,6 +28,16 @@ const courseLabels: Record<string, string> = {
 
 type AnalyticsView = 'swimmers' | 'clubs';
 
+const currentYear = new Date().getFullYear();
+
+function formatCompetitionDate(date?: string | null) {
+  if (!date) return 's/f';
+  return new Date(`${date}T12:00:00`).toLocaleDateString('es-CL', {
+    day: '2-digit',
+    month: 'short',
+  });
+}
+
 export const RankingsPage: React.FC = () => {
   const [activeView, setActiveView] = React.useState<AnalyticsView>('swimmers');
   const [distance, setDistance] = React.useState('50');
@@ -39,6 +49,8 @@ export const RankingsPage: React.FC = () => {
   const [page, setPage] = React.useState(1);
   const [athleteSearchInput, setAthleteSearchInput] = React.useState('');
   const [athleteSearch, setAthleteSearch] = React.useState('');
+  const [clubStatsYear, setClubStatsYear] = React.useState(String(currentYear));
+  const [clubStatsGoverningBody, setClubStatsGoverningBody] = React.useState('all');
 
   const filtersQuery = useQuery({
     queryKey: ['ranking-filter-options'],
@@ -78,8 +90,26 @@ export const RankingsPage: React.FC = () => {
   });
 
   const clubParticipationQuery = useQuery({
-    queryKey: ['club-participation'],
-    queryFn: () => rankingService.getClubParticipation(1),
+    queryKey: ['club-participation', clubStatsYear, clubStatsGoverningBody],
+    queryFn: () => rankingService.getClubParticipation(1, {
+      year: clubStatsYear,
+      governing_body: clubStatsGoverningBody,
+    }),
+    enabled: activeView === 'clubs',
+  });
+
+  const clubStatsFilterQuery = useQuery({
+    queryKey: ['club-stats-filter-options'],
+    queryFn: () => rankingService.getClubStatsFilterOptions(),
+    enabled: activeView === 'clubs',
+  });
+
+  const clubParticipationMatrixQuery = useQuery({
+    queryKey: ['club-participation-matrix', clubStatsYear, clubStatsGoverningBody],
+    queryFn: () => rankingService.getClubParticipationMatrix({
+      year: clubStatsYear,
+      governing_body: clubStatsGoverningBody,
+    }),
     enabled: activeView === 'clubs',
   });
 
@@ -348,9 +378,43 @@ export const RankingsPage: React.FC = () => {
 
           {activeView === 'clubs' && (
             <section className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-ink tracking-tight">Clubes con mayor participación</h2>
-                <p className="text-content-subtle text-sm">Ordenado por nadadores únicos, competencias disputadas y entradas.</p>
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-ink tracking-tight">Clubes con mayor participación</h2>
+                  <p className="text-content-subtle text-sm">Ordenado por nadadores únicos que representaron a cada club.</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="text-sm font-medium text-content-muted">
+                    Año
+                    <select
+                      value={clubStatsYear}
+                      onChange={(event) => setClubStatsYear(event.target.value)}
+                      className="mt-1 block w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
+                    >
+                      <option value={currentYear}>{currentYear}</option>
+                      {clubStatsFilterQuery.data?.years.filter((value) => value !== currentYear).map((value) => (
+                        <option key={value} value={value}>{value}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="text-sm font-medium text-content-muted">
+                    Circuito
+                    <select
+                      value={clubStatsGoverningBody}
+                      onChange={(event) => setClubStatsGoverningBody(event.target.value)}
+                      className="mt-1 block w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
+                    >
+                      <option value="all">Todos los circuitos</option>
+                      {clubStatsFilterQuery.data?.governing_bodies.map((option) => (
+                        <option key={option.governing_body_code} value={option.governing_body_code}>
+                          {option.governing_body_name || option.governing_body_code.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
               </div>
 
               {clubParticipationQuery.isLoading && <LoadingState />}
@@ -382,6 +446,78 @@ export const RankingsPage: React.FC = () => {
                   ))}
                 </div>
               )}
+
+              <div className="bg-surface rounded-xl border border-line shadow-sm">
+                <div className="border-b border-line px-4 py-4 sm:px-6">
+                  <h3 className="font-bold text-ink">Participación por competencia</h3>
+                  <p className="mt-1 text-sm text-content-subtle">
+                    Atletas únicos que representaron al club en cada competencia.
+                  </p>
+                </div>
+
+                {clubParticipationMatrixQuery.isLoading && <LoadingState />}
+                {clubParticipationMatrixQuery.isError && <ErrorState onRetry={() => clubParticipationMatrixQuery.refetch()} />}
+                {!clubParticipationMatrixQuery.isLoading && !clubParticipationMatrixQuery.isError && clubParticipationMatrixQuery.data && (
+                  clubParticipationMatrixQuery.data.competitions.length === 0 ? (
+                    <EmptyState title="No hay participación para estos filtros" description="Prueba con otro año o circuito." />
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-left text-sm">
+                        <thead className="bg-canvas text-content-muted">
+                          <tr>
+                            <th className="sticky left-0 z-20 min-w-[220px] border-r border-line bg-canvas px-4 py-3 font-semibold shadow-[4px_0_8px_-8px_rgba(15,23,42,0.45)]">Club</th>
+                            <th className="min-w-[96px] px-4 py-3 text-center font-semibold">Total</th>
+                            {clubParticipationMatrixQuery.data.competitions.map((competition) => (
+                              <th key={competition.id} className="min-w-[140px] px-3 py-3 text-center align-bottom font-semibold">
+                                <Link to={`/competitions/${competition.id}`} className="block max-h-14 overflow-hidden text-action hover:underline">
+                                  {competition.name}
+                                </Link>
+                                <span className="mt-1 block text-xs font-normal text-content-subtle">
+                                  {formatCompetitionDate(competition.date)}
+                                </span>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-line">
+                          <tr className="bg-brand-cyan/10 font-bold text-ink">
+                            <td className="sticky left-0 z-20 border-r border-brand-cyan/30 bg-surface px-4 py-3 shadow-[4px_0_8px_-8px_rgba(15,23,42,0.45)]">Total competencia</td>
+                            <td className="px-4 py-3 text-center">
+                              {Object.values(clubParticipationMatrixQuery.data.totals).reduce((sum, value) => sum + value, 0)}
+                            </td>
+                            {clubParticipationMatrixQuery.data.competitions.map((competition) => (
+                              <td key={competition.id} className="px-3 py-3 text-center">
+                                {clubParticipationMatrixQuery.data.totals[String(competition.id)] || 0}
+                              </td>
+                            ))}
+                          </tr>
+
+                          {clubParticipationMatrixQuery.data.clubs.map((club) => (
+                            <tr key={club.club_id} className="hover:bg-canvas">
+                              <td className="sticky left-0 z-10 border-r border-line bg-surface px-4 py-3 shadow-[4px_0_8px_-8px_rgba(15,23,42,0.45)]">
+                                <Link to={`/clubs/${club.club_id}`} className="font-semibold text-action hover:underline">
+                                  {club.rank}. {club.club_name}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-3 text-center font-bold text-ink">{club.total_athletes}</td>
+                              {clubParticipationMatrixQuery.data.competitions.map((competition) => {
+                                const count = club.cells[String(competition.id)] || 0;
+                                return (
+                                  <td key={competition.id} className="px-3 py-3 text-center">
+                                    <span className={count > 0 ? 'font-semibold text-ink' : 'text-content-subtle'}>
+                                      {count > 0 ? count : '—'}
+                                    </span>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
+                )}
+              </div>
             </section>
           )}
         </div>

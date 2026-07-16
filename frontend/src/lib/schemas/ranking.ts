@@ -62,3 +62,34 @@ export const ClubParticipationResponseSchema = z.object({
 });
 
 export type ClubParticipationResponse = z.infer<typeof ClubParticipationResponseSchema>;
+
+export const ClubStatsFilterOptionsSchema = z.object({
+  years: z.array(z.number().int()),
+  governing_bodies: z.array(z.object({
+    governing_body_code: z.string(),
+    governing_body_name: z.string().nullable().optional(),
+  })),
+});
+
+export type ClubStatsFilterOptions = z.infer<typeof ClubStatsFilterOptionsSchema>;
+
+export const ClubParticipationMatrixSchema = z.object({
+  year: z.number().int(),
+  governing_body: z.string(),
+  competitions: z.array(z.object({
+    id: z.union([z.string(), z.number()]),
+    name: z.string(),
+    date: z.string().nullable().optional(),
+  })),
+  totals: z.record(z.string(), z.number().int()),
+  clubs: z.array(z.object({
+    rank: z.number().int(),
+    club_id: z.union([z.string(), z.number()]),
+    club_name: z.string(),
+    total_athletes: z.number().int(),
+    competitions_count: z.number().int(),
+    cells: z.record(z.string(), z.number().int()),
+  })),
+});
+
+export type ClubParticipationMatrix = z.infer<typeof ClubParticipationMatrixSchema>;

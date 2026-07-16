@@ -1,10 +1,14 @@
 import {
+  ClubParticipationMatrixSchema,
   ClubParticipationResponseSchema,
+  ClubStatsFilterOptionsSchema,
   RankingFilterOptionsSchema,
   RankingsResponseSchema,
 } from '../../../lib/schemas/ranking';
 import type {
+  ClubParticipationMatrix,
   ClubParticipationResponse,
+  ClubStatsFilterOptions,
   RankingFilterOptions,
   RankingsResponse,
 } from '../../../lib/schemas/ranking';
@@ -23,6 +27,12 @@ export type RankingQuery = {
   page?: number;
 };
 
+export type ClubStatsQuery = {
+  year?: string;
+  competition_scope?: string;
+  governing_body?: string;
+};
+
 function appendFilter(url: URL, key: string, value?: string) {
   if (value && value !== 'all') {
     url.searchParams.append(key, value);
@@ -39,6 +49,7 @@ export const rankingService = {
     appendFilter(url, 'course_type', query.course_type);
     appendFilter(url, 'year', query.year);
     appendFilter(url, 'competition_scope', query.competition_scope);
+    appendFilter(url, 'governing_body', query.governing_body);
     appendFilter(url, 'athlete_search', query.athlete_search);
     url.searchParams.append('page', String(query.page || 1));
 
@@ -57,8 +68,10 @@ export const rankingService = {
     return RankingFilterOptionsSchema.parse(data);
   },
 
-  async getClubParticipation(page: number = 1): Promise<ClubParticipationResponse> {
+  async getClubParticipation(page: number = 1, query: ClubStatsQuery = {}): Promise<ClubParticipationResponse> {
     const url = new URL(`${API_BASE_URL}/api/stats/clubs/participation`);
+    appendFilter(url, 'year', query.year);
+    appendFilter(url, 'competition_scope', query.competition_scope);
     url.searchParams.append('page', String(page));
 
     const response = await fetch(url);
@@ -66,5 +79,25 @@ export const rankingService = {
 
     const data = await response.json();
     return ClubParticipationResponseSchema.parse(data);
+  },
+
+  async getClubStatsFilterOptions(): Promise<ClubStatsFilterOptions> {
+    const response = await fetch(`${API_BASE_URL}/api/stats/clubs/filter-options`);
+    if (!response.ok) throw new Error('Failed to fetch club stats filter options');
+
+    const data = await response.json();
+    return ClubStatsFilterOptionsSchema.parse(data);
+  },
+
+  async getClubParticipationMatrix(query: ClubStatsQuery = {}): Promise<ClubParticipationMatrix> {
+    const url = new URL(`${API_BASE_URL}/api/stats/clubs/participation-matrix`);
+    appendFilter(url, 'year', query.year);
+    appendFilter(url, 'governing_body', query.governing_body);
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch club participation matrix');
+
+    const data = await response.json();
+    return ClubParticipationMatrixSchema.parse(data);
   }
 };
