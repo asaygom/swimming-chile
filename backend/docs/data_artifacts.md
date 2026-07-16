@@ -85,6 +85,15 @@ Scripts de carga derivados:
 .\backend\.venv\Scripts\python.exe backend\scripts\prepare_nunoa_master_athlete_link_sql.py
 ```
 
+El generador de vínculos cruza cada decisión `link` con `people_preview.csv` y
+resuelve la persona nuevamente en la base de destino: por RUT o, cuando no hay
+RUT, por `data_source`, nombre, apellido y fecha de nacimiento. Nunca considera
+portable un `identity.person.id` generado por otra base. También resuelve el
+club por `name`/`short_name`, valida membresía y atleta, y genera tanto el SQL
+idempotente de carga como un SQL separado de reparación estricta. Este último
+sólo debe usarse para corregir una carga previa no portable y aborta si no
+encuentra exactamente los pares erróneos esperados.
+
 Los SQL generados bajo `backend/data/staging/nunoa_master_identity_preview/`
 contienen PII o asociaciones persona-atleta y no se versionan. Estos SQL deben
 revisarse antes de ejecutar y declaran `\encoding UTF8` para que `psql` en
