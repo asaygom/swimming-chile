@@ -42,7 +42,7 @@ REQUIRED_COLUMNS = {
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 RUT_RE = re.compile(r"^[0-9]{7,8}[0-9K]$")
 GENDER_MAP = {"M": "male", "F": "female"}
-NON_BLOCKING_ISSUES = {"missing_rut"}
+NON_BLOCKING_ISSUES = {"missing_rut", "competition_name_mismatch"}
 
 
 @dataclass
@@ -377,6 +377,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional database URL. Defaults to DATABASE_URL from backend/.env/environment.",
     )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Do not connect to a database, even when backend/.env defines credentials.",
+    )
     return parser.parse_args()
 
 
@@ -386,7 +391,11 @@ def main() -> None:
     load_dotenv(backend_dir / ".env")
     workbook_path = Path(args.workbook)
     output_dir = Path(args.output_dir)
-    database_url = db_connect_kwargs(args.database_url or os.getenv("DATABASE_URL"))
+    database_url = (
+        None
+        if args.offline
+        else db_connect_kwargs(args.database_url or os.getenv("DATABASE_URL"))
+    )
 
     members = load_members(workbook_path)
     db = load_db_state(database_url, args.club_name)

@@ -500,7 +500,7 @@ export const CompetitionProfilePage: React.FC = () => {
               hidden={activeClubTable !== 'points'}
             >
               <p id="club-points-table-description" className="px-4 py-3 text-sm text-content-subtle">
-                Los puntos se recalculan desde las posiciones, independientemente de los puntos de la fuente o la base de datos; los relevos puntúan el doble. Se aplica la misma exclusión de categorías Pre-Master.
+                Los puntos se recalculan desde las posiciones, independientemente de los puntos de la fuente. Se aplica la misma exclusión de categorías Pre-Master.
               </p>
               {clubPointsTable.length === 0 ? (
                 <p className="border-t border-line px-4 py-4 text-sm text-content-subtle">

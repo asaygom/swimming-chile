@@ -63,12 +63,19 @@ Reglas:
 Script vigente:
 
 ```powershell
-.\backend\.venv\Scripts\python.exe backend\scripts\preview_nunoa_master_identity_import.py
+.\backend\.venv\Scripts\python.exe backend\scripts\preview_nunoa_master_identity_import.py --offline
 ```
 
 El script lee la planilla local de Nunoa Master, normaliza datos para
 `identity.person`, `identity.contact_point` y `club_ops.membership`, y genera
-previews locales ignorados. No escribe en la base de datos.
+previews locales ignorados. No escribe en la base de datos. `--offline` evita
+tambien las consultas de comparacion aunque exista una conexion en `.env`.
+
+El SQL de identidad es incremental e idempotente: inserta personas faltantes,
+completa solamente campos civiles vacios, conserva valores ya informados y no
+elimina contactos ni membresias por celdas vacias. Las diferencias del nombre
+de competencia quedan registradas como advertencias porque ese alias deportivo
+se revisa en el flujo separado de vinculos persona-atleta.
 
 Scripts de carga derivados:
 

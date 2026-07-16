@@ -132,6 +132,26 @@ BEGIN
     IF duplicated_missing_identity > 0 THEN
         RAISE EXCEPTION 'Duplicate missing-RUT identities inside import preview: %', duplicated_missing_identity;
     END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM nunoa_identity_import i
+        JOIN identity.person p
+          ON (
+                i.rut_normalized IS NOT NULL
+                AND p.rut_normalized = i.rut_normalized
+             )
+          OR (
+                p.data_source = {sql_literal(DATA_SOURCE)}
+                AND LOWER(TRIM(p.first_name)) = LOWER(TRIM(i.first_name))
+                AND LOWER(TRIM(p.last_name)) = LOWER(TRIM(i.last_name))
+                AND (p.rut_normalized IS NULL OR i.rut_normalized IS NULL)
+             )
+        GROUP BY i.row_number
+        HAVING COUNT(*) > 1
+    ) THEN
+        RAISE EXCEPTION 'Ambiguous source identity matches; review before loading';
+    END IF;
 END $$;
 
 INSERT INTO identity.person (
@@ -161,16 +181,14 @@ WHERE NOT EXISTS (
         AND p.rut_normalized = i.rut_normalized
     )
     OR (
-        i.rut_normalized IS NULL
-        AND p.rut_normalized IS NULL
-        AND p.data_source = {sql_literal(DATA_SOURCE)}
+        p.data_source = {sql_literal(DATA_SOURCE)}
         AND LOWER(TRIM(p.first_name)) = LOWER(TRIM(i.first_name))
         AND LOWER(TRIM(p.last_name)) = LOWER(TRIM(i.last_name))
-        AND p.date_of_birth IS NOT DISTINCT FROM i.date_of_birth
+        AND (p.rut_normalized IS NULL OR i.rut_normalized IS NULL)
     )
 );
 
-CREATE TEMP TABLE nunoa_identity_resolved AS
+CREATE TEMP TABLE nunoa_identity_resolved ON COMMIT DROP AS
 SELECT
     i.*,
     p.id AS person_id
@@ -181,12 +199,10 @@ JOIN identity.person p
         AND p.rut_normalized = i.rut_normalized
      )
   OR (
-        i.rut_normalized IS NULL
-        AND p.rut_normalized IS NULL
-        AND p.data_source = {sql_literal(DATA_SOURCE)}
+        p.data_source = {sql_literal(DATA_SOURCE)}
         AND LOWER(TRIM(p.first_name)) = LOWER(TRIM(i.first_name))
         AND LOWER(TRIM(p.last_name)) = LOWER(TRIM(i.last_name))
-        AND p.date_of_birth IS NOT DISTINCT FROM i.date_of_birth
+        AND (p.rut_normalized IS NULL OR i.rut_normalized IS NULL)
      );
 
 DO $$
@@ -217,6 +233,24 @@ BEGIN
         RAISE EXCEPTION 'Ambiguous person resolutions: %', duplicate_resolutions;
     END IF;
 END $$;
+
+-- The registry is additive: imported values only fill missing civil fields.
+-- Existing non-empty values and prior manual decisions are never overwritten.
+UPDATE identity.person p
+SET
+    rut_normalized = COALESCE(p.rut_normalized, r.rut_normalized),
+    date_of_birth = COALESCE(p.date_of_birth, r.date_of_birth),
+    first_name = COALESCE(NULLIF(TRIM(p.first_name), ''), r.first_name),
+    last_name = COALESCE(NULLIF(TRIM(p.last_name), ''), r.last_name),
+    updated_at = NOW()
+FROM nunoa_identity_resolved r
+WHERE p.id = r.person_id
+  AND (
+      (p.rut_normalized IS NULL AND r.rut_normalized IS NOT NULL)
+      OR (p.date_of_birth IS NULL AND r.date_of_birth IS NOT NULL)
+      OR (NULLIF(TRIM(p.first_name), '') IS NULL AND r.first_name IS NOT NULL)
+      OR (NULLIF(TRIM(p.last_name), '') IS NULL AND r.last_name IS NOT NULL)
+  );
 
 INSERT INTO identity.contact_point (
     person_id,
