@@ -25,6 +25,7 @@ export type RankingQuery = {
   course_type?: string;
   year?: string;
   competition_scope?: string;
+  governing_body?: string;
   athlete_search?: string;
   page?: number;
 };

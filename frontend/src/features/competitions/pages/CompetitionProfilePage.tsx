@@ -301,7 +301,7 @@ export const CompetitionProfilePage: React.FC = () => {
   const hasActiveFilters = searchQuery.trim() !== '' || genderFilter !== 'all';
   const clubMedalTable = statsQuery.data?.club_medal_table ?? [];
   const clubPointsTable = statsQuery.data?.club_points_table ?? [];
-  const activeClubTable = selectedClubTable?.competitionId === id ? selectedClubTable.tab : 'medals';
+  const activeClubTable = selectedClubTable && selectedClubTable.competitionId === id ? selectedClubTable.tab : 'medals';
   const isMedalTableExpanded = expandedMedalTableId === id;
   const isPointsTableExpanded = expandedPointsTableId === id;
   const visibleClubMedals = isMedalTableExpanded ? clubMedalTable : clubMedalTable.slice(0, 10);
