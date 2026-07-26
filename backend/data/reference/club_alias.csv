@@ -523,6 +523,21 @@ Ayun Koiko Pedro Aguirre Cerda,Pedro Aguirre Cerda,alias FECHIDA master corregid
 Club Deportivo Fullmar Chile,Fullmar Viña del Mar,alias FECHIDA master corregido post-load 2024-2025
 Club Deportivo Fullmar Vina,Fullmar Viña del Mar,alias FECHIDA master corregido post-load 2024-2025
 Nautilius Chile,Nautilus Viña Del Mar,"Sudamericanos preload review 20260709: typo/truncated Chile club, shared athlete evidence; Universidad Cató intentionally not aliased because it is truncated/ambiguous."
+Prclub Dep Natacion Araucania,Club Natacion Araucania,alias detectado en auditoria FECHIDA invierno 2026
+Ayun Koiko DE Pedro Aguirre,Pedro Aguirre Cerda,alias detectado en auditoria FECHIDA invierno 2026
+Prayun Koiko DE Pedro Aguirre,Pedro Aguirre Cerda,alias detectado en auditoria FECHIDA invierno 2026
+Academia Antofagasta Swiming,Academia Antofagasta Swimming,alias detectado en auditoria FECHIDA invierno 2026
+PreAcademia Antofagasta Swimmi,Academia Antofagasta Swimming,alias detectado en auditoria FECHIDA invierno 2026
+Club Deportivo Atr Valdicia,Club Atr Valdivia,alias detectado en auditoria FECHIDA invierno 2026
+Club Deportivo Salmon Swim,Salmón Swim,alias detectado en auditoria FECHIDA invierno 2026
+Club Deportivo Uss,Club Deportivo Universidad San Sebastian,alias detectado en auditoria FECHIDA invierno 2026
+Club LO Prado,Natacion Lo Prado,alias detectado en auditoria FECHIDA invierno 2026
+Club Lqblo,Lo Que Boto La Ola,alias detectado en auditoria FECHIDA invierno 2026
+Club Natacion Koyaike,Koy Aike,alias detectado en auditoria FECHIDA invierno 2026
+Club Natacion Nomades Los R,Club Nomades Los Rios,alias detectado en auditoria FECHIDA invierno 2026
+Natacion Master Recoleta P,Natacion Master Recoleta,alias detectado en auditoria FECHIDA invierno 2026
+Paquamaster Chillan,Aquamaster Chillan,alias detectado en auditoria FECHIDA invierno 2026
+Rolf Nathan( Africa ),Africa Natacion,alias detectado en auditoria FECHIDA invierno 2026
 
 Club Petroleros,Club Petroleros Ypf,suda_postload_review_20260617
 Cpypf,Club Petroleros Ypf,suda_post_sql_review_v4_20260618
@@ -545,4 +560,3 @@ PARAGUAY M,Paraguay Master,suda_metadata_notes_merge_v6_20260618
 Tijuca Tenis Clu,Tijuca Tenis Club,suda_metadata_notes_merge_v6_20260618
 TIJUCA T.C.,Tijuca Tenis Club,suda_metadata_notes_merge_v6_20260618
 Hogar Hispano,Hogar Hispano Valencia,suda_metadata_notes_merge_v6_20260618
-Prclub Dep Natacion Araucania,Club Natacion Araucania,alias detectado en auditoria FECHIDA invierno 2026
