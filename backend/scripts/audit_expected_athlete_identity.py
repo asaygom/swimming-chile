@@ -37,6 +37,14 @@ def parse_args() -> argparse.Namespace:
         "--core-identity-candidates-csv",
         help="Output CSV for DB-aware source-vs-core identity candidates. Uses semicolon delimiter.",
     )
+    parser.add_argument(
+        "--new-athletes-csv",
+        help="Optional output CSV for source athlete identities with no exact or name-compatible pair in Core.",
+    )
+    parser.add_argument(
+        "--new-clubs-csv",
+        help="Optional output CSV for source clubs whose canonical alias key does not exist in Core.",
+    )
     parser.add_argument("--host", default="localhost", help="PostgreSQL host for --core-aware-manifest.")
     parser.add_argument("--port", default="5432", help="PostgreSQL port for --core-aware-manifest.")
     parser.add_argument("--dbname", default="natacion_chile", help="PostgreSQL database for --core-aware-manifest.")
@@ -1181,6 +1189,40 @@ def collect_manifest_athlete_observations(manifest_path: Path, club_aliases: Opt
     return list(unique.values())
 
 
+def collect_manifest_club_observations(
+    manifest_path: Path,
+    club_aliases: Optional[Dict[str, str]] = None,
+    club_alias_names: Optional[Dict[str, str]] = None,
+) -> List[dict]:
+    rows: List[dict] = []
+    club_aliases = club_aliases or {}
+    club_alias_names = club_alias_names or {}
+    seen: set = set()
+    for document in load_manifest(manifest_path):
+        input_dir = resolve_path(str(document.get("input_dir") or document.get("out_dir") or ""))
+        source_url = str(document.get("source_url") or "").strip()
+        for _, row in read_csv_if_exists(input_dir / "club.csv").iterrows():
+            raw_name = str(row.get("name") or "").strip()
+            raw_key = normalize_token_text(raw_name)
+            if not raw_key:
+                continue
+            canonical_key = club_aliases.get(raw_key, raw_key)
+            canonical_name = club_alias_names.get(raw_key, raw_name)
+            unique_key = (raw_name, canonical_key, source_url)
+            if unique_key in seen:
+                continue
+            seen.add(unique_key)
+            rows.append(
+                {
+                    "raw_club_name": raw_name,
+                    "canonical_club_name": canonical_name,
+                    "canonical_club_key": canonical_key,
+                    "source_url": source_url,
+                }
+            )
+    return rows
+
+
 def db_identifier(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
@@ -1226,8 +1268,7 @@ def load_core_athletes(args: argparse.Namespace, club_aliases: Optional[Dict[str
         LEFT JOIN {schema}.club base_club ON base_club.id = a.club_id
         LEFT JOIN {schema}.athlete_current_club acc ON acc.athlete_id = a.id
         LEFT JOIN historical ON historical.athlete_id = a.id
-        WHERE a.birth_year IS NOT NULL
-          AND NULLIF(TRIM(a.full_name), '') IS NOT NULL;
+        WHERE NULLIF(TRIM(a.full_name), '') IS NOT NULL;
     """
     with psycopg.connect(conninfo) as conn, conn.cursor() as cur:
         cur.execute(sql)
@@ -1260,28 +1301,192 @@ def load_core_athletes(args: argparse.Namespace, club_aliases: Optional[Dict[str
         return rows
 
 
+def load_core_clubs(
+    args: argparse.Namespace,
+    club_aliases: Optional[Dict[str, str]] = None,
+    club_alias_names: Optional[Dict[str, str]] = None,
+) -> List[dict]:
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise SystemExit("Falta psycopg. Instala backend/requirements.txt para usar --core-aware-manifest.") from exc
+
+    conninfo = (
+        f"host={args.host} port={args.port} dbname={args.dbname} "
+        f"user={args.user} password={args.password or ''}"
+    )
+    schema = db_identifier(args.schema)
+    club_aliases = club_aliases or {}
+    club_alias_names = club_alias_names or {}
+    with psycopg.connect(conninfo) as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT id, name FROM {schema}.club WHERE NULLIF(TRIM(name), '') IS NOT NULL;")
+        rows = []
+        for club_id, club_name in cur.fetchall():
+            raw_name = str(club_name or "").strip()
+            raw_key = normalize_token_text(raw_name)
+            rows.append(
+                {
+                    "core_club_id": club_id,
+                    "core_club_name": raw_name,
+                    "canonical_club_name": club_alias_names.get(raw_key, raw_name),
+                    "canonical_club_key": club_aliases.get(raw_key, raw_key),
+                }
+            )
+        return rows
+
+
+def _compatible_gender(source: dict, core: dict) -> bool:
+    source_gender = str(source.get("gender") or "").strip()
+    core_gender = str(core.get("gender") or "").strip()
+    return not source_gender or not core_gender or source_gender == core_gender
+
+
+def exact_core_identity_match(source: dict, core: dict) -> bool:
+    if source.get("athlete_key") != core.get("athlete_key") or not _compatible_gender(source, core):
+        return False
+    source_birth_year = str(source.get("birth_year") or "").strip()
+    core_birth_year = str(core.get("birth_year") or "").strip()
+    if source_birth_year and source_birth_year == core_birth_year:
+        return True
+    # The loader only fills a missing Core birth year when the exact name is
+    # attached to the same base club; current/historical clubs are audit context.
+    return (
+        bool(source_birth_year)
+        and not core_birth_year
+        and bool(source.get("club_key"))
+        and source.get("club_key") == core.get("club_key")
+    )
+
+
+def name_compatible_core_match(source: dict, core: dict) -> bool:
+    if not _compatible_gender(source, core):
+        return False
+    if str(source.get("birth_year") or "").strip() != str(core.get("birth_year") or "").strip():
+        return False
+    if source.get("athlete_key") == core.get("athlete_key"):
+        return False
+    return bool(
+        partial_name_match(source.get("full_name"), core.get("full_name"))
+        or expanded_identity_match(source.get("full_name"), core.get("full_name"), True, 0)
+    )
+
+
+def build_new_athlete_rows(source_rows: Sequence[dict], core_rows: Sequence[dict]) -> Tuple[List[dict], dict]:
+    grouped: Dict[Tuple[str, str, str], List[dict]] = defaultdict(list)
+    for row in source_rows:
+        grouped[(row["athlete_key"], row.get("gender", ""), row["birth_year"])].append(row)
+
+    exact_count = 0
+    candidate_count = 0
+    new_rows: List[dict] = []
+    for (athlete_key, gender, birth_year), observations in grouped.items():
+        has_exact = any(
+            exact_core_identity_match(source, core)
+            for source in observations
+            for core in core_rows
+        )
+        if has_exact:
+            exact_count += 1
+            continue
+        has_candidate = any(
+            name_compatible_core_match(source, core)
+            for source in observations
+            for core in core_rows
+        )
+        if has_candidate:
+            candidate_count += 1
+            continue
+
+        full_names = sorted({str(row.get("full_name") or "").strip() for row in observations if row.get("full_name")})
+        club_names = sorted({str(row.get("club_name") or "").strip() for row in observations if row.get("club_name")})
+        club_keys = sorted({str(row.get("club_key") or "").strip() for row in observations if row.get("club_key")})
+        source_tables = sorted(
+            {
+                table
+                for row in observations
+                for table in str(row.get("source_table") or "").split(" | ")
+                if table
+            }
+        )
+        source_urls = sorted(
+            {
+                url
+                for row in observations
+                for url in source_url_set(row.get("source_url"))
+                if url
+            }
+        )
+        canonical_name = max(full_names, key=lambda name: (len(name_token_key(name).split()), len(name), name))
+        new_rows.append(
+            {
+                "source_full_name": canonical_name,
+                "source_full_names": " | ".join(full_names),
+                "source_athlete_key": athlete_key,
+                "gender": gender,
+                "birth_year": birth_year,
+                "source_club_names": " | ".join(club_names),
+                "source_club_keys": " | ".join(club_keys),
+                "source_tables": " | ".join(source_tables),
+                "source_urls": " | ".join(source_urls),
+                "observation_count": len(observations),
+                "match_status": "no_exact_or_name_compatible_core_pair",
+            }
+        )
+
+    new_rows.sort(key=lambda row: (row["source_full_name"], row["gender"], row["birth_year"]))
+    counts = {
+        "source_athlete_identity_count": len(grouped),
+        "core_exact_match_source_identity_count": exact_count,
+        "core_candidate_source_identity_count": candidate_count,
+        "new_athlete_count": len(new_rows),
+    }
+    return new_rows, counts
+
+
+def build_new_club_rows(source_rows: Sequence[dict], core_rows: Sequence[dict]) -> List[dict]:
+    core_keys = {str(row.get("canonical_club_key") or "") for row in core_rows}
+    grouped: Dict[str, List[dict]] = defaultdict(list)
+    for row in source_rows:
+        grouped[str(row.get("canonical_club_key") or "")].append(row)
+
+    new_rows: List[dict] = []
+    for canonical_key, observations in grouped.items():
+        if not canonical_key or canonical_key in core_keys:
+            continue
+        raw_names = sorted({str(row.get("raw_club_name") or "").strip() for row in observations})
+        canonical_names = sorted({str(row.get("canonical_club_name") or "").strip() for row in observations})
+        source_urls = sorted({str(row.get("source_url") or "").strip() for row in observations if row.get("source_url")})
+        new_rows.append(
+            {
+                "canonical_club_name": max(canonical_names, key=lambda name: (len(name), name)),
+                "canonical_club_key": canonical_key,
+                "raw_club_names": " | ".join(raw_names),
+                "alias_applied": "yes"
+                if any(normalize_token_text(name) != canonical_key for name in raw_names)
+                else "no",
+                "source_urls": " | ".join(source_urls),
+                "match_status": "canonical_club_key_not_found_in_core",
+            }
+        )
+    new_rows.sort(key=lambda row: row["canonical_club_name"])
+    return new_rows
+
+
 def build_core_identity_candidate_rows(source_rows: Sequence[dict], core_rows: Sequence[dict]) -> List[dict]:
     candidates: List[dict] = []
-    core_by_year: Dict[Tuple[str, str], List[dict]] = defaultdict(list)
+    core_by_year: Dict[str, List[dict]] = defaultdict(list)
     for row in core_rows:
-        core_by_year[(row["gender"], row["birth_year"])].append(row)
-        if row["gender"]:
-            core_by_year[("", row["birth_year"])].append(row)
+        if row.get("birth_year"):
+            core_by_year[row["birth_year"]].append(row)
 
     for source in source_rows:
         source_gender = source.get("gender", "")
-        possible_core = core_by_year.get((source_gender, source["birth_year"]), [])
-        if not possible_core and source_gender:
-            possible_core = core_by_year.get(("", source["birth_year"]), [])
+        possible_core = core_by_year.get(source["birth_year"], [])
         for core in possible_core:
-            if source_gender and core.get("gender") and source_gender != core["gender"]:
-                continue
-            if source["athlete_key"] == core["athlete_key"]:
+            if not name_compatible_core_match(source, core):
                 continue
             partial = partial_name_match(source["full_name"], core["full_name"])
             expanded = expanded_identity_match(source["full_name"], core["full_name"], True, 0)
-            if not partial and not expanded:
-                continue
             club_context = contextual_club_match(source, core)
             supported = club_context != "no_contextual_club_match"
             source_tokens = len(name_token_key(source["full_name"]).split())
@@ -1346,10 +1551,25 @@ def main() -> int:
     summary_path = resolve_path(args.summary_json)
 
     core_identity_candidate_count = None
+    core_identity_candidate_source_identity_count = None
+    source_athlete_observation_count = None
+    source_athlete_identity_count = None
+    core_exact_match_source_identity_count = None
+    new_athlete_count = None
+    source_club_raw_name_count = None
+    source_club_count = None
+    source_club_alias_observation_count = None
+    existing_core_club_count = None
+    core_club_count = None
+    new_club_alias_applied_count = None
+    new_club_count = None
     if args.core_aware_manifest:
         if not args.core_identity_candidates_csv:
             raise SystemExit("--core-identity-candidates-csv es requerido con --core-aware-manifest.")
-        club_aliases = load_club_alias_key_map(resolve_path(args.club_alias_csv)) if args.club_alias_csv else {}
+        if args.club_alias_csv:
+            club_aliases, club_alias_names = load_club_alias_maps(resolve_path(args.club_alias_csv))
+        else:
+            club_aliases, club_alias_names = {}, {}
         source_rows = collect_manifest_athlete_observations(resolve_path(args.core_aware_manifest), club_aliases)
         core_rows = load_core_athletes(args, club_aliases)
         candidate_rows = build_core_identity_candidate_rows(source_rows, core_rows)
@@ -1386,6 +1606,68 @@ def main() -> int:
             ],
         )
         core_identity_candidate_count = len(candidate_rows)
+        candidate_source_identity_keys = {
+            (row["source_athlete_key"], row["gender"], row["birth_year"])
+            for row in candidate_rows
+        }
+        core_identity_candidate_source_identity_count = len(candidate_source_identity_keys)
+
+        new_athlete_rows, athlete_counts = build_new_athlete_rows(source_rows, core_rows)
+        source_athlete_observation_count = len(source_rows)
+        source_athlete_identity_count = athlete_counts["source_athlete_identity_count"]
+        core_exact_match_source_identity_count = athlete_counts["core_exact_match_source_identity_count"]
+        new_athlete_count = athlete_counts["new_athlete_count"]
+        if athlete_counts["core_candidate_source_identity_count"] != core_identity_candidate_source_identity_count:
+            raise RuntimeError("Los universos de candidatos DB-aware y clasificación de atletas nuevos no coinciden.")
+        if args.new_athletes_csv:
+            write_semicolon_dict_csv(
+                resolve_path(args.new_athletes_csv),
+                new_athlete_rows,
+                [
+                    "source_full_name",
+                    "source_full_names",
+                    "source_athlete_key",
+                    "gender",
+                    "birth_year",
+                    "source_club_names",
+                    "source_club_keys",
+                    "source_tables",
+                    "source_urls",
+                    "observation_count",
+                    "match_status",
+                ],
+            )
+
+        source_club_rows = collect_manifest_club_observations(
+            resolve_path(args.core_aware_manifest),
+            club_aliases,
+            club_alias_names,
+        )
+        source_club_raw_name_count = len({row["raw_club_name"] for row in source_club_rows})
+        source_club_count = len({row["canonical_club_key"] for row in source_club_rows})
+        source_club_alias_observation_count = sum(
+            normalize_token_text(row["raw_club_name"]) != row["canonical_club_key"]
+            for row in source_club_rows
+        )
+        core_club_rows = load_core_clubs(args, club_aliases, club_alias_names)
+        core_club_count = len(core_club_rows)
+        new_club_rows = build_new_club_rows(source_club_rows, core_club_rows)
+        new_club_count = len(new_club_rows)
+        existing_core_club_count = source_club_count - new_club_count
+        new_club_alias_applied_count = sum(row["alias_applied"] == "yes" for row in new_club_rows)
+        if args.new_clubs_csv:
+            write_semicolon_dict_csv(
+                resolve_path(args.new_clubs_csv),
+                new_club_rows,
+                [
+                    "canonical_club_name",
+                    "canonical_club_key",
+                    "raw_club_names",
+                    "alias_applied",
+                    "source_urls",
+                    "match_status",
+                ],
+            )
 
     if not args.input_csv:
         summary = {
@@ -1394,6 +1676,37 @@ def main() -> int:
             if args.core_identity_candidates_csv
             else "",
             "core_identity_candidate_count": core_identity_candidate_count,
+            "core_identity_candidate_source_identity_count": core_identity_candidate_source_identity_count,
+            "new_athletes_csv": str(resolve_path(args.new_athletes_csv)) if args.new_athletes_csv else "",
+            "new_clubs_csv": str(resolve_path(args.new_clubs_csv)) if args.new_clubs_csv else "",
+            "source_athlete_observation_count": source_athlete_observation_count,
+            "source_athlete_identity_count": source_athlete_identity_count,
+            "core_exact_match_source_identity_count": core_exact_match_source_identity_count,
+            "new_athlete_count": new_athlete_count,
+            "source_club_raw_name_count": source_club_raw_name_count,
+            "source_club_count": source_club_count,
+            "source_club_alias_observation_count": source_club_alias_observation_count,
+            "existing_core_club_count": existing_core_club_count,
+            "core_club_count": core_club_count,
+            "new_club_alias_applied_count": new_club_alias_applied_count,
+            "new_club_count": new_club_count,
+            "universe_definitions": {
+                "source_athlete_identity": (
+                    "Unique normalized full_name + compatible gender + birth_year; club is contextual evidence, not identity."
+                ),
+                "core_identity_candidate": (
+                    "One source-to-Core pair with compatible gender, equal known birth_year, non-exact names, "
+                    "and partial/expanded name compatibility. Exact matches are excluded."
+                ),
+                "new_athlete": (
+                    "Source athlete identity with neither an exact loader-compatible Core match nor any "
+                    "partial/expanded same-year compatible Core candidate."
+                ),
+                "new_club": (
+                    "Canonical source club key from club.csv absent from core.club after applying club_alias.csv "
+                    "to both source and Core names."
+                ),
+            },
         }
         summary_path.parent.mkdir(parents=True, exist_ok=True)
         summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

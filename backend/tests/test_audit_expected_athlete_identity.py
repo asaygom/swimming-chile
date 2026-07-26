@@ -568,3 +568,203 @@ def test_load_partial_name_decisions_uses_shorter_club_key_for_cross_club_rows()
         import shutil
 
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def test_build_new_athlete_rows_excludes_exact_and_review_candidates_without_using_club_as_identity():
+    source_rows = [
+        {
+            "source_table": "athlete",
+            "source_url": "stage-1",
+            "full_name": "Perez, Ana",
+            "athlete_key": "perez ana",
+            "gender": "female",
+            "birth_year": "1980",
+            "club_name": "Club Nuevo",
+            "club_key": "club nuevo",
+        },
+        {
+            "source_table": "athlete",
+            "source_url": "stage-2",
+            "full_name": "Soto, Beatriz",
+            "athlete_key": "soto beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+        },
+        {
+            "source_table": "relay_swimmer",
+            "source_url": "stage-3",
+            "full_name": "Soto, Beatriz",
+            "athlete_key": "soto beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club B",
+            "club_key": "club b",
+        },
+        {
+            "source_table": "athlete",
+            "source_url": "stage-4",
+            "full_name": "Rojas, Carla",
+            "athlete_key": "rojas carla",
+            "gender": "female",
+            "birth_year": "1990",
+            "club_name": "Club C",
+            "club_key": "club c",
+        },
+    ]
+    core_rows = [
+        {
+            "core_athlete_id": 1,
+            "full_name": "Perez, Ana",
+            "athlete_key": "perez ana",
+            "gender": "female",
+            "birth_year": "1980",
+            "club_name": "Otro Club",
+            "club_key": "otro club",
+            "current_club_name": "",
+            "current_club_key": "",
+            "historical_club_names": "",
+            "historical_club_keys": "",
+        },
+        {
+            "core_athlete_id": 2,
+            "full_name": "Soto Gonzalez, Beatriz",
+            "athlete_key": "soto gonzalez beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+            "current_club_name": "Club A",
+            "current_club_key": "club a",
+            "historical_club_names": "",
+            "historical_club_keys": "",
+        },
+    ]
+
+    rows, counts = audit.build_new_athlete_rows(source_rows, core_rows)
+
+    assert [row["source_full_name"] for row in rows] == ["Rojas, Carla"]
+    assert rows[0]["match_status"] == "no_exact_or_name_compatible_core_pair"
+    assert counts == {
+        "source_athlete_identity_count": 3,
+        "core_exact_match_source_identity_count": 1,
+        "core_candidate_source_identity_count": 1,
+        "new_athlete_count": 1,
+    }
+
+
+def test_core_identity_candidates_exclude_exact_but_include_compatible_unknown_core_gender():
+    source_rows = [
+        {
+            "source_table": "athlete",
+            "source_url": "stage-1",
+            "full_name": "Soto, Beatriz",
+            "athlete_key": "soto beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+        }
+    ]
+    core_rows = [
+        {
+            "core_athlete_id": 1,
+            "full_name": "Otra, Persona",
+            "athlete_key": "otra persona",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+            "current_club_name": "",
+            "current_club_key": "",
+            "historical_club_names": "",
+            "historical_club_keys": "",
+        },
+        {
+            "core_athlete_id": 2,
+            "full_name": "Soto Gonzalez, Beatriz",
+            "athlete_key": "soto gonzalez beatriz",
+            "gender": "",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+            "current_club_name": "",
+            "current_club_key": "",
+            "historical_club_names": "",
+            "historical_club_keys": "",
+        },
+        {
+            "core_athlete_id": 3,
+            "full_name": "Soto, Beatriz",
+            "athlete_key": "soto beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+            "current_club_name": "",
+            "current_club_key": "",
+            "historical_club_names": "",
+            "historical_club_keys": "",
+        },
+    ]
+
+    rows = audit.build_core_identity_candidate_rows(source_rows, core_rows)
+
+    assert [row["core_athlete_id"] for row in rows] == [2]
+
+
+def test_build_new_club_rows_respects_aliases_before_classifying_new():
+    source_rows = [
+        {
+            "raw_club_name": "Prclub Dep Natacion Araucania",
+            "canonical_club_name": "Club Natacion Araucania",
+            "canonical_club_key": "club natacion araucania",
+            "source_url": "stage-1",
+        },
+        {
+            "raw_club_name": "Club Realmente Nuevo",
+            "canonical_club_name": "Club Realmente Nuevo",
+            "canonical_club_key": "club realmente nuevo",
+            "source_url": "stage-2",
+        },
+    ]
+    core_rows = [
+        {
+            "core_club_id": 10,
+            "core_club_name": "Club Natacion Araucania",
+            "canonical_club_key": "club natacion araucania",
+        }
+    ]
+
+    rows = audit.build_new_club_rows(source_rows, core_rows)
+
+    assert rows == [
+        {
+            "canonical_club_name": "Club Realmente Nuevo",
+            "canonical_club_key": "club realmente nuevo",
+            "raw_club_names": "Club Realmente Nuevo",
+            "alias_applied": "no",
+            "source_urls": "stage-2",
+            "match_status": "canonical_club_key_not_found_in_core",
+        }
+    ]
+
+
+def test_semicolon_review_csv_is_utf8_with_bom_and_roundtrips_accents():
+    tmp_dir = _workspace_tmp_dir()
+    try:
+        path = tmp_dir / "nuevos.csv"
+        audit.write_semicolon_dict_csv(
+            path,
+            [{"name": "Peñalolén", "status": "nuevo"}],
+            ["name", "status"],
+        )
+
+        assert path.read_bytes().startswith(b"\xef\xbb\xbf")
+        frame = pd.read_csv(path, sep=";", encoding="utf-8-sig")
+        assert frame.to_dict("records") == [{"name": "Peñalolén", "status": "nuevo"}]
+    finally:
+        import shutil
+
+        shutil.rmtree(tmp_dir, ignore_errors=True)
