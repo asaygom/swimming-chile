@@ -32,11 +32,13 @@ def test_extract_documents_keeps_result_pdfs_and_fechida_document_bundle():
     documents = scraper.extract_documents(html, "https://fechida.cl/campeonato-info/?id=422")
 
     assert [document.source_url for document in documents] == [
+        "https://registro.fechida.org/competencia_documento_down.php?id=1213&clave=6a62bc9a68fc3",
+        "https://registro.fechida.org/competencia_documento_down.php?id=1228&clave=6a662a28b6e1c",
         "https://registro.fechida.org/competencia_documento_zip_down.php?id=497&clave=6a3466dbe5ed0",
         "https://fechida.cl/wp-content/uploads/2026/07/resultados-completos-nacional-master.pdf",
         "https://fechida.cl/wp-content/uploads/2026/07/resultados-primera-etapa.pdf",
     ]
-    assert [document.extension for document in documents] == [".zip", ".pdf", ".pdf"]
+    assert [document.extension for document in documents] == [".pdf", ".zip", ".zip", ".pdf", ".pdf"]
 
 
 def test_select_canonical_documents_prefers_complete_results_over_stage_pdfs_and_bundles():
@@ -61,6 +63,38 @@ def test_select_canonical_documents_prefers_complete_results_over_stage_pdfs_and
     canonical = scraper.select_canonical_documents(documents)
 
     assert [document.title for document in canonical] == ["resultados completos nacional master.pdf"]
+
+
+def test_select_canonical_documents_keeps_stage_result_pdfs_when_no_complete_pdf():
+    documents = [
+        scraper.Document(
+            "https://registro.fechida.org/competencia_documento_zip_down.php?id=497&clave=demo",
+            "documentos",
+            ".zip",
+        ),
+        scraper.Document(
+            "https://registro.fechida.org/competencia_documento_down.php?id=1228&clave=demo",
+            "Meet Results-Nacional master y pre-master invierno 26-23jul2026-001.zip",
+            ".zip",
+        ),
+        scraper.Document(
+            "https://registro.fechida.org/competencia_documento_down.php?id=1213&clave=demo",
+            "resultados - primera etapa.pdf",
+            ".pdf",
+        ),
+        scraper.Document(
+            "https://registro.fechida.org/competencia_documento_down.php?id=1215&clave=demo",
+            "resultados - segunda etapa.pdf",
+            ".pdf",
+        ),
+    ]
+
+    canonical = scraper.select_canonical_documents(documents)
+
+    assert [document.title for document in canonical] == [
+        "resultados - primera etapa.pdf",
+        "resultados - segunda etapa.pdf",
+    ]
 
 
 def test_parse_competition_info_bounds_title_before_lugar_metadata():

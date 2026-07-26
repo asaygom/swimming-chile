@@ -21,6 +21,8 @@ Thumbs.db
 backend/data/raw/
 backend/data/staging/*.xlsx
 backend/data/staging/*.pdf
+backend/data/staging/*.txt
+backend/data/staging/*.json
 backend/data/staging/nunoa_master_identity_preview/
 backend/data/staging/csv/*
 !backend/data/staging/csv/.gitkeep

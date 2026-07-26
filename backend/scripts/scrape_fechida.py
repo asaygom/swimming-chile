@@ -205,11 +205,12 @@ def parse_competition_info(html: str, competition_id: int, url: str) -> Competit
     )
 
 
-def document_extension(url: str) -> str:
+def document_extension(url: str, text: str = "") -> str:
     path = unquote(urlparse(url).path).lower()
-    if path.endswith(".pdf"):
+    haystack = f"{path} {text}".lower()
+    if path.endswith(".pdf") or ".pdf" in haystack:
         return ".pdf"
-    if path.endswith(".zip") or "competencia_documento_zip_down.php" in path:
+    if path.endswith(".zip") or ".zip" in haystack or "competencia_documento_zip_down.php" in path:
         return ".zip"
     return ".pdf"
 
@@ -217,8 +218,15 @@ def document_extension(url: str) -> str:
 def is_candidate_document(url: str, text: str) -> bool:
     haystack = f"{url} {text}".lower()
     path = unquote(urlparse(url).path).lower()
+    is_fechida_document = (
+        "registro.fechida.org" in urlparse(url).netloc
+        and (
+            "competencia_documento_down.php" in path
+            or "competencia_documento_zip_down.php" in path
+        )
+    )
     if any(keyword in haystack for keyword in RESULT_KEYWORDS):
-        return path.endswith((".pdf", ".zip")) or "competencia_documento_zip_down.php" in path
+        return path.endswith((".pdf", ".zip")) or is_fechida_document
     # FECHIDA exposes some competition document bundles without useful anchor text.
     return "registro.fechida.org" in urlparse(url).netloc and "competencia_documento_zip_down.php" in path
 
@@ -228,13 +236,30 @@ def extract_documents(html: str, base_url: str) -> list[Document]:
     parser.feed(html)
     documents: list[Document] = []
     seen: set[str] = set()
+
+    # FECHIDA's current campeonato-info pages render document names in the
+    # first table cell and the download icon/link in the next cell. The anchor
+    # itself has no useful text, so read the row label before falling back to
+    # generic anchor extraction.
+    row_pattern = re.compile(
+        r"<tr>\s*<td>(.*?)</td>\s*<td>\s*<a\s+[^>]*href=\"([^\"]+)\"",
+        re.IGNORECASE | re.DOTALL,
+    )
+    for match in row_pattern.finditer(html):
+        title = strip_tags(match.group(1))
+        absolute_url = urljoin(base_url, match.group(2))
+        if absolute_url in seen or not is_candidate_document(absolute_url, title):
+            continue
+        seen.add(absolute_url)
+        documents.append(Document(absolute_url, title or "documentos-fechida", document_extension(absolute_url, title)))
+
     for anchor in parser.anchors:
         absolute_url = urljoin(base_url, anchor["href"])
         if absolute_url in seen or not is_candidate_document(absolute_url, anchor["text"]):
             continue
         seen.add(absolute_url)
         title = anchor["text"] or Path(unquote(urlparse(absolute_url).path)).stem or "documentos-fechida"
-        documents.append(Document(absolute_url, title, document_extension(absolute_url)))
+        documents.append(Document(absolute_url, title, document_extension(absolute_url, title)))
     return documents
 
 
@@ -243,12 +268,22 @@ def is_complete_results_document(document: Document) -> bool:
     return document.extension == ".pdf" and bool(COMPLETE_RESULTS_PATTERN.search(haystack))
 
 
+def is_results_pdf_document(document: Document) -> bool:
+    haystack = f"{document.title} {document.source_url}".lower()
+    return document.extension == ".pdf" and any(keyword in haystack for keyword in RESULT_KEYWORDS)
+
+
 def select_canonical_documents(documents: list[Document]) -> list[Document]:
     complete_results = [document for document in documents if is_complete_results_document(document)]
     if complete_results:
         # If FECHIDA publishes a consolidated results PDF, that is the only
         # loadable source for the competition; stage PDFs would duplicate rows.
         return complete_results
+    results_pdfs = [document for document in documents if is_results_pdf_document(document)]
+    if results_pdfs:
+        # FECHIDA may publish only staged results plus Meet Results ZIPs. The
+        # current parser consumes PDFs, so keep staged PDFs and exclude ZIPs.
+        return results_pdfs
     return documents
 
 

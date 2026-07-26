@@ -1063,7 +1063,7 @@ def test_reconcile_relay_swimmers_infers_missing_gender_in_mixed_relay_from_indi
         competition_year=2024,
     )
 
-    assert relay_swimmers[0].gender == "mixed"
+    assert relay_swimmers[0].gender is None
 
     parser.reconcile_relay_swimmers_with_individuals(individual_rows, [relay_team], relay_swimmers)
 

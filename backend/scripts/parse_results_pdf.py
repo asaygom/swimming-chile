@@ -1290,6 +1290,11 @@ def build_relay_swimmer_row(
     raw_line: str,
 ) -> ParsedRelaySwimmerRow:
     birth_year_estimated = (competition_year - age_at_event) if (competition_year is not None and age_at_event is not None) else None
+    gender = normalize_athlete_gender(gender_raw)
+    # In mixed relays, the event gender is not a person-level gender; keep it
+    # blank unless the swimmer segment provides W/M or reconciliation can infer it.
+    if gender == "mixed":
+        gender = None
     return ParsedRelaySwimmerRow(
         page_number=page_number,
         line_number=line_number,
@@ -1298,7 +1303,7 @@ def build_relay_swimmer_row(
         relay_team_name=relay_team_name,
         leg_order=leg_order,
         swimmer_name=swimmer_name.strip(),
-        gender=normalize_athlete_gender(gender_raw),
+        gender=gender,
         age_at_event=age_at_event,
         birth_year_estimated=birth_year_estimated,
         raw_line=raw_line,
