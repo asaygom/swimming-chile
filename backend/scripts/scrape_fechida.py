@@ -50,6 +50,7 @@ class ManifestEntry:
     out_dir: str
     competition_id: int | None
     default_source_id: int
+    competition_source_url: str | None = None
     source_system: str = "fechida"
     competition_scope: str = "fechida_master"
     fechida_competition_id: int | None = None
@@ -324,6 +325,7 @@ def build_manifest_entries(
             entries.append(
                 ManifestEntry(
                     source_url=document.source_url,
+                    competition_source_url=f"{FECHIDA_BASE_URL}campeonato-info/?id={competition.competition_id}",
                     pdf=str(Path(pdf_dir) / year / competition_slug / local_name),
                     out_dir=str(Path(out_dir_root) / year / competition_slug / title_slug),
                     competition_id=None,

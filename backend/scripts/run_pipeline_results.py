@@ -128,6 +128,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--competition-id", type=int, help="competition_id opcional. Si no se indica, se intentará resolver o crear desde metadata.json")
     parser.add_argument("--competition-name", type=str, help="Nombre de competencia opcional para auto-upsert cuando no se indique competition_id")
     parser.add_argument("--competition-source-url", type=str, help="URL fuente opcional para competition cuando se cree automáticamente")
+    parser.add_argument(
+        "--source-document-url",
+        type=str,
+        help="URL técnica del documento; si falta, reutiliza la URL de competencia por compatibilidad.",
+    )
     parser.add_argument("--competition-scope", type=str, help="Scope curado opcional para filtrar circuito/federacion/ambito de la competencia")
     parser.add_argument("--governing-body-code", type=str, help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consada")
     parser.add_argument("--governing-body-name", type=str, help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSADA")
@@ -987,11 +992,20 @@ def derive_source_document_name(args: argparse.Namespace, metadata: Dict[str, Op
     return "manual_csv_load"
 
 
+def resolve_source_document_url(args: argparse.Namespace, metadata: Dict[str, Optional[str]]) -> Optional[str]:
+    # Existing manifests used competition_source_url for both records.
+    return (
+        normalize_string(getattr(args, "source_document_url", None))
+        or normalize_string(getattr(args, "competition_source_url", None))
+        or normalize_string(metadata.get("source_url"))
+    )
+
+
 def register_source_document(conn, config: Config, args: argparse.Namespace, metadata: Dict[str, Optional[str]]) -> int:
     document_name = derive_source_document_name(args, metadata)
     checksum_sha256 = normalize_string(metadata.get("pdf_sha256"))
     parser_version = normalize_string(metadata.get("parser_version"))
-    source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+    source_url = resolve_source_document_url(args, metadata)
     storage_path = normalize_string(getattr(args, "input_dir", None)) or normalize_string(getattr(args, "excel", None))
     document_type = "results_pdf" if normalize_string(metadata.get("pdf_name")) else "csv_batch"
     metadata_json = json.dumps(metadata, ensure_ascii=False) if metadata else None
@@ -1055,7 +1069,7 @@ def assert_no_unapproved_competition_source_revision(
         return
 
     checksum_sha256 = normalize_string(metadata.get("pdf_sha256"))
-    source_url = normalize_string(getattr(args, "competition_source_url", None)) or normalize_string(metadata.get("source_url"))
+    source_url = resolve_source_document_url(args, metadata)
     if not checksum_sha256 and not source_url:
         return
 

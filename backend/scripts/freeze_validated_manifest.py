@@ -62,6 +62,8 @@ def build_manifest_entry(
     }
     if document.get("source_url"):
         entry["source_url"] = document["source_url"]
+    if document.get("competition_source_url"):
+        entry["competition_source_url"] = document["competition_source_url"]
     if governing_body_code:
         entry["governing_body_code"] = governing_body_code
     if governing_body_name:

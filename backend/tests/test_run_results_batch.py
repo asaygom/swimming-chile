@@ -482,6 +482,7 @@ def test_build_load_command_passes_source_url_to_pipeline_when_available():
         default_source_id=7,
         competition_id=42,
         source_url="https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf",
+        competition_source_url="https://fchmn.cl/competencias/demo",
         competition_scope="fchmn_local",
         governing_body_code="fchmn",
         governing_body_name="FCHMN",
@@ -490,8 +491,10 @@ def test_build_load_command_passes_source_url_to_pipeline_when_available():
 
     command = batch.build_load_command(args, Path("backend/data/raw/results_csv/demo"))
 
-    assert command[-8:] == [
+    assert command[-10:] == [
         "--competition-source-url",
+        "https://fchmn.cl/competencias/demo",
+        "--source-document-url",
         "https://fchmn.cl/wp-content/uploads/2026/03/resultados-demo.pdf",
         "--competition-scope",
         "fchmn_local",
@@ -500,6 +503,28 @@ def test_build_load_command_passes_source_url_to_pipeline_when_available():
         "--governing-body-name",
         "FCHMN",
     ]
+
+
+def test_build_load_command_keeps_legacy_source_url_for_both_targets():
+    document_url = "https://fchmn.cl/resultados-demo.pdf"
+    args = Namespace(
+        host="localhost",
+        port=5432,
+        dbname="natacion_chile",
+        user="postgres",
+        password="secret",
+        schema="core",
+        default_source_id=7,
+        competition_id=42,
+        source_url=document_url,
+        competition_source_url=None,
+        truncate_staging=False,
+    )
+
+    command = batch.build_load_command(args, Path("backend/data/raw/results_csv/demo"))
+
+    assert command[command.index("--competition-source-url") + 1] == document_url
+    assert command[command.index("--source-document-url") + 1] == document_url
 
 
 def test_build_load_command_forwards_source_revision_override():

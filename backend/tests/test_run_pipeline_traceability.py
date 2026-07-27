@@ -58,6 +58,75 @@ def test_derive_source_document_name_falls_back_to_input_dir():
     assert pipeline.derive_source_document_name(args, {}) == "demo"
 
 
+def test_source_document_url_is_separate_from_public_competition_url():
+    args = argparse.Namespace(
+        competition_source_url="https://fechida.cl/campeonato-info/?id=422",
+        source_document_url="https://registro.fechida.org/competencia_documento_down.php?id=1227",
+    )
+
+    assert pipeline.resolve_source_document_url(args, {}) == args.source_document_url
+
+
+def test_source_document_url_falls_back_to_legacy_competition_url():
+    args = argparse.Namespace(
+        competition_source_url="https://fchmn.cl/resultados-demo.pdf",
+        source_document_url=None,
+    )
+
+    assert pipeline.resolve_source_document_url(args, {}) == args.competition_source_url
+
+
+def test_pipeline_writes_distinct_competition_and_document_urls():
+    class Cursor:
+        def __init__(self):
+            self.statements = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, statement, params=None):
+            self.statements.append((statement, params))
+
+        def fetchone(self):
+            return [77]
+
+    class Conn:
+        def __init__(self):
+            self.cursor_instance = Cursor()
+
+        def cursor(self):
+            return self.cursor_instance
+
+        def commit(self):
+            pass
+
+    competition_url = "https://fechida.cl/campeonato-info/?id=422"
+    document_url = "https://registro.fechida.org/competencia_documento_down.php?id=1227"
+    conn = Conn()
+    config = argparse.Namespace(schema="core", competition_id=90, default_source_id=1)
+    args = argparse.Namespace(
+        competition_source_url=competition_url,
+        source_document_url=document_url,
+        competition_scope="fechida_master",
+        governing_body_code="fechida",
+        governing_body_name="FECHIDA",
+        input_dir="backend/data/raw/results_csv/fechida/demo",
+        excel=None,
+    )
+    metadata = {"pdf_name": "resultados-sexta-etapa.pdf", "pdf_sha256": "abc123"}
+
+    pipeline.resolve_competition_id(conn, config, args, {}, metadata)
+    pipeline.register_source_document(conn, config, args, metadata)
+
+    competition_params = conn.cursor_instance.statements[0][1]
+    document_params = conn.cursor_instance.statements[1][1]
+    assert competition_params[3] == competition_url
+    assert document_params[3] == document_url
+
+
 def test_normalize_competition_scope_accepts_snake_case():
     assert pipeline.normalize_competition_scope("fchmn_local") == "fchmn_local"
 

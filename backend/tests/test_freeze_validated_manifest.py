@@ -24,6 +24,7 @@ def write_summary(path: Path) -> None:
                         "state": "validated",
                         "input_dir": "backend/data/raw/results_csv/local_a",
                         "source_url": "https://fchmn.cl/local-a.pdf",
+                        "competition_source_url": "https://fchmn.cl/competencia/local-a",
                     },
                     {
                         "state": "validated",
@@ -112,6 +113,7 @@ def test_freeze_validated_manifest_includes_only_allowed_validated_documents():
             "governing_body_code": "fchmn",
             "governing_body_name": "FCHMN",
             "source_url": "https://fchmn.cl/local-a.pdf",
+            "competition_source_url": "https://fchmn.cl/competencia/local-a",
         }
     ]
 

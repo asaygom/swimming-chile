@@ -148,6 +148,7 @@ def test_build_manifest_entries_uses_fechida_paths_and_metadata():
 
     assert len(entries) == 1
     assert entries[0].source_url == documents[0].source_url
+    assert entries[0].competition_source_url == "https://fechida.cl/campeonato-info/?id=422"
     assert entries[0].pdf == str(
         Path(
             "backend/data/raw/results_pdf/fechida/2026/nacional-master-y-pre-master-invierno-26/resultados-primera-etapa.pdf"
@@ -223,6 +224,7 @@ def test_discover_results_manifest_is_download_manifest_compatible(monkeypatch):
         assert manifest_entry["source_system"] == "fechida"
         assert manifest_entry["competition_scope"] == "fechida_master"
         assert manifest_entry["source_url"].endswith("/resultados-completos-nacional-master.pdf")
+        assert manifest_entry["competition_source_url"] == "https://fechida.cl/campeonato-info/?id=422"
 
         result = downloader.process_manifest(
             manifest_path,

@@ -77,6 +77,7 @@ class BatchValidationResult:
     state: str
     input_dir: str
     source_url: str | None
+    competition_source_url: str | None
     competition_scope: str | None
     governing_body_code: str | None
     governing_body_name: str | None
@@ -105,6 +106,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", help="Carpeta de salida requerida cuando se usa --pdf")
     parser.add_argument("--competition-id", type=int, help="competition_id que se pasara al parser")
     parser.add_argument("--source-url", help="URL original del documento para trazabilidad cuando exista.")
+    parser.add_argument("--competition-source-url", help="URL pública estable de la competencia cuando difiera de la URL documental.")
     parser.add_argument("--competition-scope", help="Ambito curado del documento; requerido para cargar a core.")
     parser.add_argument("--governing-body-code", help="Codigo snake_case del organismo deportivo rector, ej. fchmn o consada.")
     parser.add_argument("--governing-body-name", help="Nombre visible del organismo deportivo rector, ej. FCHMN o CONSADA.")
@@ -189,6 +191,10 @@ def build_manifest_item_args(base_args: argparse.Namespace, entry: dict[str, Any
     item.out_dir = resolve_manifest_path(entry.get("out_dir"))
     item.competition_id = entry.get("competition_id", base_args.competition_id)
     item.source_url = entry.get("source_url", getattr(base_args, "source_url", None))
+    item.competition_source_url = entry.get(
+        "competition_source_url",
+        getattr(base_args, "competition_source_url", None),
+    )
     item.competition_scope = entry.get("competition_scope", getattr(base_args, "competition_scope", None))
     item.governing_body_code = entry.get("governing_body_code", getattr(base_args, "governing_body_code", None))
     item.governing_body_name = entry.get("governing_body_name", getattr(base_args, "governing_body_name", None))
@@ -237,8 +243,13 @@ def build_load_command(args: argparse.Namespace, input_dir: Path) -> list[str]:
     ]
     if args.competition_id is not None:
         command.extend(["--competition-id", str(args.competition_id)])
-    if getattr(args, "source_url", None):
-        command.extend(["--competition-source-url", str(args.source_url)])
+    document_source_url = getattr(args, "source_url", None)
+    # Legacy manifests expose one URL; in that case both records keep the old behavior.
+    competition_source_url = getattr(args, "competition_source_url", None) or document_source_url
+    if competition_source_url:
+        command.extend(["--competition-source-url", str(competition_source_url)])
+    if document_source_url:
+        command.extend(["--source-document-url", str(document_source_url)])
     if getattr(args, "competition_scope", None):
         command.extend(["--competition-scope", str(args.competition_scope)])
     if getattr(args, "governing_body_code", None):
@@ -830,6 +841,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
             state="failed",
             input_dir=str(input_dir),
             source_url=source_url,
+            competition_source_url=None,
             competition_scope=None,
             governing_body_code=None,
             governing_body_name=None,
@@ -879,6 +891,7 @@ def validate_input_dir(input_dir: Path, debug_threshold: float = DEFAULT_DEBUG_T
         state=state,
         input_dir=str(input_dir),
         source_url=source_url,
+        competition_source_url=None,
         competition_scope=None,
         governing_body_code=None,
         governing_body_name=None,
@@ -929,6 +942,7 @@ def process_one(args: argparse.Namespace) -> BatchValidationResult:
             state="failed",
             input_dir=str(input_dir),
             source_url=getattr(args, "source_url", None),
+            competition_source_url=getattr(args, "competition_source_url", None),
             competition_scope=getattr(args, "competition_scope", None),
             governing_body_code=getattr(args, "governing_body_code", None),
             governing_body_name=getattr(args, "governing_body_name", None),
@@ -944,6 +958,7 @@ def process_one(args: argparse.Namespace) -> BatchValidationResult:
             commands={"parse": parse_command, "load": None},
         )
     result = validate_input_dir(input_dir, args.debug_threshold, getattr(args, "source_url", None))
+    result.competition_source_url = getattr(args, "competition_source_url", None)
     result.competition_scope = getattr(args, "competition_scope", None)
     result.governing_body_code = getattr(args, "governing_body_code", None)
     result.governing_body_name = getattr(args, "governing_body_name", None)
