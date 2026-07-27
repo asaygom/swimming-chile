@@ -1482,6 +1482,11 @@ def build_core_identity_candidate_rows(source_rows: Sequence[dict], core_rows: S
     for source in source_rows:
         source_gender = source.get("gender", "")
         possible_core = core_by_year.get(source["birth_year"], [])
+        # Source identities with any exact Core match belong exclusively to
+        # the exact-match universe; otherwise one partial Core row can make
+        # the same source count as both exact and candidate.
+        if any(exact_core_identity_match(source, core) for core in possible_core):
+            continue
         for core in possible_core:
             if not name_compatible_core_match(source, core):
                 continue

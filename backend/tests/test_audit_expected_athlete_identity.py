@@ -654,7 +654,7 @@ def test_build_new_athlete_rows_excludes_exact_and_review_candidates_without_usi
     }
 
 
-def test_core_identity_candidates_exclude_exact_but_include_compatible_unknown_core_gender():
+def test_core_identity_candidates_include_compatible_unknown_core_gender():
     source_rows = [
         {
             "source_table": "athlete",
@@ -694,10 +694,44 @@ def test_core_identity_candidates_exclude_exact_but_include_compatible_unknown_c
             "historical_club_names": "",
             "historical_club_keys": "",
         },
+    ]
+
+    rows = audit.build_core_identity_candidate_rows(source_rows, core_rows)
+
+    assert [row["core_athlete_id"] for row in rows] == [2]
+
+
+def test_core_identity_candidates_exclude_source_identity_when_exact_core_match_exists():
+    source_rows = [
         {
-            "core_athlete_id": 3,
+            "source_table": "athlete",
+            "source_url": "stage-1",
+            "full_name": "Soto Gonzalez, Beatriz",
+            "athlete_key": "soto gonzalez beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+        }
+    ]
+    core_rows = [
+        {
+            "core_athlete_id": 2,
             "full_name": "Soto, Beatriz",
             "athlete_key": "soto beatriz",
+            "gender": "female",
+            "birth_year": "1985",
+            "club_name": "Club A",
+            "club_key": "club a",
+            "current_club_name": "",
+            "current_club_key": "",
+            "historical_club_names": "",
+            "historical_club_keys": "",
+        },
+        {
+            "core_athlete_id": 3,
+            "full_name": "Soto Gonzalez, Beatriz",
+            "athlete_key": "soto gonzalez beatriz",
             "gender": "female",
             "birth_year": "1985",
             "club_name": "Club A",
@@ -711,7 +745,7 @@ def test_core_identity_candidates_exclude_exact_but_include_compatible_unknown_c
 
     rows = audit.build_core_identity_candidate_rows(source_rows, core_rows)
 
-    assert [row["core_athlete_id"] for row in rows] == [2]
+    assert rows == []
 
 
 def test_build_new_club_rows_respects_aliases_before_classifying_new():

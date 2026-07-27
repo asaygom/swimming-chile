@@ -32,6 +32,16 @@ def test_decision_birth_year_uses_core_year_for_suda_range_evidence():
     assert curate.decision_birth_year(row) == "1962"
 
 
+def test_decision_birth_year_prefers_explicit_reviewed_canonical_year():
+    row = {
+        "birth_year": "1983",
+        "core_birth_year": "1982",
+        "canonical_birth_year": "1982",
+    }
+
+    assert curate.decision_birth_year(row) == "1982"
+
+
 def test_decision_birth_year_does_not_materialize_suda_range_without_core_year():
     row = {
         "confidence_bucket": "suda_2026_birth_year_range",
@@ -1361,6 +1371,32 @@ def test_materialized_input_dir_drops_parser_reparse_root():
     output_root = BACKEND_DIR / "data" / "raw" / "results_csv" / "fchmn_parser020_curated_20260510"
 
     assert curate.materialized_input_dir(source, output_root) == output_root / "fchmn_auto" / "2025" / "doc"
+
+
+def test_materialized_input_dir_can_write_documents_directly_under_final_competition_root():
+    source = (
+        BACKEND_DIR
+        / "data"
+        / "raw"
+        / "results_csv"
+        / "fechida"
+        / "2026"
+        / "nacional-master-y-pre-master-invierno-26"
+        / "resultados-sexta-etapa"
+    )
+    output_root = (
+        BACKEND_DIR
+        / "data"
+        / "raw"
+        / "results_csv"
+        / "fechida"
+        / "2026"
+        / "nacional-master-y-pre-master-invierno-26-curated"
+    )
+
+    assert curate.materialized_input_dir(source, output_root, flat_root=True) == (
+        output_root / "resultados-sexta-etapa"
+    )
 
 
 def test_apply_athlete_curations_to_df_applies_identity_after_space_order_canonicalization():

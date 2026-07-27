@@ -89,6 +89,11 @@ def parse_args() -> argparse.Namespace:
         help="Optional output manifest pointing to curated per-document CSV folders.",
     )
     parser.add_argument(
+        "--materialize-flat-root",
+        action="store_true",
+        help="Write each curated document directly below --materialize-output-root.",
+    )
+    parser.add_argument(
         "--birth-year-evidence-csv",
         help="Optional same-club delta-1 birth_year evidence CSV to apply during materialization.",
     )
@@ -716,6 +721,9 @@ def load_result_event_corrections(path: Path) -> List[dict]:
 
 
 def decision_birth_year(row: dict) -> str:
+    canonical_birth_year = normalize_birth_year(row.get("canonical_birth_year"))
+    if canonical_birth_year:
+        return canonical_birth_year
     bucket = normalize_match_text(row.get("confidence_bucket")) or ""
     kind = normalize_match_text(row.get("source_identity_kind")) or ""
     if bucket == "suda 2026 birth year range" or kind == "suda name range 2026":
@@ -1802,7 +1810,9 @@ def prune_duplicate_athlete_rows_for_reviewed_identity_merges(
     return athlete_df.loc[keep_indexes].reset_index(drop=True), dropped
 
 
-def materialized_input_dir(source_input_dir: Path, output_root: Path) -> Path:
+def materialized_input_dir(source_input_dir: Path, output_root: Path, flat_root: bool = False) -> Path:
+    if flat_root:
+        return output_root / source_input_dir.name
     parts = list(source_input_dir.parts)
     if "results_csv" in parts:
         relative = Path(*parts[parts.index("results_csv") + 1 :])
@@ -1830,8 +1840,9 @@ def materialize_document_inputs(
     input_dir: Path,
     output_root: Path,
     rules: dict,
+    flat_root: bool = False,
 ) -> Tuple[dict, dict]:
-    output_dir = materialized_input_dir(input_dir, output_root)
+    output_dir = materialized_input_dir(input_dir, output_root, flat_root=flat_root)
     if output_dir.exists():
         shutil.rmtree(output_dir)
     shutil.copytree(input_dir, output_dir)
@@ -1956,6 +1967,7 @@ def materialize_manifest_inputs(
     input_dirs_by_source_url: Dict[str, Path],
     output_root: Path,
     rules: dict,
+    flat_root: bool = False,
 ) -> Tuple[List[dict], dict]:
     materialized_documents: List[dict] = []
     total_counts = Counter()
@@ -1969,6 +1981,7 @@ def materialize_manifest_inputs(
             input_dir,
             output_root,
             rules,
+            flat_root=flat_root,
         )
         materialized_documents.append(output_document)
         for key, value in counts.items():
@@ -2041,6 +2054,7 @@ def main() -> int:
             input_dirs_by_source_url,
             materialize_root,
             rules,
+            flat_root=args.materialize_flat_root,
         )
         write_manifest(materialized_manifest_path, materialized_documents)
         summary.update(
