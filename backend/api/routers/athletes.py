@@ -202,12 +202,14 @@ def get_athlete(athlete_id: int):
                     r.id, e.distance_m || 'm ' || e.stroke as event_name, 
                     e.stroke, e.distance_m, comp.course_type, e.age_group,
                     comp.name as competition_name, comp.start_date as competition_date,
+                    result_club.name as club_name,
                     r.seed_time_text, r.seed_time_ms,
                     r.result_time_text, r.result_time_ms, r.status,
                     r.rank_position, r.points
                 FROM core.result r
                 JOIN core.event e ON r.event_id = e.id
                 JOIN core.competition comp ON e.competition_id = comp.id
+                LEFT JOIN core.club result_club ON result_club.id = r.club_id
                 WHERE r.athlete_id = %s
                 ORDER BY comp.start_date DESC, e.distance_m ASC
                 LIMIT 50

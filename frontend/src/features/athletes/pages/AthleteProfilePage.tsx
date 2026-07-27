@@ -439,13 +439,23 @@ export const AthleteProfilePage: React.FC = () => {
           <div className="space-y-6">
             {Object.entries(groupedRecent).map(([compName, results]) => {
               const competitionMonthYear = formatMonthYear(results[0]?.competition_date);
+              const representedClubs = Array.from(new Set(
+                results
+                  .map(result => result.club_name?.trim())
+                  .filter((clubName): clubName is string => Boolean(clubName)),
+              ));
 
               return (
               <div key={compName} className="bg-surface rounded-xl shadow-sm border border-line overflow-hidden">
                 <div className="bg-canvas border-b border-line px-4 py-3">
-                  <h3 className="font-bold text-ink">
+                  <h3 className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-bold text-ink">
                     {compName}
-                    {competitionMonthYear && <span className="ml-2 text-sm font-medium text-content-subtle">({competitionMonthYear})</span>}
+                    {competitionMonthYear && <span className="text-sm font-medium text-content-subtle">({competitionMonthYear})</span>}
+                    {representedClubs.length > 0 && (
+                      <span className="text-sm font-medium text-content-muted">
+                        · {representedClubs.join(' / ')}
+                      </span>
+                    )}
                   </h3>
                 </div>
                 <div className="divide-y divide-line">

@@ -22,6 +22,13 @@ def test_athletes_api_uses_current_club_view_not_static_athlete_club():
     assert "r.seed_time_ms" in source
 
 
+def test_athlete_results_expose_historical_represented_club():
+    source = normalized_source(ATHLETES_ROUTER)
+
+    assert "left join core.club result_club on result_club.id = r.club_id" in source
+    assert "result_club.name as club_name" in source
+
+
 def test_athletes_api_uses_shared_token_search():
     source = normalized_source(ATHLETES_ROUTER)
 

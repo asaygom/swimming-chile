@@ -83,6 +83,7 @@ Athlete detail with recent results.
       "course_type": "LCM",
       "competition_name": "Torneo Nacional 2023",
       "competition_date": "2023-11-15T00:00:00Z",
+      "club_name": "Estadio Español",
       "seed_time_text": "00:26.10",
       "seed_time_ms": 26100,
       "result_time_text": "00:25.40",
@@ -98,6 +99,7 @@ Athlete detail with recent results.
 The athlete profile uses `recent_results` for:
 
 - competition history;
+- historical represented club from `core.result.club_id`;
 - seed vs result comparison (`result_time_ms - seed_time_ms`);
 - trend charts by `distance_m` + `stroke`, ordered by competition/result sequence and colored by `course_type`.
 
