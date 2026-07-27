@@ -37,6 +37,10 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
   `backend/sql/migrations/006_relay_member_match_fields.sql`, para que los
   integrantes de relevos puedan enlazarse al resultado correcto cuando una
   fuente repite el mismo equipo/evento/club.
+- Confirmar que la base tiene aplicada la migracion
+  `backend/sql/migrations/009_competition_current_club_policy.sql`, para que el
+  club vigente use por defecto solo competencias `fchmn_local` y respete las
+  inclusiones o exclusiones explícitas por competencia.
 
 ## 2. Manifest congelado
 

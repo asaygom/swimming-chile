@@ -2,6 +2,17 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-07-27 - Política de competencias para club vigente
+
+- Se agrega la migración
+  `backend/sql/migrations/009_competition_current_club_policy.sql` con
+  `competition.affects_current_club` nullable.
+- `core.athlete_current_club` considera por defecto solo competencias
+  `fchmn_local`; `TRUE` incluye explícitamente cualquier competencia y `FALSE`
+  excluye explícitamente incluso una FCHMN.
+- El loader no cambia: dejar el indicador en `NULL` conserva la política
+  automática basada en `competition_scope`.
+
 ## 2026-07-07 - Módulo de rankings y estadísticas reales
 
 - Se agrega el módulo full-stack de rankings y estadísticas consumiendo datos

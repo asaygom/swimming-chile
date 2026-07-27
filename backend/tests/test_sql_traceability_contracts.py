@@ -7,6 +7,9 @@ MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "001_traceability_idempoten
 COMPETITION_SCOPE_MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "002_competition_scope.sql"
 EXPECTED_POINTS_MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "003_expected_points.sql"
 ATHLETE_CURRENT_CLUB_MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "004_athlete_current_club_view.sql"
+CURRENT_CLUB_POLICY_MIGRATION_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "009_competition_current_club_policy.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -87,10 +90,17 @@ def test_expected_points_migration_adds_result_and_relay_columns():
 def test_schema_declares_athlete_current_club_view():
     sql = normalized_sql(SCHEMA_SQL)
 
+    assert "affects_current_club boolean" in sql
     assert "create or replace view athlete_current_club as" in sql
     assert "from result r" in sql
     assert "from relay_result_member rrm" in sql
     assert "row_number() over" in sql
+    assert (
+        sql.count(
+            "coalesce(c.affects_current_club, c.competition_scope = 'fchmn_local')"
+        )
+        == 2
+    )
 
 
 def test_athlete_current_club_migration_creates_latest_observation_view():
@@ -104,3 +114,19 @@ def test_athlete_current_club_migration_creates_latest_observation_view():
         "order by competition_date desc nulls last",
     ]:
         assert sql_fragment in sql
+
+
+def test_current_club_policy_migration_is_idempotent_and_filters_both_branches():
+    sql = normalized_sql(CURRENT_CLUB_POLICY_MIGRATION_SQL)
+
+    assert (
+        "alter table competition add column if not exists affects_current_club boolean"
+        in sql
+    )
+    assert "create or replace view athlete_current_club as" in sql
+    assert (
+        sql.count(
+            "coalesce(c.affects_current_club, c.competition_scope = 'fchmn_local')"
+        )
+        == 2
+    )

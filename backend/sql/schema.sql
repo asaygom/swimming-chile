@@ -115,6 +115,7 @@ CREATE TABLE competition (
     competition_scope TEXT CHECK (
         competition_scope IS NULL OR competition_scope ~ '^[a-z][a-z0-9_]*$'
     ),
+    affects_current_club BOOLEAN,
     course_type TEXT CHECK (
         course_type IN ('scm', 'lcm', 'unknown')
     ),
@@ -509,6 +510,7 @@ WITH club_observations AS (
     JOIN competition c ON c.id = e.competition_id
     WHERE r.athlete_id IS NOT NULL
       AND r.club_id IS NOT NULL
+      AND COALESCE(c.affects_current_club, c.competition_scope = 'fchmn_local')
 
     UNION ALL
 
@@ -526,6 +528,7 @@ WITH club_observations AS (
     JOIN competition c ON c.id = e.competition_id
     WHERE rrm.athlete_id IS NOT NULL
       AND rr.club_id IS NOT NULL
+      AND COALESCE(c.affects_current_club, c.competition_scope = 'fchmn_local')
 ),
 ranked AS (
     SELECT

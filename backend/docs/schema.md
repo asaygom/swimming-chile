@@ -156,7 +156,7 @@ Valores esperados:
 - `lcm`
 - `unknown`
 
-### 6.6 `competition.competition_type`, `competition.competition_scope` y organismo rector
+### 6.6 `competition.competition_type`, `competition.competition_scope`, política de club vigente y organismo rector
 
 `competition_type` describe el tipo deportivo general de la competencia, por
 ejemplo `master`, `open` o `school`.
@@ -169,6 +169,13 @@ debe usar `snake_case` simple, por ejemplo:
 - `fchmn_local`
 - `sudamericano_master`
 - `fechida_local`
+
+`affects_current_club` controla si las observaciones de la competencia pueden
+definir el club vigente de un atleta. Su semantica es triestado:
+
+- `NULL`: politica automatica; solo cuenta `competition_scope = 'fchmn_local'`.
+- `TRUE`: incluye explicitamente la competencia, cualquiera sea su scope.
+- `FALSE`: excluye explicitamente la competencia, incluso si es FCHMN.
 
 `governing_body_code` y `governing_body_name` describen el organismo deportivo
 rector o circuito federativo de la competencia, separado de:
@@ -314,6 +321,7 @@ Campos principales:
 - `governing_body_name`
 - `competition_type`
 - `competition_scope`
+- `affects_current_club`
 - `course_type`
 - `status`
 - `source_id`
@@ -363,7 +371,8 @@ Observaciones:
 
 El club vigente del atleta no se lee desde `athlete.club_id`. Para producto/API
 se deriva desde la vista `athlete_current_club`, usando la observacion de club
-mas reciente en resultados individuales o relevos.
+mas reciente en resultados individuales o relevos de competencias habilitadas
+por `competition.affects_current_club`.
 
 ### 7.7 `result`
 
@@ -715,7 +724,9 @@ mantiene cruces normalizados.
   historica permanente ni necesariamente club vigente.
 - `athlete_current_club`: vista derivada que toma el club observado en la
   competencia mas reciente del atleta, considerando `result.club_id` y
-  `relay_result.club_id` via `relay_result_member`.
+  `relay_result.club_id` via `relay_result_member`. Por defecto solo considera
+  competencias `fchmn_local`; `competition.affects_current_club` permite incluir
+  o excluir explícitamente una competencia.
 - Las APIs deben exponer `current_club_name`/`current_club_id` desde esa vista
   cuando el producto necesite mostrar "club vigente".
 
