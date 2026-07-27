@@ -6,6 +6,7 @@ import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { CourseBadge } from '../../../components/ui/CourseBadge';
+import { GoverningBodyBadge } from '../../../components/ui/GoverningBodyBadge';
 import { getCourseMeta } from '../../../lib/courseMeta';
 import type { CompetitionEvent } from '../../../lib/schemas/competition';
 
@@ -332,8 +333,9 @@ export const CompetitionProfilePage: React.FC = () => {
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <CourseBadge courseType={competition.course_type} variant="dark" />
+              <GoverningBodyBadge competition={competition} variant="dark" />
               <span className="text-xs font-medium text-brand-muted">{course.description}</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">{competition.name}</h1>

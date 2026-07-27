@@ -6,29 +6,9 @@ import { LoadingState } from '../../../components/ui/LoadingState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { CourseBadge } from '../../../components/ui/CourseBadge';
+import { GoverningBodyBadge } from '../../../components/ui/GoverningBodyBadge';
 import { getCourseMeta } from '../../../lib/courseMeta';
 import type { Competition } from '../../../lib/schemas/competition';
-
-const GoverningBodyBadge: React.FC<{ competition: Competition }> = ({ competition }) => {
-  const governingBodyCode = competition.governing_body_code?.trim().toLowerCase();
-  const label = competition.governing_body_code?.trim().toUpperCase()
-    || competition.governing_body_name?.trim()
-    || competition.organizer?.trim();
-
-  if (!label) return null;
-
-  const colorClass = governingBodyCode === 'fchmn'
-    ? 'border-action/30 bg-action/10 text-action'
-    : governingBodyCode === 'fechida'
-      ? 'border-danger/30 bg-danger/10 text-danger-strong'
-      : 'border-line bg-canvas text-content-muted';
-
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${colorClass}`}>
-      {label}
-    </span>
-  );
-};
 
 const CompetitionCard: React.FC<{ comp: Competition; isUpcoming?: boolean }> = ({ comp, isUpcoming = false }) => {
   // Ajuste para evitar bugs de zona horaria: agregar T00:00:00 si viene solo YYYY-MM-DD
