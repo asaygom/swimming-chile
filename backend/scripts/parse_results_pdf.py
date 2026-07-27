@@ -1713,9 +1713,14 @@ def infer_relay_club_name_for_parser(relay_team_name: Optional[str], club_names:
 
     suffix_match = re.match(r"^(.*?)(?:\s+[A-Z])$", relay_team_name.strip())
     if suffix_match:
-        candidate = normalize_match_text(suffix_match.group(1))
+        # HY-TEK agrega una letra de equipo al nombre del club; en PDFs relay-only
+        # no existe un listado individual contra el cual resolver ese nombre base.
+        raw_candidate = clean_extracted_text(suffix_match.group(1))
+        candidate = normalize_match_text(raw_candidate)
         if candidate in direct:
             return direct[candidate]
+        if raw_candidate:
+            return raw_candidate
 
     candidates = []
     for original in club_names:
@@ -1755,7 +1760,9 @@ def reconcile_relay_swimmers_with_individuals(parsed_rows: List[ParsedResultRow]
 
     relay_club_by_team: Dict[str, Optional[str]] = {}
     for row in relay_team_rows:
-        relay_club_by_team[normalize_match_text(row.relay_team_name)] = infer_relay_club_name_for_parser(row.relay_team_name, club_names)
+        relay_club = clean_extracted_text(row.club_name) or infer_relay_club_name_for_parser(row.relay_team_name, club_names)
+        row.club_name = relay_club
+        relay_club_by_team[normalize_match_text(row.relay_team_name)] = relay_club
 
     for row in relay_swimmer_rows:
         relay_club = relay_club_by_team.get(normalize_match_text(row.relay_team_name))
@@ -1798,6 +1805,25 @@ def reconcile_relay_swimmers_with_individuals(parsed_rows: List[ParsedResultRow]
             row.gender = best_gender
             row.age_at_event = best.age_at_event
             row.birth_year_estimated = best.birth_year_estimated
+
+    relay_gender_evidence: Dict[Tuple[str, str], set[str]] = {}
+    for row in relay_swimmer_rows:
+        club_key = normalize_match_text(relay_club_by_team.get(normalize_match_text(row.relay_team_name)))
+        swimmer_key = normalize_match_text(row.swimmer_name)
+        gender = normalize_athlete_gender(row.gender)
+        if club_key and swimmer_key and gender in {"female", "male"}:
+            relay_gender_evidence.setdefault((club_key, swimmer_key), set()).add(gender)
+
+    for row in relay_swimmer_rows:
+        if normalize_athlete_gender(row.gender) in {"female", "male"}:
+            continue
+        club_key = normalize_match_text(relay_club_by_team.get(normalize_match_text(row.relay_team_name)))
+        swimmer_key = normalize_match_text(row.swimmer_name)
+        genders = relay_gender_evidence.get((club_key, swimmer_key), set())
+        # Otra aparición inequívoca del mismo nombre y club aporta género personal;
+        # el género mixed del evento nunca se propaga a la persona.
+        if len(genders) == 1:
+            row.gender = next(iter(genders))
 
 
 
@@ -2395,6 +2421,10 @@ def build_output_frames(parsed_rows: List[ParsedResultRow], relay_team_rows: Lis
 
     for row in relay_team_rows:
         ensure_event(row.event_number, row.event_name)
+        club_key = normalize_controlled_lower(row.club_name)
+        if club_key and club_key not in seen_clubs:
+            seen_clubs.add(club_key)
+            club_records.append({"name": row.club_name, "short_name": None, "city": None, "region": None, "source_id": source_id_value})
         relay_team_records.append(
             {
                 "event_name": row.event_name,

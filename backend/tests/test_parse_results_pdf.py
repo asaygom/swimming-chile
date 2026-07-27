@@ -1073,6 +1073,80 @@ def test_reconcile_relay_swimmers_infers_missing_gender_in_mixed_relay_from_indi
     assert relay_swimmers[0].birth_year_estimated == 1982
 
 
+def test_infer_relay_club_name_falls_back_to_team_name_without_letter_suffix():
+    assert parser.infer_relay_club_name_for_parser("Estadio Espanol A", []) == "Estadio Espanol"
+    assert parser.infer_relay_club_name_for_parser("Penalolen Master F", []) == "Penalolen Master"
+
+
+def test_reconcile_relay_swimmers_infers_missing_gender_from_same_person_in_relay_only_document():
+    mixed_team = parser.ParsedRelayTeamRow(
+        page_number=3,
+        line_number=7,
+        event_number=10,
+        event_name="mixed 280-319 200 LC Meter freestyle_relay",
+        relay_team_name="Penalolen Master F",
+        club_name=None,
+        rank_position="1",
+        seed_time_text=None,
+        seed_time_ms=None,
+        result_time_text="2:30,00",
+        result_time_ms="150000",
+        status="valid",
+        points=None,
+        raw_line="1 Penalolen Master F 2:30,00",
+    )
+    women_team = parser.ParsedRelayTeamRow(
+        page_number=12,
+        line_number=10,
+        event_number=45,
+        event_name="women 240-279 400 LC Meter medley_relay",
+        relay_team_name="Penalolen Master E",
+        club_name=None,
+        rank_position="1",
+        seed_time_text=None,
+        seed_time_ms=None,
+        result_time_text="5:30,00",
+        result_time_ms="330000",
+        status="valid",
+        points=None,
+        raw_line="1 Penalolen Master E 5:30,00",
+    )
+    swimmers = [
+        parser.ParsedRelaySwimmerRow(
+            page_number=3,
+            line_number=8,
+            event_number=10,
+            event_name=mixed_team.event_name,
+            relay_team_name=mixed_team.relay_team_name,
+            leg_order=2,
+            swimmer_name="Schwarzemberg, Maria Angelica",
+            gender=None,
+            age_at_event=None,
+            birth_year_estimated=None,
+            raw_line="",
+        ),
+        parser.ParsedRelaySwimmerRow(
+            page_number=12,
+            line_number=11,
+            event_number=45,
+            event_name=women_team.event_name,
+            relay_team_name=women_team.relay_team_name,
+            leg_order=2,
+            swimmer_name="Schwarzemberg, Maria Angelica",
+            gender="female",
+            age_at_event=None,
+            birth_year_estimated=None,
+            raw_line="",
+        ),
+    ]
+
+    parser.reconcile_relay_swimmers_with_individuals([], [mixed_team, women_team], swimmers)
+
+    assert mixed_team.club_name == "Penalolen Master"
+    assert women_team.club_name == "Penalolen Master"
+    assert swimmers[0].gender == "female"
+
+
 def test_parse_relay_swimmer_line_recovers_leg_marker_inside_age():
     rows = parser.parse_relay_swimmer_line(
         "1) Muñoz, Maria Olga W69 2) Ferrando, Nestor Alberto Domi M3)8 M3 aimone, Nicolasa W35 4) Le Cerf, Patricio M35",

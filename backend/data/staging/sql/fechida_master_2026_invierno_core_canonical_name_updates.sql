@@ -15,7 +15,7 @@ VALUES
     (264, '["Torres, Sergio"]'::jsonb, 'Torres, Sergio Antonio'),
     (286, '["Walter Rosales, Raul"]'::jsonb, 'Walter Rosales, Raul Alonso'),
     (385, '["Gonzalez Ibanez, Alvaro"]'::jsonb, 'Gonzalez, Alvaro Nicolas Guil'),
-    (436, '["Muñoz, Miguel"]'::jsonb, 'Munoz, Miguel Angel'),
+    (436, '["Muñoz, Miguel"]'::jsonb, 'Muñoz, Miguel Angel'),
     (438, '["Navarrete, Luis"]'::jsonb, 'Navarrete, Luis Felipe'),
     (486, '["Salas, Fernando"]'::jsonb, 'Salas, Fernando Arturo'),
     (558, '["Aguilera, Felipe"]'::jsonb, 'Aguilera, Felipe Antonio'),
@@ -27,7 +27,7 @@ VALUES
     (2130, '["Fabres, Nicolas"]'::jsonb, 'Fabres, Nicolas Alejandro'),
     (2134, '["Fuster, Maria Isabel"]'::jsonb, 'Fuster, Maria Isabel Silvan'),
     (2164, '["Iriarte, Rocio"]'::jsonb, 'Iriarte, Rocio Carolina'),
-    (2216, '["Peña, Daniela"]'::jsonb, 'Pena, Daniela Vanessa'),
+    (2216, '["Peña, Daniela"]'::jsonb, 'Peña, Daniela Vanessa'),
     (2230, '["Quintanilla, Francisca"]'::jsonb, 'Quintanilla, Francisca Alejandra'),
     (2247, '["Salaverry, Matias"]'::jsonb, 'Salaverry, Matias Ernesto'),
     (2257, '["Sillano, Mauricio"]'::jsonb, 'Sillano, Mauricio Alfredo'),
@@ -58,7 +58,8 @@ VALUES
     (5136, '["Cortez, Rosa"]'::jsonb, 'Cortez, Rosa Ester'),
     (5145, '["Leon, Carolina"]'::jsonb, 'Leon, Carolina Andrea'),
     (5147, '["Melzer, Karin"]'::jsonb, 'Melzer, Karin Erika'),
-    (5156, '["Quiroz, Saul"]'::jsonb, 'Quiroz, Saul Andres');
+    (5156, '["Quiroz, Saul"]'::jsonb, 'Quiroz, Saul Andres'),
+    (791, '["Rincon, Luis Carlos"]'::jsonb, 'Rincon, Luis Karlos');
 
 DO $$
 DECLARE

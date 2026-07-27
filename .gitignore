@@ -26,6 +26,7 @@ backend/data/staging/*.json
 backend/data/staging/nunoa_master_identity_preview/
 backend/data/staging/csv/*
 !backend/data/staging/csv/.gitkeep
+backend/data/staging/sql/*
 outputs
 
 .atl/

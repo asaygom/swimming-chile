@@ -24,7 +24,7 @@ REQUIRED_PARSER_OUTPUTS = {
 }
 
 OPTIONAL_RELAY_OUTPUTS = {
-    "relay_team": ["event_name", "relay_team_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "status", "source_id", "page_number", "line_number"],
+    "relay_team": ["event_name", "club_name", "relay_team_name", "rank_position", "seed_time_text", "seed_time_ms", "result_time_text", "result_time_ms", "points", "status", "source_id", "page_number", "line_number"],
     "relay_swimmer": ["event_name", "relay_team_name", "leg_order", "swimmer_name", "gender", "age_at_event", "birth_year_estimated", "page_number", "line_number"],
 }
 
@@ -368,6 +368,21 @@ def validate_required_identities(data: dict[str, list[dict[str, str]]], issues: 
     )
     if relay_missing:
         issues.append(BatchIssue("error", "relay_missing_identity", "Hay relevos sin event_name o relay_team_name.", relay_missing))
+
+    relay_missing_club = sum(
+        1
+        for row in data.get("relay_team", [])
+        if not (row.get("club_name") or "").strip()
+    )
+    if relay_missing_club:
+        issues.append(
+            BatchIssue(
+                "error",
+                "relay_team_missing_club_name",
+                "Hay relevos sin club_name; deben resolverse antes de cargar.",
+                relay_missing_club,
+            )
+        )
 
 
 def validate_relay_swimmer_leg_order(data: dict[str, list[dict[str, str]]], issues: list[BatchIssue]) -> None:

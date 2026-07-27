@@ -178,6 +178,29 @@ def test_validate_input_dir_requires_review_for_invalid_relay_leg_order():
     assert any(issue.issue_key == "invalid_relay_swimmer_leg_order" for issue in result.issues)
 
 
+def test_validate_input_dir_requires_review_when_relay_team_has_empty_club_name():
+    input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_relay_missing_club_{uuid.uuid4().hex}"
+    try:
+        shutil.copytree(FIXTURES_DIR / "valid", input_dir)
+        (input_dir / "relay_team.csv").write_text(
+            "event_name,club_name,relay_team_name,rank_position,seed_time_text,seed_time_ms,result_time_text,result_time_ms,points,status,source_id,page_number,line_number\n"
+            'mixed 280-319 200 LC Meter freestyle_relay,,Penalolen Master F,1,,,"2:30,00",150000,,valid,1,3,7\n',
+            encoding="utf-8",
+        )
+        (input_dir / "relay_swimmer.csv").write_text(
+            "event_name,relay_team_name,leg_order,swimmer_name,gender,age_at_event,birth_year_estimated,page_number,line_number\n"
+            'mixed 280-319 200 LC Meter freestyle_relay,Penalolen Master F,1,"Schwarzemberg, Maria Angelica",female,,,3,8\n',
+            encoding="utf-8",
+        )
+
+        result = batch.validate_input_dir(input_dir)
+    finally:
+        shutil.rmtree(input_dir, ignore_errors=True)
+
+    assert result.state == "requires_review"
+    assert any(issue.issue_key == "relay_team_missing_club_name" for issue in result.issues)
+
+
 def test_validate_input_dir_requires_review_for_known_adaip_line_wrap_residue():
     input_dir = BACKEND_DIR / "data" / "staging" / "csv" / f"test_adaip_line_wrap_{uuid.uuid4().hex}"
     try:
