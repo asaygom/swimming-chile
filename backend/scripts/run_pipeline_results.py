@@ -66,6 +66,7 @@ STAGING_TABLES = {
 
 DEFAULT_CLUB_ALIAS_CSV = Path(__file__).resolve().parents[1] / "data" / "reference" / "club_alias.csv"
 PLANNED_COMPETITION_MATCH_THRESHOLD = 0.72
+LOCAL_CLUB_METADATA_SCOPES = frozenset({"fchmn_local", "fechida_master"})
 
 
 def expected_points_case_sql(rank_expression: str, *, relay: bool) -> str:
@@ -103,6 +104,7 @@ class Config:
     truncate_core: bool
     competition_id: Optional[int]
     default_source_id: int
+    competition_scope: Optional[str] = None
     source_document_id: Optional[int] = None
     load_run_id: Optional[int] = None
 
@@ -1220,7 +1222,15 @@ def load_staging(conn, config: Config, data: Dict[str, pd.DataFrame]) -> None:
 
 
 
-def insert_core_club(cur, schema: str, default_source_id: int) -> None:
+def insert_core_club(
+    cur,
+    schema: str,
+    default_source_id: int,
+    competition_scope: Optional[str] = None,
+) -> None:
+    country_code = "CHI" if competition_scope in LOCAL_CLUB_METADATA_SCOPES else None
+    is_local = True if competition_scope in LOCAL_CLUB_METADATA_SCOPES else None
+
     cur.execute(f"""
         UPDATE {fqtn(schema, 'club')} c
         SET name = s.name,
@@ -1237,9 +1247,26 @@ def insert_core_club(cur, schema: str, default_source_id: int) -> None:
           AND {club_name_quality_sql('s.name')} > {club_name_quality_sql('c.name')};
     """)
 
+    if country_code is not None:
+        cur.execute(f"""
+            UPDATE {fqtn(schema, 'club')} c
+            SET country_code = COALESCE(c.country_code, %s::TEXT),
+                is_local = COALESCE(c.is_local, %s::BOOLEAN),
+                updated_at = NOW()
+            FROM (
+                SELECT DISTINCT {club_match_key_sql('s.name')} AS club_key
+                FROM {fqtn(schema, 'stg_club')} s
+                WHERE NULLIF(TRIM(s.name), '') IS NOT NULL
+            ) s
+            WHERE {club_match_key_sql('c.name')} = s.club_key
+              AND (c.country_code IS NULL OR c.is_local IS NULL);
+        """, (country_code, is_local))
+
     cur.execute(f"""
-        INSERT INTO {fqtn(schema, 'club')} (name, short_name, city, region, source_id)
-        SELECT s.name, s.short_name, s.city, s.region, s.source_id
+        INSERT INTO {fqtn(schema, 'club')} (
+            name, short_name, city, region, country_code, is_local, source_id
+        )
+        SELECT s.name, s.short_name, s.city, s.region, %s::TEXT, %s::BOOLEAN, s.source_id
         FROM (
             SELECT DISTINCT ON ({club_match_key_sql('s.name')})
                    TRIM(s.name) AS name,
@@ -1256,7 +1283,7 @@ def insert_core_club(cur, schema: str, default_source_id: int) -> None:
             SELECT 1 FROM {fqtn(schema, 'club')} c
             WHERE {club_match_key_sql('c.name')} = s.club_key
         );
-    """, (default_source_id,))
+    """, (country_code, is_local, default_source_id))
 
 
 
@@ -1591,7 +1618,12 @@ def insert_core_relay_result_member(cur, schema: str, competition_id: int) -> No
 def load_core(conn, config: Config) -> None:
     info("Insertando datos desde staging hacia core...")
     with conn.cursor() as cur:
-        insert_core_club(cur, config.schema, config.default_source_id)
+        insert_core_club(
+            cur,
+            config.schema,
+            config.default_source_id,
+            config.competition_scope,
+        )
         insert_core_event(cur, config.schema, config.competition_id, config.default_source_id)
         insert_core_athlete(cur, config.schema, config.default_source_id)
         insert_core_result(cur, config.schema, config.competition_id, config.default_source_id)
@@ -1761,7 +1793,19 @@ def print_validations(validation_results: Dict[str, int]) -> None:
 
 def main() -> None:
     args = parse_args()
-    config = Config(host=args.host, port=args.port, dbname=args.dbname, user=args.user, password=args.password, schema=args.schema, truncate_staging=args.truncate_staging, truncate_core=args.truncate_core, competition_id=args.competition_id, default_source_id=args.default_source_id)
+    config = Config(
+        host=args.host,
+        port=args.port,
+        dbname=args.dbname,
+        user=args.user,
+        password=args.password,
+        schema=args.schema,
+        truncate_staging=args.truncate_staging,
+        truncate_core=args.truncate_core,
+        competition_id=args.competition_id,
+        default_source_id=args.default_source_id,
+        competition_scope=normalize_competition_scope(args.competition_scope),
+    )
     data, metadata = read_inputs(args)
     aliases = load_club_aliases(args.club_alias_csv)
     apply_club_aliases(data, aliases)

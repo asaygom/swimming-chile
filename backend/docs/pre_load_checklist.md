@@ -42,6 +42,12 @@ del batch runner: solo ordena las decisiones humanas antes de ejecutar `--load`.
   club vigente use por defecto solo competencias `fchmn_local` y respete las
   inclusiones o exclusiones explícitas por competencia.
 
+- Confirmar que la base tiene aplicada la migracion
+  `backend/sql/migrations/010_local_club_metadata.sql`, para completar
+  `country_code = 'CHI'` (ISO 3166-1 alpha-3) e `is_local = TRUE` en clubes
+  observados por cargas `fchmn_local` o `fechida_master`, sin pisar metadata
+  existente.
+
 ## 2. Manifest congelado
 
 - Crear una lista curada de `source_url` locales permitidas.
@@ -160,6 +166,9 @@ Validar trazabilidad:
 - `competition.competition_scope` coincide con el scope curado del manifest.
 - `competition.governing_body_code` y `competition.governing_body_name`
   coinciden con el organismo rector curado del manifest cuando aplica.
+- Los clubes de cargas `fchmn_local` o `fechida_master` tienen
+  `country_code = 'CHI'` e `is_local = TRUE`, salvo valores explícitos previos
+  que la carga debe preservar.
 - `load_run.input_dir` apunta a la carpeta parseada esperada.
 - `load_run.parser_version` coincide con `metadata.json`.
 

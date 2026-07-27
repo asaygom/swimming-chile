@@ -168,7 +168,7 @@ debe usar `snake_case` simple, por ejemplo:
 
 - `fchmn_local`
 - `sudamericano_master`
-- `fechida_local`
+- `fechida_master`
 
 `affects_current_club` controla si las observaciones de la competencia pueden
 definir el club vigente de un atleta. Su semantica es triestado:
@@ -267,6 +267,8 @@ Campos principales:
 - `short_name`
 - `city`
 - `region`
+- `country_code`
+- `is_local`
 - `association_name`
 - `website`
 - `instagram`
@@ -274,6 +276,13 @@ Campos principales:
 - `source_id`
 - `created_at`
 - `updated_at`
+
+`country_code` usa códigos **ISO 3166-1 alpha-3** (`CHI`, `ARG`, `BRA`) y,
+al igual que `is_local`, es nullable porque el origen de un club puede ser
+desconocido. Las cargas con `competition_scope` `fchmn_local` o
+`fechida_master` completan implícitamente `CHI` y `TRUE` para los clubes
+observados en su staging, sin reemplazar metadata explícita no nula. Otros
+scopes no se infieren por ciudad ni por sede de la competencia.
 
 ### 7.3 `pool`
 
@@ -666,7 +675,9 @@ mismo `event_name` + `club_name` + `relay_team_name` para mas de un relevo.
 3. Registra o reutiliza `source_document` usando checksum del PDF cuando existe.
 4. Crea un `load_run` con conteos de entrada.
 5. Carga todas las tablas staging con `COPY`.
-6. Inserta o reutiliza clubes, eventos y atletas.
+6. Inserta o reutiliza clubes, eventos y atletas. Para scopes `fchmn_local` y
+   `fechida_master`, completa `country_code = 'CHI'` e `is_local = TRUE` sólo
+   cuando esos campos estaban vacíos.
 7. Los aliases de club se aplican con resolucion transitiva: si el CSV contiene
    `A -> B -> C`, el pipeline carga `A` y `B` como `C`.
 8. Enlaza resultados individuales e integrantes de relevos con atletas usando

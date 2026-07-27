@@ -2,6 +2,19 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-07-27 - Metadata local implícita por scope curado
+
+- Se agrega la migración
+  `backend/sql/migrations/010_local_club_metadata.sql`, que declara
+  `club.country_code` y `club.is_local` como metadata nullable y repara valores
+  faltantes en clubes observados por resultados individuales o relevos de
+  competencias `fchmn_local` y `fechida_master`.
+- El loader completa `country_code = 'CHI'` (ISO 3166-1 alpha-3) e
+  `is_local = TRUE` al insertar o reutilizar clubes de esos dos scopes. Usa
+  `COALESCE`, por lo que no reemplaza metadata explícita ya existente.
+- Otros scopes mantienen metadata desconocida; no se infiere nacionalidad por
+  ciudad ni por sede de la competencia.
+
 ## 2026-07-27 - Política de competencias para club vigente
 
 - Se agrega la migración

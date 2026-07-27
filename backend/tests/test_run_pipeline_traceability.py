@@ -14,6 +14,48 @@ if str(SCRIPTS_DIR) not in sys.path:
 import run_pipeline_results as pipeline
 
 
+class RecordingCursor:
+    def __init__(self):
+        self.statements = []
+
+    def execute(self, statement, params=None):
+        self.statements.append((statement, params))
+
+
+@pytest.mark.parametrize("competition_scope", ["fchmn_local", "fechida_master"])
+def test_insert_core_club_completes_local_metadata_for_chilean_scopes(competition_scope):
+    cursor = RecordingCursor()
+
+    pipeline.insert_core_club(cursor, "core", 1, competition_scope)
+
+    assert len(cursor.statements) == 3
+    metadata_update_sql, metadata_update_params = cursor.statements[1]
+    insert_sql, insert_params = cursor.statements[2]
+    assert "country_code = coalesce(c.country_code, %s::text)" in metadata_update_sql.lower()
+    assert "is_local = coalesce(c.is_local, %s::boolean)" in metadata_update_sql.lower()
+    assert metadata_update_params == ("CHI", True)
+    assert (
+        "name, short_name, city, region, country_code, is_local, source_id"
+        in " ".join(insert_sql.lower().split())
+    )
+    assert insert_params == ("CHI", True, 1)
+
+
+@pytest.mark.parametrize("competition_scope", [None, "sudamericano_master"])
+def test_insert_core_club_leaves_metadata_unknown_for_other_scopes(competition_scope):
+    cursor = RecordingCursor()
+
+    pipeline.insert_core_club(cursor, "core", 1, competition_scope)
+
+    assert len(cursor.statements) == 2
+    insert_sql, insert_params = cursor.statements[1]
+    assert (
+        "name, short_name, city, region, country_code, is_local, source_id"
+        in " ".join(insert_sql.lower().split())
+    )
+    assert insert_params == (None, None, 1)
+
+
 def test_pipeline_accepts_and_persists_governing_body_metadata():
     source = PIPELINE_SCRIPT.read_text(encoding="utf-8").lower()
 

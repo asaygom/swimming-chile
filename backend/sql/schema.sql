@@ -53,6 +53,8 @@ CREATE TABLE club (
     short_name TEXT,
     city TEXT,
     region TEXT,
+    country_code TEXT,
+    is_local BOOLEAN,
     association_name TEXT,
     website TEXT,
     instagram TEXT,
@@ -61,6 +63,9 @@ CREATE TABLE club (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+COMMENT ON COLUMN club.country_code IS
+    'ISO 3166-1 alpha-3 country code; NULL when unknown';
 
 -- =====================================================
 -- TABLE: pool

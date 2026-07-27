@@ -10,6 +10,9 @@ ATHLETE_CURRENT_CLUB_MIGRATION_SQL = BACKEND_DIR / "sql" / "migrations" / "004_a
 CURRENT_CLUB_POLICY_MIGRATION_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "009_competition_current_club_policy.sql"
 )
+LOCAL_CLUB_METADATA_MIGRATION_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "010_local_club_metadata.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -130,3 +133,30 @@ def test_current_club_policy_migration_is_idempotent_and_filters_both_branches()
         )
         == 2
     )
+
+
+def test_schema_declares_nullable_club_country_and_locality_metadata():
+    sql = normalized_sql(SCHEMA_SQL)
+
+    assert "country_code text" in sql
+    assert "is_local boolean" in sql
+    assert "iso 3166-1 alpha-3" in sql
+
+
+def test_local_club_metadata_migration_is_idempotent_and_repairs_both_result_sources():
+    sql = normalized_sql(LOCAL_CLUB_METADATA_MIGRATION_SQL)
+
+    for sql_fragment in [
+        "alter table club add column if not exists country_code text",
+        "alter table club add column if not exists is_local boolean",
+        "from result r",
+        "from relay_result rr",
+        "c.competition_scope in ('fchmn_local', 'fechida_master')",
+        "country_code = coalesce(club.country_code, 'chi')",
+        "is_local = coalesce(club.is_local, true)",
+        "iso 3166-1 alpha-3",
+    ]:
+        assert sql_fragment in sql
+
+    assert "union" in sql
+    assert "club.country_code is null or club.is_local is null" in sql
