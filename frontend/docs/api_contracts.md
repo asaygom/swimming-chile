@@ -289,7 +289,7 @@ Competition result pages use `source_url` as the official source link and use se
 
 ### `GET /api/competitions/{id}/stats`
 
-Participation statistics and the complete club medal and audited points tables for one competition.
+Participation statistics and separate Máster/Pre-Máster club medal and audited points tables for one competition.
 
 **Rules:**
 
@@ -303,10 +303,11 @@ Participation statistics and the complete club medal and audited points tables f
 - The club points table recalculates points from valid finishing positions 1 through 8 using exactly `9, 7, 6, 5, 4, 3, 2, 1` points.
 - Relay placements use the same scale multiplied by 2. Points are independent of any source-provided or stored database points.
 - Club attribution uses the historical represented club from `core.result.club_id`, not the athlete's current club.
-- Both club tables share the same Pre-Master exclusion. This includes textual Pre-Master variants and numeric age ranges whose lower bound is under 25; aggregate relay ranges with a lower bound of 25 or more remain eligible.
+- Events are classified once as Máster or Pre-Máster so the four tables are mutually exclusive.
+- Pre-Máster includes textual variants and numeric age ranges whose lower bound is under 25. Aggregate relay ranges with a lower bound of 25 or more remain Máster.
 - Medal rows are ordered by gold descending, silver descending, bronze descending, and club name ascending.
 - Points rows are ordered by total points descending and club name ascending.
-- The response returns all qualifying rows in both tables; pagination or frontend display limits do not alter the API response.
+- The response returns all qualifying rows in all four tables; pagination or frontend display limits do not alter the API response.
 
 **Response (200 OK):**
 
@@ -337,6 +338,25 @@ Participation statistics and the complete club medal and audited points tables f
       "individual_points": 148,
       "relay_points": 54,
       "total_points": 202
+    }
+  ],
+  "premaster_club_medal_table": [
+    {
+      "club_id": 20,
+      "club_name": "Club Pre-Máster",
+      "gold_medals": 4,
+      "silver_medals": 3,
+      "bronze_medals": 2,
+      "total_medals": 9
+    }
+  ],
+  "premaster_club_points_table": [
+    {
+      "club_id": 20,
+      "club_name": "Club Pre-Máster",
+      "individual_points": 48,
+      "relay_points": 18,
+      "total_points": 66
     }
   ]
 }

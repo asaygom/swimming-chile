@@ -9,6 +9,7 @@ import { CourseBadge } from '../../../components/ui/CourseBadge';
 import { GoverningBodyBadge } from '../../../components/ui/GoverningBodyBadge';
 import { getCourseMeta } from '../../../lib/courseMeta';
 import type { CompetitionEvent } from '../../../lib/schemas/competition';
+import { CompetitionClubClassification } from '../components/CompetitionClubClassification';
 
 const strokeTranslations: Record<string, string> = {
   freestyle: 'Libre',
@@ -203,9 +204,6 @@ export const CompetitionProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
-  const [expandedMedalTableId, setExpandedMedalTableId] = useState<string | null>(null);
-  const [expandedPointsTableId, setExpandedPointsTableId] = useState<string | null>(null);
-  const [selectedClubTable, setSelectedClubTable] = useState<{ competitionId: string; tab: 'medals' | 'points' } | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['competition-detail', id],
@@ -302,11 +300,14 @@ export const CompetitionProfilePage: React.FC = () => {
   const hasActiveFilters = searchQuery.trim() !== '' || genderFilter !== 'all';
   const clubMedalTable = statsQuery.data?.club_medal_table ?? [];
   const clubPointsTable = statsQuery.data?.club_points_table ?? [];
-  const activeClubTable = selectedClubTable && selectedClubTable.competitionId === id ? selectedClubTable.tab : 'medals';
-  const isMedalTableExpanded = expandedMedalTableId === id;
-  const isPointsTableExpanded = expandedPointsTableId === id;
-  const visibleClubMedals = isMedalTableExpanded ? clubMedalTable : clubMedalTable.slice(0, 10);
-  const visibleClubPoints = isPointsTableExpanded ? clubPointsTable : clubPointsTable.slice(0, 10);
+  const premasterClubMedalTable = statsQuery.data?.premaster_club_medal_table ?? [];
+  const premasterClubPointsTable = statsQuery.data?.premaster_club_points_table ?? [];
+  const hasClubClassification = [
+    clubMedalTable,
+    clubPointsTable,
+    premasterClubMedalTable,
+    premasterClubPointsTable,
+  ].some(table => table.length > 0);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -397,165 +398,13 @@ export const CompetitionProfilePage: React.FC = () => {
         </div>
       )}
 
-      {(clubMedalTable.length > 0 || clubPointsTable.length > 0) && (
-        <section className="space-y-4" aria-labelledby="club-classification-heading">
-          <div>
-            <h2 id="club-classification-heading" className="text-2xl font-bold tracking-tight text-ink">
-              Clasificación de Clubes
-            </h2>
-          </div>
-
-          <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-            <div className="border-b border-line px-4 pt-3">
-              <div role="tablist" aria-label="Clasificación de clubes" className="flex gap-1">
-                <button
-                  type="button"
-                  id="club-medals-tab"
-                  role="tab"
-                  aria-selected={activeClubTable === 'medals'}
-                  aria-controls="club-medals-panel"
-                  onClick={() => setSelectedClubTable({ competitionId: id ?? '', tab: 'medals' })}
-                  className={`border-b-2 px-4 py-2 text-sm font-semibold transition-colors ${activeClubTable === 'medals' ? 'border-action text-action' : 'border-transparent text-content-subtle hover:text-ink'}`}
-                >
-                  Medallero
-                </button>
-                <button
-                  type="button"
-                  id="club-points-tab"
-                  role="tab"
-                  aria-selected={activeClubTable === 'points'}
-                  aria-controls="club-points-panel"
-                  onClick={() => setSelectedClubTable({ competitionId: id ?? '', tab: 'points' })}
-                  className={`border-b-2 px-4 py-2 text-sm font-semibold transition-colors ${activeClubTable === 'points' ? 'border-action text-action' : 'border-transparent text-content-subtle hover:text-ink'}`}
-                >
-                  Puntuación
-                </button>
-              </div>
-            </div>
-
-            <div
-              id="club-medals-panel"
-              role="tabpanel"
-              aria-labelledby="club-medals-tab"
-              hidden={activeClubTable !== 'medals'}
-            >
-              <p id="club-medal-table-description" className="px-4 py-3 text-sm text-content-subtle">
-                Las categorías Pre-Master están excluidas de este medallero.
-              </p>
-              {clubMedalTable.length === 0 ? (
-                <p className="border-t border-line px-4 py-4 text-sm text-content-subtle">
-                  No hay medallas de clubes elegibles para esta competencia.
-                </p>
-              ) : (
-                <>
-                  <div className="overflow-x-auto border-t border-line">
-                    <table id="club-medal-table" className="w-full min-w-[40rem] text-left text-sm" aria-describedby="club-medal-table-description">
-                      <thead className="border-b border-line bg-canvas text-xs font-bold uppercase tracking-widest text-content-subtle">
-                        <tr>
-                          <th scope="col" className="w-20 px-4 py-3 text-center">Pos.</th>
-                          <th scope="col" className="px-4 py-3">Club</th>
-                          <th scope="col" className="px-4 py-3 text-right text-medal-gold">Oro</th>
-                          <th scope="col" className="px-4 py-3 text-right text-medal-silver">Plata</th>
-                          <th scope="col" className="px-4 py-3 text-right text-medal-bronze">Bronce</th>
-                          <th scope="col" className="px-4 py-3 text-right">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
-                        {visibleClubMedals.map((club, index) => (
-                          <tr key={club.club_id} className="transition-colors hover:bg-canvas">
-                            <td className="px-4 py-3 text-center font-bold text-content-subtle">{index + 1}</td>
-                            <th scope="row" className="px-4 py-3">
-                              <Link to={`/clubs/${club.club_id}`} className="font-semibold text-action hover:text-brand-steel hover:underline">
-                                {club.club_name}
-                              </Link>
-                            </th>
-                            <td className="px-4 py-3 text-right font-bold text-medal-gold">{club.gold_medals}</td>
-                            <td className="px-4 py-3 text-right font-bold text-medal-silver">{club.silver_medals}</td>
-                            <td className="px-4 py-3 text-right font-bold text-medal-bronze">{club.bronze_medals}</td>
-                            <td className="px-4 py-3 text-right font-black text-ink">{club.total_medals}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {clubMedalTable.length > 10 && (
-                    <div className="border-t border-line px-4 py-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setExpandedMedalTableId(isMedalTableExpanded ? null : id ?? null)}
-                        aria-expanded={isMedalTableExpanded}
-                        aria-controls="club-medal-table"
-                        className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-action transition-colors hover:bg-canvas hover:text-brand-steel"
-                      >
-                        {isMedalTableExpanded ? 'Ver menos' : 'Ver más'}
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div
-              id="club-points-panel"
-              role="tabpanel"
-              aria-labelledby="club-points-tab"
-              hidden={activeClubTable !== 'points'}
-            >
-              <p id="club-points-table-description" className="px-4 py-3 text-sm text-content-subtle">
-                Los puntos se recalculan desde las posiciones, independientemente de los puntos de la fuente. Se aplica la misma exclusión de categorías Pre-Master.
-              </p>
-              {clubPointsTable.length === 0 ? (
-                <p className="border-t border-line px-4 py-4 text-sm text-content-subtle">
-                  No hay puntos de clubes elegibles para esta competencia.
-                </p>
-              ) : (
-                <>
-                  <div className="overflow-x-auto border-t border-line">
-                    <table id="club-points-table" className="w-full min-w-[40rem] text-left text-sm" aria-describedby="club-points-table-description">
-                      <thead className="border-b border-line bg-canvas text-xs font-bold uppercase tracking-widest text-content-subtle">
-                        <tr>
-                          <th scope="col" className="w-20 px-4 py-3 text-center">Pos.</th>
-                          <th scope="col" className="px-4 py-3">Club</th>
-                          <th scope="col" className="px-4 py-3 text-right">Individuales</th>
-                          <th scope="col" className="px-4 py-3 text-right">Relevos</th>
-                          <th scope="col" className="px-4 py-3 text-right">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
-                        {visibleClubPoints.map((club, index) => (
-                          <tr key={club.club_id} className="transition-colors hover:bg-canvas">
-                            <td className="px-4 py-3 text-center font-bold text-content-subtle">{index + 1}</td>
-                            <th scope="row" className="px-4 py-3">
-                              <Link to={`/clubs/${club.club_id}`} className="font-semibold text-action hover:text-brand-steel hover:underline">
-                                {club.club_name}
-                              </Link>
-                            </th>
-                            <td className="px-4 py-3 text-right font-semibold text-ink">{club.individual_points}</td>
-                            <td className="px-4 py-3 text-right font-semibold text-ink">{club.relay_points}</td>
-                            <td className="px-4 py-3 text-right font-black text-ink">{club.total_points}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {clubPointsTable.length > 10 && (
-                    <div className="border-t border-line px-4 py-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setExpandedPointsTableId(isPointsTableExpanded ? null : id ?? null)}
-                        aria-expanded={isPointsTableExpanded}
-                        aria-controls="club-points-table"
-                        className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-action transition-colors hover:bg-canvas hover:text-brand-steel"
-                      >
-                        {isPointsTableExpanded ? 'Ver menos' : 'Ver más'}
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-              </div>
-          </div>
-        </section>
+      {hasClubClassification && (
+        <CompetitionClubClassification
+          clubMedals={clubMedalTable}
+          clubPoints={clubPointsTable}
+          premasterClubMedals={premasterClubMedalTable}
+          premasterClubPoints={premasterClubPointsTable}
+        />
       )}
 
       {/* Resultados por Evento */}

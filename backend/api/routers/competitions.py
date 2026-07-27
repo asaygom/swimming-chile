@@ -174,42 +174,55 @@ def get_competition_stats(competition_id: int):
             stats["events_count"] = cur.fetchone()["events_count"]
 
             cur.execute("""
-                WITH eligible_events AS (
-                    SELECT e.id
+                WITH classified_events AS (
+                    SELECT
+                        e.id,
+                        CASE WHEN (
+                            -- Normalize textual variants such as Premaster, Pre-Master and Pre Master.
+                            REGEXP_REPLACE(LOWER(COALESCE(e.age_group, '')), '[^a-z0-9]+', '', 'g')
+                                LIKE '%%premaster%%'
+                            OR CASE
+                                -- Only numeric ranges below 25 are Pre-Master; relay totals like 72-99 remain Master.
+                                WHEN LOWER(TRIM(e.age_group)) ~
+                                    '^[0-9]+[[:space:]]*(-|–|—|a)[[:space:]]*[0-9]+([[:space:]]*años?)?$'
+                                THEN SUBSTRING(TRIM(e.age_group) FROM '^([0-9]+)')::INTEGER < 25
+                                ELSE FALSE
+                            END
+                        )
+                        THEN 'premaster'
+                        ELSE 'master'
+                        END AS category_scope
                     FROM core.event e
                     WHERE e.competition_id = %(competition_id)s
-                      AND NOT (
-                          -- Normalize textual variants such as Premaster, Pre-Master and Pre Master.
-                          REGEXP_REPLACE(LOWER(COALESCE(e.age_group, '')), '[^a-z0-9]+', '', 'g')
-                              LIKE '%%premaster%%'
-                          OR CASE
-                              -- Only numeric ranges below 25 are Pre-Master; relay totals like 72-99 remain eligible.
-                              WHEN LOWER(TRIM(e.age_group)) ~
-                                  '^[0-9]+[[:space:]]*(-|–|—|a)[[:space:]]*[0-9]+([[:space:]]*años?)?$'
-                              THEN SUBSTRING(TRIM(e.age_group) FROM '^([0-9]+)')::INTEGER < 25
-                              ELSE FALSE
-                          END
-                      )
                 ),
                 placements AS (
-                    SELECT r.club_id, r.rank_position, 'individual' AS placement_type
+                    SELECT
+                        ce.category_scope,
+                        r.club_id,
+                        r.rank_position,
+                        'individual' AS placement_type
                     FROM core.result r
-                    JOIN eligible_events ee ON ee.id = r.event_id
+                    JOIN classified_events ce ON ce.id = r.event_id
                     WHERE r.club_id IS NOT NULL
                       AND r.status = 'valid'
                       AND r.rank_position BETWEEN 1 AND 8
 
                     UNION ALL
 
-                    SELECT rr.club_id, rr.rank_position, 'relay' AS placement_type
+                    SELECT
+                        ce.category_scope,
+                        rr.club_id,
+                        rr.rank_position,
+                        'relay' AS placement_type
                     FROM core.relay_result rr
-                    JOIN eligible_events ee ON ee.id = rr.event_id
+                    JOIN classified_events ce ON ce.id = rr.event_id
                     WHERE rr.club_id IS NOT NULL
                       AND rr.status = 'valid'
                       AND rr.rank_position BETWEEN 1 AND 8
                 ),
                 scored_placements AS (
                     SELECT
+                        category_scope,
                         club_id,
                         rank_position,
                         placement_type,
@@ -227,6 +240,7 @@ def get_competition_stats(competition_id: int):
                 ),
                 club_totals AS (
                     SELECT
+                        category_scope,
                         c.id AS club_id,
                         c.name AS club_name,
                         COUNT(*) FILTER (WHERE rank_position = 1)::INTEGER AS gold_medals,
@@ -242,7 +256,7 @@ def get_competition_stats(competition_id: int):
                         END), 0)::INTEGER AS relay_points
                     FROM scored_placements sp
                     JOIN core.club c ON c.id = sp.club_id
-                    GROUP BY c.id, c.name
+                    GROUP BY category_scope, c.id, c.name
                 ),
                 club_scores AS (
                     SELECT
@@ -265,7 +279,7 @@ def get_competition_stats(competition_id: int):
                                 silver_medals DESC,
                                 bronze_medals DESC,
                                 club_name ASC
-                        ) FILTER (WHERE total_medals > 0),
+                        ) FILTER (WHERE category_scope = 'master' AND total_medals > 0),
                         '[]'::JSONB
                     ) AS club_medal_table,
                     COALESCE(
@@ -277,14 +291,45 @@ def get_competition_stats(competition_id: int):
                                 'relay_points', relay_points,
                                 'total_points', total_points
                             ) ORDER BY total_points DESC, club_name ASC
-                        ),
+                        ) FILTER (WHERE category_scope = 'master'),
                         '[]'::JSONB
-                    ) AS club_points_table
+                    ) AS club_points_table,
+                    COALESCE(
+                        JSONB_AGG(
+                            JSONB_BUILD_OBJECT(
+                                'club_id', club_id,
+                                'club_name', club_name,
+                                'gold_medals', gold_medals,
+                                'silver_medals', silver_medals,
+                                'bronze_medals', bronze_medals,
+                                'total_medals', total_medals
+                            ) ORDER BY
+                                gold_medals DESC,
+                                silver_medals DESC,
+                                bronze_medals DESC,
+                                club_name ASC
+                        ) FILTER (WHERE category_scope = 'premaster' AND total_medals > 0),
+                        '[]'::JSONB
+                    ) AS premaster_club_medal_table,
+                    COALESCE(
+                        JSONB_AGG(
+                            JSONB_BUILD_OBJECT(
+                                'club_id', club_id,
+                                'club_name', club_name,
+                                'individual_points', individual_points,
+                                'relay_points', relay_points,
+                                'total_points', total_points
+                            ) ORDER BY total_points DESC, club_name ASC
+                        ) FILTER (WHERE category_scope = 'premaster'),
+                        '[]'::JSONB
+                    ) AS premaster_club_points_table
                 FROM club_scores
             """, {"competition_id": competition_id})
             club_tables = cur.fetchone()
             stats["club_medal_table"] = club_tables["club_medal_table"]
             stats["club_points_table"] = club_tables["club_points_table"]
+            stats["premaster_club_medal_table"] = club_tables["premaster_club_medal_table"]
+            stats["premaster_club_points_table"] = club_tables["premaster_club_points_table"]
 
             return stats
 

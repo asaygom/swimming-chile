@@ -102,6 +102,8 @@ export const CompetitionStatsSchema = z.object({
   events_count: z.number().int(),
   club_medal_table: z.array(CompetitionClubMedalEntrySchema).default([]),
   club_points_table: z.array(CompetitionClubPointsEntrySchema).default([]),
+  premaster_club_medal_table: z.array(CompetitionClubMedalEntrySchema).default([]),
+  premaster_club_points_table: z.array(CompetitionClubPointsEntrySchema).default([]),
 });
 
 export type CompetitionStats = z.infer<typeof CompetitionStatsSchema>;
