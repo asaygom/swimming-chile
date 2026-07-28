@@ -60,7 +60,7 @@ General athlete search. Public listing endpoints only include athletes associate
 
 ### `GET /api/athletes/{id}`
 
-Athlete detail with recent results.
+Athlete detail with complete individual result history.
 
 **Response (200 OK):**
 
@@ -96,14 +96,16 @@ Athlete detail with recent results.
 }
 ```
 
-The athlete profile uses `recent_results` for:
+Despite its legacy name, `recent_results` contains the athlete's complete individual result history. The API does not apply a silent result limit.
+
+The athlete profile uses the complete `recent_results` collection for:
 
 - competition history;
 - historical represented club from `core.result.club_id`;
 - seed vs result comparison (`result_time_ms - seed_time_ms`);
 - trend charts by `distance_m` + `stroke`, ordered by competition/result sequence and colored by `course_type`.
 
-Best-time cards are derived from result data in the UI and intentionally do not expose seed/delta values because the focus is the achieved best mark.
+Best-time cards and available trend events are derived from the complete result data in the UI. They therefore remain independent of any future pagination or incremental rendering added to the visible history. Best-time cards intentionally do not expose seed/delta values because the focus is the achieved best mark.
 
 ---
 
