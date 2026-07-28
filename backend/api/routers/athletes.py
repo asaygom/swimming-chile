@@ -212,9 +212,8 @@ def get_athlete(athlete_id: int):
                 LEFT JOIN core.club result_club ON result_club.id = r.club_id
                 WHERE r.athlete_id = %s
                 ORDER BY comp.start_date DESC, e.distance_m ASC
-                LIMIT 50
             """, (athlete_id,))
-            recent_results = cur.fetchall()
+            historical_results = cur.fetchall()
             
-            athlete["recent_results"] = recent_results
+            athlete["recent_results"] = historical_results
             return athlete

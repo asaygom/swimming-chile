@@ -29,6 +29,15 @@ def test_athlete_results_expose_historical_represented_club():
     assert "result_club.name as club_name" in source
 
 
+def test_athlete_profile_exposes_complete_history_without_silent_limit():
+    source = normalized_source(ATHLETES_ROUTER)
+    profile_source = source.split('@router.get("/{athlete_id}")', maxsplit=1)[1]
+
+    assert "where r.athlete_id = %s" in profile_source
+    assert "order by comp.start_date desc, e.distance_m asc" in profile_source
+    assert "limit " not in profile_source
+
+
 def test_athletes_api_uses_shared_token_search():
     source = normalized_source(ATHLETES_ROUTER)
 
