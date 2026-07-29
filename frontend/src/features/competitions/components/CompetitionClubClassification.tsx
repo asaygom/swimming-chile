@@ -26,6 +26,19 @@ type PointsTableProps = {
   descriptionId: string;
 };
 
+const PositionBadge = ({ position }: { position: number }) => (
+  <span
+    className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+      position === 1 ? 'bg-warning/30 text-medal-gold' :
+      position === 2 ? 'bg-canvas text-medal-silver' :
+      position === 3 ? 'bg-warning/20 text-medal-bronze' :
+      'text-content-subtle'
+    }`}
+  >
+    {position}
+  </span>
+);
+
 const MedalTable = ({ clubs, tableId, descriptionId }: MedalTableProps) => (
   <div className="overflow-x-auto border-t border-line">
     <table id={tableId} className="w-full min-w-[40rem] text-left text-sm" aria-describedby={descriptionId}>
@@ -42,7 +55,9 @@ const MedalTable = ({ clubs, tableId, descriptionId }: MedalTableProps) => (
       <tbody className="divide-y divide-line">
         {clubs.map((club, index) => (
           <tr key={club.club_id} className="transition-colors hover:bg-canvas">
-            <td className="px-4 py-3 text-center font-bold text-content-subtle">{index + 1}</td>
+            <td className="px-4 py-3 text-center">
+              <PositionBadge position={index + 1} />
+            </td>
             <th scope="row" className="px-4 py-3">
               <Link to={`/clubs/${club.club_id}`} className="font-semibold text-action hover:text-brand-steel hover:underline">
                 {club.club_name}
@@ -74,7 +89,9 @@ const PointsTable = ({ clubs, tableId, descriptionId }: PointsTableProps) => (
       <tbody className="divide-y divide-line">
         {clubs.map((club, index) => (
           <tr key={club.club_id} className="transition-colors hover:bg-canvas">
-            <td className="px-4 py-3 text-center font-bold text-content-subtle">{index + 1}</td>
+            <td className="px-4 py-3 text-center">
+              <PositionBadge position={index + 1} />
+            </td>
             <th scope="row" className="px-4 py-3">
               <Link to={`/clubs/${club.club_id}`} className="font-semibold text-action hover:text-brand-steel hover:underline">
                 {club.club_name}
