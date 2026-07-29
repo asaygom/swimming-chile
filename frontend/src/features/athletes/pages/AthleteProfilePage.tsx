@@ -48,6 +48,19 @@ const getCompetitionYear = (date?: string | null) => {
   return match?.[1] ?? null;
 };
 
+const ResultPositionBadge: React.FC<{ position?: number | null }> = ({ position }) => (
+  <span
+    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+      position === 1 ? 'bg-warning/30 text-medal-gold' :
+      position === 2 ? 'bg-canvas text-medal-silver' :
+      position === 3 ? 'bg-warning/20 text-medal-bronze' :
+      'border border-line bg-surface text-content-subtle'
+    }`}
+  >
+    {position ? `${position}°` : '-'}
+  </span>
+);
+
 const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | null }> = ({ seedMs, resultMs }) => {
   if (!seedMs || !resultMs) return null;
 
@@ -283,9 +296,7 @@ const AthleteResultHistory: React.FC<{ results: AthleteResult[] }> = ({ results 
                   {competitionResults.map(result => (
                     <div key={result.id} className="flex flex-col justify-between gap-2 px-4 py-3 transition-colors hover:bg-canvas/50 sm:flex-row sm:items-center">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-cyan text-sm font-bold text-brand-night">
-                          {result.rank_position ? `${result.rank_position}°` : '-'}
-                        </div>
+                        <ResultPositionBadge position={result.rank_position} />
                         <div>
                           <div className="font-semibold text-ink">
                             {result.distance_m}m {result.stroke ? strokeTranslations[result.stroke] : 'Estilo no informado'}
