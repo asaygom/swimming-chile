@@ -8,6 +8,7 @@ import { EmptyState } from '../../../components/ui/EmptyState';
 import { CourseBadge } from '../../../components/ui/CourseBadge';
 import { getCourseMeta } from '../../../lib/courseMeta';
 import type { CourseType } from '../../../lib/schemas/canon';
+import type { AthleteResult } from '../../../lib/schemas/athlete';
 
 const strokeTranslations: Record<string, string> = {
   freestyle: 'Libre',
@@ -40,6 +41,11 @@ const formatMonthYear = (date?: string | null) => {
   if (Number.isNaN(dateObj.getTime())) return null;
 
   return dateObj.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+};
+
+const getCompetitionYear = (date?: string | null) => {
+  const match = date?.match(/^(\d{4})/);
+  return match?.[1] ?? null;
 };
 
 const TimeComparison: React.FC<{ seedMs?: number | null; resultMs?: number | null }> = ({ seedMs, resultMs }) => {
@@ -186,6 +192,161 @@ const PerformanceTrendChart: React.FC<{ points: TrendPoint[] }> = ({ points }) =
   );
 };
 
+const AthleteResultHistory: React.FC<{ results: AthleteResult[] }> = ({ results }) => {
+  const [historyYearSelection, setHistoryYearSelection] = React.useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const availableYears = React.useMemo(() => {
+    const years = results
+      .map(result => getCompetitionYear(result.competition_date))
+      .filter((year): year is string => Boolean(year));
+
+    return Array.from(new Set(years)).sort((left, right) => Number(right) - Number(left));
+  }, [results]);
+  const currentYear = new Date().getFullYear().toString();
+  const defaultYear = availableYears.includes(currentYear)
+    ? currentYear
+    : availableYears[0] ?? 'all';
+  const selectedYear = historyYearSelection === 'all' || availableYears.includes(historyYearSelection ?? '')
+    ? historyYearSelection!
+    : defaultYear;
+  const competitionHistory = React.useMemo(() => {
+    const grouped = new Map<string, { key: string; name: string; results: AthleteResult[] }>();
+
+    results
+      .filter(result => (
+        selectedYear === 'all'
+        || getCompetitionYear(result.competition_date) === selectedYear
+      ))
+      .forEach(result => {
+        const key = `${result.competition_name}::${result.competition_date ?? ''}`;
+        const group = grouped.get(key) ?? { key, name: result.competition_name, results: [] };
+        group.results.push(result);
+        grouped.set(key, group);
+      });
+
+    return Array.from(grouped.values());
+  }, [results, selectedYear]);
+  const visibleCompetitionHistory = isExpanded
+    ? competitionHistory
+    : competitionHistory.slice(0, 10);
+
+  return (
+    <div>
+      <div className="mb-4 mt-8 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-bold text-ink">Historial de Resultados</h2>
+        {results.length > 0 && (
+          <label className="flex items-center gap-2 text-sm font-medium text-content-muted">
+            <span>Año</span>
+            <select
+              value={selectedYear}
+              onChange={event => {
+                setHistoryYearSelection(event.target.value);
+                setIsExpanded(false);
+              }}
+              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-action focus:outline-none focus:ring-2 focus:ring-action/20"
+            >
+              <option value="all">Todos</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+
+      {results.length === 0 ? (
+        <EmptyState title="Sin resultados" description="Este atleta no tiene tiempos registrados aún." />
+      ) : (
+        <div id="athlete-result-history" className="space-y-6">
+          {visibleCompetitionHistory.map(({ key, name: competitionName, results: competitionResults }) => {
+            const competitionMonthYear = formatMonthYear(competitionResults[0]?.competition_date);
+            const representedClubs = Array.from(new Set(
+              competitionResults
+                .map(result => result.club_name?.trim())
+                .filter((clubName): clubName is string => Boolean(clubName)),
+            ));
+
+            return (
+              <div key={key} className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
+                <div className="border-b border-line bg-canvas px-4 py-3">
+                  <h3 className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-bold text-ink">
+                    {competitionName}
+                    {competitionMonthYear && <span className="text-sm font-medium text-content-subtle">({competitionMonthYear})</span>}
+                    {representedClubs.length > 0 && (
+                      <span className="text-sm font-medium text-content-muted">
+                        · {representedClubs.join(' / ')}
+                      </span>
+                    )}
+                  </h3>
+                </div>
+                <div className="divide-y divide-line">
+                  {competitionResults.map(result => (
+                    <div key={result.id} className="flex flex-col justify-between gap-2 px-4 py-3 transition-colors hover:bg-canvas/50 sm:flex-row sm:items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-cyan text-sm font-bold text-brand-night">
+                          {result.rank_position ? `${result.rank_position}°` : '-'}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-ink">
+                            {result.distance_m}m {result.stroke ? strokeTranslations[result.stroke] : 'Estilo no informado'}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs uppercase text-content-subtle">
+                            <CourseBadge courseType={result.course_type} variant="compact" />
+                            {result.age_group && (
+                              <>
+                                <span className="h-1 w-1 rounded-full bg-chart-axis"></span>
+                                <span className="tracking-wide">Cat: {result.age_group}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 flex w-full items-center justify-between border-t border-line pt-2 sm:mt-0 sm:w-auto sm:flex-col sm:items-end sm:justify-center sm:border-t-0 sm:pt-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-semibold text-ink">{result.result_time_text}</span>
+                          <TimeComparison seedMs={result.seed_time_ms} resultMs={result.result_time_ms} />
+                          {result.status !== 'valid' && (
+                            <span className="rounded bg-danger/15 px-1.5 py-0.5 text-xs font-bold text-danger-strong">{result.status}</span>
+                          )}
+                        </div>
+                        {result.seed_time_text && (
+                          <div className="mt-1 text-xs text-content-subtle">
+                            Seed {result.seed_time_text}
+                          </div>
+                        )}
+                        {result.points && (
+                          <div className="mt-1 text-xs text-content-subtle">
+                            <span className="font-semibold text-success-strong">{result.points}</span> pts
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {competitionHistory.length > 10 && (
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsExpanded(current => !current)}
+                aria-expanded={isExpanded}
+                aria-controls="athlete-result-history"
+                className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-action transition-colors hover:bg-canvas hover:text-brand-steel"
+              >
+                {isExpanded ? 'Ver menos' : 'Ver más'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const AthleteProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -198,8 +359,8 @@ export const AthleteProfilePage: React.FC = () => {
     enabled: !!id,
   });
 
-  const { pbs, groupedRecent } = React.useMemo(() => {
-    if (!athlete || !athlete.recent_results) return { pbs: [], groupedRecent: {} };
+  const pbs = React.useMemo(() => {
+    if (!athlete?.recent_results) return [];
     
     // PBs
     const bests = new Map<string, typeof athlete.recent_results[0]>();
@@ -217,14 +378,7 @@ export const AthleteProfilePage: React.FC = () => {
       return (a.course_type || '').localeCompare(b.course_type || '');
     });
 
-    // Grouping by Competition
-    const grouped = athlete.recent_results.reduce((acc, res) => {
-      if (!acc[res.competition_name]) acc[res.competition_name] = [];
-      acc[res.competition_name].push(res);
-      return acc;
-    }, {} as Record<string, typeof athlete.recent_results>);
-    
-    return { pbs: pbArray, groupedRecent: grouped };
+    return pbArray;
   }, [athlete]);
 
   const availablePoolFilters = React.useMemo(
@@ -429,84 +583,7 @@ export const AthleteProfilePage: React.FC = () => {
         </div>
       )}
 
-      {/* Recent Results */}
-      <div>
-        <h2 className="text-xl font-bold text-ink mb-4 px-1 mt-8">Historial de Resultados</h2>
-        
-        {!athlete.recent_results || athlete.recent_results.length === 0 ? (
-          <EmptyState title="Sin resultados" description="Este atleta no tiene tiempos registrados aún." />
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedRecent).map(([compName, results]) => {
-              const competitionMonthYear = formatMonthYear(results[0]?.competition_date);
-              const representedClubs = Array.from(new Set(
-                results
-                  .map(result => result.club_name?.trim())
-                  .filter((clubName): clubName is string => Boolean(clubName)),
-              ));
-
-              return (
-              <div key={compName} className="bg-surface rounded-xl shadow-sm border border-line overflow-hidden">
-                <div className="bg-canvas border-b border-line px-4 py-3">
-                  <h3 className="flex flex-wrap items-baseline gap-x-2 gap-y-1 font-bold text-ink">
-                    {compName}
-                    {competitionMonthYear && <span className="text-sm font-medium text-content-subtle">({competitionMonthYear})</span>}
-                    {representedClubs.length > 0 && (
-                      <span className="text-sm font-medium text-content-muted">
-                        · {representedClubs.join(' / ')}
-                      </span>
-                    )}
-                  </h3>
-                </div>
-                <div className="divide-y divide-line">
-                  {results.map(res => (
-                    <div key={res.id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-canvas/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-brand-cyan flex items-center justify-center text-brand-night font-bold text-sm shrink-0">
-                          {res.rank_position ? `${res.rank_position}°` : '-'}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-ink">{res.distance_m}m {res.stroke ? strokeTranslations[res.stroke] : 'Estilo no informado'}</div>
-                          <div className="text-xs text-content-subtle uppercase flex items-center gap-2">
-                            <CourseBadge courseType={res.course_type} variant="compact" />
-                            {res.age_group && (
-                              <>
-                                <span className="w-1 h-1 rounded-full bg-chart-axis"></span>
-                                <span className="tracking-wide">Cat: {res.age_group}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-ink font-semibold">{res.result_time_text}</span>
-                          <TimeComparison seedMs={res.seed_time_ms} resultMs={res.result_time_ms} />
-                          {res.status !== 'valid' && (
-                            <span className="text-xs font-bold text-danger-strong bg-danger/15 px-1.5 py-0.5 rounded">{res.status}</span>
-                          )}
-                        </div>
-                        {res.seed_time_text && (
-                          <div className="text-xs text-content-subtle mt-1">
-                            Seed {res.seed_time_text}
-                          </div>
-                        )}
-                        {res.points && (
-                          <div className="text-xs text-content-subtle mt-1">
-                            <span className="font-semibold text-success-strong">{res.points}</span> pts
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <AthleteResultHistory key={id} results={athlete.recent_results ?? []} />
     </div>
   );
 };

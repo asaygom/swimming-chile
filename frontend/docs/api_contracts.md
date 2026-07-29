@@ -107,6 +107,8 @@ The athlete profile uses the complete `recent_results` collection for:
 
 Best-time cards and available trend events are derived from the complete result data in the UI. They therefore remain independent of any future pagination or incremental rendering added to the visible history. Best-time cards intentionally do not expose seed/delta values because the focus is the achieved best mark.
 
+The visible competition history derives its year options from `competition_date`, includes a `Todos` option, defaults to the current year when available (otherwise the latest available year), and initially shows up to 10 grouped competitions with an option to expand the selected year. Results without a parseable year remain accessible through `Todos`; when no result has a parseable year, `Todos` is the default and only option.
+
 ---
 
 ## 2. Clubs
