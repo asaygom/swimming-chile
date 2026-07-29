@@ -2,7 +2,9 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from .database import is_database_ready
 from .routers import athletes, clubs, competitions, rankings, relays, stats
 
 app = FastAPI(title="SwimStats Chile API", version="0.1.0")
@@ -41,3 +43,16 @@ def root():
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "message": "API running"}
+
+
+@app.get("/api/ready")
+def readiness_check():
+    if is_database_ready():
+        return {"status": "ready", "checks": {"database": "ok"}}
+    return JSONResponse(
+        status_code=503,
+        content={
+            "status": "not_ready",
+            "checks": {"database": "unavailable"},
+        },
+    )

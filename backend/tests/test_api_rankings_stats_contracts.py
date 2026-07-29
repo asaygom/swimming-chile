@@ -217,7 +217,8 @@ def test_frontend_rankings_use_api_contract_not_fixture():
     assert "rankingservice.getcompetitionstatstable" in page
     assert "activeview === 'competitions'" in page
     assert "estadísticas por competencia" in page
-    assert "resumen anual de competencias" in page
+    assert "competitionstatsquery.data.data.map" in page
+    assert "competition.participants_count" in page
     assert "clubstatsgoverningbody" in page
     assert "governing_body_name" in page
     assert "participación por competencia" in page

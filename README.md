@@ -67,6 +67,18 @@ Planned:
 - [Frontend documentation](frontend/README.md)
 - [Implementation roadmap](docs/plans/implementation_plan.md)
 
+## Local quality checks
+
+Run the same checks enforced by CI before opening a pull request:
+
+```bash
+python -m pytest backend/tests -q
+cd frontend
+npm ci
+npm run lint
+npm run build
+```
+
 ## Data disclaimer
 
 This project is intended for educational and portfolio purposes. Data sources may include publicly available swimming competition results. The repository does not represent an official federation platform, and raw/private data should not be committed to version control.

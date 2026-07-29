@@ -13,10 +13,12 @@ DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 def get_connection_string():
     if DATABASE_URL:
         return DATABASE_URL
     return f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}"
+
 
 @contextmanager
 def get_db_connection():
@@ -25,3 +27,17 @@ def get_db_connection():
         yield conn
     finally:
         conn.close()
+
+
+def is_database_ready() -> bool:
+    try:
+        with psycopg.connect(
+            get_connection_string(),
+            connect_timeout=3,
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
+    except Exception:
+        return False
+    return True
