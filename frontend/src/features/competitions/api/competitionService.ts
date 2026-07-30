@@ -1,5 +1,5 @@
-import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema } from '../../../lib/schemas/competition';
-import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse } from '../../../lib/schemas/competition';
+import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, MeetProgramResponseSchema } from '../../../lib/schemas/competition';
+import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, MeetProgramResponse } from '../../../lib/schemas/competition';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -41,6 +41,14 @@ export const competitionService = {
 
     const data = await response.json();
     return CompetitionStatsSchema.parse(data);
+  },
+
+  async getMeetProgram(id: string): Promise<MeetProgramResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/meet-program`);
+    if (!response.ok) throw new Error('Failed to fetch meet program');
+
+    const data = await response.json();
+    return MeetProgramResponseSchema.parse(data);
   },
 
   async getCompetitionYears(): Promise<number[]> {

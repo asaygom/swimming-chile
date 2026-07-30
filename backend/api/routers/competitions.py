@@ -333,6 +333,105 @@ def get_competition_stats(competition_id: int):
 
             return stats
 
+@router.get("/{competition_id}/meet-program")
+def get_meet_program(competition_id: int):
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM core.competition WHERE id = %s",
+                (competition_id,),
+            )
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Competition not found")
+
+            cur.execute("""
+                SELECT
+                    p.id,
+                    p.published_at,
+                    p.source_url,
+                    COUNT(e.id)::INTEGER AS entry_count
+                FROM core.meet_program_publication p
+                LEFT JOIN core.meet_program_entry e ON e.publication_id = p.id
+                WHERE p.competition_id = %s
+                  AND p.status = 'published'
+                GROUP BY p.id, p.published_at, p.source_url
+            """, (competition_id,))
+            publication = cur.fetchone()
+            if not publication:
+                return {
+                    "competition_id": competition_id,
+                    "publication": None,
+                    "sessions": [],
+                }
+
+            cur.execute("""
+                SELECT
+                    session_number,
+                    session_name,
+                    event_number,
+                    event_name,
+                    heat_number,
+                    heat_total,
+                    lane,
+                    entry_type,
+                    display_name,
+                    team_name AS club_name,
+                    seed_time_text,
+                    seed_time_ms,
+                    relay_members
+                FROM core.meet_program_entry
+                WHERE publication_id = %s
+                ORDER BY
+                    session_number,
+                    event_number,
+                    heat_number,
+                    lane,
+                    id
+            """, (publication["id"],))
+            rows = cur.fetchall()
+
+    sessions = []
+    for row in rows:
+        if not sessions or sessions[-1]["session_number"] != row["session_number"]:
+            sessions.append({
+                "session_number": row["session_number"],
+                "session_name": row["session_name"],
+                "events": [],
+            })
+        events = sessions[-1]["events"]
+        if not events or events[-1]["event_number"] != row["event_number"]:
+            events.append({
+                "event_number": row["event_number"],
+                "event_name": row["event_name"],
+                "heats": [],
+            })
+        heats = events[-1]["heats"]
+        if not heats or heats[-1]["heat_number"] != row["heat_number"]:
+            heats.append({
+                "heat_number": row["heat_number"],
+                "heat_total": row["heat_total"],
+                "entries": [],
+            })
+        heats[-1]["entries"].append({
+            "lane": row["lane"],
+            "entry_type": row["entry_type"],
+            "display_name": row["display_name"],
+            "club_name": row["club_name"],
+            "seed_time_text": row["seed_time_text"],
+            "seed_time_ms": row["seed_time_ms"],
+            "relay_members": row["relay_members"],
+        })
+
+    return {
+        "competition_id": competition_id,
+        "publication": {
+            "published_at": publication["published_at"],
+            "source_url": publication["source_url"],
+            "entry_count": publication["entry_count"],
+        },
+        "sessions": sessions,
+    }
+
 @router.get("/{competition_id}")
 def get_competition(competition_id: int):
     with get_db_connection() as conn:

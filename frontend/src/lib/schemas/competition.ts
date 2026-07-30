@@ -70,6 +70,47 @@ export const CompetitionDetailResponseSchema = z.object({
 
 export type CompetitionDetailResponse = z.infer<typeof CompetitionDetailResponseSchema>;
 
+export const MeetProgramEntrySchema = z.object({
+  lane: z.number().int().positive(),
+  entry_type: z.enum(['individual', 'relay']),
+  display_name: z.string(),
+  club_name: z.string().nullable(),
+  seed_time_text: z.string().nullable(),
+  seed_time_ms: z.number().int().nullable(),
+  relay_members: z.array(z.string()),
+});
+
+export const MeetProgramHeatSchema = z.object({
+  heat_number: z.number().int().positive(),
+  heat_total: z.number().int().positive().nullable(),
+  entries: z.array(MeetProgramEntrySchema),
+});
+
+export const MeetProgramEventSchema = z.object({
+  event_number: z.number().int().positive(),
+  event_name: z.string(),
+  heats: z.array(MeetProgramHeatSchema),
+});
+
+export const MeetProgramSessionSchema = z.object({
+  session_number: z.number().int().positive(),
+  session_name: z.string(),
+  events: z.array(MeetProgramEventSchema),
+});
+
+export const MeetProgramResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  publication: z.object({
+    published_at: z.string(),
+    source_url: z.string().nullable(),
+    entry_count: z.number().int().nonnegative(),
+  }).nullable(),
+  sessions: z.array(MeetProgramSessionSchema),
+});
+
+export type MeetProgramResponse = z.infer<typeof MeetProgramResponseSchema>;
+export type MeetProgramSession = z.infer<typeof MeetProgramSessionSchema>;
+
 export const CompetitionClubMedalEntrySchema = z.object({
   club_id: z.union([z.string(), z.number()]),
   club_name: z.string(),

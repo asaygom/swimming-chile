@@ -13,6 +13,9 @@ CURRENT_CLUB_POLICY_MIGRATION_SQL = (
 LOCAL_CLUB_METADATA_MIGRATION_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "010_local_club_metadata.sql"
 )
+MEET_PROGRAM_MIGRATION_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "011_meet_program_publications.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -160,3 +163,42 @@ def test_local_club_metadata_migration_is_idempotent_and_repairs_both_result_sou
 
     assert "union" in sql
     assert "club.country_code is null or club.is_local is null" in sql
+
+
+def test_schema_declares_versioned_meet_program_without_core_identity_links():
+    sql = normalized_sql(SCHEMA_SQL)
+
+    for fragment in [
+        "create table meet_program_publication",
+        "create table meet_program_entry",
+        "competition_id bigint not null references competition(id)",
+        "source_checksum_sha256 text not null",
+        "publication_id bigint not null references meet_program_publication(id)",
+        "unique (publication_id, session_number, event_number, heat_number, lane)",
+        "create unique index ux_meet_program_one_published_per_competition",
+    ]:
+        assert fragment in sql
+
+    meet_program_sql = sql.split("create table meet_program_publication", 1)[1].split(
+        "-- table: event", 1
+    )[0]
+    assert "athlete_id" not in meet_program_sql
+    assert "club_id" not in meet_program_sql
+
+
+def test_meet_program_migration_is_numbered_idempotent_and_revision_safe():
+    sql = normalized_sql(MEET_PROGRAM_MIGRATION_SQL)
+
+    for fragment in [
+        "create table if not exists meet_program_publication",
+        "create table if not exists meet_program_entry",
+        "unique (competition_id, source_checksum_sha256)",
+        "create unique index if not exists ux_meet_program_one_published_per_competition",
+        "where status = 'published'",
+        "unique (publication_id, session_number, event_number, heat_number, lane)",
+    ]:
+        assert fragment in sql
+
+    assert "source_url text" in sql
+    assert "athlete_id" not in sql
+    assert "club_id" not in sql

@@ -291,6 +291,66 @@ Competition result pages use `source_url` as the official source link and use se
 
 `time_text` is nullable when the entry has no recorded mark, such as a result with `status = "unknown"`.
 
+### `GET /api/competitions/{id}/meet-program`
+
+Published Meet Manager program for one competition. This snapshot preserves
+source names and clubs without linking entries to core athlete or club identities.
+
+**Response without a published program (200 OK):**
+
+```json
+{
+  "competition_id": 1,
+  "publication": null,
+  "sessions": []
+}
+```
+
+**Response with a published program (200 OK):**
+
+```json
+{
+  "competition_id": 1,
+  "publication": {
+    "published_at": "2026-07-30T10:00:00Z",
+    "source_url": "https://example.test/program.pdf",
+    "entry_count": 1
+  },
+  "sessions": [
+    {
+      "session_number": 1,
+      "session_name": "Jornada Unica",
+      "events": [
+        {
+          "event_number": 7,
+          "event_name": "Mixed 200 LC Meter Medley Relay 160 a 199 años",
+          "heats": [
+            {
+              "heat_number": 1,
+              "heat_total": 2,
+              "entries": [
+                {
+                  "lane": 2,
+                  "entry_type": "relay",
+                  "display_name": "NUMAS X160 A",
+                  "club_name": "NUMAS",
+                  "seed_time_text": "2:20,00",
+                  "seed_time_ms": 140000,
+                  "relay_members": ["Uno, Ana", "Dos, Beto"]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Sessions, events, heats, and entries are ordered by their source numbers. Only
+the active `published` version is public. An unknown competition returns 404.
+
 ### `GET /api/competitions/{id}/stats`
 
 Participation statistics and separate Máster/Pre-Máster club medal and audited points tables for one competition.

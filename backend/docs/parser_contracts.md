@@ -121,3 +121,29 @@ Tambien puede generar archivos de trazabilidad/debug:
 ## Fixtures de prueba
 
 Los fixtures versionados deben ser pequenos y representativos. No se versionan PDFs completos ni CSVs historicos completos; solo lineas o archivos minimos necesarios para prevenir regresiones.
+
+## Programas de competencia (sembrado)
+
+`scripts/run_meet_program.py` es un flujo separado de resultados. Lee programas
+HY-TEK FCHMN con texto y tres columnas mediante coordenadas, y nunca crea
+vinculos con `core.athlete` o `core.club`.
+
+- `--pdf` requiere `--out-dir`; `--input-dir` revalida artefactos existentes.
+- Las salidas son `metadata.json`, `meet_program_entries.csv`,
+  `debug_unparsed_lines.csv` y `validation_summary.json`.
+- `NT`, tiempos con coma decimal, individuales y relevos son validos. Los
+  integrantes de relevo solo se conservan cuando la linea permite separarlos
+  sin ambiguedad.
+- PDFs sin texto, cero inscripciones, campos numericos invalidos, lineas
+  relevantes sin parsear y carriles duplicados bloquean la publicacion.
+- El encabezado de competencia se interpreta con el mismo modulo de dominio que
+  usa el parser de resultados. `metadata.json` conserva nombre, fecha inicial y
+  fecha final extraidos; un encabezado ausente o sin fechas deja los artefactos
+  en `requires_review`.
+- `--publish` exige artefactos `validated` y `--competition-id`. La publicacion
+  es atomica e idempotente por competencia + checksum; una revision reemplaza
+  el puntero publico sin borrar versiones anteriores.
+- Antes de cualquier escritura, nombre y rango de fechas del PDF deben coincidir
+  con la competencia seleccionada. La comparacion de nombre ignora tildes,
+  mayusculas, edicion/ano y tipos genericos (`copa`, `torneo`, `campeonato`),
+  pero exige igualdad del conjunto de tokens distintivos; no acepta substrings.

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { competitionService } from '../api/competitionService';
 import { LoadingState } from '../../../components/ui/LoadingState';
@@ -10,6 +10,7 @@ import { GoverningBodyBadge } from '../../../components/ui/GoverningBodyBadge';
 import { getCourseMeta } from '../../../lib/courseMeta';
 import type { CompetitionEvent } from '../../../lib/schemas/competition';
 import { CompetitionClubClassification } from '../components/CompetitionClubClassification';
+import { MeetProgramView } from '../components/MeetProgramView';
 
 const strokeTranslations: Record<string, string> = {
   freestyle: 'Libre',
@@ -202,6 +203,7 @@ const PruebaCard: React.FC<{ group: PruebaGroup; isSearching: boolean }> = ({ gr
 export const CompetitionProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
 
@@ -215,6 +217,13 @@ export const CompetitionProfilePage: React.FC = () => {
   const statsQuery = useQuery({
     queryKey: ['competition-stats', id],
     queryFn: () => competitionService.getCompetitionStats(id!),
+    enabled: !!id,
+    retry: false,
+  });
+
+  const meetProgramQuery = useQuery({
+    queryKey: ['competition-meet-program', id],
+    queryFn: () => competitionService.getMeetProgram(id!),
     enabled: !!id,
     retry: false,
   });
@@ -285,6 +294,37 @@ export const CompetitionProfilePage: React.FC = () => {
     const unique = new Set(data.events.map(e => `${e.distance_m}-${e.stroke}-${e.gender}`));
     return unique.size;
   }, [data]);
+  const totalProgramEvents =
+    meetProgramQuery.data?.sessions.reduce(
+      (total, session) => total + session.events.length,
+      0,
+    ) ?? 0;
+
+  const hasPublishedProgram = Boolean(meetProgramQuery.data?.publication);
+  const resultsAreEmpty = Boolean(
+    data && data.events.every(event => event.results.length === 0),
+  );
+  const requestedTab = searchParams.get('tab');
+  const canRenderRequestedSeries =
+    hasPublishedProgram || meetProgramQuery.isLoading || meetProgramQuery.isError;
+  const activeTab =
+    requestedTab === 'results'
+      ? 'results'
+      : requestedTab === 'series' && canRenderRequestedSeries
+        ? 'series'
+        : requestedTab === null && hasPublishedProgram && resultsAreEmpty
+          ? 'series'
+          : 'results';
+  const showSeriesTab =
+    hasPublishedProgram ||
+    meetProgramQuery.isError ||
+    (requestedTab === 'series' && meetProgramQuery.isLoading);
+
+  const selectTab = (tab: 'series' | 'results') => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', tab);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -372,13 +412,46 @@ export const CompetitionProfilePage: React.FC = () => {
           </div>
           
           <div className="bg-surface/10 backdrop-blur-sm rounded-xl p-4 text-center min-w-32 border border-brand-white/10 shadow-inner">
-            <span className="block text-3xl font-black text-brand-white leading-none">{totalUniquePruebas}</span>
+            <span className="block text-3xl font-black text-brand-white leading-none">
+              {activeTab === 'series' ? totalProgramEvents : totalUniquePruebas}
+            </span>
             <span className="text-xs font-medium text-brand-muted uppercase tracking-widest mt-1 block">Pruebas Totales</span>
           </div>
         </div>
       </div>
 
-      {statsQuery.data && (
+      <div className="flex gap-2 border-b border-line" role="tablist" aria-label="Contenido de la competencia">
+        {showSeriesTab && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'series'}
+            onClick={() => selectTab('series')}
+            className={`border-b-2 px-4 py-3 text-sm font-bold ${
+              activeTab === 'series'
+                ? 'border-action text-action'
+                : 'border-transparent text-content-subtle hover:text-ink'
+            }`}
+          >
+            Series
+          </button>
+        )}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'results'}
+          onClick={() => selectTab('results')}
+          className={`border-b-2 px-4 py-3 text-sm font-bold ${
+            activeTab === 'results'
+              ? 'border-action text-action'
+              : 'border-transparent text-content-subtle hover:text-ink'
+          }`}
+        >
+          Resultados
+        </button>
+      </div>
+
+      {activeTab === 'results' && statsQuery.data && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
           {[
             ['Participantes', statsQuery.data.participants_count],
@@ -398,7 +471,7 @@ export const CompetitionProfilePage: React.FC = () => {
         </div>
       )}
 
-      {hasClubClassification && (
+      {activeTab === 'results' && hasClubClassification && (
         <CompetitionClubClassification
           clubMedals={clubMedalTable}
           clubPoints={clubPointsTable}
@@ -408,7 +481,7 @@ export const CompetitionProfilePage: React.FC = () => {
       )}
 
       {/* Resultados por Evento */}
-      <div className="space-y-4">
+      {activeTab === 'results' && <div className="space-y-4">
         <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <h2 className="text-2xl font-bold text-ink tracking-tight">Resultados</h2>
 
@@ -466,7 +539,16 @@ export const CompetitionProfilePage: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
+      </div>}
+
+      {activeTab === 'series' && (
+        <MeetProgramView
+          program={meetProgramQuery.data}
+          isLoading={meetProgramQuery.isLoading}
+          isError={meetProgramQuery.isError}
+          onRetry={() => meetProgramQuery.refetch()}
+        />
+      )}
     </div>
   );
 };

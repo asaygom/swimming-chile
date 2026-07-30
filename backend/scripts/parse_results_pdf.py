@@ -28,6 +28,7 @@ from natacion_chile.domain.normalization import (
     normalize_stroke as normalize_domain_stroke,
     normalize_swim_time_text,
 )
+from natacion_chile.domain.competition_header import parse_competition_header
 
 PARSER_VERSION = "0.1.29"
 
@@ -44,15 +45,6 @@ TRAILING_TIME_OR_STATUS_RE = re.compile(
     rf"^(?P<team>.+?)\s+(?P<seed>{TIME_OR_STATUS_PATTERN})$",
     re.IGNORECASE,
 )
-DATE_DMY_RE = re.compile(r"(?P<day>\d{1,2})[-/](?P<month>\d{1,2})[-/](?P<year>\d{4})")
-COMPETITION_HEADER_WITH_DATE_RE = re.compile(
-    r"^(?P<name>.+?)\s+-\s+(?P<date>\d{1,2}[-/]\d{1,2}[-/]\d{4})$"
-)
-COMPETITION_HEADER_WITH_DATE_RANGE_RE = re.compile(
-    r"^(?P<name>.+?)\s+-\s+(?P<start_date>\d{1,2}[-/]\d{1,2}[-/]\d{4})\s+(?:a|to)\s+(?P<end_date>\d{1,2}[-/]\d{1,2}[-/]\d{4})$",
-    re.IGNORECASE,
-)
-
 EVENT_HEADER_RE = re.compile(
     r"^\(?Event\s+(?P<event_number>\d+)\s+(?P<gender>Women|Men|Mixed)\s+(?P<age_group>.+?)\s+(?P<distance_raw>\d+(?:x\d+)?)\s+(?P<course>LC|SC)\s+Meter\s+(?P<stroke>.+?)\)?$",
     re.IGNORECASE,
@@ -713,40 +705,6 @@ def normalize_stroke(value: Optional[str]) -> Optional[str]:
         flags=re.IGNORECASE,
     )
     return normalize_domain_stroke(value)
-
-
-def parse_dmy_date(value: Optional[str]) -> Optional[str]:
-    value = normalize_string(value)
-    if value is None:
-        return None
-    m = DATE_DMY_RE.search(value)
-    if not m:
-        return None
-    return f"{int(m.group('year')):04d}-{int(m.group('month')):02d}-{int(m.group('day')):02d}"
-
-
-def parse_competition_header(line: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-    candidate = normalize_string(line)
-    if candidate is None:
-        return None, None, None
-    if re.search(r"HY-TEK|MEET MANAGER|\bPage\s+\d+\b|\bP[aá]gina\s+\d+\b|^Results\b|^Resultados\b|^Event\s+\d+\b|^Evento\s+\d+\b", candidate, re.IGNORECASE):
-        return None, None, None
-
-    m = COMPETITION_HEADER_WITH_DATE_RANGE_RE.match(candidate)
-    if m:
-        name = clean_extracted_text(m.group("name"))
-        return name, parse_dmy_date(m.group("start_date")), parse_dmy_date(m.group("end_date"))
-
-    # Encabezado FCHMN/HY-TEK usual: "VI Torneo Smart Swim Team - 24-05-2025".
-    m = COMPETITION_HEADER_WITH_DATE_RE.match(candidate)
-    if m:
-        name = clean_extracted_text(m.group("name"))
-        date_iso = parse_dmy_date(m.group("date"))
-        return name, date_iso, date_iso
-
-    if (candidate.startswith("II Copa") or candidate.startswith("I Copa")) or "Copa" in candidate:
-        return clean_extracted_text(candidate), None, None
-    return None, None, None
 
 
 def derive_competition_year(metadata: Dict[str, Optional[str]], pdf_path: Optional[Path] = None) -> Optional[int]:

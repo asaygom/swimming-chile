@@ -19,6 +19,19 @@ def load_fixture(name):
     return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))[name]
 
 
+def test_shared_competition_header_parser_preserves_fchmn_results_contract():
+    assert parser.parse_competition_header(
+        "X Torneo Master San Bernardo 2026 - 04-07-2026"
+    ) == (
+        "X Torneo Master San Bernardo 2026",
+        "2026-07-04",
+        "2026-07-04",
+    )
+    assert parser.parse_competition_header(
+        "Meet Program - Jornada Unica"
+    ) == (None, None, None)
+
+
 def individual_context():
     return parser.EventContext(
         event_number=1,

@@ -1,0 +1,1126 @@
+#!/usr/bin/env python3
+"""Parse, validate, and publish HY-TEK Meet Program PDFs."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+from dataclasses import asdict, dataclass, field
+import hashlib
+import json
+from pathlib import Path
+import re
+import sys
+from typing import Any, Iterable
+
+import pdfplumber
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from natacion_chile.domain.competition_header import (
+    competition_names_match,
+    parse_competition_header,
+)
+
+
+PARSER_VERSION = "0.2.0"
+ENTRY_COLUMNS = [
+    "session_number",
+    "session_name",
+    "event_number",
+    "event_name",
+    "heat_number",
+    "heat_total",
+    "lane",
+    "display_name",
+    "age",
+    "team_name",
+    "seed_time_text",
+    "seed_time_ms",
+    "entry_type",
+    "relay_members",
+    "page_number",
+    "column_number",
+    "line_number",
+]
+DEBUG_COLUMNS = ["page_number", "column_number", "line_number", "raw_line", "reason"]
+EVENT_RE = re.compile(r"^#(?P<number>\d+)\s+(?P<name>.+?)\s*$", re.IGNORECASE)
+CONTINUATION_RE = re.compile(
+    r"^Heat\s+(?P<heat>\d+)\s+\(#(?P<number>\d+)\s+(?P<name>.+?)\)?\s*$",
+    re.IGNORECASE,
+)
+HEAT_RE = re.compile(
+    r"(?:^|.*\))Heat\s+(?P<number>\d+)"
+    r"(?:\s+of\s+(?P<total>\d+))?\s+Finals\b",
+    re.IGNORECASE,
+)
+SESSION_RE = re.compile(r"^Meet Program\s*-\s*(?P<name>.+?)\s*$", re.IGNORECASE)
+SEED_RE = re.compile(
+    r"^(?:X?NT|X?\d{1,3}(?::\d{2})?(?:[,.]\d{2}))$",
+    re.IGNORECASE,
+)
+AGE_RE = re.compile(r"^(?:[MWX])?(?P<age>\d{1,3})$", re.IGNORECASE)
+OVERLAPPED_NAME_AGE_RE = re.compile(
+    r"^(?P<name>.+?)(?P<gender>[MWX])(?P<tail>(?:[A-Za-zÁÉÍÓÚÜÑ]*\d){1,3})$",
+    re.IGNORECASE,
+)
+SCHEMA_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
+CHECKSUM_RE = re.compile(r"^[0-9a-f]{64}$")
+SKIP_PATTERNS = [
+    re.compile(r"^Natacion Stadio Italiano$", re.IGNORECASE),
+    re.compile(r"^HY-TEK'?s MEET$", re.IGNORECASE),
+    re.compile(r"^MANAGER\b.*\bPage\s+\d+$", re.IGNORECASE),
+    re.compile(r"^Lane\s+(?:Name Age Team|Team Relay)\s+Seed Time$", re.IGNORECASE),
+    re.compile(r"^.+\s+-\s+\d{1,2}-\d{1,2}-\d{4}$"),
+]
+GENDER_MEMBER_RE = re.compile(
+    r"(?P<name>[A-ZÁÉÍÓÚÜÑ][^,]+,\s+.*?)(?:\s+)(?P<gender>[MW])"
+    r"(?P<age>\d{1,3})(?=\s*[A-ZÁÉÍÓÚÜÑ]|$)",
+    re.IGNORECASE,
+)
+AGE_MEMBER_RE = re.compile(
+    r"(?P<name>[A-ZÁÉÍÓÚÜÑ][^,]+,\s+.*?)(?:\s+)(?P<age>\d{1,3})"
+    r"(?=\s*[A-ZÁÉÍÓÚÜÑ]|$)",
+    re.IGNORECASE,
+)
+
+
+class MeetProgramError(RuntimeError):
+    pass
+
+
+@dataclass
+class SourceLine:
+    page_number: int
+    column_number: int
+    line_number: int
+    text: str
+
+
+@dataclass
+class DebugLine:
+    page_number: int
+    column_number: int
+    line_number: int
+    raw_line: str
+    reason: str
+
+
+@dataclass
+class MeetProgramEntry:
+    session_number: int
+    session_name: str
+    event_number: int
+    event_name: str
+    heat_number: int
+    heat_total: int | None
+    lane: int
+    display_name: str
+    age: int | None
+    team_name: str | None
+    seed_time_text: str | None
+    seed_time_ms: int | None
+    entry_type: str
+    relay_members: list[str]
+    page_number: int
+    column_number: int
+    line_number: int
+
+
+@dataclass
+class ParsedMeetProgram:
+    entries: list[MeetProgramEntry]
+    unparsed: list[DebugLine]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ValidationIssue:
+    severity: str
+    issue_key: str
+    message: str
+    count: int = 1
+
+
+@dataclass
+class ValidationSummary:
+    state: str
+    input_dir: str
+    counts: dict[str, int]
+    issues: list[ValidationIssue]
+    metadata: dict[str, Any]
+    publication_id: int | None = None
+    publication_created: bool | None = None
+
+
+def clean_text(value: str) -> str:
+    return " ".join(value.replace("\u00a0", " ").split()).strip()
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def seed_time_ms(value: str | None) -> int | None:
+    if not value:
+        return None
+    normalized = value.upper().removeprefix("X")
+    if normalized == "NT":
+        return None
+    normalized = normalized.replace(",", ".")
+    parts = normalized.split(":")
+    try:
+        if len(parts) == 1:
+            seconds = float(parts[0])
+        elif len(parts) == 2:
+            seconds = int(parts[0]) * 60 + float(parts[1])
+        else:
+            return None
+    except ValueError:
+        return None
+    return round(seconds * 1000)
+
+
+def _group_band_words(words: list[dict[str, Any]], tolerance: float = 2.0) -> list[str]:
+    groups: list[tuple[float, list[dict[str, Any]]]] = []
+    for word in sorted(words, key=lambda item: (float(item["top"]), float(item["x0"]))):
+        top = float(word["top"])
+        group = next((candidate for candidate in groups if abs(candidate[0] - top) <= tolerance), None)
+        if group is None:
+            group = (top, [])
+            groups.append(group)
+        group[1].append(word)
+    return [
+        clean_text(" ".join(word["text"] for word in sorted(group, key=lambda item: float(item["x0"]))))
+        for _top, group in sorted(groups, key=lambda item: item[0])
+        if group
+    ]
+
+
+def extract_source_lines(pdf_path: Path) -> tuple[list[SourceLine], int]:
+    lines: list[SourceLine] = []
+    word_count = 0
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_number, page in enumerate(pdf.pages, start=1):
+            words = page.extract_words(x_tolerance=2, y_tolerance=3, keep_blank_chars=False)
+            word_count += len(words)
+            width = float(page.width)
+            for column_number in range(1, 4):
+                lower = width * (column_number - 1) / 3
+                upper = width * column_number / 3
+                band = [
+                    word
+                    for word in words
+                    if lower
+                    <= (float(word["x0"]) + float(word["x1"])) / 2
+                    < upper
+                ]
+                for line_number, text in enumerate(_group_band_words(band), start=1):
+                    if text:
+                        lines.append(SourceLine(page_number, column_number, line_number, text))
+    return lines, word_count
+
+
+def extract_competition_header_metadata(
+    lines: Iterable[SourceLine],
+) -> dict[str, Any]:
+    headers: list[tuple[str, str | None, str | None]] = []
+    for line in lines:
+        name, start_date, end_date = parse_competition_header(line.text)
+        if name is not None:
+            header = (name, start_date, end_date)
+            if header not in headers:
+                headers.append(header)
+    selected = headers[0] if headers else (None, None, None)
+    metadata: dict[str, Any] = {
+        "source_competition_name": selected[0],
+        "source_competition_start_date": selected[1],
+        "source_competition_end_date": selected[2],
+    }
+    if len(headers) > 1:
+        metadata["source_competition_header_conflict"] = True
+    return metadata
+
+
+def _event_parts(name: str) -> tuple[str, str]:
+    cleaned = clean_text(name).rstrip(")")
+    entry_type = "relay" if re.search(r"\bRelay\b", cleaned, re.IGNORECASE) else "individual"
+    return cleaned, entry_type
+
+
+def _parse_individual_entry(
+    line: SourceLine,
+    *,
+    session_number: int,
+    session_name: str,
+    event_number: int,
+    event_name: str,
+    heat_number: int,
+    heat_total: int | None,
+) -> MeetProgramEntry | None:
+    tokens = line.text.split()
+    if len(tokens) < 5 or not tokens[0].isdigit() or not SEED_RE.fullmatch(tokens[-1]):
+        return None
+    team_name = tokens[-2]
+    name_age = " ".join(tokens[1:-2]).strip()
+    age_match = AGE_RE.fullmatch(tokens[-3])
+    if age_match:
+        display_name = " ".join(tokens[1:-3]).strip()
+        age = int(age_match.group("age"))
+    else:
+        # HY-TEK's fixed age column can overlap long names. PDF extraction then
+        # interleaves the remaining name letters with W/M and age digits.
+        overlap = OVERLAPPED_NAME_AGE_RE.fullmatch(name_age)
+        if not overlap:
+            return None
+        tail = overlap.group("tail")
+        display_name = clean_text(
+            overlap.group("name") + "".join(character for character in tail if character.isalpha())
+        )
+        age_digits = "".join(character for character in tail if character.isdigit())
+        if not age_digits:
+            return None
+        age = int(age_digits)
+    if not display_name:
+        return None
+    seed = tokens[-1]
+    return MeetProgramEntry(
+        session_number=session_number,
+        session_name=session_name,
+        event_number=event_number,
+        event_name=event_name,
+        heat_number=heat_number,
+        heat_total=heat_total,
+        lane=int(tokens[0]),
+        display_name=display_name,
+        age=age,
+        team_name=team_name,
+        seed_time_text=seed,
+        seed_time_ms=seed_time_ms(seed),
+        entry_type="individual",
+        relay_members=[],
+        page_number=line.page_number,
+        column_number=line.column_number,
+        line_number=line.line_number,
+    )
+
+
+def _parse_relay_entry(
+    line: SourceLine,
+    *,
+    session_number: int,
+    session_name: str,
+    event_number: int,
+    event_name: str,
+    heat_number: int,
+    heat_total: int | None,
+) -> MeetProgramEntry | None:
+    tokens = line.text.split()
+    if len(tokens) < 3 or not tokens[0].isdigit() or not SEED_RE.fullmatch(tokens[-1]):
+        return None
+    display_name = " ".join(tokens[1:-1]).strip()
+    if not display_name:
+        return None
+    seed = tokens[-1]
+    return MeetProgramEntry(
+        session_number=session_number,
+        session_name=session_name,
+        event_number=event_number,
+        event_name=event_name,
+        heat_number=heat_number,
+        heat_total=heat_total,
+        lane=int(tokens[0]),
+        display_name=display_name,
+        age=None,
+        team_name=tokens[1],
+        seed_time_text=seed,
+        seed_time_ms=seed_time_ms(seed),
+        entry_type="relay",
+        relay_members=[],
+        page_number=line.page_number,
+        column_number=line.column_number,
+        line_number=line.line_number,
+    )
+
+
+def parse_relay_member_names(text: str) -> list[str]:
+    for pattern in (GENDER_MEMBER_RE, AGE_MEMBER_RE):
+        names = [clean_text(match.group("name")) for match in pattern.finditer(text)]
+        if len(names) == 2 and all("," in name for name in names):
+            return names
+    return []
+
+
+def _is_skippable(text: str) -> bool:
+    return any(pattern.fullmatch(text) for pattern in SKIP_PATTERNS)
+
+
+def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
+    materialized_lines = list(lines)
+    entries: list[MeetProgramEntry] = []
+    unparsed: list[DebugLine] = []
+    session_by_page: dict[int, str] = {}
+    for source_line in materialized_lines:
+        match = SESSION_RE.fullmatch(clean_text(source_line.text))
+        if match:
+            session_by_page.setdefault(
+                source_line.page_number,
+                clean_text(match.group("name")),
+            )
+    ordered_session_names = list(dict.fromkeys(session_by_page.values()))
+    if ordered_session_names:
+        known_sessions = {
+            name: index for index, name in enumerate(ordered_session_names, start=1)
+        }
+        session_name = ordered_session_names[0]
+    else:
+        session_name = "Jornada Unica"
+        known_sessions = {session_name: 1}
+    session_number = known_sessions[session_name]
+    active_page: int | None = None
+    canonical_events: dict[tuple[int, int], str] = {}
+    event_number: int | None = None
+    event_name: str | None = None
+    entry_type: str | None = None
+    heat_number: int | None = None
+    heat_total: int | None = None
+    active_relay: MeetProgramEntry | None = None
+
+    for line in materialized_lines:
+        if line.page_number != active_page:
+            active_page = line.page_number
+            page_session = session_by_page.get(active_page)
+            if page_session:
+                session_name = page_session
+                session_number = known_sessions[page_session]
+        text = clean_text(line.text)
+        session_match = SESSION_RE.fullmatch(text)
+        if session_match:
+            candidate = clean_text(session_match.group("name"))
+            if candidate not in known_sessions:
+                known_sessions[candidate] = len(known_sessions) + 1
+            session_name = candidate
+            session_number = known_sessions[candidate]
+            continue
+
+        continuation = CONTINUATION_RE.fullmatch(text)
+        if continuation:
+            event_number = int(continuation.group("number"))
+            candidate_name, _ = _event_parts(continuation.group("name"))
+            event_key = (session_number, event_number)
+            event_name = canonical_events.setdefault(event_key, candidate_name)
+            _, entry_type = _event_parts(event_name)
+            heat_number = int(continuation.group("heat"))
+            heat_total = None
+            active_relay = None
+            continue
+
+        event_match = EVENT_RE.fullmatch(text)
+        if event_match:
+            event_number = int(event_match.group("number"))
+            candidate_name, _ = _event_parts(event_match.group("name"))
+            event_key = (session_number, event_number)
+            known_name = canonical_events.get(event_key, "")
+            event_name = max((known_name, candidate_name), key=len)
+            canonical_events[event_key] = event_name
+            _, entry_type = _event_parts(event_name)
+            heat_number = None
+            heat_total = None
+            active_relay = None
+            continue
+
+        heat_match = HEAT_RE.search(text)
+        if heat_match:
+            heat_number = int(heat_match.group("number"))
+            heat_total = int(heat_match.group("total")) if heat_match.group("total") else None
+            active_relay = None
+            continue
+
+        if _is_skippable(text):
+            continue
+
+        if event_number and event_name and heat_number and text[:1].isdigit():
+            common = {
+                "session_number": session_number,
+                "session_name": session_name,
+                "event_number": event_number,
+                "event_name": event_name,
+                "heat_number": heat_number,
+                "heat_total": heat_total,
+            }
+            if entry_type == "relay":
+                entry = _parse_relay_entry(line, **common)
+            else:
+                entry = _parse_individual_entry(line, **common)
+            if entry:
+                entries.append(entry)
+                active_relay = entry if entry.entry_type == "relay" else None
+                continue
+
+        if active_relay is not None and len(active_relay.relay_members) < 4:
+            members = parse_relay_member_names(text)
+            if members and len(active_relay.relay_members) + len(members) <= 4:
+                active_relay.relay_members.extend(members)
+                continue
+
+        if text.startswith(("#", "Heat")) or text[:1].isdigit():
+            unparsed.append(
+                DebugLine(
+                    line.page_number,
+                    line.column_number,
+                    line.line_number,
+                    text,
+                    "relevant_line_not_parsed",
+                )
+            )
+
+    return ParsedMeetProgram(entries=entries, unparsed=unparsed)
+
+
+def parse_pdf(pdf_path: Path) -> ParsedMeetProgram:
+    if not pdf_path.exists() or not pdf_path.is_file():
+        raise MeetProgramError(f"PDF not found: {pdf_path}")
+    lines, word_count = extract_source_lines(pdf_path)
+    parsed = parse_source_lines(lines)
+    parsed.metadata = {
+        "pdf_name": pdf_path.name,
+        "pdf_path": str(pdf_path.resolve()),
+        "pdf_sha256": sha256_file(pdf_path),
+        "parser_version": PARSER_VERSION,
+        "text_word_count": word_count,
+        "page_count": max((line.page_number for line in lines), default=0),
+        **extract_competition_header_metadata(lines),
+    }
+    return parsed
+
+
+def _header_metadata_issues(metadata: dict[str, Any]) -> list[ValidationIssue]:
+    if metadata.get("source_competition_header_conflict") is True:
+        return [
+            ValidationIssue(
+                "error",
+                "conflicting_competition_headers",
+                "The PDF contains multiple distinct competition headers.",
+            )
+        ]
+    if not clean_text(str(metadata.get("source_competition_name") or "")):
+        return [
+            ValidationIssue(
+                "error",
+                "missing_competition_header",
+                "A competition header could not be extracted from the PDF.",
+            )
+        ]
+    if not metadata.get("source_competition_start_date") or not metadata.get(
+        "source_competition_end_date"
+    ):
+        return [
+            ValidationIssue(
+                "error",
+                "missing_competition_header_date",
+                "The PDF competition header requires a complete date range.",
+            )
+        ]
+    return []
+
+
+def validate_entries(
+    entries: list[MeetProgramEntry],
+    *,
+    text_word_count: int,
+    unparsed_count: int = 0,
+) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    if text_word_count <= 0:
+        issues.append(
+            ValidationIssue(
+                "error",
+                "image_only_or_no_text",
+                "The PDF has no extractable text; OCR is outside the v1 contract.",
+            )
+        )
+    if not entries:
+        issues.append(
+            ValidationIssue("error", "no_entries_found", "No meet-program entries were parsed.")
+        )
+    checks = [
+        ("session_number", "invalid_session_number"),
+        ("event_number", "invalid_event_number"),
+        ("heat_number", "invalid_heat_number"),
+        ("lane", "invalid_lane"),
+    ]
+    for attribute, key in checks:
+        count = sum(
+            1
+            for entry in entries
+            if not isinstance(getattr(entry, attribute), int)
+            or getattr(entry, attribute) <= 0
+        )
+        if count:
+            issues.append(ValidationIssue("error", key, f"{attribute} must be positive.", count))
+    missing_event = sum(1 for entry in entries if not clean_text(entry.event_name))
+    if missing_event:
+        issues.append(
+            ValidationIssue("error", "missing_event_name", "event_name is required.", missing_event)
+        )
+    missing_name = sum(1 for entry in entries if not clean_text(entry.display_name))
+    if missing_name:
+        issues.append(
+            ValidationIssue(
+                "error", "missing_display_name", "display_name is required.", missing_name
+            )
+        )
+    invalid_age = sum(1 for entry in entries if entry.age is not None and entry.age <= 0)
+    if invalid_age:
+        issues.append(ValidationIssue("error", "invalid_age", "age must be positive.", invalid_age))
+    invalid_seed = sum(
+        1
+        for entry in entries
+        if entry.seed_time_text
+        and not SEED_RE.fullmatch(entry.seed_time_text)
+    )
+    if invalid_seed:
+        issues.append(
+            ValidationIssue("error", "invalid_seed_time", "seed_time_text is invalid.", invalid_seed)
+        )
+    seen: set[tuple[int, int, int, int]] = set()
+    duplicate_count = 0
+    for entry in entries:
+        key = (
+            entry.session_number,
+            entry.event_number,
+            entry.heat_number,
+            entry.lane,
+        )
+        if key in seen:
+            duplicate_count += 1
+        seen.add(key)
+    if duplicate_count:
+        issues.append(
+            ValidationIssue(
+                "error",
+                "duplicate_lane_assignment",
+                "Duplicate session/event/heat/lane assignment.",
+                duplicate_count,
+            )
+        )
+    if unparsed_count:
+        issues.append(
+            ValidationIssue(
+                "error",
+                "unparsed_relevant_lines",
+                "Relevant event, heat, or lane lines were not parsed.",
+                unparsed_count,
+            )
+        )
+    return issues
+
+
+def _summary(
+    input_dir: Path,
+    entries: list[MeetProgramEntry],
+    metadata: dict[str, Any],
+    *,
+    unparsed_count: int,
+) -> ValidationSummary:
+    issues = validate_entries(
+        entries,
+        text_word_count=int(metadata.get("text_word_count") or 0),
+        unparsed_count=unparsed_count,
+    )
+    issues.extend(_header_metadata_issues(metadata))
+    state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"
+    return ValidationSummary(
+        state=state,
+        input_dir=str(input_dir),
+        counts={"entries": len(entries), "debug_unparsed_lines": unparsed_count},
+        issues=issues,
+        metadata=metadata,
+    )
+
+
+def _entry_csv_row(entry: MeetProgramEntry) -> dict[str, Any]:
+    row = asdict(entry)
+    row["relay_members"] = json.dumps(entry.relay_members, ensure_ascii=False)
+    return row
+
+
+def _write_csv(path: Path, columns: list[str], rows: Iterable[dict[str, Any]]) -> None:
+    temporary = path.with_name(f".{path.name}.tmp")
+    with temporary.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=columns, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+    temporary.replace(path)
+
+
+def _atomic_write_text(path: Path, content: str) -> None:
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(content, encoding="utf-8")
+    temporary.replace(path)
+
+
+def write_summary(summary: ValidationSummary, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _atomic_write_text(path, json.dumps(asdict(summary), ensure_ascii=False, indent=2))
+
+
+def write_artifacts(parsed: ParsedMeetProgram, out_dir: Path) -> ValidationSummary:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    _write_csv(
+        out_dir / "meet_program_entries.csv",
+        ENTRY_COLUMNS,
+        (_entry_csv_row(entry) for entry in parsed.entries),
+    )
+    _write_csv(
+        out_dir / "debug_unparsed_lines.csv",
+        DEBUG_COLUMNS,
+        (asdict(line) for line in parsed.unparsed),
+    )
+    parsed.metadata["artifact_binding"] = {
+        name: {"sha256": sha256_file(out_dir / name), "rows": rows}
+        for name, rows in (
+            ("meet_program_entries.csv", len(parsed.entries)),
+            ("debug_unparsed_lines.csv", len(parsed.unparsed)),
+        )
+    }
+    parsed.metadata["artifact_binding"]["competition_header"] = {
+        "sha256": _competition_header_identity_sha256(parsed.metadata)
+    }
+    _atomic_write_text(
+        out_dir / "metadata.json",
+        json.dumps(parsed.metadata, ensure_ascii=False, indent=2),
+    )
+    summary = _summary(
+        out_dir,
+        parsed.entries,
+        parsed.metadata,
+        unparsed_count=len(parsed.unparsed),
+    )
+    write_summary(summary, out_dir / "validation_summary.json")
+    return summary
+
+
+def _parse_optional_int(value: str | None) -> int | None:
+    cleaned = (value or "").strip()
+    return int(cleaned) if cleaned else None
+
+
+def _load_entries(path: Path) -> list[MeetProgramEntry]:
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream)
+        missing = [column for column in ENTRY_COLUMNS if column not in (reader.fieldnames or [])]
+        if missing:
+            raise MeetProgramError(f"meet_program_entries.csv missing columns: {missing}")
+        entries = []
+        for row in reader:
+            try:
+                members = json.loads(row["relay_members"] or "[]")
+                entries.append(
+                    MeetProgramEntry(
+                        session_number=int(row["session_number"]),
+                        session_name=row["session_name"],
+                        event_number=int(row["event_number"]),
+                        event_name=row["event_name"],
+                        heat_number=int(row["heat_number"]),
+                        heat_total=_parse_optional_int(row["heat_total"]),
+                        lane=int(row["lane"]),
+                        display_name=row["display_name"],
+                        age=_parse_optional_int(row["age"]),
+                        team_name=row["team_name"] or None,
+                        seed_time_text=row["seed_time_text"] or None,
+                        seed_time_ms=_parse_optional_int(row["seed_time_ms"]),
+                        entry_type=row["entry_type"],
+                        relay_members=members,
+                        page_number=int(row["page_number"]),
+                        column_number=int(row["column_number"]),
+                        line_number=int(row["line_number"]),
+                    )
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                raise MeetProgramError(f"Invalid meet-program CSV row: {exc}") from exc
+    return entries
+
+
+def _verify_artifact_binding(input_dir: Path, metadata: dict[str, Any]) -> None:
+    binding = metadata.get("artifact_binding")
+    if not isinstance(binding, dict):
+        raise MeetProgramError("Artifact binding is missing.")
+    header_binding = binding.get("competition_header")
+    if (
+        not isinstance(header_binding, dict)
+        or header_binding.get("sha256") != _competition_header_identity_sha256(metadata)
+    ):
+        raise MeetProgramError("Artifact header binding mismatch.")
+    for name in ("meet_program_entries.csv", "debug_unparsed_lines.csv"):
+        expected = binding.get(name)
+        path = input_dir / name
+        if not isinstance(expected, dict) or sha256_file(path) != expected.get("sha256"):
+            raise MeetProgramError(f"Artifact binding mismatch: {name}")
+        with path.open(encoding="utf-8-sig", newline="") as stream:
+            row_count = sum(1 for _row in csv.DictReader(stream))
+        if row_count != expected.get("rows"):
+            raise MeetProgramError(f"Artifact binding row-count mismatch: {name}")
+
+
+def _competition_header_identity_sha256(metadata: dict[str, Any]) -> str:
+    identity = {
+        key: metadata.get(key)
+        for key in (
+            "source_competition_name",
+            "source_competition_start_date",
+            "source_competition_end_date",
+            "source_competition_header_conflict",
+        )
+    }
+    canonical = json.dumps(identity, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def validate_input_dir(input_dir: Path) -> ValidationSummary:
+    metadata_path = input_dir / "metadata.json"
+    entries_path = input_dir / "meet_program_entries.csv"
+    debug_path = input_dir / "debug_unparsed_lines.csv"
+    if not metadata_path.exists() or not entries_path.exists() or not debug_path.exists():
+        raise MeetProgramError(
+            "Input directory requires metadata.json, meet_program_entries.csv, "
+            "and debug_unparsed_lines.csv."
+        )
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    _verify_artifact_binding(input_dir, metadata)
+    entries = _load_entries(entries_path)
+    with debug_path.open(encoding="utf-8-sig", newline="") as stream:
+        unparsed_count = sum(1 for _row in csv.DictReader(stream))
+    summary = _summary(input_dir, entries, metadata, unparsed_count=unparsed_count)
+    write_summary(summary, input_dir / "validation_summary.json")
+    return summary
+
+
+def _qualified(schema: str, table: str) -> str:
+    if not SCHEMA_RE.fullmatch(schema):
+        raise MeetProgramError(f"Invalid schema: {schema}")
+    return f"{schema}.{table}"
+
+
+def _date_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    if hasattr(value, "isoformat"):
+        return str(value.isoformat())
+    cleaned = str(value).strip()
+    return cleaned or None
+
+
+def validate_competition_identity(
+    metadata: dict[str, Any],
+    competition: dict[str, Any],
+) -> None:
+    source_name = clean_text(str(metadata.get("source_competition_name") or ""))
+    if not source_name:
+        raise MeetProgramError("Competition header missing from PDF metadata.")
+    database_name = clean_text(str(competition.get("name") or ""))
+    if not competition_names_match(source_name, database_name):
+        raise MeetProgramError(
+            "Competition name mismatch: "
+            f"PDF '{source_name}' does not match database '{database_name}'."
+        )
+
+    source_start = _date_text(metadata.get("source_competition_start_date"))
+    source_end = _date_text(metadata.get("source_competition_end_date"))
+    database_start = _date_text(competition.get("start_date"))
+    database_end = _date_text(competition.get("end_date"))
+    if not source_start or not source_end:
+        raise MeetProgramError("Competition header is missing a complete PDF date range.")
+    if not database_start or not database_end:
+        raise MeetProgramError("Selected competition is missing a complete database date range.")
+    if (source_start, source_end) != (database_start, database_end):
+        raise MeetProgramError(
+            "Competition date mismatch: "
+            f"PDF {source_start} to {source_end}; "
+            f"database {database_start} to {database_end}."
+        )
+
+
+def publish_validated_program(
+    connection,
+    entries: list[MeetProgramEntry],
+    metadata: dict[str, Any],
+    *,
+    competition_id: int,
+    source_url: str | None,
+    schema: str,
+) -> tuple[int, bool]:
+    checksum = str(metadata.get("pdf_sha256") or "")
+    if not CHECKSUM_RE.fullmatch(checksum):
+        raise MeetProgramError("metadata.json requires a lowercase SHA-256 checksum.")
+    if competition_id <= 0:
+        raise MeetProgramError("competition_id must be positive.")
+
+    competition_table = _qualified(schema, "competition")
+    publication_table = _qualified(schema, "meet_program_publication")
+    entry_table = _qualified(schema, "meet_program_entry")
+    document_table = _qualified(schema, "source_document")
+    with connection.transaction():
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT id, source_id, name, start_date, end_date
+                FROM {competition_table}
+                WHERE id = %s
+                FOR UPDATE;
+                """,
+                (competition_id,),
+            )
+            competition = cursor.fetchone()
+            if not competition:
+                raise MeetProgramError(f"Competition not found: {competition_id}")
+            source_id = competition[1]
+            validate_competition_identity(
+                metadata,
+                {
+                    "name": competition[2],
+                    "start_date": competition[3],
+                    "end_date": competition[4],
+                },
+            )
+
+            cursor.execute(
+                f"""
+                SELECT id
+                FROM {publication_table}
+                WHERE competition_id = %s
+                  AND source_checksum_sha256 = %s;
+                """,
+                (competition_id, checksum),
+            )
+            existing = cursor.fetchone()
+            if existing:
+                return int(existing[0]), False
+
+            cursor.execute(
+                f"""
+                INSERT INTO {document_table} (
+                    source_id, document_name, document_type, source_url,
+                    storage_path, checksum_sha256, parser_version, metadata
+                )
+                VALUES (%s, %s, 'meet_program_pdf', NULL, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (checksum_sha256) WHERE checksum_sha256 IS NOT NULL
+                DO UPDATE SET last_seen_at = NOW()
+                RETURNING id;
+                """,
+                (
+                    source_id,
+                    metadata.get("pdf_name") or "meet-program.pdf",
+                    metadata.get("pdf_path"),
+                    checksum,
+                    metadata.get("parser_version") or PARSER_VERSION,
+                    json.dumps(metadata, ensure_ascii=False),
+                ),
+            )
+            source_document_id = int(cursor.fetchone()[0])
+
+            cursor.execute(
+                f"""
+                INSERT INTO {publication_table} (
+                    competition_id, source_document_id, source_checksum_sha256,
+                    source_url, parser_version, status, metadata
+                )
+                VALUES (%s, %s, %s, %s, %s, 'pending', %s::jsonb)
+                RETURNING id;
+                """,
+                (
+                    competition_id,
+                    source_document_id,
+                    checksum,
+                    source_url,
+                    metadata.get("parser_version") or PARSER_VERSION,
+                    json.dumps(metadata, ensure_ascii=False),
+                ),
+            )
+            publication_id = int(cursor.fetchone()[0])
+
+            cursor.executemany(
+                f"""
+                INSERT INTO {entry_table} (
+                    publication_id, session_number, session_name,
+                    event_number, event_name, heat_number, heat_total,
+                    lane, display_name, age, team_name, seed_time_text,
+                    seed_time_ms, entry_type, relay_members,
+                    page_number, column_number, line_number
+                )
+                VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s
+                );
+                """,
+                [
+                    (
+                        publication_id,
+                        entry.session_number,
+                        entry.session_name,
+                        entry.event_number,
+                        entry.event_name,
+                        entry.heat_number,
+                        entry.heat_total,
+                        entry.lane,
+                        entry.display_name,
+                        entry.age,
+                        entry.team_name,
+                        entry.seed_time_text,
+                        entry.seed_time_ms,
+                        entry.entry_type,
+                        json.dumps(entry.relay_members, ensure_ascii=False),
+                        entry.page_number,
+                        entry.column_number,
+                        entry.line_number,
+                    )
+                    for entry in entries
+                ],
+            )
+            # Entries are complete before the public pointer changes. Any later
+            # failure rolls the whole transaction back to the previous version.
+            cursor.execute(
+                f"""
+                UPDATE {publication_table}
+                SET status = 'superseded', superseded_at = NOW()
+                WHERE competition_id = %s
+                  AND status = 'published';
+                """,
+                (competition_id,),
+            )
+            cursor.execute(
+                f"""
+                UPDATE {publication_table}
+                SET status = 'published', published_at = NOW()
+                WHERE id = %s;
+                """,
+                (publication_id,),
+            )
+    return publication_id, True
+
+
+def connect_database(args):
+    try:
+        import psycopg
+    except ImportError as exc:  # pragma: no cover
+        raise MeetProgramError("psycopg is required for --publish.") from exc
+    return psycopg.connect(
+        host=args.host,
+        port=args.port,
+        dbname=args.dbname,
+        user=args.user,
+        password=args.password,
+    )
+
+
+def publish_from_artifacts(
+    input_dir: Path,
+    *,
+    competition_id: int,
+    source_url: str | None,
+    args,
+) -> tuple[int, bool]:
+    summary_path = input_dir / "validation_summary.json"
+    if not summary_path.exists():
+        raise MeetProgramError("Publishing requires validation_summary.json.")
+    recorded = json.loads(summary_path.read_text(encoding="utf-8"))
+    if recorded.get("state") != "validated":
+        raise MeetProgramError("Publishing requires validated artifacts.")
+    summary = validate_input_dir(input_dir)
+    if summary.state != "validated":
+        raise MeetProgramError("Artifacts no longer satisfy the validated contract.")
+    entries = _load_entries(input_dir / "meet_program_entries.csv")
+    connection = connect_database(args)
+    try:
+        return publish_validated_program(
+            connection,
+            entries,
+            summary.metadata,
+            competition_id=competition_id,
+            source_url=source_url,
+            schema=args.schema,
+        )
+    finally:
+        connection.close()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Parse, validate, and optionally publish HY-TEK meet programs."
+    )
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument("--pdf", help="Text-based Meet Program PDF to parse.")
+    inputs.add_argument("--input-dir", help="Existing meet-program artifact directory.")
+    parser.add_argument("--out-dir", help="Artifact directory required with --pdf.")
+    parser.add_argument("--competition-id", type=int)
+    parser.add_argument("--source-url")
+    parser.add_argument("--publish", action="store_true")
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--summary-json")
+    parser.add_argument("--host", default="localhost")
+    parser.add_argument("--port", type=int, default=5432)
+    parser.add_argument("--dbname", default="natacion_chile")
+    parser.add_argument("--user")
+    parser.add_argument("--password")
+    parser.add_argument("--schema", default="core")
+    args = parser.parse_args()
+    if args.pdf and not args.out_dir:
+        parser.error("--out-dir is required with --pdf")
+    if args.publish and not args.competition_id:
+        parser.error("--competition-id is required with --publish")
+    if args.publish and (not args.user or not args.password):
+        parser.error("--user and --password are required with --publish")
+    return args
+
+
+def main() -> None:
+    args = parse_args()
+    try:
+        if args.pdf:
+            input_dir = Path(args.out_dir)
+            parsed = parse_pdf(Path(args.pdf))
+            if args.competition_id:
+                parsed.metadata["competition_id"] = args.competition_id
+            if args.source_url:
+                parsed.metadata["source_url"] = args.source_url
+            summary = write_artifacts(parsed, input_dir)
+        else:
+            input_dir = Path(args.input_dir)
+            summary = validate_input_dir(input_dir)
+
+        if args.publish:
+            publication_id, created = publish_from_artifacts(
+                input_dir,
+                competition_id=args.competition_id,
+                source_url=args.source_url,
+                args=args,
+            )
+            summary.publication_id = publication_id
+            summary.publication_created = created
+
+        if args.summary_json:
+            write_summary(summary, Path(args.summary_json))
+        if args.json:
+            print(json.dumps(asdict(summary), ensure_ascii=False, indent=2))
+        else:
+            print(f"State: {summary.state}")
+            print(f"Entries: {summary.counts.get('entries', 0)}")
+            for issue in summary.issues:
+                print(f"[{issue.severity}] {issue.issue_key}: {issue.message} ({issue.count})")
+            if summary.publication_id is not None:
+                action = "created" if summary.publication_created else "unchanged"
+                print(f"Publication: {summary.publication_id} ({action})")
+        if summary.state != "validated":
+            raise SystemExit(1)
+    except (MeetProgramError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"[ERROR] {exc}") from exc
+
+
+if __name__ == "__main__":
+    main()
