@@ -221,7 +221,10 @@ def normalize_result_status(status: Any, result_time_text: Any = None) -> str:
             return "dsq"
         if upper == "SCRATCH":
             return "scratch"
-        if upper in {"NT", "NS"}:
+        if upper == "NS":
+            # NS = No Show: el atleta no se presentó, semánticamente es DNS.
+            return "dns"
+        if upper == "NT":
             return "unknown"
 
     return "unknown"

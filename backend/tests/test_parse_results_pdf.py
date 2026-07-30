@@ -197,6 +197,7 @@ def test_result_status_from_text_statuses():
     assert parser.normalize_result_status(None, "DNF") == "dnf"
     assert parser.normalize_result_status(None, "DQ") == "dsq"
     assert parser.normalize_result_status(None, "NT") == "unknown"
+    assert parser.normalize_result_status(None, "NS") == "dns"  # NS = No Show → dns
     assert parser.normalize_result_status(None, "1:05.30") == "valid"
     assert parser.normalize_result_status(None, "X1:05.30") == "valid"
     assert parser.normalize_result_status(None, "XDQ") == "dsq"
@@ -667,7 +668,7 @@ def test_parse_result_line_accepts_double_dash_unranked_status_result():
     assert row.club_name == "Tiburones Tolima"
     assert row.seed_time_text == "12:27,13"
     assert row.result_time_text == "NS"
-    assert row.status == "unknown"
+    assert row.status == "dns"  # NS = No Show → atleta no se presentó
 
 
 def test_parse_fragmented_result_line_from_hytek_multicolumn_ocr():

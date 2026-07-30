@@ -101,6 +101,7 @@ def test_result_status_normalization_maps_explicit_statuses():
     assert normalize_result_status(None, "DQ") == "dsq"
     assert normalize_result_status(None, "SCRATCH") == "scratch"
     assert normalize_result_status(None, "NT") == "unknown"
+    assert normalize_result_status(None, "NS") == "dns"  # NS = No Show → dns
     assert normalize_result_status("valid", None) == "valid"
     assert normalize_result_status(None, "1:05.30") == "unknown"
 

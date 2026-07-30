@@ -740,8 +740,11 @@ def normalize_result_status(status, result_time_text):
     rtt = normalize_string(result_time_text)
     if rtt:
         upper = rtt.upper()
-        if upper in {"NT", "NS", "UNKNOWN"}:
+        if upper in {"NT", "UNKNOWN"}:
             return "unknown"
+        if upper == "NS":
+            # NS = No Show → dns (el atleta no se presentó)
+            return "dns"
         if upper.startswith("X"):
             # HY-TEK usa prefijo X para exhibición / categorías sin puntaje oficial.
             # El tiempo es válido y debe mostrarse; el no-puntaje se conserva con rank/points nulos.
