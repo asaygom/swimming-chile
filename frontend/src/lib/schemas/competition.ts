@@ -89,6 +89,8 @@ export const MeetProgramHeatSchema = z.object({
 export const MeetProgramEventSchema = z.object({
   event_number: z.number().int().positive(),
   event_name: z.string(),
+  distance_m: z.number().int().positive().nullable(),
+  stroke: z.string().nullable(),
   heats: z.array(MeetProgramHeatSchema),
 });
 
@@ -100,6 +102,7 @@ export const MeetProgramSessionSchema = z.object({
 
 export const MeetProgramResponseSchema = z.object({
   competition_id: z.union([z.string(), z.number()]),
+  events_count: z.number().int().nonnegative().nullable(),
   publication: z.object({
     published_at: z.string(),
     source_url: z.string().nullable(),

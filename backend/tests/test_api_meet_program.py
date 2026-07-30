@@ -66,6 +66,7 @@ def test_meet_program_known_competition_without_publication_is_empty(monkeypatch
     assert competitions.get_meet_program(7) == {
         "competition_id": 7,
         "publication": None,
+        "events_count": 0,
         "sessions": [],
     }
 
@@ -124,6 +125,9 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
         "source_url": "https://example.test/program.pdf",
         "entry_count": 2,
     }
+    assert payload["events_count"] == 1
+    assert payload["sessions"][0]["events"][0]["distance_m"] == 200
+    assert payload["sessions"][0]["events"][0]["stroke"] == "medley_relay"
     assert [heat["heat_number"] for heat in payload["sessions"][0]["events"][0]["heats"]] == [1, 2]
     assert payload["sessions"][0]["events"][0]["heats"][0]["entries"][0] == {
         "lane": 2,
@@ -141,6 +145,43 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
     assert any("ORDER BY" in query for query, _params in cursor.executed)
 
 
+def test_meet_program_count_is_null_when_a_published_event_is_unparseable(monkeypatch):
+    row = {
+        "session_number": 1,
+        "session_name": "Jornada Unica",
+        "event_number": 1,
+        "event_name": "Surprise exhibition",
+        "heat_number": 1,
+        "heat_total": 1,
+        "lane": 1,
+        "entry_type": "individual",
+        "display_name": "Uno, Ana",
+        "club_name": "CLUB",
+        "seed_time_text": "NT",
+        "seed_time_ms": None,
+        "relay_members": [],
+    }
+    install_database(
+        monkeypatch,
+        [
+            {"id": 7},
+            {
+                "id": 51,
+                "published_at": "2026-07-30T10:00:00Z",
+                "source_url": None,
+                "entry_count": 1,
+            },
+        ],
+        [row],
+    )
+
+    payload = competitions.get_meet_program(7)
+
+    assert payload["events_count"] is None
+    assert payload["sessions"][0]["events"][0]["distance_m"] is None
+    assert payload["sessions"][0]["events"][0]["stroke"] is None
+
+
 def test_transient_program_error_keeps_series_recovery_tab_visible():
     profile_page = (
         Path(__file__).resolve().parents[2]
@@ -153,3 +194,7 @@ def test_transient_program_error_keeps_series_recovery_tab_visible():
         in source
     )
     assert "requestedTab === null && hasPublishedProgram && resultsAreEmpty" in source
+    assert "`${e.distance_m}-${e.stroke}`" in source
+    assert "`${e.distance_m}-${e.stroke}-${e.gender}`" not in source
+    assert "meetProgramQuery.data?.events_count" in source
+    assert "totalProgramEvents ?? '—'" in source

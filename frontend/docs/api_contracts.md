@@ -293,6 +293,12 @@ Competition result pages use `source_url` as the official source link and use se
 
 ### `GET /api/competitions/{id}/meet-program`
 
+The response exposes `events_count` at the root and `distance_m`/`stroke` on
+each event. A test is uniquely identified by `(distance_m, stroke)`; gender,
+age category, course and HY-TEK event number do not increase the count.
+`events_count` is `0` when there is no publication and `null` when any event in
+the active publication cannot be parsed safely.
+
 Published Meet Manager program for one competition. This snapshot preserves
 source names and clubs without linking entries to core athlete or club identities.
 
@@ -301,6 +307,7 @@ source names and clubs without linking entries to core athlete or club identitie
 ```json
 {
   "competition_id": 1,
+  "events_count": 0,
   "publication": null,
   "sessions": []
 }
@@ -311,6 +318,7 @@ source names and clubs without linking entries to core athlete or club identitie
 ```json
 {
   "competition_id": 1,
+  "events_count": 1,
   "publication": {
     "published_at": "2026-07-30T10:00:00Z",
     "source_url": "https://example.test/program.pdf",
@@ -324,6 +332,8 @@ source names and clubs without linking entries to core athlete or club identitie
         {
           "event_number": 7,
           "event_name": "Mixed 200 LC Meter Medley Relay 160 a 199 años",
+          "distance_m": 200,
+          "stroke": "medley_relay",
           "heats": [
             {
               "heat_number": 1,
@@ -352,6 +362,9 @@ Sessions, events, heats, and entries are ordered by their source numbers. Only
 the active `published` version is public. An unknown competition returns 404.
 
 ### `GET /api/competitions/{id}/stats`
+
+`events_count` counts distinct non-null `(distance_m, stroke)` identities.
+Gender and age categories do not create additional tests.
 
 Participation statistics and separate Máster/Pre-Máster club medal and audited points tables for one competition.
 

@@ -2,6 +2,7 @@ import math
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 from ..database import get_db_connection
+from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 router = APIRouter()
 
@@ -167,9 +168,11 @@ def get_competition_stats(competition_id: int):
             stats = cur.fetchone()
 
             cur.execute("""
-                SELECT COUNT(*)::INTEGER AS events_count
+                SELECT COUNT(DISTINCT (distance_m, stroke))::INTEGER AS events_count
                 FROM core.event
                 WHERE competition_id = %s
+                  AND distance_m IS NOT NULL
+                  AND stroke IS NOT NULL
             """, (competition_id,))
             stats["events_count"] = cur.fetchone()["events_count"]
 
@@ -361,6 +364,7 @@ def get_meet_program(competition_id: int):
                 return {
                     "competition_id": competition_id,
                     "publication": None,
+                    "events_count": 0,
                     "sessions": [],
                 }
 
@@ -391,6 +395,8 @@ def get_meet_program(competition_id: int):
             rows = cur.fetchall()
 
     sessions = []
+    event_identities: set[tuple[int, str]] = set()
+    has_unparseable_event = False
     for row in rows:
         if not sessions or sessions[-1]["session_number"] != row["session_number"]:
             sessions.append({
@@ -400,9 +406,19 @@ def get_meet_program(competition_id: int):
             })
         events = sessions[-1]["events"]
         if not events or events[-1]["event_number"] != row["event_number"]:
+            identity = parse_hytek_event_identity(row["event_name"])
+            if identity is None:
+                distance_m = None
+                stroke = None
+                has_unparseable_event = True
+            else:
+                distance_m, stroke = identity
+                event_identities.add(identity)
             events.append({
                 "event_number": row["event_number"],
                 "event_name": row["event_name"],
+                "distance_m": distance_m,
+                "stroke": stroke,
                 "heats": [],
             })
         heats = events[-1]["heats"]
@@ -424,6 +440,7 @@ def get_meet_program(competition_id: int):
 
     return {
         "competition_id": competition_id,
+        "events_count": None if has_unparseable_event else len(event_identities),
         "publication": {
             "published_at": publication["published_at"],
             "source_url": publication["source_url"],

@@ -349,7 +349,10 @@ def list_competition_stats(
                 event_counts AS (
                     SELECT
                         e.competition_id,
-                        COUNT(*)::INTEGER AS events_count
+                        COUNT(DISTINCT (e.distance_m, e.stroke)) FILTER (
+                            WHERE e.distance_m IS NOT NULL
+                              AND e.stroke IS NOT NULL
+                        )::INTEGER AS events_count
                     FROM core.event e
                     JOIN filtered_competitions fc ON fc.id = e.competition_id
                     GROUP BY e.competition_id

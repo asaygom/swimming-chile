@@ -158,12 +158,19 @@ def test_competition_stats_contract_counts_participants_gender_clubs_and_dsq():
     source = normalized_source(COMPETITIONS_ROUTER)
 
     assert '@router.get("/{competition_id}/stats")' in source
+    assert "count(distinct (distance_m, stroke))" in source
     assert "count(distinct athlete_id)::integer as participants_count" in source
     assert "where athlete_gender = 'female'" in source
     assert "where athlete_gender = 'male'" in source
     assert "count(distinct club_id)" in source
     assert "where status = 'dsq'" in source
     assert "coalesce(r.status, 'unknown') not in ('dns', 'scratch')" in source
+
+
+def test_competition_stats_table_counts_semantic_events():
+    source = normalized_source(STATS_ROUTER)
+
+    assert "count(distinct (e.distance_m, e.stroke))" in source
 
 
 def test_stats_and_rankings_routers_are_registered():

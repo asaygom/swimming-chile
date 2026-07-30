@@ -6,6 +6,15 @@ from typing import Any
 
 TEXT_STATUSES = {"DNS", "DNF", "DSQ", "SCRATCH", "NT", "NS", "DQ", "DFS", "VALID", "UNKNOWN"}
 STATUS_VALUES = {"valid", "dns", "dnf", "dsq", "scratch", "unknown"}
+STROKE_VALUES = {
+    "freestyle",
+    "backstroke",
+    "breaststroke",
+    "butterfly",
+    "individual_medley",
+    "medley_relay",
+    "freestyle_relay",
+}
 
 
 def normalize_string(value: Any) -> str | None:
@@ -154,6 +163,46 @@ def normalize_stroke(value: Any) -> str | None:
         if value.startswith(f"{prefix} ") or value.startswith(f"{prefix})"):
             return mapping[prefix]
     return value.replace(" ", "_")
+
+
+def parse_hytek_event_identity(value: Any) -> tuple[int, str] | None:
+    """Return the semantic (distance, stroke) identity from a HY-TEK event name."""
+    event_name = normalize_string(value)
+    if event_name is None:
+        return None
+    category = (
+        r"(?:PM\s+|Pre[- ]?Master\s+)?"
+        r"(?:\d+\s*(?:-|a)\s*\d+(?:\s+a(?:ñ|�|n)?os)?|"
+        r"\d+\+|\d+\s*&\s*Under|\d+\s+y\s+m[aá]s|Pre[- ]?Master)"
+    )
+    stroke_category = (
+        r"(?:(?:PM\s+)?(?:\d+\s*(?:-|a)\s*\d+(?:\s+a(?:ñ|�|n)?os)?|"
+        r"\d+(?:\s+a(?:ñ|�|n)?os)?\s+y\s+m[aá]s)|Pre[- ]?Master)"
+    )
+    match = re.fullmatch(
+        rf"(?:Women|Men|Mixed)(?:\s+{category})?\s+"
+        r"(?:(?P<legs>\d+)\s*x\s*(?P<leg_distance>\d+)|(?P<distance>\d+))"
+        r"\s+(?:SC|LC)\s+Meters?\s+"
+        r"(?P<stroke>medley relay|freestyle relay|free relay|"
+        r"individual medley|relevo combinado|relevo libre|backstroke|"
+        r"breaststroke|butterfly|freestyle|back|breast|fly|free|"
+        r"espalda|pecho|mariposa|libre|im|ci)"
+        rf"(?:\s+{stroke_category})?",
+        event_name,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+
+    legs = match.group("legs")
+    if legs is not None:
+        distance_m = int(legs) * int(match.group("leg_distance"))
+    else:
+        distance_m = int(match.group("distance"))
+    stroke = normalize_stroke(match.group("stroke"))
+    if distance_m <= 0 or stroke not in STROKE_VALUES:
+        return None
+    return distance_m, stroke
 
 
 def normalize_result_status(status: Any, result_time_text: Any = None) -> str:

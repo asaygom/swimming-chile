@@ -315,6 +315,15 @@ def test_validate_entries_blocks_missing_invalid_and_duplicate_lane_identity():
     } <= keys
 
 
+def test_validate_entries_blocks_unparseable_event_identity():
+    entry = valid_publication_entry()
+    entry.event_name = "Surprise exhibition"
+
+    issues = meet_program.validate_entries([entry], text_word_count=10)
+
+    assert "unparseable_event_identity" in {issue.issue_key for issue in issues}
+
+
 def test_validate_entries_blocks_image_only_and_zero_entry_inputs():
     issues = meet_program.validate_entries([], text_word_count=0)
     keys = {issue.issue_key for issue in issues}

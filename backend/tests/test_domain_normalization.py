@@ -13,6 +13,7 @@ from natacion_chile.domain.normalization import (
     normalize_result_status,
     normalize_stroke,
     normalize_swim_time_text,
+    parse_hytek_event_identity,
 )
 
 
@@ -41,6 +42,57 @@ def test_stroke_normalization_uses_domain_canons():
     assert normalize_stroke("4x100 mts Libres Relay") == "freestyle_relay"
     assert normalize_stroke("Medley Relay 280 y mas") == "medley_relay"
     assert normalize_stroke("Medley Relay Pre Master") == "medley_relay"
+
+
+def test_hytek_event_identity_ignores_gender_age_and_course():
+    assert parse_hytek_event_identity(
+        "Women 25-29 50 SC Meter Freestyle"
+    ) == (50, "freestyle")
+    assert parse_hytek_event_identity(
+        "Men 70-74 50 LC Meter Freestyle"
+    ) == (50, "freestyle")
+
+
+def test_hytek_event_identity_normalizes_relay_distance_and_stroke():
+    assert parse_hytek_event_identity(
+        "Mixed 120-159 4x50 SC Meter Medley Relay"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 LC Meter Medley Relay"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 LC Meter Medley Relay 160 a 199 años"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 SC Meter Medley Relay 280 a�os y mas"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 SC Meter Medley Relay PM 72 a 99 a�os"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 SC Meter Medley Relay 120 a 159"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 SC Meter Medley Relay 72-99"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 SC Meter Medley Relay 280 y mas"
+    ) == (200, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Mixed 200 SC Meter Medley Relay Pre Master"
+    ) == (200, "medley_relay")
+
+
+def test_hytek_event_identity_fails_closed_for_unknown_names():
+    assert parse_hytek_event_identity("Exhibition surprise event") is None
+    assert parse_hytek_event_identity("Women 50 SC Meter Dog Paddle") is None
+    assert parse_hytek_event_identity("Women 50 SC Meter Freestyle surprise") is None
+    assert parse_hytek_event_identity(
+        "Exhibition Women 50 SC Meter Freestyle"
+    ) is None
+    assert parse_hytek_event_identity(
+        "Dog Paddle 50 SC Meter Freestyle"
+    ) is None
 
 
 def test_result_status_normalization_maps_explicit_statuses():

@@ -23,6 +23,7 @@ from natacion_chile.domain.competition_header import (
     competition_names_match,
     parse_competition_header,
 )
+from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
 PARSER_VERSION = "0.2.0"
@@ -569,6 +570,21 @@ def validate_entries(
         issues.append(
             ValidationIssue("error", "missing_event_name", "event_name is required.", missing_event)
         )
+    unparseable_event = sum(
+        1
+        for entry in entries
+        if clean_text(entry.event_name)
+        and parse_hytek_event_identity(entry.event_name) is None
+    )
+    if unparseable_event:
+        issues.append(
+            ValidationIssue(
+                "error",
+                "unparseable_event_identity",
+                "event_name must expose a canonical HY-TEK distance and stroke.",
+                unparseable_event,
+            )
+        )
     missing_name = sum(1 for entry in entries if not clean_text(entry.display_name))
     if missing_name:
         issues.append(
@@ -856,6 +872,18 @@ def publish_validated_program(
     source_url: str | None,
     schema: str,
 ) -> tuple[int, bool]:
+    invalid_event_names = sorted(
+        {
+            entry.event_name
+            for entry in entries
+            if parse_hytek_event_identity(entry.event_name) is None
+        }
+    )
+    if invalid_event_names:
+        raise MeetProgramError(
+            "Cannot publish entries with unparseable event identity: "
+            + ", ".join(invalid_event_names)
+        )
     checksum = str(metadata.get("pdf_sha256") or "")
     if not CHECKSUM_RE.fullmatch(checksum):
         raise MeetProgramError("metadata.json requires a lowercase SHA-256 checksum.")

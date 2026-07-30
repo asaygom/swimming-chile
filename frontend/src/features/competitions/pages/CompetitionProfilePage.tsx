@@ -291,14 +291,10 @@ export const CompetitionProfilePage: React.FC = () => {
 
   const totalUniquePruebas = useMemo(() => {
     if (!data) return 0;
-    const unique = new Set(data.events.map(e => `${e.distance_m}-${e.stroke}-${e.gender}`));
+    const unique = new Set(data.events.map(e => `${e.distance_m}-${e.stroke}`));
     return unique.size;
   }, [data]);
-  const totalProgramEvents =
-    meetProgramQuery.data?.sessions.reduce(
-      (total, session) => total + session.events.length,
-      0,
-    ) ?? 0;
+  const totalProgramEvents = meetProgramQuery.data?.events_count;
 
   const hasPublishedProgram = Boolean(meetProgramQuery.data?.publication);
   const resultsAreEmpty = Boolean(
@@ -413,7 +409,7 @@ export const CompetitionProfilePage: React.FC = () => {
           
           <div className="bg-surface/10 backdrop-blur-sm rounded-xl p-4 text-center min-w-32 border border-brand-white/10 shadow-inner">
             <span className="block text-3xl font-black text-brand-white leading-none">
-              {activeTab === 'series' ? totalProgramEvents : totalUniquePruebas}
+              {activeTab === 'series' ? (totalProgramEvents ?? '—') : totalUniquePruebas}
             </span>
             <span className="text-xs font-medium text-brand-muted uppercase tracking-widest mt-1 block">Pruebas Totales</span>
           </div>
