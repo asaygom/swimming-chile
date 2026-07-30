@@ -198,3 +198,26 @@ def test_transient_program_error_keeps_series_recovery_tab_visible():
     assert "`${e.distance_m}-${e.stroke}-${e.gender}`" not in source
     assert "meetProgramQuery.data?.events_count" in source
     assert "totalProgramEvents ?? '—'" in source
+
+
+def test_meet_program_frontend_has_accessible_independent_collapsible_sections():
+    view = (
+        Path(__file__).resolve().parents[2]
+        / "frontend/src/features/competitions/components/MeetProgramView.tsx"
+    )
+    source = view.read_text(encoding="utf-8")
+
+    assert "const [expandedEvents, setExpandedEvents]" in source
+    assert "const [expandedHeats, setExpandedHeats]" in source
+    assert "const eventIsExpanded = isFiltering || expandedEvents.has(eventKey)" in source
+    assert "const heatIsExpanded = isFiltering || expandedHeats.has(heatKey)" in source
+    assert "aria-expanded={eventIsExpanded}" in source
+    assert "aria-controls={eventPanelId}" in source
+    assert "aria-expanded={heatIsExpanded}" in source
+    assert "aria-controls={heatPanelId}" in source
+    assert "hidden={!eventIsExpanded}" in source
+    assert "aria-hidden={!eventIsExpanded}" in source
+    assert "hidden={!heatIsExpanded}" in source
+    assert "aria-hidden={!heatIsExpanded}" in source
+    assert "setExpandedEvents(new Set())" in source
+    assert "setExpandedHeats(new Set())" in source
