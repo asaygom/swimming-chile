@@ -153,6 +153,59 @@ def test_parse_fchmn_individual_lines_accepts_nt_and_comma_seed():
     assert result.entries[1].team_name == "NUMAS"
 
 
+def test_parse_cleans_derived_names_without_mutating_source_or_debug_lines():
+    source = meet_program.SourceLine(1, 1, 4, "1 Zunñiga, Ana 29 MVINÑA NT")
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "#1 Women 50 SC Meter Freestyle"),
+        meet_program.SourceLine(1, 1, 2, "Heat 1 of 1 Finals"),
+        source,
+        meet_program.SourceLine(1, 1, 5, "2 broken   lane"),
+    ]
+
+    result = meet_program.parse_source_lines(lines)
+
+    assert source.text == "1 Zunñiga, Ana 29 MVINÑA NT"
+    assert result.entries[0].display_name == "Zuñiga, Ana"
+    assert result.entries[0].team_name == "MVIÑA"
+    entry = result.entries[0]
+    assert (entry.page_number, entry.column_number, entry.line_number) == (1, 1, 4)
+    assert result.unparsed[0].raw_line == "2 broken   lane"
+    debug = result.unparsed[0]
+    assert (debug.page_number, debug.column_number, debug.line_number) == (1, 1, 5)
+
+
+def test_parse_cleans_relay_display_team_members_and_session_name():
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "Meet Program - Jornada MVINÑA"),
+        meet_program.SourceLine(
+            1, 1, 2, "#8 Mixed 200 SC Meter Medley Relay 200 a 239 anos"
+        ),
+        meet_program.SourceLine(1, 1, 3, "Heat 1 of 1 Finals"),
+        meet_program.SourceLine(1, 1, 4, "2 MVINÑA A 3:02,00"),
+        meet_program.SourceLine(
+            1, 1, 5, "Zunñiga, Ana W55 Munñoz, Beto M64"
+        ),
+    ]
+
+    entry = meet_program.parse_source_lines(lines).entries[0]
+
+    assert entry.session_name == "Jornada MVIÑA"
+    assert entry.display_name == "MVIÑA A"
+    assert entry.team_name == "MVIÑA"
+    assert entry.relay_members == ["Zuñiga, Ana", "Muñoz, Beto"]
+
+
+def test_header_cleanup_repairs_only_derived_metadata():
+    source = meet_program.SourceLine(
+        1, 1, 1, "X Torneo Master MVINÑA 2026 - 04-07-2026"
+    )
+
+    metadata = meet_program.extract_competition_header_metadata([source])
+
+    assert source.text == "X Torneo Master MVINÑA 2026 - 04-07-2026"
+    assert metadata["source_competition_name"] == "X Torneo Master MVIÑA 2026"
+
+
 def test_parse_fchmn_continuation_header_updates_event_context():
     lines = [
         meet_program.SourceLine(1, 1, 1, "#1 Women 200 SC Meter Freestyle"),
@@ -408,6 +461,24 @@ def test_publish_requires_validated_artifacts_before_opening_database(
     assert opened is False
 
 
+def test_publish_requires_nonblank_artifact_parser_version_before_database(
+    tmp_path, monkeypatch
+):
+    parsed = valid_parsed_program()
+    parsed.metadata["parser_version"] = " "
+    meet_program.write_artifacts(parsed, tmp_path)
+    monkeypatch.setattr(
+        meet_program,
+        "connect_database",
+        lambda _args: pytest.fail("database must remain untouched"),
+    )
+
+    with pytest.raises(meet_program.MeetProgramError, match="parser_version"):
+        meet_program.publish_from_artifacts(
+            tmp_path, competition_id=7, source_url=None, args=object()
+        )
+
+
 class FakeTransaction:
     def __init__(self, connection):
         self.connection = connection
@@ -579,7 +650,38 @@ def test_publish_rejects_tampered_header_metadata_before_database_mutation(
     metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
     forbidden = lambda _args: pytest.fail("database must remain untouched")
     monkeypatch.setattr(meet_program, "connect_database", forbidden)
-    with pytest.raises(meet_program.MeetProgramError, match="header binding"):
+    with pytest.raises(meet_program.MeetProgramError, match="binding"):
+        meet_program.publish_from_artifacts(
+            tmp_path, competition_id=7, source_url=None, args=object()
+        )
+
+
+def test_validation_rejects_legacy_artifacts_without_identity_binding(tmp_path):
+    meet_program.write_artifacts(valid_parsed_program(), tmp_path)
+    metadata_path = tmp_path / "metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    del metadata["artifact_binding"]["artifact_identity"]
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+    with pytest.raises(meet_program.MeetProgramError, match="identity binding"):
+        meet_program.validate_input_dir(tmp_path)
+
+
+def test_publish_rejects_tampered_parser_version_before_database_mutation(
+    tmp_path, monkeypatch
+):
+    meet_program.write_artifacts(valid_parsed_program(), tmp_path)
+    metadata_path = tmp_path / "metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["parser_version"] = "forged-999"
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    monkeypatch.setattr(
+        meet_program,
+        "connect_database",
+        lambda _args: pytest.fail("database must remain untouched"),
+    )
+
+    with pytest.raises(meet_program.MeetProgramError, match="binding"):
         meet_program.publish_from_artifacts(
             tmp_path, competition_id=7, source_url=None, args=object()
         )
@@ -640,6 +742,37 @@ def test_publish_is_idempotent_for_same_competition_and_checksum():
     assert result == (88, False)
     assert not any(
         "insert into core.meet_program_publication" in statement
+        for statement, _params in connection.statements
+    )
+    lookup = next(
+        params
+        for statement, params in connection.statements
+        if "select id from core.meet_program_publication" in statement
+    )
+    assert lookup == (7, "a" * 64, meet_program.PARSER_VERSION)
+
+
+def test_publish_same_checksum_with_new_parser_version_creates_revision():
+    connection = FakeConnection(existing_publication=None)
+    metadata = {
+        "pdf_name": "program.pdf",
+        "pdf_sha256": "a" * 64,
+        "parser_version": "0.2.2",
+        **VALID_HEADER_METADATA,
+    }
+
+    result = meet_program.publish_validated_program(
+        connection,
+        [valid_publication_entry()],
+        metadata,
+        competition_id=7,
+        source_url=None,
+        schema="core",
+    )
+
+    assert result == (51, True)
+    assert any(
+        "on conflict (checksum_sha256)" in statement
         for statement, _params in connection.statements
     )
 

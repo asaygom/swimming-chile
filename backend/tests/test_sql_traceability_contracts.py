@@ -16,6 +16,9 @@ LOCAL_CLUB_METADATA_MIGRATION_SQL = (
 MEET_PROGRAM_MIGRATION_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "011_meet_program_publications.sql"
 )
+MEET_PROGRAM_PARSER_REVISION_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "012_meet_program_parser_revision.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -202,3 +205,19 @@ def test_meet_program_migration_is_numbered_idempotent_and_revision_safe():
     assert "source_url text" in sql
     assert "athlete_id" not in sql
     assert "club_id" not in sql
+
+
+def test_meet_program_parser_revision_migration_replaces_two_column_identity():
+    schema_sql = normalized_sql(SCHEMA_SQL)
+    migration_sql = normalized_sql(MEET_PROGRAM_PARSER_REVISION_SQL)
+
+    identity = (
+        "constraint uq_meet_program_publication_source_parser "
+        "unique (competition_id, source_checksum_sha256, parser_version)"
+    )
+    assert identity in schema_sql
+    assert identity in migration_sql
+    assert "from pg_constraint" in migration_sql
+    assert "array_agg(attribute_row.attname::text order by key_row.ordinality)" in migration_sql
+    assert "drop constraint" in migration_sql
+    assert "ux_meet_program_one_published_per_competition" not in migration_sql

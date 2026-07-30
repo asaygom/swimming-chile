@@ -469,6 +469,13 @@ def test_clean_extracted_text_repairs_cid_976_in_club_names():
     assert parser.clean_extracted_text("Del(cid:976)ines LC") == "Delfines LC"
 
 
+def test_clean_extracted_text_repairs_inserted_enye_artifacts():
+    assert parser.clean_extracted_text("Zunñiga") == "Zuñiga"
+    assert parser.clean_extracted_text("Munñoz") == "Muñoz"
+    assert parser.clean_extracted_text("Canñas") == "Cañas"
+    assert parser.clean_extracted_text("MVINÑA") == "MVIÑA"
+
+
 def test_parse_individual_result_line_with_seed_fixture():
     fixture = load_fixture("individual_with_seed")
     row = parser.parse_result_line(

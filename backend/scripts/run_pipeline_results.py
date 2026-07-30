@@ -27,6 +27,7 @@ from natacion_chile.domain.normalization import (
     normalize_stroke,
     normalize_swim_time_text,
 )
+from natacion_chile.domain.extracted_text import normalize_extracted_text
 
 try:
     import psycopg
@@ -191,9 +192,9 @@ def clean_extracted_text(x):
     x = normalize_string(x)
     if x is None:
         return None
-    x = unicodedata.normalize("NFC", str(x))
-    x = re.sub(r"\s+", " ", x).strip()
-    return x if x else None
+    # The load pipeline stays source-agnostic; PDF-specific repairs happen in
+    # parsers before artifacts enter generic curation and loading.
+    return normalize_extracted_text(x)
 
 
 def normalize_controlled_lower(x):

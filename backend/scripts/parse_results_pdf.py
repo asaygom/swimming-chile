@@ -29,8 +29,9 @@ from natacion_chile.domain.normalization import (
     normalize_swim_time_text,
 )
 from natacion_chile.domain.competition_header import parse_competition_header
+from natacion_chile.domain.extracted_text import clean_extracted_text
 
-PARSER_VERSION = "0.1.29"
+PARSER_VERSION = "0.1.30"
 
 try:
     import pdfplumber
@@ -267,76 +268,6 @@ class ParseStats:
 
 
 ACCENTED = "ÁÉÍÓÚáéíóúÑñÜü"
-
-def clean_extracted_text(value: str | None) -> str | None:
-    if value is None:
-        return None
-
-    value = unicodedata.normalize("NFC", str(value))
-
-    # arreglos simples ya detectados
-    replacements = {
-        "NÑ": "Ñ",
-        "nñ": "ñ",
-        "Penñ": "Peñ",
-        "Munñ": "Muñ",
-        "Espanñ": "Españ",
-        "Canñ": "Cañ",
-        "Vinñ": "Viñ",
-        "Natacioán": "Natación",
-        "Natacioón": "Natación",
-        "N(cid:450) i": "Ñi",
-        "N(cid:450) u": "Ñu",
-        "n(cid:450) i": "ñi",
-        "n(cid:450) u": "ñu",
-        "(cid:976)": "f",
-        "Ñ u": "Ñu",
-        "ñ u": "ñu",
-        "Ñ a": "Ña",
-        "ñ a": "ña",
-        "Ñ o": "Ño",
-        "ñ o": "ño",
-        "Ñ e": "Ñe",
-        "ñ e": "ñe",
-        "Ñ i": "Ñi",
-        "ñ i": "ñi",
-        "Joseí": "José"
-    }
-    for bad, good in replacements.items():
-        value = value.replace(bad, good)
-
-    # Corrige artefactos frecuentes de tildes mal extraídas en nombres propios
-    value = re.sub(r"oí(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "ó", value)
-    value = re.sub(r"aí(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "á", value)
-    value = re.sub(r"eí(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "é", value)
-
-    # Variante con espacio artificial: "Andre ís" -> "Andrés"
-    value = re.sub(r"o\s+í(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "ó", value)
-    value = re.sub(r"a\s+í(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "á", value)
-    value = re.sub(r"e\s+í(?=[bcdfghjklmnñpqrstvwxyzBCDFGHJKLMNÑPQRSTVWXYZ])", "é", value)
-
-    # corrige duplicación frecuente tipo "Rocíío" -> "Rocío"
-    value = re.sub(r"íi", "í", value)
-    value = re.sub(r"íí", "í", value)
-    value = re.sub(r"ÍI", "Í", value)
-    value = re.sub(r"áa", "á", value)
-    value = re.sub(r"ée", "é", value)
-    value = re.sub(r"óo", "ó", value)
-    value = re.sub(r"úu", "ú", value)
-    value = re.sub(r"ÁA", "Á", value)
-    value = re.sub(r"ÉE", "É", value)
-    value = re.sub(r"ÓO", "Ó", value)
-    value = re.sub(r"ÚU", "Ú", value)
-
-    # corrige vocal acentuada suelta al final de palabra anterior:
-    # "Alumine í" -> "Aluminé"
-    value = re.sub(r"([A-Za-zÑñ])e\s+í\b", r"\1é", value)
-    value = re.sub(r"([A-Za-zÑñ])o\s+í\b", r"\1ó", value)
-
-    # espacios múltiples
-    value = re.sub(r"\s+", " ", value).strip()
-
-    return value if value else None
 
 
 CANONICAL_ATHLETE_NAME_TOKENS = {

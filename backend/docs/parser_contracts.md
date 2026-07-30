@@ -98,6 +98,9 @@ Tambien puede generar archivos de trazabilidad/debug:
   nadadores de relevo con `leg_order` fuera de 1..4. Las lineas posteriores al
   cuarto integrante, incluidos pies de pagina o nombres arrastrados por layout,
   no son postas cargables.
+- Desde parser `0.1.30`, la limpieza conservadora de artefactos confirmados de
+  texto PDF vive en un modulo de dominio compartido. El pipeline de carga
+  conserva solamente normalizacion generica de Unicode y espacios.
 - El parser puede omitir parciales/splits de carrera en `debug_unparsed_lines.csv` cuando no son filas de resultado; esto evita bloquear la validacion por lineas auxiliares de HY-TEK.
 - Si una fila con resultado tipo status deja el tiempo de seed pegado al club, por ejemplo `Club Sparta A C 49.33 DQ DQ`, el parser debe separar `club_name = Club Sparta A C`, `seed_time_text = 49,33` y `result_time_text = DQ`.
 - Ningun resultado `valid` individual o de relevo debe materializarse con
@@ -140,9 +143,13 @@ vinculos con `core.athlete` o `core.club`.
   usa el parser de resultados. `metadata.json` conserva nombre, fecha inicial y
   fecha final extraidos; un encabezado ausente o sin fechas deja los artefactos
   en `requires_review`.
-- `--publish` exige artefactos `validated` y `--competition-id`. La publicacion
-  es atomica e idempotente por competencia + checksum; una revision reemplaza
-  el puntero publico sin borrar versiones anteriores.
+- Desde parser `0.2.1`, nombres derivados de nadadores, equipos, integrantes de
+  relevo, jornadas y encabezados corrigen los mismos artefactos confirmados que
+  resultados. Las lineas fuente/debug y su procedencia permanecen intactas.
+- `--publish` exige artefactos `validated`, `parser_version` no vacio y
+  `--competition-id`. La publicacion es atomica e idempotente por competencia +
+  checksum + version del parser; una revision reemplaza el puntero publico sin
+  borrar versiones anteriores.
 - Antes de cualquier escritura, nombre y rango de fechas del PDF deben coincidir
   con la competencia seleccionada. La comparacion de nombre ignora tildes,
   mayusculas, edicion/ano y tipos genericos (`copa`, `torneo`, `campeonato`),

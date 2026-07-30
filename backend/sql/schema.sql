@@ -194,7 +194,8 @@ CREATE TABLE meet_program_publication (
     CONSTRAINT chk_meet_program_checksum_sha256 CHECK (
         source_checksum_sha256 ~ '^[0-9a-f]{64}$'
     ),
-    UNIQUE (competition_id, source_checksum_sha256)
+    CONSTRAINT uq_meet_program_publication_source_parser
+        UNIQUE (competition_id, source_checksum_sha256, parser_version)
 );
 
 CREATE TABLE meet_program_entry (

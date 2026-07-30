@@ -14,6 +14,10 @@ if str(SCRIPTS_DIR) not in sys.path:
 import run_pipeline_results as pipeline
 
 
+def test_generic_pipeline_cleanup_does_not_apply_pdf_artifact_repairs():
+    assert pipeline.clean_extracted_text("  Zunñiga   MVINÑA  ") == "Zunñiga MVINÑA"
+
+
 class RecordingCursor:
     def __init__(self):
         self.statements = []

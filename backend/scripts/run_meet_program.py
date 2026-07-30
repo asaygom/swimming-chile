@@ -23,10 +23,11 @@ from natacion_chile.domain.competition_header import (
     competition_names_match,
     parse_competition_header,
 )
+from natacion_chile.domain.extracted_text import clean_extracted_text
 from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
-PARSER_VERSION = "0.2.0"
+PARSER_VERSION = "0.2.1"
 ENTRY_COLUMNS = [
     "session_number",
     "session_name",
@@ -233,7 +234,8 @@ def extract_competition_header_metadata(
 ) -> dict[str, Any]:
     headers: list[tuple[str, str | None, str | None]] = []
     for line in lines:
-        name, start_date, end_date = parse_competition_header(line.text)
+        derived_text = clean_extracted_text(line.text) or ""
+        name, start_date, end_date = parse_competition_header(derived_text)
         if name is not None:
             header = (name, start_date, end_date)
             if header not in headers:
@@ -290,6 +292,8 @@ def _parse_individual_entry(
         age = int(age_digits)
     if not display_name:
         return None
+    display_name = clean_extracted_text(display_name) or ""
+    team_name = clean_extracted_text(team_name)
     seed = tokens[-1]
     return MeetProgramEntry(
         session_number=session_number,
@@ -328,6 +332,8 @@ def _parse_relay_entry(
     display_name = " ".join(tokens[1:-1]).strip()
     if not display_name:
         return None
+    display_name = clean_extracted_text(display_name) or ""
+    team_name = clean_extracted_text(tokens[1])
     seed = tokens[-1]
     return MeetProgramEntry(
         session_number=session_number,
@@ -339,7 +345,7 @@ def _parse_relay_entry(
         lane=int(tokens[0]),
         display_name=display_name,
         age=None,
-        team_name=tokens[1],
+        team_name=team_name,
         seed_time_text=seed,
         seed_time_ms=seed_time_ms(seed),
         entry_type="relay",
@@ -352,7 +358,10 @@ def _parse_relay_entry(
 
 def parse_relay_member_names(text: str) -> list[str]:
     for pattern in (GENDER_MEMBER_RE, AGE_MEMBER_RE):
-        names = [clean_text(match.group("name")) for match in pattern.finditer(text)]
+        names = [
+            clean_extracted_text(match.group("name")) or ""
+            for match in pattern.finditer(text)
+        ]
         if len(names) == 2 and all("," in name for name in names):
             return names
     return []
@@ -372,7 +381,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
         if match:
             session_by_page.setdefault(
                 source_line.page_number,
-                clean_text(match.group("name")),
+                clean_extracted_text(match.group("name")) or "",
             )
     ordered_session_names = list(dict.fromkeys(session_by_page.values()))
     if ordered_session_names:
@@ -403,7 +412,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
         text = clean_text(line.text)
         session_match = SESSION_RE.fullmatch(text)
         if session_match:
-            candidate = clean_text(session_match.group("name"))
+            candidate = clean_extracted_text(session_match.group("name")) or ""
             if candidate not in known_sessions:
                 known_sessions[candidate] = len(known_sessions) + 1
             session_name = candidate
@@ -476,7 +485,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
                     line.page_number,
                     line.column_number,
                     line.line_number,
-                    text,
+                    line.text,
                     "relevant_line_not_parsed",
                 )
             )
@@ -706,8 +715,8 @@ def write_artifacts(parsed: ParsedMeetProgram, out_dir: Path) -> ValidationSumma
             ("debug_unparsed_lines.csv", len(parsed.unparsed)),
         )
     }
-    parsed.metadata["artifact_binding"]["competition_header"] = {
-        "sha256": _competition_header_identity_sha256(parsed.metadata)
+    parsed.metadata["artifact_binding"]["artifact_identity"] = {
+        "sha256": _artifact_identity_sha256(parsed.metadata)
     }
     _atomic_write_text(
         out_dir / "metadata.json",
@@ -768,12 +777,12 @@ def _verify_artifact_binding(input_dir: Path, metadata: dict[str, Any]) -> None:
     binding = metadata.get("artifact_binding")
     if not isinstance(binding, dict):
         raise MeetProgramError("Artifact binding is missing.")
-    header_binding = binding.get("competition_header")
+    identity_binding = binding.get("artifact_identity")
     if (
-        not isinstance(header_binding, dict)
-        or header_binding.get("sha256") != _competition_header_identity_sha256(metadata)
+        not isinstance(identity_binding, dict)
+        or identity_binding.get("sha256") != _artifact_identity_sha256(metadata)
     ):
-        raise MeetProgramError("Artifact header binding mismatch.")
+        raise MeetProgramError("Artifact identity binding mismatch.")
     for name in ("meet_program_entries.csv", "debug_unparsed_lines.csv"):
         expected = binding.get(name)
         path = input_dir / name
@@ -785,10 +794,12 @@ def _verify_artifact_binding(input_dir: Path, metadata: dict[str, Any]) -> None:
             raise MeetProgramError(f"Artifact binding row-count mismatch: {name}")
 
 
-def _competition_header_identity_sha256(metadata: dict[str, Any]) -> str:
+def _artifact_identity_sha256(metadata: dict[str, Any]) -> str:
     identity = {
         key: metadata.get(key)
         for key in (
+            "pdf_sha256",
+            "parser_version",
             "source_competition_name",
             "source_competition_start_date",
             "source_competition_end_date",
@@ -887,6 +898,9 @@ def publish_validated_program(
     checksum = str(metadata.get("pdf_sha256") or "")
     if not CHECKSUM_RE.fullmatch(checksum):
         raise MeetProgramError("metadata.json requires a lowercase SHA-256 checksum.")
+    parser_version = str(metadata.get("parser_version") or "").strip()
+    if not parser_version:
+        raise MeetProgramError("metadata.json requires a nonblank parser_version.")
     if competition_id <= 0:
         raise MeetProgramError("competition_id must be positive.")
 
@@ -923,9 +937,10 @@ def publish_validated_program(
                 SELECT id
                 FROM {publication_table}
                 WHERE competition_id = %s
-                  AND source_checksum_sha256 = %s;
+                  AND source_checksum_sha256 = %s
+                  AND parser_version = %s;
                 """,
-                (competition_id, checksum),
+                (competition_id, checksum, parser_version),
             )
             existing = cursor.fetchone()
             if existing:
@@ -947,7 +962,7 @@ def publish_validated_program(
                     metadata.get("pdf_name") or "meet-program.pdf",
                     metadata.get("pdf_path"),
                     checksum,
-                    metadata.get("parser_version") or PARSER_VERSION,
+                    parser_version,
                     json.dumps(metadata, ensure_ascii=False),
                 ),
             )
@@ -967,7 +982,7 @@ def publish_validated_program(
                     source_document_id,
                     checksum,
                     source_url,
-                    metadata.get("parser_version") or PARSER_VERSION,
+                    parser_version,
                     json.dumps(metadata, ensure_ascii=False),
                 ),
             )
@@ -1063,6 +1078,8 @@ def publish_from_artifacts(
     summary = validate_input_dir(input_dir)
     if summary.state != "validated":
         raise MeetProgramError("Artifacts no longer satisfy the validated contract.")
+    if not str(summary.metadata.get("parser_version") or "").strip():
+        raise MeetProgramError("Publishing requires a nonblank artifact parser_version.")
     entries = _load_entries(input_dir / "meet_program_entries.csv")
     connection = connect_database(args)
     try:
