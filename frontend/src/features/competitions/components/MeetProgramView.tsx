@@ -19,6 +19,67 @@ const matchesQuery = (value: string, tokens: string[]) => {
   return tokens.every(token => normalized.includes(token));
 };
 
+const getMatchRanges = (value: string, tokens: string[]) => {
+  const normalizedCharacters: string[] = [];
+  const sourceIndexes: number[] = [];
+  let sourceIndex = 0;
+
+  for (const character of value) {
+    const normalizedCharacter = normalizeSearch(character);
+    for (const part of normalizedCharacter) {
+      normalizedCharacters.push(part);
+      sourceIndexes.push(sourceIndex);
+    }
+    sourceIndex += character.length;
+  }
+
+  const normalizedValue = normalizedCharacters.join('');
+  const ranges: Array<[number, number]> = [];
+
+  for (const token of tokens) {
+    let matchIndex = normalizedValue.indexOf(token);
+    while (matchIndex !== -1) {
+      const start = sourceIndexes[matchIndex];
+      const lastSourceIndex = sourceIndexes[matchIndex + token.length - 1];
+      const end = lastSourceIndex + (Array.from(value.slice(lastSourceIndex))[0]?.length ?? 0);
+      ranges.push([start, end]);
+      matchIndex = normalizedValue.indexOf(token, matchIndex + token.length);
+    }
+  }
+
+  return ranges
+    .sort(([leftStart], [rightStart]) => leftStart - rightStart)
+    .reduce<Array<[number, number]>>((merged, range) => {
+      const previous = merged.at(-1);
+      if (!previous || range[0] > previous[1]) {
+        merged.push(range);
+      } else {
+        previous[1] = Math.max(previous[1], range[1]);
+      }
+      return merged;
+    }, []);
+};
+
+const HighlightMatches = ({ value, tokens }: { value: string; tokens: string[] }) => {
+  const ranges = getMatchRanges(value, tokens);
+  if (ranges.length === 0) return value;
+
+  const fragments = [];
+  let cursor = 0;
+  for (const [start, end] of ranges) {
+    if (start > cursor) fragments.push(value.slice(cursor, start));
+    fragments.push(
+      <mark key={`${start}-${end}`} className="rounded-sm bg-yellow-200 px-0.5 text-inherit">
+        {value.slice(start, end)}
+      </mark>,
+    );
+    cursor = end;
+  }
+  if (cursor < value.length) fragments.push(value.slice(cursor));
+
+  return <>{fragments}</>;
+};
+
 const toggleKey = (current: Set<string>, key: string) => {
   const next = new Set(current);
   if (next.has(key)) {
@@ -196,9 +257,11 @@ export const MeetProgramView = ({
                         </svg>
                         <span className="min-w-0">
                           <span className="block text-xs font-bold uppercase tracking-widest text-content-subtle">
-                            Prueba #{event.event_number}
+                            Prueba #<HighlightMatches value={String(event.event_number)} tokens={tokens} />
                           </span>
-                          <span className="block font-bold text-ink">{event.event_name}</span>
+                          <span className="block font-bold text-ink">
+                            <HighlightMatches value={event.event_name} tokens={tokens} />
+                          </span>
                         </span>
                       </span>
                       <span className="shrink-0 text-right text-xs font-medium text-content-subtle">
@@ -261,13 +324,21 @@ export const MeetProgramView = ({
                                       {entry.lane}
                                     </span>
                                     <div className="min-w-0">
-                                      <p className="font-semibold text-ink">{entry.display_name}</p>
+                                      <p className="font-semibold text-ink">
+                                        <HighlightMatches value={entry.display_name} tokens={tokens} />
+                                      </p>
                                       <p className="text-sm text-content-subtle">
-                                        {entry.club_name || 'Club no informado'}
+                                        <HighlightMatches
+                                          value={entry.club_name || 'Club no informado'}
+                                          tokens={tokens}
+                                        />
                                       </p>
                                       {entry.relay_members.length > 0 && (
                                         <p className="mt-1 text-xs text-content-muted">
-                                          {entry.relay_members.join(' · ')}
+                                          <HighlightMatches
+                                            value={entry.relay_members.join(' · ')}
+                                            tokens={tokens}
+                                          />
                                         </p>
                                       )}
                                     </div>
