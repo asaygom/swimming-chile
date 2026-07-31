@@ -154,6 +154,84 @@ def test_parse_fchmn_individual_lines_accepts_nt_and_comma_seed():
     assert result.entries[1].team_name == "NUMAS"
 
 
+def test_parse_fechida_event_layout_accepts_lane_zero():
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "Meet Program - Quinta etapa piscina entrenamiento"),
+        meet_program.SourceLine(1, 1, 2, "Event 25 Women 100 LC Meter Freestyle"),
+        meet_program.SourceLine(1, 1, 3, "Lane Name Age Team Seed Time"),
+        meet_program.SourceLine(1, 1, 4, "Heat 1 of 20 Finals Starts at 03:00 PM"),
+        meet_program.SourceLine(1, 1, 5, "0 Lopez, Valentina 21 ITACP NT"),
+    ]
+
+    result = meet_program.parse_source_lines(lines)
+
+    assert result.unparsed == []
+    assert len(result.entries) == 1
+    assert result.entries[0].lane == 0
+    assert result.entries[0].display_name == "Lopez, Valentina"
+    assert result.entries[0].estimated_start_time == "15:00"
+
+
+def test_parse_fechida_repairs_name_age_and_team_column_overlap():
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "#1 Women 800 LC Meter Freestyle"),
+        meet_program.SourceLine(1, 1, 2, "Heat 1 of 1 Finals"),
+        meet_program.SourceLine(1, 1, 3, "3 Sanchez, Tamara Co 3n0stanMzaMAG NT"),
+        meet_program.SourceLine(1, 1, 4, "5 Fuentes, Melissa Ro 3c6io COQBO NT"),
+        meet_program.SourceLine(1, 1, 5, "2 Pineda, Miguel Leo n3a0rdoOSW23 NT"),
+        meet_program.SourceLine(1, 1, 6, "8 Jimenez, Guillermo 2A7ndreHs2O NT"),
+        meet_program.SourceLine(1, 1, 7, "5 Fonseca, Daniela Eu 4g5enia100% 1:20,00"),
+        meet_program.SourceLine(1, 1, 8, "5 Ragazzonestrelow, E6d8uarSdQoUAD 13:00,00"),
+    ]
+
+    result = meet_program.parse_source_lines(lines)
+
+    assert result.unparsed == []
+    assert [entry.display_name for entry in result.entries] == [
+        "Sanchez, Tamara Constanza",
+        "Fuentes, Melissa Rocio",
+        "Pineda, Miguel Leonardo",
+        "Jimenez, Guillermo Andres",
+        "Fonseca, Daniela Eugenia",
+        "Ragazzonestrelow, Eduardo",
+    ]
+    assert [(entry.age, entry.team_name) for entry in result.entries] == [
+        (30, "MMAG"),
+        (36, "COQBO"),
+        (30, "OSW23"),
+        (27, "H2O"),
+        (45, "100%"),
+        (68, "SQUAD"),
+    ]
+
+
+def test_infer_program_segment_defaults_and_fechida_pool_roles():
+    assert meet_program.infer_program_segment("Jornada Unica") == (1, "main")
+    assert meet_program.infer_program_segment(
+        "Primera etapa piscina competencia"
+    ) == (1, "competition")
+    assert meet_program.infer_program_segment(
+        "Sexta etapa piscina entrenamiento"
+    ) == (6, "training")
+
+
+def test_detect_page_column_count_from_heat_anchors():
+    two_columns = [
+        {"text": "Heat", "x0": 18.0},
+        {"text": "Heat", "x0": 309.6},
+        {"text": "Heat", "x0": 18.0},
+    ]
+    three_columns = [
+        {"text": "Heat", "x0": 18.0},
+        {"text": "Heat", "x0": 212.4},
+        {"text": "Heat", "x0": 406.8},
+    ]
+
+    assert meet_program.detect_page_column_count(two_columns) == 2
+    assert meet_program.detect_page_column_count(three_columns) == 3
+    assert meet_program.detect_page_column_count(three_columns[:2]) == 3
+
+
 def test_estimated_start_time_normalizes_noon_and_midnight():
     assert meet_program.normalize_estimated_start_time("12:05 AM") == "00:05"
     assert meet_program.normalize_estimated_start_time("12:05 PM") == "12:05"
@@ -355,16 +433,19 @@ def test_validate_entries_blocks_missing_invalid_and_duplicate_lane_identity():
         column_number=1,
         line_number=4,
     )
+    lane_zero = meet_program.MeetProgramEntry(**{**valid.__dict__, "lane": 0})
     invalid = meet_program.MeetProgramEntry(
         **{
             **valid.__dict__,
             "event_number": 0,
-            "lane": 0,
+            "lane": -1,
             "display_name": "",
         }
     )
 
-    issues = meet_program.validate_entries([valid, valid, invalid], text_word_count=10)
+    issues = meet_program.validate_entries(
+        [valid, valid, lane_zero, invalid], text_word_count=10
+    )
     keys = {issue.issue_key for issue in issues}
 
     assert {
@@ -619,6 +700,32 @@ def test_missing_pdf_header_produces_review_artifacts_but_blocks_validation(tmp_
     assert (tmp_path / "validation_summary.json").exists()
 
 
+def test_multiday_program_requires_segment_date_within_competition_range(tmp_path):
+    parsed = valid_parsed_program()
+    parsed.metadata.update(
+        {
+            "source_competition_start_date": "2026-07-23",
+            "source_competition_end_date": "2026-07-26",
+            "stage_number": 1,
+            "pool_role": "competition",
+            "scheduled_date": None,
+        }
+    )
+
+    missing = meet_program.write_artifacts(parsed, tmp_path / "missing")
+    assert "missing_segment_date" in {issue.issue_key for issue in missing.issues}
+
+    parsed.metadata["scheduled_date"] = "2026-07-27"
+    outside = meet_program.write_artifacts(parsed, tmp_path / "outside")
+    assert "segment_date_outside_competition" in {
+        issue.issue_key for issue in outside.issues
+    }
+
+    parsed.metadata["scheduled_date"] = "2026-07-23"
+    valid = meet_program.write_artifacts(parsed, tmp_path / "valid")
+    assert valid.state == "validated"
+
+
 def test_artifact_binding_rejects_mixed_entry_snapshot(tmp_path):
     first, second = tmp_path / "first", tmp_path / "second"
     meet_program.write_artifacts(valid_parsed_program(lane=4), first)
@@ -727,6 +834,47 @@ def test_publish_is_transactional_and_supersedes_only_after_entries_exist():
         and "set status = 'superseded'" in statement
     )
     assert entry_insert_index < supersede_index
+    supersede_params = next(
+        params
+        for statement, params in connection.statements
+        if "set status = 'superseded'" in statement
+    )
+    assert supersede_params == (7, 1, "main")
+
+
+def test_publish_scopes_replacement_to_stage_and_pool_role():
+    connection = FakeConnection()
+    metadata = {
+        "pdf_name": "program.pdf",
+        "pdf_sha256": "a" * 64,
+        "parser_version": meet_program.PARSER_VERSION,
+        "stage_number": 5,
+        "pool_role": "training",
+        "scheduled_date": "2026-07-25",
+        **VALID_HEADER_METADATA,
+    }
+
+    meet_program.publish_validated_program(
+        connection,
+        [valid_publication_entry()],
+        metadata,
+        competition_id=7,
+        source_url=None,
+        schema="core",
+    )
+
+    publication_insert = next(
+        params
+        for statement, params in connection.statements
+        if "insert into core.meet_program_publication" in statement
+    )
+    assert publication_insert[1:4] == (5, "training", "2026-07-25")
+    supersede_params = next(
+        params
+        for statement, params in connection.statements
+        if "set status = 'superseded'" in statement
+    )
+    assert supersede_params == (7, 5, "training")
 
 
 def test_publish_is_idempotent_for_same_competition_and_checksum():

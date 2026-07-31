@@ -13,6 +13,8 @@ type MeetProgramViewProps = {
 };
 
 type ScheduledHeat = {
+  sessionName: string;
+  scheduledDate: string;
   eventNumber: number;
   eventName: string;
   heatNumber: number;
@@ -130,6 +132,9 @@ const toggleKey = (current: Set<string>, key: string) => {
   return next;
 };
 
+const sessionKey = (session: MeetProgramResponse['sessions'][number]) =>
+  `${session.stage_number}:${session.pool_role}:${session.session_number}`;
+
 export const MeetProgramView = ({
   program,
   competitionDate,
@@ -156,6 +161,8 @@ export const MeetProgramView = ({
             const startMinutes = timeToMinutes(heat.estimated_start_time);
             if (startMinutes === null) return [];
             return [{
+              sessionName: session.session_name,
+              scheduledDate: session.scheduled_date ?? competitionDate.slice(0, 10),
               eventNumber: event.event_number,
               eventName: event.event_name,
               heatNumber: heat.heat_number,
@@ -166,32 +173,41 @@ export const MeetProgramView = ({
           }),
         ),
       )
-      .sort((left, right) => left.startMinutes - right.startMinutes);
-  }, [program]);
+      .sort((left, right) =>
+        left.scheduledDate.localeCompare(right.scheduledDate)
+        || left.startMinutes - right.startMinutes,
+      );
+  }, [competitionDate, program]);
   const estimatedStatus = useMemo(() => {
     if (scheduledHeats.length === 0) return null;
-    const competitionDateKey = competitionDate.slice(0, 10);
     const today = chileDateKey(now);
     const firstHeat = scheduledHeats[0];
     const lastHeat = scheduledHeats.at(-1)!;
 
-    if (today < competitionDateKey) {
+    if (today < firstHeat.scheduledDate) {
       return { label: 'Próxima serie estimada', heat: firstHeat };
     }
-    if (today > competitionDateKey) {
+    if (today > lastHeat.scheduledDate) {
       return { label: 'Programa estimado finalizado', heat: lastHeat };
     }
 
+    const heatsToday = scheduledHeats.filter(heat => heat.scheduledDate === today);
+    if (heatsToday.length === 0) {
+      const nextHeat = scheduledHeats.find(heat => heat.scheduledDate > today);
+      return nextHeat
+        ? { label: 'Próxima serie estimada', heat: nextHeat }
+        : { label: 'Última serie programada', heat: lastHeat };
+    }
     const currentMinutes = chileTimeMinutes(now);
-    const nextIndex = scheduledHeats.findIndex(heat => heat.startMinutes > currentMinutes);
+    const nextIndex = heatsToday.findIndex(heat => heat.startMinutes > currentMinutes);
     if (nextIndex === 0) {
-      return { label: 'Próxima serie estimada', heat: firstHeat };
+      return { label: 'Próxima serie estimada', heat: heatsToday[0] };
     }
     if (nextIndex === -1) {
-      return { label: 'Última serie programada', heat: lastHeat };
+      return { label: 'Última serie programada', heat: heatsToday.at(-1)! };
     }
-    return { label: 'Serie estimada actual', heat: scheduledHeats[nextIndex - 1] };
-  }, [competitionDate, now, scheduledHeats]);
+    return { label: 'Serie estimada actual', heat: heatsToday[nextIndex - 1] };
+  }, [now, scheduledHeats]);
   const hasEstimatedSchedule = scheduledHeats.length > 0;
 
   useEffect(() => {
@@ -204,7 +220,7 @@ export const MeetProgramView = ({
 
     for (const session of program.sessions) {
       for (const event of session.events) {
-        const key = `${program.competition_id}:${session.session_number}:${event.event_number}`;
+        const key = `${program.competition_id}:${sessionKey(session)}:${event.event_number}`;
         totals.set(key, {
           heats: event.heats.length,
           entries: event.heats.reduce((total, heat) => total + heat.entries.length, 0),
@@ -326,6 +342,7 @@ export const MeetProgramView = ({
                 {estimatedStatus.label} · Según programa
               </p>
               <p className="truncate text-sm font-bold sm:text-base">
+                {program.sessions.length > 1 ? `${estimatedStatus.heat.sessionName} · ` : ''}
                 Prueba #{estimatedStatus.heat.eventNumber} · {estimatedStatus.heat.eventName}
               </p>
             </div>
@@ -350,19 +367,20 @@ export const MeetProgramView = ({
       ) : (
         sessions.map(session => (
           <section
-            key={session.session_number}
+            key={sessionKey(session)}
             className="space-y-4"
-            aria-labelledby={`session-${session.session_number}`}
+            aria-labelledby={`session-${sessionKey(session)}`}
           >
             <h3
-              id={`session-${session.session_number}`}
+              id={`session-${sessionKey(session)}`}
               className="text-xl font-black text-ink"
             >
               {session.session_name}
             </h3>
             {session.events.map(event => {
-              const eventKey = `${program.competition_id}:${session.session_number}:${event.event_number}`;
-              const eventPanelId = `meet-program-event-${session.session_number}-${event.event_number}`;
+              const segmentKey = sessionKey(session);
+              const eventKey = `${program.competition_id}:${segmentKey}:${event.event_number}`;
+              const eventPanelId = `meet-program-event-${segmentKey}-${event.event_number}`;
               const eventIsExpanded = isFiltering || expandedEvents.has(eventKey);
               const eventTotal = eventTotals.get(eventKey);
               const eventHeatCount = eventTotal?.heats ?? event.heats.length;

@@ -27,7 +27,7 @@ from natacion_chile.domain.extracted_text import clean_extracted_text
 from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
-PARSER_VERSION = "0.3.0"
+PARSER_VERSION = "0.4.0"
 ENTRY_COLUMNS = [
     "session_number",
     "session_name",
@@ -49,7 +49,10 @@ ENTRY_COLUMNS = [
     "line_number",
 ]
 DEBUG_COLUMNS = ["page_number", "column_number", "line_number", "raw_line", "reason"]
-EVENT_RE = re.compile(r"^#(?P<number>\d+)\s+(?P<name>.+?)\s*$", re.IGNORECASE)
+EVENT_RE = re.compile(
+    r"^(?:#|Event\s+)(?P<number>\d+)\s+(?P<name>.+?)\s*$",
+    re.IGNORECASE,
+)
 CONTINUATION_RE = re.compile(
     r"^Heat\s+(?P<heat>\d+)\s+\(#(?P<number>\d+)\s+(?P<name>.+?)\)?\s*$",
     re.IGNORECASE,
@@ -208,6 +211,31 @@ def normalize_estimated_start_time(value: str | None) -> str | None:
     return f"{hour:02d}:{match.group('minute')}"
 
 
+def infer_program_segment(session_name: str) -> tuple[int, str]:
+    """Map a document session label to its stable stage and pool stream."""
+
+    normalized = clean_text(session_name).casefold()
+    ordinals = {
+        "primera": 1,
+        "segunda": 2,
+        "tercera": 3,
+        "cuarta": 4,
+        "quinta": 5,
+        "sexta": 6,
+    }
+    stage_number = next(
+        (number for word, number in ordinals.items() if re.search(rf"\b{word}\b", normalized)),
+        1,
+    )
+    if "entrenamiento" in normalized:
+        pool_role = "training"
+    elif "competencia" in normalized:
+        pool_role = "competition"
+    else:
+        pool_role = "main"
+    return stage_number, pool_role
+
+
 def _group_band_words(words: list[dict[str, Any]], tolerance: float = 2.0) -> list[str]:
     groups: list[tuple[float, list[dict[str, Any]]]] = []
     for word in sorted(words, key=lambda item: (float(item["top"]), float(item["x0"]))):
@@ -224,20 +252,59 @@ def _group_band_words(words: list[dict[str, Any]], tolerance: float = 2.0) -> li
     ]
 
 
+def detect_page_column_count(
+    words: list[dict[str, Any]], page_width: float = 612.0
+) -> int:
+    """Detect HY-TEK's two- or three-column page from repeated heat anchors."""
+
+    anchors: list[float] = []
+    for word in sorted(
+        (item for item in words if str(item.get("text", "")).casefold() == "heat"),
+        key=lambda item: float(item["x0"]),
+    ):
+        x0 = float(word["x0"])
+        if not anchors or abs(x0 - anchors[-1]) > 40:
+            anchors.append(x0)
+    if len(anchors) >= 3:
+        return 3
+    if len(anchors) == 2:
+        # Some FECHIDA one-page programs occupy only two cells of a three-cell
+        # grid. The anchor distance distinguishes that from a true two-column page.
+        return 3 if anchors[1] - anchors[0] < page_width * 0.42 else 2
+    return 3
+
+
 def extract_source_lines(pdf_path: Path) -> tuple[list[SourceLine], int]:
     lines: list[SourceLine] = []
     word_count = 0
+    document_column_count: int | None = None
     with pdfplumber.open(pdf_path) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
             words = page.extract_words(x_tolerance=2, y_tolerance=3, keep_blank_chars=False)
             word_count += len(words)
             width = float(page.width)
-            for column_number in range(1, 4):
-                lower = width * (column_number - 1) / 3
-                upper = width * column_number / 3
+            body_tops = [
+                float(word["top"])
+                for word in words
+                if str(word["text"]).casefold() in {"heat", "event"}
+                or str(word["text"]).startswith("#")
+            ]
+            body_top = min(body_tops, default=float("inf"))
+            header_words = [word for word in words if float(word["top"]) < body_top]
+            for line_number, text in enumerate(_group_band_words(header_words), start=1):
+                if text:
+                    lines.append(SourceLine(page_number, 1, line_number, text))
+
+            if document_column_count is None:
+                document_column_count = detect_page_column_count(words, width)
+            column_count = document_column_count
+            body_words = [word for word in words if float(word["top"]) >= body_top]
+            for column_number in range(1, column_count + 1):
+                lower = width * (column_number - 1) / column_count
+                upper = width * column_number / column_count
                 band = [
                     word
-                    for word in words
+                    for word in body_words
                     if lower
                     <= (float(word["x0"]) + float(word["x1"])) / 2
                     < upper
@@ -276,6 +343,79 @@ def _event_parts(name: str) -> tuple[str, str]:
     return cleaned, entry_type
 
 
+def _parse_fechida_overlap(tokens: list[str]) -> tuple[str, int, str] | None:
+    """Recover fixed-column FECHIDA rows whose long name overlaps age/team."""
+
+    before_seed = tokens[1:-1]
+    if len(before_seed) < 2:
+        return None
+    overlap_index = next(
+        (
+            index
+            for index, token in enumerate(before_seed)
+            if any(character.isdigit() for character in token)
+        ),
+        None,
+    )
+    if overlap_index is None or overlap_index == 0:
+        return None
+    prefix = before_seed[:overlap_index]
+    overlap_tokens = before_seed[overlap_index:]
+    explicit_team = (
+        overlap_tokens[-1]
+        if len(overlap_tokens) > 1
+        and not any(character.islower() for character in overlap_tokens[-1])
+        else None
+    )
+    encoded_tokens = overlap_tokens[:-1] if explicit_team else overlap_tokens
+    overlap = "".join(encoded_tokens)
+    team = explicit_team or ""
+    attached_team = explicit_team is None
+
+    digit_indexes = [index for index, character in enumerate(overlap) if character.isdigit()]
+    if len(digit_indexes) < 2:
+        return None
+    age_indexes = set(digit_indexes[:2])
+    age = int("".join(overlap[index] for index in digit_indexes[:2]))
+    if age <= 0 or age > 120:
+        return None
+    first_uppercase = next(
+        (index for index, character in enumerate(overlap) if character.isupper()),
+        None,
+    )
+    first_lowercase = next(
+        (index for index, character in enumerate(overlap) if character.islower()),
+        None,
+    )
+    first_uppercase_is_name = (
+        first_uppercase
+        if first_uppercase is not None
+        and (first_lowercase is None or first_uppercase < first_lowercase)
+        else None
+    )
+    name_characters: list[str] = []
+    team_characters: list[str] = []
+    for index, character in enumerate(overlap):
+        if index in age_indexes:
+            continue
+        if character.islower() or index == first_uppercase_is_name:
+            name_characters.append(character)
+        elif attached_team:
+            team_characters.append(character)
+    name_tail = "".join(name_characters)
+    if attached_team:
+        team = "".join(team_characters)
+    if not name_tail or not team:
+        return None
+    if not prefix:
+        return None
+    if name_tail[:1].isupper():
+        display_name = clean_text(" ".join([*prefix, name_tail]))
+    else:
+        display_name = clean_text(" ".join([*prefix[:-1], prefix[-1] + name_tail]))
+    return display_name, age, team
+
+
 def _parse_individual_entry(
     line: SourceLine,
     *,
@@ -288,7 +428,7 @@ def _parse_individual_entry(
     estimated_start_time: str | None,
 ) -> MeetProgramEntry | None:
     tokens = line.text.split()
-    if len(tokens) < 5 or not tokens[0].isdigit() or not SEED_RE.fullmatch(tokens[-1]):
+    if len(tokens) < 4 or not tokens[0].isdigit() or not SEED_RE.fullmatch(tokens[-1]):
         return None
     team_name = tokens[-2]
     name_age = " ".join(tokens[1:-2]).strip()
@@ -300,16 +440,23 @@ def _parse_individual_entry(
         # HY-TEK's fixed age column can overlap long names. PDF extraction then
         # interleaves the remaining name letters with W/M and age digits.
         overlap = OVERLAPPED_NAME_AGE_RE.fullmatch(name_age)
-        if not overlap:
-            return None
-        tail = overlap.group("tail")
-        display_name = clean_text(
-            overlap.group("name") + "".join(character for character in tail if character.isalpha())
-        )
-        age_digits = "".join(character for character in tail if character.isdigit())
-        if not age_digits:
-            return None
-        age = int(age_digits)
+        if overlap:
+            tail = overlap.group("tail")
+            display_name = clean_text(
+                overlap.group("name")
+                + "".join(character for character in tail if character.isalpha())
+            )
+            age_digits = "".join(character for character in tail if character.isdigit())
+            if not age_digits:
+                return None
+            age = int(age_digits)
+        else:
+            # FECHIDA's narrow fixed columns can interleave lowercase name
+            # letters, age digits, and uppercase team code in one PDF token.
+            repaired = _parse_fechida_overlap(tokens)
+            if repaired is None:
+                return None
+            display_name, age, team_name = repaired
     if not display_name:
         return None
     display_name = clean_extracted_text(display_name) or ""
@@ -529,6 +676,11 @@ def parse_pdf(pdf_path: Path) -> ParsedMeetProgram:
         raise MeetProgramError(f"PDF not found: {pdf_path}")
     lines, word_count = extract_source_lines(pdf_path)
     parsed = parse_source_lines(lines)
+    session_name = parsed.entries[0].session_name if parsed.entries else "Jornada Unica"
+    stage_number, pool_role = infer_program_segment(session_name)
+    header_metadata = extract_competition_header_metadata(lines)
+    start_date = header_metadata.get("source_competition_start_date")
+    end_date = header_metadata.get("source_competition_end_date")
     parsed.metadata = {
         "pdf_name": pdf_path.name,
         "pdf_path": str(pdf_path.resolve()),
@@ -536,7 +688,10 @@ def parse_pdf(pdf_path: Path) -> ParsedMeetProgram:
         "parser_version": PARSER_VERSION,
         "text_word_count": word_count,
         "page_count": max((line.page_number for line in lines), default=0),
-        **extract_competition_header_metadata(lines),
+        "stage_number": stage_number,
+        "pool_role": pool_role,
+        "scheduled_date": start_date if start_date == end_date else None,
+        **header_metadata,
     }
     return parsed
 
@@ -571,6 +726,33 @@ def _header_metadata_issues(metadata: dict[str, Any]) -> list[ValidationIssue]:
     return []
 
 
+def _segment_metadata_issues(metadata: dict[str, Any]) -> list[ValidationIssue]:
+    start_date = str(metadata.get("source_competition_start_date") or "")
+    end_date = str(metadata.get("source_competition_end_date") or "")
+    scheduled_date = str(metadata.get("scheduled_date") or "")
+    if start_date and end_date and start_date != end_date and not scheduled_date:
+        return [
+            ValidationIssue(
+                "error",
+                "missing_segment_date",
+                "Multi-day meet-program artifacts require scheduled_date.",
+            )
+        ]
+    if scheduled_date and (
+        not re.fullmatch(r"\d{4}-\d{2}-\d{2}", scheduled_date)
+        or (start_date and scheduled_date < start_date)
+        or (end_date and scheduled_date > end_date)
+    ):
+        return [
+            ValidationIssue(
+                "error",
+                "segment_date_outside_competition",
+                "scheduled_date must be an ISO date inside the competition range.",
+            )
+        ]
+    return []
+
+
 def validate_entries(
     entries: list[MeetProgramEntry],
     *,
@@ -594,7 +776,6 @@ def validate_entries(
         ("session_number", "invalid_session_number"),
         ("event_number", "invalid_event_number"),
         ("heat_number", "invalid_heat_number"),
-        ("lane", "invalid_lane"),
     ]
     for attribute, key in checks:
         count = sum(
@@ -605,6 +786,13 @@ def validate_entries(
         )
         if count:
             issues.append(ValidationIssue("error", key, f"{attribute} must be positive.", count))
+    invalid_lane = sum(
+        1 for entry in entries if not isinstance(entry.lane, int) or entry.lane < 0
+    )
+    if invalid_lane:
+        issues.append(
+            ValidationIssue("error", "invalid_lane", "lane must be non-negative.", invalid_lane)
+        )
     missing_event = sum(1 for entry in entries if not clean_text(entry.event_name))
     if missing_event:
         issues.append(
@@ -691,6 +879,7 @@ def _summary(
         unparsed_count=unparsed_count,
     )
     issues.extend(_header_metadata_issues(metadata))
+    issues.extend(_segment_metadata_issues(metadata))
     state = "requires_review" if any(issue.severity == "error" for issue in issues) else "validated"
     return ValidationSummary(
         state=state,
@@ -935,6 +1124,16 @@ def publish_validated_program(
         raise MeetProgramError("metadata.json requires a nonblank parser_version.")
     if competition_id <= 0:
         raise MeetProgramError("competition_id must be positive.")
+    try:
+        stage_number = int(metadata.get("stage_number") or 1)
+    except (TypeError, ValueError) as exc:
+        raise MeetProgramError("stage_number must be a positive integer.") from exc
+    if stage_number <= 0:
+        raise MeetProgramError("stage_number must be a positive integer.")
+    pool_role = str(metadata.get("pool_role") or "main").strip().lower()
+    if pool_role not in {"main", "competition", "training"}:
+        raise MeetProgramError("pool_role must be main, competition, or training.")
+    scheduled_date = metadata.get("scheduled_date") or None
 
     competition_table = _qualified(schema, "competition")
     publication_table = _qualified(schema, "meet_program_publication")
@@ -1003,14 +1202,18 @@ def publish_validated_program(
             cursor.execute(
                 f"""
                 INSERT INTO {publication_table} (
-                    competition_id, source_document_id, source_checksum_sha256,
+                    competition_id, stage_number, pool_role, scheduled_date,
+                    source_document_id, source_checksum_sha256,
                     source_url, parser_version, status, metadata
                 )
-                VALUES (%s, %s, %s, %s, %s, 'pending', %s::jsonb)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'pending', %s::jsonb)
                 RETURNING id;
                 """,
                 (
                     competition_id,
+                    stage_number,
+                    pool_role,
+                    scheduled_date,
                     source_document_id,
                     checksum,
                     source_url,
@@ -1066,9 +1269,11 @@ def publish_validated_program(
                 UPDATE {publication_table}
                 SET status = 'superseded', superseded_at = NOW()
                 WHERE competition_id = %s
+                  AND stage_number = %s
+                  AND pool_role = %s
                   AND status = 'published';
                 """,
-                (competition_id,),
+                (competition_id, stage_number, pool_role),
             )
             cursor.execute(
                 f"""
@@ -1138,6 +1343,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", help="Artifact directory required with --pdf.")
     parser.add_argument("--competition-id", type=int)
     parser.add_argument("--source-url")
+    parser.add_argument("--stage-number", type=int)
+    parser.add_argument(
+        "--pool-role", choices=("main", "competition", "training")
+    )
+    parser.add_argument("--scheduled-date")
     parser.add_argument("--publish", action="store_true")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--summary-json")
@@ -1167,6 +1377,14 @@ def main() -> None:
                 parsed.metadata["competition_id"] = args.competition_id
             if args.source_url:
                 parsed.metadata["source_url"] = args.source_url
+            if args.stage_number is not None:
+                if args.stage_number <= 0:
+                    raise MeetProgramError("stage_number must be positive.")
+                parsed.metadata["stage_number"] = args.stage_number
+            if args.pool_role:
+                parsed.metadata["pool_role"] = args.pool_role
+            if args.scheduled_date:
+                parsed.metadata["scheduled_date"] = args.scheduled_date
             summary = write_artifacts(parsed, input_dir)
         else:
             input_dir = Path(args.input_dir)

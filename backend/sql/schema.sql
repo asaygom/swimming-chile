@@ -182,6 +182,11 @@ CREATE TABLE validation_issue (
 CREATE TABLE meet_program_publication (
     id BIGSERIAL PRIMARY KEY,
     competition_id BIGINT NOT NULL REFERENCES competition(id),
+    stage_number INTEGER NOT NULL DEFAULT 1 CHECK (stage_number > 0),
+    pool_role TEXT NOT NULL DEFAULT 'main' CHECK (
+        pool_role IN ('main', 'competition', 'training')
+    ),
+    scheduled_date DATE,
     source_document_id BIGINT NOT NULL REFERENCES source_document(id),
     source_checksum_sha256 TEXT NOT NULL,
     source_url TEXT,
@@ -208,7 +213,7 @@ CREATE TABLE meet_program_entry (
     heat_number INTEGER NOT NULL CHECK (heat_number > 0),
     heat_total INTEGER CHECK (heat_total IS NULL OR heat_total > 0),
     estimated_start_time TEXT,
-    lane INTEGER NOT NULL CHECK (lane > 0),
+    lane INTEGER NOT NULL CHECK (lane >= 0),
     display_name TEXT NOT NULL,
     age INTEGER CHECK (age IS NULL OR age > 0),
     team_name TEXT,
@@ -494,8 +499,8 @@ CREATE INDEX idx_validation_issue_competition_id ON validation_issue(competition
 CREATE INDEX idx_validation_issue_issue_key ON validation_issue(issue_key);
 CREATE INDEX idx_meet_program_publication_competition_id
     ON meet_program_publication(competition_id);
-CREATE UNIQUE INDEX ux_meet_program_one_published_per_competition
-    ON meet_program_publication(competition_id)
+CREATE UNIQUE INDEX ux_meet_program_one_published_per_segment
+    ON meet_program_publication(competition_id, stage_number, pool_role)
     WHERE status = 'published';
 CREATE INDEX idx_meet_program_entry_publication_id
     ON meet_program_entry(publication_id);

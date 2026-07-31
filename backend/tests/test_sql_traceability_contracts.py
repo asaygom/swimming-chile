@@ -22,6 +22,9 @@ MEET_PROGRAM_PARSER_REVISION_SQL = (
 MEET_PROGRAM_ESTIMATED_TIMES_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "013_meet_program_estimated_times.sql"
 )
+MEET_PROGRAM_SEGMENTS_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "014_meet_program_segments.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -181,7 +184,7 @@ def test_schema_declares_versioned_meet_program_without_core_identity_links():
         "source_checksum_sha256 text not null",
         "publication_id bigint not null references meet_program_publication(id)",
         "unique (publication_id, session_number, event_number, heat_number, lane)",
-        "create unique index ux_meet_program_one_published_per_competition",
+        "create unique index ux_meet_program_one_published_per_segment",
     ]:
         assert fragment in sql
 
@@ -234,3 +237,27 @@ def test_meet_program_estimated_times_migration_is_idempotent_and_constrained():
     assert "add column if not exists estimated_start_time text" in migration_sql
     assert "chk_meet_program_estimated_start_time" in migration_sql
     assert "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$" in migration_sql
+
+
+def test_meet_program_segments_scope_publication_and_allow_lane_zero():
+    schema_sql = normalized_sql(SCHEMA_SQL)
+    migration_sql = normalized_sql(MEET_PROGRAM_SEGMENTS_SQL)
+
+    for fragment in [
+        "stage_number integer not null default 1",
+        "pool_role text not null default 'main'",
+        "scheduled_date date",
+        "on meet_program_publication(competition_id, stage_number, pool_role)",
+        "check (lane >= 0)",
+    ]:
+        assert fragment in schema_sql
+
+    for fragment in [
+        "add column if not exists stage_number integer not null default 1",
+        "add column if not exists pool_role text not null default 'main'",
+        "add column if not exists scheduled_date date",
+        "ux_meet_program_one_published_per_segment",
+        "where status = 'published'",
+        "check (lane >= 0)",
+    ]:
+        assert fragment in migration_sql

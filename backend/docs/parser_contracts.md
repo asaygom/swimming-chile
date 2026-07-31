@@ -128,7 +128,7 @@ Los fixtures versionados deben ser pequenos y representativos. No se versionan P
 ## Programas de competencia (sembrado)
 
 `scripts/run_meet_program.py` es un flujo separado de resultados. Lee programas
-HY-TEK FCHMN con texto y tres columnas mediante coordenadas, y nunca crea
+HY-TEK FCHMN/FECHIDA con texto y dos o tres columnas mediante coordenadas, y nunca crea
 vinculos con `core.athlete` o `core.club`.
 
 - `--pdf` requiere `--out-dir`; `--input-dir` revalida artefactos existentes.
@@ -148,11 +148,17 @@ vinculos con `core.athlete` o `core.club`.
   resultados. Las lineas fuente/debug y su procedencia permanecen intactas.
 - Desde parser `0.3.0`, `estimated_start_time` conserva en formato local `HH:MM`
   la hora `Starts at` publicada por HY-TEK para cada serie. El campo es opcional
-  porque los sembrados preliminares pueden no incluir estimaciones.
+  porque algunas versiones publicadas pueden no incluir estimaciones.
+- Desde parser `0.4.0`, el layout se detecta por documento, se acepta `Event N`
+  ademas de `#N`, y el carril `0` es valido para piscinas de diez carriles.
+  Cada PDF conserva `stage_number`, `pool_role` (`main`, `competition` o
+  `training`) y `scheduled_date`. Jornada unica usa etapa `1` y rol `main`.
+  En competencias de varios dias, `--scheduled-date YYYY-MM-DD` es obligatorio
+  al generar los artefactos y debe caer dentro del rango del encabezado.
 - `--publish` exige artefactos `validated`, `parser_version` no vacio y
   `--competition-id`. La publicacion es atomica e idempotente por competencia +
-  checksum + version del parser; una revision reemplaza el puntero publico sin
-  borrar versiones anteriores.
+  checksum + version del parser; una revision reemplaza solo el segmento con la
+  misma competencia + etapa + piscina, sin borrar versiones anteriores.
 - Antes de cualquier escritura, nombre y rango de fechas del PDF deben coincidir
   con la competencia seleccionada. La comparacion de nombre ignora tildes,
   mayusculas, edicion/ano y tipos genericos (`copa`, `torneo`, `campeonato`),

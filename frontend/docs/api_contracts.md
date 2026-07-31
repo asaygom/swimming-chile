@@ -299,7 +299,9 @@ age category, course and HY-TEK event number do not increase the count.
 `events_count` is `0` when there is no publication and `null` when any event in
 the active publication cannot be parsed safely.
 
-Published Meet Manager program for one competition. This snapshot preserves
+Published Meet Manager programs for one competition. The aggregate `publication`
+counts every active segment; `source_url` is `null` when several source documents
+are active. This snapshot preserves
 source names and clubs without linking entries to core athlete or club identities.
 
 **Response without a published program (200 OK):**
@@ -328,6 +330,9 @@ source names and clubs without linking entries to core athlete or club identitie
     {
       "session_number": 1,
       "session_name": "Jornada Unica",
+      "stage_number": 1,
+      "pool_role": "main",
+      "scheduled_date": "2026-07-30",
       "events": [
         {
           "event_number": 7,
@@ -359,8 +364,10 @@ source names and clubs without linking entries to core athlete or club identitie
 }
 ```
 
-Sessions, events, heats, and entries are ordered by their source numbers. Only
-the active `published` version is public. An unknown competition returns 404.
+Sessions are ordered by stage and pool role; events, heats, and entries retain
+their source order. Only the active `published` version of each stage/pool
+segment is public. One-day competitions expose a single stage `1`/`main`
+segment, so their presentation remains unchanged. An unknown competition returns 404.
 `estimated_start_time` is the optional local `HH:MM` estimate printed by HY-TEK;
 it is schedule guidance, not real-time meet status.
 

@@ -185,6 +185,66 @@ def test_meet_program_count_is_null_when_a_published_event_is_unparseable(monkey
     assert payload["sessions"][0]["events"][0]["stroke"] is None
 
 
+def test_meet_program_keeps_same_session_numbers_separate_by_segment(monkeypatch):
+    base_row = {
+        "session_number": 1,
+        "event_number": 1,
+        "event_name": "Women 800 LC Meter Freestyle",
+        "heat_number": 1,
+        "heat_total": 1,
+        "estimated_start_time": "15:00",
+        "lane": 0,
+        "entry_type": "individual",
+        "display_name": "Uno, Ana",
+        "club_name": "CLUB",
+        "seed_time_text": "NT",
+        "seed_time_ms": None,
+        "relay_members": [],
+    }
+    rows = [
+        {
+            **base_row,
+            "publication_id": 61,
+            "stage_number": 1,
+            "pool_role": "competition",
+            "scheduled_date": "2026-07-23",
+            "session_name": "Primera etapa piscina competencia",
+        },
+        {
+            **base_row,
+            "publication_id": 62,
+            "stage_number": 1,
+            "pool_role": "training",
+            "scheduled_date": "2026-07-23",
+            "session_name": "Primera etapa piscina entrenamiento",
+        },
+    ]
+    install_database(
+        monkeypatch,
+        [
+            {"id": 90},
+            {
+                "published_at": "2026-07-23T15:00:00Z",
+                "source_url": None,
+                "entry_count": 2,
+            },
+        ],
+        rows,
+    )
+
+    payload = competitions.get_meet_program(90)
+
+    assert len(payload["sessions"]) == 2
+    assert [session["pool_role"] for session in payload["sessions"]] == [
+        "competition",
+        "training",
+    ]
+    assert {session["stage_number"] for session in payload["sessions"]} == {1}
+    assert {session["scheduled_date"] for session in payload["sessions"]} == {
+        "2026-07-23"
+    }
+
+
 def test_transient_program_error_keeps_series_recovery_tab_visible():
     profile_page = (
         Path(__file__).resolve().parents[2]

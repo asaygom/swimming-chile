@@ -71,7 +71,7 @@ export const CompetitionDetailResponseSchema = z.object({
 export type CompetitionDetailResponse = z.infer<typeof CompetitionDetailResponseSchema>;
 
 export const MeetProgramEntrySchema = z.object({
-  lane: z.number().int().positive(),
+  lane: z.number().int().nonnegative(),
   entry_type: z.enum(['individual', 'relay']),
   display_name: z.string(),
   club_name: z.string().nullable(),
@@ -98,6 +98,9 @@ export const MeetProgramEventSchema = z.object({
 export const MeetProgramSessionSchema = z.object({
   session_number: z.number().int().positive(),
   session_name: z.string(),
+  stage_number: z.number().int().positive().default(1),
+  pool_role: z.enum(['main', 'competition', 'training']).default('main'),
+  scheduled_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().default(null),
   events: z.array(MeetProgramEventSchema),
 });
 

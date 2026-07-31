@@ -349,15 +349,17 @@ def get_meet_program(competition_id: int):
 
             cur.execute("""
                 SELECT
-                    p.id,
-                    p.published_at,
-                    p.source_url,
+                    MAX(p.published_at) AS published_at,
+                    CASE
+                        WHEN COUNT(DISTINCT p.id) = 1 THEN MAX(p.source_url)
+                        ELSE NULL
+                    END AS source_url,
                     COUNT(e.id)::INTEGER AS entry_count
                 FROM core.meet_program_publication p
                 LEFT JOIN core.meet_program_entry e ON e.publication_id = p.id
                 WHERE p.competition_id = %s
                   AND p.status = 'published'
-                GROUP BY p.id, p.published_at, p.source_url
+                HAVING COUNT(DISTINCT p.id) > 0
             """, (competition_id,))
             publication = cur.fetchone()
             if not publication:
@@ -370,39 +372,60 @@ def get_meet_program(competition_id: int):
 
             cur.execute("""
                 SELECT
-                    session_number,
-                    session_name,
-                    event_number,
-                    event_name,
-                    heat_number,
-                    heat_total,
-                    estimated_start_time,
-                    lane,
-                    entry_type,
-                    display_name,
-                    team_name AS club_name,
-                    seed_time_text,
-                    seed_time_ms,
-                    relay_members
-                FROM core.meet_program_entry
-                WHERE publication_id = %s
+                    p.id AS publication_id,
+                    p.stage_number,
+                    p.pool_role,
+                    p.scheduled_date,
+                    e.session_number,
+                    e.session_name,
+                    e.event_number,
+                    e.event_name,
+                    e.heat_number,
+                    e.heat_total,
+                    e.estimated_start_time,
+                    e.lane,
+                    e.entry_type,
+                    e.display_name,
+                    e.team_name AS club_name,
+                    e.seed_time_text,
+                    e.seed_time_ms,
+                    e.relay_members
+                FROM core.meet_program_publication p
+                JOIN core.meet_program_entry e ON e.publication_id = p.id
+                WHERE p.competition_id = %s
+                  AND p.status = 'published'
                 ORDER BY
-                    session_number,
-                    event_number,
-                    heat_number,
-                    lane,
-                    id
-            """, (publication["id"],))
+                    p.stage_number,
+                    CASE p.pool_role
+                        WHEN 'competition' THEN 1
+                        WHEN 'training' THEN 2
+                        ELSE 0
+                    END,
+                    p.id,
+                    e.session_number,
+                    e.event_number,
+                    e.heat_number,
+                    e.lane,
+                    e.id
+            """, (competition_id,))
             rows = cur.fetchall()
 
     sessions = []
     event_identities: set[tuple[int, str]] = set()
     has_unparseable_event = False
     for row in rows:
-        if not sessions or sessions[-1]["session_number"] != row["session_number"]:
+        session_identity = (
+            row.get("publication_id"),
+            row["session_number"],
+        )
+        if not sessions or sessions[-1]["_identity"] != session_identity:
             sessions.append({
+                "_identity": session_identity,
                 "session_number": row["session_number"],
                 "session_name": row["session_name"],
+                "stage_number": row.get("stage_number", 1),
+                "pool_role": row.get("pool_role", "main"),
+                "scheduled_date": row.get("scheduled_date"),
                 "events": [],
             })
         events = sessions[-1]["events"]
@@ -439,6 +462,9 @@ def get_meet_program(competition_id: int):
             "seed_time_ms": row["seed_time_ms"],
             "relay_members": row["relay_members"],
         })
+
+    for session in sessions:
+        session.pop("_identity", None)
 
     return {
         "competition_id": competition_id,
