@@ -13,7 +13,10 @@ type MeetProgramViewProps = {
 };
 
 type ScheduledHeat = {
+  segmentKey: string;
+  sessionKey: string;
   sessionName: string;
+  stageNumber: number;
   scheduledDate: string;
   eventNumber: number;
   eventName: string;
@@ -21,6 +24,11 @@ type ScheduledHeat = {
   heatTotal: number | null;
   estimatedStartTime: string;
   startMinutes: number;
+};
+
+type EstimatedStatus = {
+  label: string;
+  heat: ScheduledHeat;
 };
 
 const SANTIAGO_TIME_ZONE = 'America/Santiago';
@@ -51,6 +59,37 @@ const chileTimeMinutes = (date: Date) => {
   }).formatToParts(date);
   const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
   return Number(value.hour) * 60 + Number(value.minute);
+};
+
+const getEstimatedStatus = (scheduledHeats: ScheduledHeat[], now: Date): EstimatedStatus | null => {
+  if (scheduledHeats.length === 0) return null;
+  const today = chileDateKey(now);
+  const firstHeat = scheduledHeats[0];
+  const lastHeat = scheduledHeats.at(-1)!;
+
+  if (today < firstHeat.scheduledDate) {
+    return { label: 'Próxima serie estimada', heat: firstHeat };
+  }
+  if (today > lastHeat.scheduledDate) {
+    return { label: 'Programa estimado finalizado', heat: lastHeat };
+  }
+
+  const heatsToday = scheduledHeats.filter(heat => heat.scheduledDate === today);
+  if (heatsToday.length === 0) {
+    const nextHeat = scheduledHeats.find(heat => heat.scheduledDate > today);
+    return nextHeat
+      ? { label: 'Próxima serie estimada', heat: nextHeat }
+      : { label: 'Última serie programada', heat: lastHeat };
+  }
+  const currentMinutes = chileTimeMinutes(now);
+  const nextIndex = heatsToday.findIndex(heat => heat.startMinutes > currentMinutes);
+  if (nextIndex === 0) {
+    return { label: 'Próxima serie estimada', heat: heatsToday[0] };
+  }
+  if (nextIndex === -1) {
+    return { label: 'Última serie programada', heat: heatsToday.at(-1)! };
+  }
+  return { label: 'Serie estimada actual', heat: heatsToday[nextIndex - 1] };
 };
 
 const normalizeSearch = (value: string) =>
@@ -161,7 +200,10 @@ export const MeetProgramView = ({
             const startMinutes = timeToMinutes(heat.estimated_start_time);
             if (startMinutes === null) return [];
             return [{
+              segmentKey: `${session.scheduled_date ?? competitionDate.slice(0, 10)}:${session.stage_number}`,
+              sessionKey: sessionKey(session),
               sessionName: session.session_name,
+              stageNumber: session.stage_number,
               scheduledDate: session.scheduled_date ?? competitionDate.slice(0, 10),
               eventNumber: event.event_number,
               eventName: event.event_name,
@@ -175,38 +217,25 @@ export const MeetProgramView = ({
       )
       .sort((left, right) =>
         left.scheduledDate.localeCompare(right.scheduledDate)
-        || left.startMinutes - right.startMinutes,
+        || left.startMinutes - right.startMinutes
+        || left.stageNumber - right.stageNumber,
       );
   }, [competitionDate, program]);
-  const estimatedStatus = useMemo(() => {
-    if (scheduledHeats.length === 0) return null;
-    const today = chileDateKey(now);
-    const firstHeat = scheduledHeats[0];
-    const lastHeat = scheduledHeats.at(-1)!;
+  const estimatedStatuses = useMemo(() => {
+    const anchorStatus = getEstimatedStatus(scheduledHeats, now);
+    if (!anchorStatus) return [];
 
-    if (today < firstHeat.scheduledDate) {
-      return { label: 'Próxima serie estimada', heat: firstHeat };
-    }
-    if (today > lastHeat.scheduledDate) {
-      return { label: 'Programa estimado finalizado', heat: lastHeat };
-    }
-
-    const heatsToday = scheduledHeats.filter(heat => heat.scheduledDate === today);
-    if (heatsToday.length === 0) {
-      const nextHeat = scheduledHeats.find(heat => heat.scheduledDate > today);
-      return nextHeat
-        ? { label: 'Próxima serie estimada', heat: nextHeat }
-        : { label: 'Última serie programada', heat: lastHeat };
-    }
-    const currentMinutes = chileTimeMinutes(now);
-    const nextIndex = heatsToday.findIndex(heat => heat.startMinutes > currentMinutes);
-    if (nextIndex === 0) {
-      return { label: 'Próxima serie estimada', heat: heatsToday[0] };
-    }
-    if (nextIndex === -1) {
-      return { label: 'Última serie programada', heat: heatsToday.at(-1)! };
-    }
-    return { label: 'Serie estimada actual', heat: heatsToday[nextIndex - 1] };
+    const segmentHeats = scheduledHeats.filter(
+      heat => heat.segmentKey === anchorStatus.heat.segmentKey,
+    );
+    const sessionKeys = [...new Set(segmentHeats.map(heat => heat.sessionKey))];
+    return sessionKeys.flatMap(session => {
+      const status = getEstimatedStatus(
+        segmentHeats.filter(heat => heat.sessionKey === session),
+        now,
+      );
+      return status ? [status] : [];
+    });
   }, [now, scheduledHeats]);
   const hasEstimatedSchedule = scheduledHeats.length > 0;
 
@@ -288,31 +317,40 @@ export const MeetProgramView = ({
 
   return (
     <section className="space-y-5" aria-labelledby="meet-program-heading">
-      {estimatedStatus && (
+      {estimatedStatuses.length > 0 && (
         <div
           aria-live="polite"
-          className="sticky top-16 z-30 h-20 rounded-xl border border-brand-cyan/40 bg-brand-night px-4 text-brand-white shadow-md sm:h-16"
+          className={`sticky top-16 z-30 grid overflow-hidden rounded-xl border border-brand-cyan/40 bg-brand-night text-brand-white shadow-md ${
+            estimatedStatuses.length > 1 ? 'h-32 sm:h-16 sm:grid-cols-2' : 'h-20 sm:h-16'
+          }`}
         >
-          <div className="flex h-full items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-[0.65rem] font-bold uppercase tracking-widest text-brand-cyan">
-                {estimatedStatus.label} · Según programa
-              </p>
-              <p className="line-clamp-3 text-xs font-bold leading-tight sm:line-clamp-1 sm:text-base">
-                {program.sessions.length > 1 ? `${estimatedStatus.heat.sessionName} · ` : ''}
-                Prueba #{estimatedStatus.heat.eventNumber} · {estimatedStatus.heat.eventName}
-              </p>
+          {estimatedStatuses.map((status, index) => (
+            <div
+              key={status.heat.sessionKey}
+              className={`flex min-w-0 items-center justify-between gap-3 px-4 ${
+                index > 0 ? 'border-t border-brand-cyan/20 sm:border-l sm:border-t-0' : ''
+              }`}
+            >
+              <div className="min-w-0">
+                <p className="truncate text-[0.6rem] font-bold uppercase tracking-widest text-brand-cyan sm:text-[0.65rem]">
+                  {status.label} · Según programa
+                </p>
+                <p className={`${estimatedStatuses.length > 1 ? 'line-clamp-2' : 'line-clamp-3'} text-xs font-bold leading-tight sm:line-clamp-1 sm:text-sm`}>
+                  {program.sessions.length > 1 ? `${status.heat.sessionName} · ` : ''}
+                  Prueba #{status.heat.eventNumber} · {status.heat.eventName}
+                </p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="font-mono text-base font-black leading-none sm:text-lg">
+                  {status.heat.estimatedStartTime}
+                </p>
+                <p className="mt-1 text-[0.65rem] font-semibold text-brand-muted sm:text-xs">
+                  Serie {status.heat.heatNumber}
+                  {status.heat.heatTotal ? ` de ${status.heat.heatTotal}` : ''}
+                </p>
+              </div>
             </div>
-            <div className="shrink-0 text-right">
-              <p className="font-mono text-lg font-black leading-none">
-                {estimatedStatus.heat.estimatedStartTime}
-              </p>
-              <p className="mt-1 text-xs font-semibold text-brand-muted">
-                Serie {estimatedStatus.heat.heatNumber}
-                {estimatedStatus.heat.heatTotal ? ` de ${estimatedStatus.heat.heatTotal}` : ''}
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       )}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -396,7 +434,7 @@ export const MeetProgramView = ({
                   className="rounded-xl border border-line bg-surface shadow-sm"
                 >
                   <header
-                    className={`sticky ${hasEstimatedSchedule ? 'top-36 sm:top-32' : 'top-16'} z-20 bg-canvas ${
+                    className={`sticky ${hasEstimatedSchedule ? estimatedStatuses.length > 1 ? 'top-48 sm:top-32' : 'top-36 sm:top-32' : 'top-16'} z-20 bg-canvas ${
                       eventIsExpanded
                         ? 'rounded-t-xl border-b border-line shadow-sm'
                         : 'rounded-xl'
