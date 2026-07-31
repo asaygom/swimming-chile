@@ -232,6 +232,26 @@ CREATE TABLE meet_program_entry (
     UNIQUE (publication_id, session_number, event_number, heat_number, lane)
 );
 
+CREATE TABLE live_heat_state (
+    id BIGSERIAL PRIMARY KEY,
+    competition_id BIGINT NOT NULL REFERENCES competition(id) ON DELETE CASCADE,
+    publication_id BIGINT NOT NULL REFERENCES meet_program_publication(id) ON DELETE CASCADE,
+    stage_number INTEGER NOT NULL DEFAULT 1 CHECK (stage_number > 0),
+    pool_role TEXT NOT NULL DEFAULT 'main' CHECK (
+        pool_role IN ('main', 'competition', 'training')
+    ),
+    session_number INTEGER NOT NULL CHECK (session_number > 0),
+    event_number INTEGER NOT NULL CHECK (event_number > 0),
+    heat_number INTEGER NOT NULL CHECK (heat_number > 0),
+    status TEXT NOT NULL CHECK (
+        status IN ('not_started', 'active', 'paused', 'finished')
+    ),
+    revision BIGINT NOT NULL DEFAULT 1 CHECK (revision > 0),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by_session TEXT NOT NULL,
+    UNIQUE (competition_id, stage_number, pool_role)
+);
+
 -- =====================================================
 -- TABLE: event
 -- =====================================================
@@ -506,6 +526,8 @@ CREATE INDEX idx_meet_program_entry_publication_id
     ON meet_program_entry(publication_id);
 CREATE INDEX idx_meet_program_entry_lookup
     ON meet_program_entry(publication_id, session_number, event_number, heat_number);
+CREATE INDEX idx_live_heat_state_publication
+    ON live_heat_state(publication_id);
 CREATE INDEX idx_pool_source_id ON pool(source_id);
 CREATE INDEX idx_pool_region_city ON pool(region, city);
 
