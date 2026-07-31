@@ -146,6 +146,9 @@ vinculos con `core.athlete` o `core.club`.
 - Desde parser `0.2.1`, nombres derivados de nadadores, equipos, integrantes de
   relevo, jornadas y encabezados corrigen los mismos artefactos confirmados que
   resultados. Las lineas fuente/debug y su procedencia permanecen intactas.
+- Desde parser `0.3.0`, `estimated_start_time` conserva en formato local `HH:MM`
+  la hora `Starts at` publicada por HY-TEK para cada serie. El campo es opcional
+  porque los sembrados preliminares pueden no incluir estimaciones.
 - `--publish` exige artefactos `validated`, `parser_version` no vacio y
   `--competition-id`. La publicacion es atomica e idempotente por competencia +
   checksum + version del parser; una revision reemplaza el puntero publico sin

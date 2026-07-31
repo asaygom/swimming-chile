@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { LoadingState } from '../../../components/ui/LoadingState';
@@ -6,9 +6,49 @@ import type { MeetProgramResponse } from '../../../lib/schemas/competition';
 
 type MeetProgramViewProps = {
   program?: MeetProgramResponse;
+  competitionDate: string;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
+};
+
+type ScheduledHeat = {
+  eventNumber: number;
+  eventName: string;
+  heatNumber: number;
+  heatTotal: number | null;
+  estimatedStartTime: string;
+  startMinutes: number;
+};
+
+const SANTIAGO_TIME_ZONE = 'America/Santiago';
+
+const timeToMinutes = (value: string) => {
+  const match = /^(?<hour>[01]\d|2[0-3]):(?<minute>[0-5]\d)$/.exec(value);
+  if (!match?.groups) return null;
+  return Number(match.groups.hour) * 60 + Number(match.groups.minute);
+};
+
+const chileDateKey = (date: Date) => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SANTIAGO_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+};
+
+const chileTimeMinutes = (date: Date) => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SANTIAGO_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return Number(value.hour) * 60 + Number(value.minute);
 };
 
 const normalizeSearch = (value: string) =>
@@ -92,11 +132,13 @@ const toggleKey = (current: Set<string>, key: string) => {
 
 export const MeetProgramView = ({
   program,
+  competitionDate,
   isLoading,
   isError,
   onRetry,
 }: MeetProgramViewProps) => {
   const [query, setQuery] = useState('');
+  const [now, setNow] = useState(() => new Date());
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [expandedHeats, setExpandedHeats] = useState<Set<string>>(new Set());
   const tokens = useMemo(
@@ -104,6 +146,58 @@ export const MeetProgramView = ({
     [query],
   );
   const isFiltering = tokens.length > 0;
+  const scheduledHeats = useMemo(() => {
+    if (!program) return [];
+    return program.sessions
+      .flatMap(session =>
+        session.events.flatMap(event =>
+          event.heats.flatMap<ScheduledHeat>(heat => {
+            if (!heat.estimated_start_time) return [];
+            const startMinutes = timeToMinutes(heat.estimated_start_time);
+            if (startMinutes === null) return [];
+            return [{
+              eventNumber: event.event_number,
+              eventName: event.event_name,
+              heatNumber: heat.heat_number,
+              heatTotal: heat.heat_total,
+              estimatedStartTime: heat.estimated_start_time,
+              startMinutes,
+            }];
+          }),
+        ),
+      )
+      .sort((left, right) => left.startMinutes - right.startMinutes);
+  }, [program]);
+  const estimatedStatus = useMemo(() => {
+    if (scheduledHeats.length === 0) return null;
+    const competitionDateKey = competitionDate.slice(0, 10);
+    const today = chileDateKey(now);
+    const firstHeat = scheduledHeats[0];
+    const lastHeat = scheduledHeats.at(-1)!;
+
+    if (today < competitionDateKey) {
+      return { label: 'Próxima serie estimada', heat: firstHeat };
+    }
+    if (today > competitionDateKey) {
+      return { label: 'Programa estimado finalizado', heat: lastHeat };
+    }
+
+    const currentMinutes = chileTimeMinutes(now);
+    const nextIndex = scheduledHeats.findIndex(heat => heat.startMinutes > currentMinutes);
+    if (nextIndex === 0) {
+      return { label: 'Próxima serie estimada', heat: firstHeat };
+    }
+    if (nextIndex === -1) {
+      return { label: 'Última serie programada', heat: lastHeat };
+    }
+    return { label: 'Serie estimada actual', heat: scheduledHeats[nextIndex - 1] };
+  }, [competitionDate, now, scheduledHeats]);
+  const hasEstimatedSchedule = scheduledHeats.length > 0;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const eventTotals = useMemo(() => {
     const totals = new Map<string, { heats: number; entries: number }>();
     if (!program) return totals;
@@ -221,6 +315,33 @@ export const MeetProgramView = ({
         </div>
       </div>
 
+      {estimatedStatus && (
+        <div
+          aria-live="polite"
+          className="sticky top-16 z-30 h-16 rounded-xl border border-brand-cyan/40 bg-brand-night px-4 text-brand-white shadow-md"
+        >
+          <div className="flex h-full items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-[0.65rem] font-bold uppercase tracking-widest text-brand-cyan">
+                {estimatedStatus.label} · Según programa
+              </p>
+              <p className="truncate text-sm font-bold sm:text-base">
+                Prueba #{estimatedStatus.heat.eventNumber} · {estimatedStatus.heat.eventName}
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="font-mono text-lg font-black leading-none">
+                {estimatedStatus.heat.estimatedStartTime}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-brand-muted">
+                Serie {estimatedStatus.heat.heatNumber}
+                {estimatedStatus.heat.heatTotal ? ` de ${estimatedStatus.heat.heatTotal}` : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {sessions.length === 0 ? (
         <EmptyState
           title="No se encontraron series"
@@ -257,7 +378,7 @@ export const MeetProgramView = ({
                   className="rounded-xl border border-line bg-surface shadow-sm"
                 >
                   <header
-                    className={`sticky top-16 z-20 bg-canvas ${
+                    className={`sticky ${hasEstimatedSchedule ? 'top-32' : 'top-16'} z-20 bg-canvas ${
                       eventIsExpanded
                         ? 'rounded-t-xl border-b border-line shadow-sm'
                         : 'rounded-xl'
@@ -329,8 +450,15 @@ export const MeetProgramView = ({
                                   Serie {heat.heat_number}
                                   {heat.heat_total ? ` de ${heat.heat_total}` : ''}
                                 </span>
-                                <span className="text-xs font-medium text-content-subtle">
-                                  {heat.entries.length} inscripciones
+                                <span className="shrink-0 text-right">
+                                  {heat.estimated_start_time && (
+                                    <span className="block font-mono text-sm font-bold text-ink">
+                                      {heat.estimated_start_time}
+                                    </span>
+                                  )}
+                                  <span className="block text-xs font-medium text-content-subtle">
+                                    {heat.entries.length} inscripciones
+                                  </span>
                                 </span>
                               </button>
                             </h5>

@@ -540,6 +540,7 @@ export const CompetitionProfilePage: React.FC = () => {
       {activeTab === 'series' && (
         <MeetProgramView
           program={meetProgramQuery.data}
+          competitionDate={competition.date_start}
           isLoading={meetProgramQuery.isLoading}
           isError={meetProgramQuery.isError}
           onRetry={() => meetProgramQuery.refetch()}

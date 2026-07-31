@@ -148,9 +148,16 @@ def test_parse_fchmn_individual_lines_accepts_nt_and_comma_seed():
     ]
     assert result.entries[0].seed_time_text == "NT"
     assert result.entries[0].seed_time_ms is None
+    assert {entry.estimated_start_time for entry in result.entries} == {"08:30"}
     assert result.entries[1].seed_time_text == "2:51,37"
     assert result.entries[1].seed_time_ms == 171370
     assert result.entries[1].team_name == "NUMAS"
+
+
+def test_estimated_start_time_normalizes_noon_and_midnight():
+    assert meet_program.normalize_estimated_start_time("12:05 AM") == "00:05"
+    assert meet_program.normalize_estimated_start_time("12:05 PM") == "12:05"
+    assert meet_program.normalize_estimated_start_time(None) is None
 
 
 def test_parse_cleans_derived_names_without_mutating_source_or_debug_lines():

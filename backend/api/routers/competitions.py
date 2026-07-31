@@ -376,6 +376,7 @@ def get_meet_program(competition_id: int):
                     event_name,
                     heat_number,
                     heat_total,
+                    estimated_start_time,
                     lane,
                     entry_type,
                     display_name,
@@ -426,6 +427,7 @@ def get_meet_program(competition_id: int):
             heats.append({
                 "heat_number": row["heat_number"],
                 "heat_total": row["heat_total"],
+                "estimated_start_time": row.get("estimated_start_time"),
                 "entries": [],
             })
         heats[-1]["entries"].append({

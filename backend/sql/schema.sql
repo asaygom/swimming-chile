@@ -207,6 +207,7 @@ CREATE TABLE meet_program_entry (
     event_name TEXT NOT NULL,
     heat_number INTEGER NOT NULL CHECK (heat_number > 0),
     heat_total INTEGER CHECK (heat_total IS NULL OR heat_total > 0),
+    estimated_start_time TEXT,
     lane INTEGER NOT NULL CHECK (lane > 0),
     display_name TEXT NOT NULL,
     age INTEGER CHECK (age IS NULL OR age > 0),
@@ -219,6 +220,10 @@ CREATE TABLE meet_program_entry (
     column_number INTEGER CHECK (column_number IS NULL OR column_number > 0),
     line_number INTEGER CHECK (line_number IS NULL OR line_number > 0),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_meet_program_estimated_start_time CHECK (
+        estimated_start_time IS NULL
+        OR estimated_start_time ~ '^(?:[01][0-9]|2[0-3]):[0-5][0-9]$'
+    ),
     UNIQUE (publication_id, session_number, event_number, heat_number, lane)
 );
 

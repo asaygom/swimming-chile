@@ -80,6 +80,7 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
             "event_name": "Mixed 200 LC Meter Medley Relay",
             "heat_number": 1,
             "heat_total": 2,
+            "estimated_start_time": "09:15",
             "lane": 2,
             "entry_type": "relay",
             "display_name": "NUMAS X160 A",
@@ -95,6 +96,7 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
             "event_name": "Mixed 200 LC Meter Medley Relay",
             "heat_number": 2,
             "heat_total": 2,
+            "estimated_start_time": "09:18",
             "lane": 1,
             "entry_type": "relay",
             "display_name": "SDEPO X160 A",
@@ -129,6 +131,7 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
     assert payload["sessions"][0]["events"][0]["distance_m"] == 200
     assert payload["sessions"][0]["events"][0]["stroke"] == "medley_relay"
     assert [heat["heat_number"] for heat in payload["sessions"][0]["events"][0]["heats"]] == [1, 2]
+    assert payload["sessions"][0]["events"][0]["heats"][0]["estimated_start_time"] == "09:15"
     assert payload["sessions"][0]["events"][0]["heats"][0]["entries"][0] == {
         "lane": 2,
         "entry_type": "relay",
@@ -221,3 +224,19 @@ def test_meet_program_frontend_has_accessible_independent_collapsible_sections()
     assert "aria-hidden={!heatIsExpanded}" in source
     assert "setExpandedEvents(new Set())" in source
     assert "setExpandedHeats(new Set())" in source
+
+
+def test_meet_program_frontend_preserves_controls_with_estimated_status_header():
+    view = (
+        Path(__file__).resolve().parents[2]
+        / "frontend/src/features/competitions/components/MeetProgramView.tsx"
+    )
+    source = view.read_text(encoding="utf-8")
+
+    assert "Según programa" in source
+    assert "estimated_start_time" in source
+    assert "aria-live=\"polite\"" in source
+    assert "top-32" in source
+    assert "HighlightMatches" in source
+    assert "expandedEvents" in source
+    assert "expandedHeats" in source

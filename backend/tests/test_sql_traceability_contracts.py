@@ -19,6 +19,9 @@ MEET_PROGRAM_MIGRATION_SQL = (
 MEET_PROGRAM_PARSER_REVISION_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "012_meet_program_parser_revision.sql"
 )
+MEET_PROGRAM_ESTIMATED_TIMES_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "013_meet_program_estimated_times.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -221,3 +224,13 @@ def test_meet_program_parser_revision_migration_replaces_two_column_identity():
     assert "array_agg(attribute_row.attname::text order by key_row.ordinality)" in migration_sql
     assert "drop constraint" in migration_sql
     assert "ux_meet_program_one_published_per_competition" not in migration_sql
+
+
+def test_meet_program_estimated_times_migration_is_idempotent_and_constrained():
+    schema_sql = normalized_sql(SCHEMA_SQL)
+    migration_sql = normalized_sql(MEET_PROGRAM_ESTIMATED_TIMES_SQL)
+
+    assert "estimated_start_time text" in schema_sql
+    assert "add column if not exists estimated_start_time text" in migration_sql
+    assert "chk_meet_program_estimated_start_time" in migration_sql
+    assert "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$" in migration_sql

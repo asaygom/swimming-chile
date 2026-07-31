@@ -338,6 +338,7 @@ source names and clubs without linking entries to core athlete or club identitie
             {
               "heat_number": 1,
               "heat_total": 2,
+              "estimated_start_time": "09:15",
               "entries": [
                 {
                   "lane": 2,
@@ -360,6 +361,8 @@ source names and clubs without linking entries to core athlete or club identitie
 
 Sessions, events, heats, and entries are ordered by their source numbers. Only
 the active `published` version is public. An unknown competition returns 404.
+`estimated_start_time` is the optional local `HH:MM` estimate printed by HY-TEK;
+it is schedule guidance, not real-time meet status.
 
 ### `GET /api/competitions/{id}/stats`
 

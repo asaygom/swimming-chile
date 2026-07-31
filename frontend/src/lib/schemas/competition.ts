@@ -83,6 +83,7 @@ export const MeetProgramEntrySchema = z.object({
 export const MeetProgramHeatSchema = z.object({
   heat_number: z.number().int().positive(),
   heat_total: z.number().int().positive().nullable(),
+  estimated_start_time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/).nullable(),
   entries: z.array(MeetProgramEntrySchema),
 });
 

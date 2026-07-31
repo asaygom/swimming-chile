@@ -27,7 +27,7 @@ from natacion_chile.domain.extracted_text import clean_extracted_text
 from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
-PARSER_VERSION = "0.2.1"
+PARSER_VERSION = "0.3.0"
 ENTRY_COLUMNS = [
     "session_number",
     "session_name",
@@ -35,6 +35,7 @@ ENTRY_COLUMNS = [
     "event_name",
     "heat_number",
     "heat_total",
+    "estimated_start_time",
     "lane",
     "display_name",
     "age",
@@ -55,7 +56,8 @@ CONTINUATION_RE = re.compile(
 )
 HEAT_RE = re.compile(
     r"(?:^|.*\))Heat\s+(?P<number>\d+)"
-    r"(?:\s+of\s+(?P<total>\d+))?\s+Finals\b",
+    r"(?:\s+of\s+(?P<total>\d+))?\s+Finals\b"
+    r"(?:\s+Starts\s+at\s+(?P<estimated_time>(?:0?[1-9]|1[0-2]):[0-5]\d\s*[AP]M))?",
     re.IGNORECASE,
 )
 SESSION_RE = re.compile(r"^Meet Program\s*-\s*(?P<name>.+?)\s*$", re.IGNORECASE)
@@ -129,6 +131,7 @@ class MeetProgramEntry:
     page_number: int
     column_number: int
     line_number: int
+    estimated_start_time: str | None = None
 
 
 @dataclass
@@ -187,6 +190,22 @@ def seed_time_ms(value: str | None) -> int | None:
     except ValueError:
         return None
     return round(seconds * 1000)
+
+
+def normalize_estimated_start_time(value: str | None) -> str | None:
+    if not value:
+        return None
+    match = re.fullmatch(
+        r"(?P<hour>0?[1-9]|1[0-2]):(?P<minute>[0-5]\d)\s*(?P<period>[AP]M)",
+        value.strip(),
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    hour = int(match.group("hour")) % 12
+    if match.group("period").upper() == "PM":
+        hour += 12
+    return f"{hour:02d}:{match.group('minute')}"
 
 
 def _group_band_words(words: list[dict[str, Any]], tolerance: float = 2.0) -> list[str]:
@@ -266,6 +285,7 @@ def _parse_individual_entry(
     event_name: str,
     heat_number: int,
     heat_total: int | None,
+    estimated_start_time: str | None,
 ) -> MeetProgramEntry | None:
     tokens = line.text.split()
     if len(tokens) < 5 or not tokens[0].isdigit() or not SEED_RE.fullmatch(tokens[-1]):
@@ -302,6 +322,7 @@ def _parse_individual_entry(
         event_name=event_name,
         heat_number=heat_number,
         heat_total=heat_total,
+        estimated_start_time=estimated_start_time,
         lane=int(tokens[0]),
         display_name=display_name,
         age=age,
@@ -325,6 +346,7 @@ def _parse_relay_entry(
     event_name: str,
     heat_number: int,
     heat_total: int | None,
+    estimated_start_time: str | None,
 ) -> MeetProgramEntry | None:
     tokens = line.text.split()
     if len(tokens) < 3 or not tokens[0].isdigit() or not SEED_RE.fullmatch(tokens[-1]):
@@ -342,6 +364,7 @@ def _parse_relay_entry(
         event_name=event_name,
         heat_number=heat_number,
         heat_total=heat_total,
+        estimated_start_time=estimated_start_time,
         lane=int(tokens[0]),
         display_name=display_name,
         age=None,
@@ -400,6 +423,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
     entry_type: str | None = None
     heat_number: int | None = None
     heat_total: int | None = None
+    estimated_start_time: str | None = None
     active_relay: MeetProgramEntry | None = None
 
     for line in materialized_lines:
@@ -428,6 +452,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
             _, entry_type = _event_parts(event_name)
             heat_number = int(continuation.group("heat"))
             heat_total = None
+            estimated_start_time = None
             active_relay = None
             continue
 
@@ -442,6 +467,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
             _, entry_type = _event_parts(event_name)
             heat_number = None
             heat_total = None
+            estimated_start_time = None
             active_relay = None
             continue
 
@@ -449,6 +475,10 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
         if heat_match:
             heat_number = int(heat_match.group("number"))
             heat_total = int(heat_match.group("total")) if heat_match.group("total") else None
+            # HY-TEK prints the estimated start on the heat header, not on lane rows.
+            estimated_start_time = normalize_estimated_start_time(
+                heat_match.group("estimated_time")
+            )
             active_relay = None
             continue
 
@@ -463,6 +493,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
                 "event_name": event_name,
                 "heat_number": heat_number,
                 "heat_total": heat_total,
+                "estimated_start_time": estimated_start_time,
             }
             if entry_type == "relay":
                 entry = _parse_relay_entry(line, **common)
@@ -755,6 +786,7 @@ def _load_entries(path: Path) -> list[MeetProgramEntry]:
                         event_name=row["event_name"],
                         heat_number=int(row["heat_number"]),
                         heat_total=_parse_optional_int(row["heat_total"]),
+                        estimated_start_time=row["estimated_start_time"] or None,
                         lane=int(row["lane"]),
                         display_name=row["display_name"],
                         age=_parse_optional_int(row["age"]),
@@ -993,13 +1025,13 @@ def publish_validated_program(
                 INSERT INTO {entry_table} (
                     publication_id, session_number, session_name,
                     event_number, event_name, heat_number, heat_total,
-                    lane, display_name, age, team_name, seed_time_text,
+                    estimated_start_time, lane, display_name, age, team_name, seed_time_text,
                     seed_time_ms, entry_type, relay_members,
                     page_number, column_number, line_number
                 )
                 VALUES (
                     %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s
                 );
                 """,
                 [
@@ -1011,6 +1043,7 @@ def publish_validated_program(
                         entry.event_name,
                         entry.heat_number,
                         entry.heat_total,
+                        entry.estimated_start_time,
                         entry.lane,
                         entry.display_name,
                         entry.age,
