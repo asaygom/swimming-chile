@@ -288,6 +288,33 @@ export const MeetProgramView = ({
 
   return (
     <section className="space-y-5" aria-labelledby="meet-program-heading">
+      {estimatedStatus && (
+        <div
+          aria-live="polite"
+          className="sticky top-16 z-30 h-20 rounded-xl border border-brand-cyan/40 bg-brand-night px-4 text-brand-white shadow-md sm:h-16"
+        >
+          <div className="flex h-full items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-[0.65rem] font-bold uppercase tracking-widest text-brand-cyan">
+                {estimatedStatus.label} · Según programa
+              </p>
+              <p className="line-clamp-3 text-xs font-bold leading-tight sm:line-clamp-1 sm:text-base">
+                {program.sessions.length > 1 ? `${estimatedStatus.heat.sessionName} · ` : ''}
+                Prueba #{estimatedStatus.heat.eventNumber} · {estimatedStatus.heat.eventName}
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="font-mono text-lg font-black leading-none">
+                {estimatedStatus.heat.estimatedStartTime}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-brand-muted">
+                Serie {estimatedStatus.heat.heatNumber}
+                {estimatedStatus.heat.heatTotal ? ` de ${estimatedStatus.heat.heatTotal}` : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 id="meet-program-heading" className="text-2xl font-bold tracking-tight text-ink">
@@ -331,33 +358,6 @@ export const MeetProgramView = ({
         </div>
       </div>
 
-      {estimatedStatus && (
-        <div
-          aria-live="polite"
-          className="sticky top-16 z-30 h-16 rounded-xl border border-brand-cyan/40 bg-brand-night px-4 text-brand-white shadow-md"
-        >
-          <div className="flex h-full items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-[0.65rem] font-bold uppercase tracking-widest text-brand-cyan">
-                {estimatedStatus.label} · Según programa
-              </p>
-              <p className="truncate text-sm font-bold sm:text-base">
-                {program.sessions.length > 1 ? `${estimatedStatus.heat.sessionName} · ` : ''}
-                Prueba #{estimatedStatus.heat.eventNumber} · {estimatedStatus.heat.eventName}
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="font-mono text-lg font-black leading-none">
-                {estimatedStatus.heat.estimatedStartTime}
-              </p>
-              <p className="mt-1 text-xs font-semibold text-brand-muted">
-                Serie {estimatedStatus.heat.heatNumber}
-                {estimatedStatus.heat.heatTotal ? ` de ${estimatedStatus.heat.heatTotal}` : ''}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {sessions.length === 0 ? (
         <EmptyState
@@ -396,7 +396,7 @@ export const MeetProgramView = ({
                   className="rounded-xl border border-line bg-surface shadow-sm"
                 >
                   <header
-                    className={`sticky ${hasEstimatedSchedule ? 'top-32' : 'top-16'} z-20 bg-canvas ${
+                    className={`sticky ${hasEstimatedSchedule ? 'top-36 sm:top-32' : 'top-16'} z-20 bg-canvas ${
                       eventIsExpanded
                         ? 'rounded-t-xl border-b border-line shadow-sm'
                         : 'rounded-xl'
