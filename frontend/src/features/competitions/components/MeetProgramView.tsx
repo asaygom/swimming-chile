@@ -104,6 +104,22 @@ export const MeetProgramView = ({
     [query],
   );
   const isFiltering = tokens.length > 0;
+  const eventTotals = useMemo(() => {
+    const totals = new Map<string, { heats: number; entries: number }>();
+    if (!program) return totals;
+
+    for (const session of program.sessions) {
+      for (const event of session.events) {
+        const key = `${program.competition_id}:${session.session_number}:${event.event_number}`;
+        totals.set(key, {
+          heats: event.heats.length,
+          entries: event.heats.reduce((total, heat) => total + heat.entries.length, 0),
+        });
+      }
+    }
+
+    return totals;
+  }, [program]);
   const sessions = useMemo(() => {
     if (!program) return [];
     if (tokens.length === 0) return program.sessions;
@@ -227,17 +243,26 @@ export const MeetProgramView = ({
               const eventKey = `${program.competition_id}:${session.session_number}:${event.event_number}`;
               const eventPanelId = `meet-program-event-${session.session_number}-${event.event_number}`;
               const eventIsExpanded = isFiltering || expandedEvents.has(eventKey);
-              const eventEntryCount = event.heats.reduce(
-                (total, heat) => total + heat.entries.length,
-                0,
-              );
+              const eventTotal = eventTotals.get(eventKey);
+              const eventHeatCount = eventTotal?.heats ?? event.heats.length;
+              const eventEntryCount = eventTotal?.entries ??
+                event.heats.reduce(
+                  (total, heat) => total + heat.entries.length,
+                  0,
+                );
 
               return (
                 <article
                   key={event.event_number}
-                  className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm"
+                  className="rounded-xl border border-line bg-surface shadow-sm"
                 >
-                  <header className={eventIsExpanded ? 'border-b border-line bg-canvas' : 'bg-canvas'}>
+                  <header
+                    className={`sticky top-16 z-20 bg-canvas ${
+                      eventIsExpanded
+                        ? 'rounded-t-xl border-b border-line shadow-sm'
+                        : 'rounded-xl'
+                    }`}
+                  >
                     <button
                       type="button"
                       onClick={() => setExpandedEvents(current => toggleKey(current, eventKey))}
@@ -265,7 +290,7 @@ export const MeetProgramView = ({
                         </span>
                       </span>
                       <span className="shrink-0 text-right text-xs font-medium text-content-subtle">
-                        {event.heats.length} {event.heats.length === 1 ? 'serie' : 'series'}
+                        {eventHeatCount} {eventHeatCount === 1 ? 'serie' : 'series'}
                         <span className="hidden sm:inline"> · {eventEntryCount} inscripciones</span>
                       </span>
                     </button>
@@ -274,7 +299,7 @@ export const MeetProgramView = ({
                     id={eventPanelId}
                     hidden={!eventIsExpanded}
                     aria-hidden={!eventIsExpanded}
-                    className="divide-y divide-line"
+                    className="overflow-hidden rounded-b-xl divide-y divide-line"
                   >
                       {event.heats.map(heat => {
                         const heatKey = `${eventKey}:${heat.heat_number}`;
