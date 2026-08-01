@@ -106,6 +106,51 @@ def test_control_preserves_dedicated_controller_interactions():
     assert "Siguiente" in source
 
 
+def test_operator_control_publishes_event_and_heat_selection_immediately_as_active():
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    assert "const statusLabels" not in source
+    assert "Por comenzar" not in source
+    assert "En curso" not in source
+    assert "Pausado" not in source
+    assert "Finalizado" not in source
+    assert "<fieldset" not in source
+    assert "async (target: HeatOption)" in source
+    assert "status: 'active'" in source
+    assert "update(heats[selectedIndex - 1])" in source
+    assert "update(heats[selectedIndex + 1])" in source
+    assert "if (first) void update(first);" in source
+    assert "const target = heats.find((heat) => heatKey(heat) === event.target.value);" in source
+    assert "if (target) void update(target);" in source
+    assert source.count("disabled={saving}") >= 2
+    assert "update(selected)" not in source
+    assert "Aplicar selecci" not in source
+    assert "Inicializar llamador" not in source
+
+
+def test_operator_control_serializes_updates_and_auto_publishes_once():
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    assert "const updateInFlightRef = useRef(false)" in source
+    assert "if (updateInFlightRef.current) return;" in source
+    assert "updateInFlightRef.current = true;" in source
+    assert "updateInFlightRef.current = false;" in source
+    assert source.index("await liveQuery.refetch()") < source.index(
+        "updateInFlightRef.current = false;"
+    )
+    assert "const autoPublishedHeatKeyRef = useRef('')" in source
+    assert "const firstHeatKey = heatKey(heats[0]);" in source
+    assert "autoPublishedHeatKeyRef.current === firstHeatKey" in source
+    assert "autoPublishedHeatKeyRef.current = firstHeatKey;" in source
+    assert "void update(heats[0]);" in source
+    assert "autoPublishedHeatKeyRef.current = '';" in source
+    assert "Reintentar" in source
+    assert "autoPublishedHeatKeyRef.current = heatKey(heats[0]);" in source
+    assert source.index("await competitionService.updateLiveHeat") < source.index(
+        "setSelectedKey(heatKey(target))"
+    )
+
+
 def test_operator_update_response_schema_matches_put_contract_without_get_derivations():
     schema = SCHEMA.read_text(encoding="utf-8")
     update_schema = schema.split("export const LiveHeatUpdateStateSchema", 1)[1].split(
@@ -130,7 +175,6 @@ def test_live_heat_spanish_copy_is_valid_utf8_without_mojibake():
     assert "Código temporal" in control
     assert "La sesión expiró" in control
     assert "Pantalla pública" in control
-    assert "Aplicar selección" in control
     assert "Validando…" in control
     assert " · Piscina" in control
     assert "No se pudo iniciar la sesión" in sources[2]
@@ -155,7 +199,7 @@ def test_operator_control_uses_cookie_session_and_optimistic_concurrency():
     assert "sessionStorage" not in source
     assert "URLSearchParams" not in source
     assert 'type="password"' in source
-    assert "Inicializar llamador" in source
+    assert "Aplicar selecci" not in source
     assert 'aria-live="polite"' in source
     assert "target.stage_number === liveState.stage_number" in source
     assert "target.pool_role === liveState.pool_role" in source

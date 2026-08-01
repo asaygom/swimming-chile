@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../../lib/api/fetcher';
@@ -26,13 +26,6 @@ const flattenHeats = (sessions: MeetProgramSession[]): HeatOption[] => sessions.
   }))),
 );
 
-const statusLabels = {
-  not_started: 'Por comenzar',
-  active: 'En curso',
-  paused: 'Pausado',
-  finished: 'Finalizado',
-} as const;
-
 export const CompetitionLiveHeatControlPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [code, setCode] = useState('');
@@ -42,6 +35,9 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
   const [saving, setSaving] = useState(false);
+  const [autoPublishFailed, setAutoPublishFailed] = useState(false);
+  const updateInFlightRef = useRef(false);
+  const autoPublishedHeatKeyRef = useRef('');
 
   const competitionQuery = useQuery({ queryKey: ['competition', id], queryFn: () => competitionService.getCompetitionDetail(id!), enabled: Boolean(id) && authenticated });
   const programQuery = useQuery({ queryKey: ['competition-meet-program', id], queryFn: () => competitionService.getMeetProgram(id!), enabled: Boolean(id) && authenticated });
@@ -83,7 +79,11 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
     }
   };
 
-  const update = async (target: HeatOption, status: LiveHeatUpdate['status']) => {
+  const update = useCallback(async (target: HeatOption) => {
+    if (updateInFlightRef.current) return;
+    updateInFlightRef.current = true;
+    const autoPublish = !liveState && autoPublishedHeatKeyRef.current === heatKey(target);
+    if (autoPublish) setAutoPublishFailed(false);
     setSaving(true);
     setMessage('');
     const expectedRevision = liveState
@@ -98,16 +98,15 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
         session_number: target.session_number,
         event_number: target.event_number,
         heat_number: target.heat_number,
-        status,
+        status: 'active',
         expected_revision: expectedRevision,
       });
       setSelectedKey(heatKey(target));
-      await liveQuery.refetch();
       setMessage('Llamador actualizado correctamente.');
     } catch (error) {
+      if (autoPublish) { autoPublishedHeatKeyRef.current = ''; setAutoPublishFailed(true); }
       if (error instanceof ApiError && error.status === 409) {
         setSelectedKey('');
-        await liveQuery.refetch();
         setMessage('Otro voluntario actualizó el llamador. Revisa el estado y confirma nuevamente.');
       } else if (error instanceof ApiError && error.status === 401) {
         setAuthenticated(false);
@@ -116,9 +115,22 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
         setMessage('No pudimos guardar el cambio. Intenta nuevamente.');
       }
     } finally {
-      setSaving(false);
+      try {
+        await liveQuery.refetch();
+      } finally {
+        updateInFlightRef.current = false;
+        setSaving(false);
+      }
     }
-  };
+  }, [id, liveQuery, liveState]);
+
+  useEffect(() => {
+    if (!authenticated || liveQuery.isLoading || liveQuery.isError || liveState || !heats.length || autoPublishFailed) return;
+    const firstHeatKey = heatKey(heats[0]);
+    if (autoPublishedHeatKeyRef.current === firstHeatKey) return;
+    autoPublishedHeatKeyRef.current = firstHeatKey;
+    void update(heats[0]);
+  }, [authenticated, autoPublishFailed, heats, liveQuery.isError, liveQuery.isLoading, liveState, update]);
 
   if (!authenticated) {
     return (
@@ -148,19 +160,19 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
       <div className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-3 p-3 sm:gap-5 sm:p-6">
         <header className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="min-w-0"><p className="text-xs font-black uppercase tracking-widest text-brand-pool">Controlador de heats</p><h1 className="truncate text-lg font-black">{competitionQuery.data?.competition.name}</h1></div>
-          <nav className="flex shrink-0 gap-3 text-xs font-bold"><Link className="text-brand-pool" to={`/competitions/${id}/live`}>Pantalla pública</Link><Link className="text-slate-500" to={`/competitions/${id}?tab=series`}>Sembrado</Link></nav>
+          <nav className="flex shrink-0 gap-3 text-xs font-bold"><Link className="text-brand-pool" to={`/competitions/${id}/live`}>Pantalla pública</Link></nav>
         </header>
 
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div>
             <label htmlFor="event-selector" className="mb-1 block text-xs font-black uppercase tracking-wider text-slate-500">Selección de evento</label>
-            <select id="event-selector" value={eventKey(selected)} onChange={(event) => { const first = heats.find((heat) => eventKey(heat) === event.target.value); if (first) setSelectedKey(heatKey(first)); }} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold">
+            <select id="event-selector" value={eventKey(selected)} disabled={saving} onChange={(event) => { const first = heats.find((heat) => eventKey(heat) === event.target.value); if (first) void update(first); }} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold disabled:opacity-50">
               {events.map((event) => <option key={eventKey(event)} value={eventKey(event)}>Evento #{event.event_number} — {event.event_name}</option>)}
             </select>
           </div>
           <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
             <label htmlFor="heat-selector" className="text-xs font-black uppercase tracking-wider text-slate-500">Ir al heat</label>
-            <select id="heat-selector" value={heatKey(selected)} onChange={(event) => setSelectedKey(event.target.value)} className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 font-bold">
+            <select id="heat-selector" value={heatKey(selected)} disabled={saving} onChange={(event) => { const target = heats.find((heat) => heatKey(heat) === event.target.value); if (target) void update(target); }} className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 font-bold disabled:opacity-50">
               {eventHeats.map((heat) => <option key={heatKey(heat)} value={heatKey(heat)}>Heat {heat.heat_number} de {heat.heat_total ?? eventHeats.length}</option>)}
             </select>
           </div>
@@ -172,16 +184,10 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
         </section>
 
         <div aria-live="polite" className="min-h-5 text-center text-sm font-semibold text-slate-600">{message}</div>
+        {autoPublishFailed && !liveState && <button type="button" disabled={saving} onClick={() => { autoPublishedHeatKeyRef.current = heatKey(heats[0]); void update(heats[0]); }} className="rounded-xl bg-slate-800 px-4 py-3 font-black text-white disabled:opacity-40">Reintentar</button>}
         <div className="grid gap-3 sm:grid-cols-2">
-          <button type="button" disabled={saving || !liveState || selectedIndex <= 0} onClick={() => update(heats[selectedIndex - 1], liveState!.status)} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-xl font-black disabled:opacity-40">← Anterior</button>
-          <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => update(heats[selectedIndex + 1], liveState!.status)} className="rounded-2xl bg-brand-pool px-5 py-4 text-xl font-black text-white disabled:opacity-40">Siguiente →</button>
-        </div>
-        <div className="grid gap-3 rounded-2xl bg-white p-4 sm:grid-cols-[1.4fr_2fr]">
-          <button type="button" disabled={saving} onClick={() => update(selected, liveState?.status ?? 'not_started')} className="rounded-xl bg-slate-800 px-4 py-3 font-black text-white disabled:opacity-40">{liveState ? 'Aplicar selección' : 'Inicializar llamador'}</button>
-          <fieldset disabled={saving || !liveState} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <legend className="sr-only">Estado del heat</legend>
-            {Object.entries(statusLabels).map(([status, label]) => <button key={status} type="button" onClick={() => update(selected, status as LiveHeatUpdate['status'])} aria-pressed={liveState?.status === status} className="rounded-lg border border-slate-200 px-2 py-3 text-sm font-bold aria-pressed:border-brand-pool aria-pressed:bg-brand-pool aria-pressed:text-white disabled:opacity-40">{label}</button>)}
-          </fieldset>
+          <button type="button" disabled={saving || !liveState || selectedIndex <= 0} onClick={() => { void update(heats[selectedIndex - 1]); }} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-xl font-black disabled:opacity-40">← Anterior</button>
+          <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => { void update(heats[selectedIndex + 1]); }} className="rounded-2xl bg-brand-pool px-5 py-4 text-xl font-black text-white disabled:opacity-40">Siguiente →</button>
         </div>
       </div>
     </main>

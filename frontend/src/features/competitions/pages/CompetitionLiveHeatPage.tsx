@@ -6,13 +6,6 @@ import { competitionService } from '../api/competitionService';
 
 const LIVE_HEAT_POLL_INTERVAL_MS = 10_000;
 
-const statusLabels = {
-  not_started: 'Por comenzar',
-  active: 'En curso',
-  paused: 'Pausado',
-  finished: 'Finalizado',
-} as const;
-
 type ProgramHeat = {
   sessionNumber: number;
   eventNumber: number;
@@ -103,15 +96,22 @@ export const CompetitionLiveHeatPage: React.FC = () => {
 
           <header data-live-section="tournament" className="col-span-2 flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl bg-white p-3 sm:rounded-3xl sm:p-4 [@media(max-height:700px)_and_(max-width:767px)]:col-span-1 lg:col-span-1 lg:p-6">
             <div className="flex items-start gap-3">
-              <img src="/web-app-manifest-192x192.png" alt="" className="h-12 w-12 rounded-xl [@media(max-height:700px)_and_(max-width:767px)]:hidden" />
               <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-widest text-brand-pool">SwimStats Chile</p>
                 <h2 className="mt-1 text-xl font-black leading-tight text-[#434343] [@media(max-height:700px)_and_(max-width:767px)]:truncate">{competition.name}</h2>
                 <p className="mt-1 text-sm font-medium text-slate-500 [@media(max-height:700px)_and_(max-width:767px)]:hidden">{competition.location || 'Sede por confirmar'}</p>
               </div>
             </div>
             <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-100 pt-2 text-xs font-bold [@media(max-height:700px)_and_(max-width:767px)]:hidden lg:mt-6 lg:pt-4">
-              <span className="rounded-lg bg-slate-100 px-3 py-2 uppercase tracking-wider text-slate-600">{state ? statusLabels[state.status] : 'Sin iniciar'}</span>
+              <div className="flex items-center gap-2">
+              <img
+                src="/web-app-manifest-192x192.png"
+                alt="SwimStats Chile"
+                className="h-8 w-8"
+              />
+              <span className="bg-clip-text text-xl font-bold tracking-tight">
+                SwimStats.cl
+              </span>
+            </div>
               <Link to={`/competitions/${id}?tab=series`} className="text-brand-pool hover:underline">Ver sembrado</Link>
             </div>
           </header>
