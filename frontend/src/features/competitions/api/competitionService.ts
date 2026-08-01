@@ -1,5 +1,6 @@
-import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, MeetProgramResponseSchema } from '../../../lib/schemas/competition';
-import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, MeetProgramResponse } from '../../../lib/schemas/competition';
+import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
+import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveHeatResponse, LiveHeatUpdate, MeetProgramResponse } from '../../../lib/schemas/competition';
+import { ApiError } from '../../../lib/api/fetcher';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -49,6 +50,36 @@ export const competitionService = {
 
     const data = await response.json();
     return MeetProgramResponseSchema.parse(data);
+  },
+
+  async getLiveHeat(id: string): Promise<LiveHeatResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-heat`);
+    if (!response.ok) throw new Error('Failed to fetch live heat');
+
+    const data = await response.json();
+    return LiveHeatResponseSchema.parse(data);
+  },
+
+  async createLiveHeatSession(id: string, code: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-heat/session`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo iniciar la sesión');
+    OperatorSessionResponseSchema.parse(await response.json());
+  },
+
+  async updateLiveHeat(id: string, update: LiveHeatUpdate) {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-heat`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo actualizar el llamador');
+    return LiveHeatUpdateResponseSchema.parse(await response.json());
   },
 
   async getCompetitionYears(): Promise<number[]> {

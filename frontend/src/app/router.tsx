@@ -8,11 +8,21 @@ import { ClubsPage } from '../features/clubs/pages/ClubsPage';
 import { ClubProfilePage } from '../features/clubs/pages/ClubProfilePage';
 import { CompetitionsPage } from '../features/competitions/pages/CompetitionsPage';
 import { CompetitionProfilePage } from '../features/competitions/pages/CompetitionProfilePage';
+import { CompetitionLiveHeatPage } from '../features/competitions/pages/CompetitionLiveHeatPage';
+import { CompetitionLiveHeatControlPage } from '../features/competitions/pages/CompetitionLiveHeatControlPage';
 import { RelaysPage } from '../features/relays/pages/RelaysPage';
 import { HomePage } from '../features/home/pages/HomePage';
 import { RankingsPage } from '../features/rankings/pages/RankingsPage';
 
 export const router = createBrowserRouter([
+  {
+    path: '/competitions/:id/live',
+    element: <CompetitionLiveHeatPage />,
+  },
+  {
+    path: '/competitions/:id/live/control',
+    element: <CompetitionLiveHeatControlPage />,
+  },
   {
     path: '/',
     element: <MainLayout />,

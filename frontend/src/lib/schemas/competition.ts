@@ -96,6 +96,7 @@ export const MeetProgramEventSchema = z.object({
 });
 
 export const MeetProgramSessionSchema = z.object({
+  publication_id: z.number().int().positive(),
   session_number: z.number().int().positive(),
   session_name: z.string(),
   stage_number: z.number().int().positive().default(1),
@@ -117,6 +118,70 @@ export const MeetProgramResponseSchema = z.object({
 
 export type MeetProgramResponse = z.infer<typeof MeetProgramResponseSchema>;
 export type MeetProgramSession = z.infer<typeof MeetProgramSessionSchema>;
+
+export const LiveHeatStateSchema = z.object({
+  publication_id: z.number().int().positive(),
+  stage_number: z.number().int().positive(),
+  pool_role: z.enum(['main', 'competition', 'training']),
+  session_number: z.number().int().positive(),
+  event_number: z.number().int().positive(),
+  event_name: z.string(),
+  heat_number: z.number().int().positive(),
+  heat_total: z.number().int().positive().nullable(),
+  status: z.enum(['not_started', 'active', 'paused', 'finished']),
+  revision: z.number().int().positive(),
+  updated_at: z.string(),
+});
+
+export const LiveHeatEntrySchema = z.object({
+  lane: z.number().int().nonnegative(),
+  entry_type: z.enum(['individual', 'relay']),
+  display_name: z.string(),
+  club_name: z.string().nullable(),
+  seed_time_text: z.string().nullable(),
+  relay_members: z.array(z.string()),
+});
+
+export const LiveHeatResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  state: LiveHeatStateSchema.nullable(),
+  entries: z.array(LiveHeatEntrySchema),
+});
+
+export type LiveHeatResponse = z.infer<typeof LiveHeatResponseSchema>;
+
+export const OperatorSessionResponseSchema = z.object({
+  authenticated: z.literal(true),
+  expires_in_seconds: z.number().int().positive(),
+});
+
+export const LiveHeatUpdateStateSchema = z.object({
+  publication_id: z.number().int().positive(),
+  stage_number: z.number().int().positive(),
+  pool_role: z.enum(['main', 'competition', 'training']),
+  session_number: z.number().int().positive(),
+  event_number: z.number().int().positive(),
+  heat_number: z.number().int().positive(),
+  status: z.enum(['not_started', 'active', 'paused', 'finished']),
+  revision: z.number().int().positive(),
+  updated_at: z.string(),
+});
+
+export const LiveHeatUpdateResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  state: LiveHeatUpdateStateSchema,
+});
+
+export type LiveHeatUpdate = {
+  publication_id: number;
+  stage_number: number;
+  pool_role: 'main' | 'competition' | 'training';
+  session_number: number;
+  event_number: number;
+  heat_number: number;
+  status: 'not_started' | 'active' | 'paused' | 'finished';
+  expected_revision: number;
+};
 
 export const CompetitionClubMedalEntrySchema = z.object({
   club_id: z.union([z.string(), z.number()]),

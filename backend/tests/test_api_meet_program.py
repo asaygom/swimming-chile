@@ -74,6 +74,7 @@ def test_meet_program_known_competition_without_publication_is_empty(monkeypatch
 def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkeypatch):
     rows = [
         {
+            "publication_id": 51,
             "session_number": 1,
             "session_name": "Jornada Unica",
             "event_number": 7,
@@ -90,6 +91,7 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
             "relay_members": ["Uno, Ana", "Dos, Beto"],
         },
         {
+            "publication_id": 51,
             "session_number": 1,
             "session_name": "Jornada Unica",
             "event_number": 7,
@@ -132,6 +134,7 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
     assert payload["sessions"][0]["events"][0]["stroke"] == "medley_relay"
     assert [heat["heat_number"] for heat in payload["sessions"][0]["events"][0]["heats"]] == [1, 2]
     assert payload["sessions"][0]["events"][0]["heats"][0]["estimated_start_time"] == "09:15"
+    assert payload["sessions"][0]["publication_id"] == 51
     assert payload["sessions"][0]["events"][0]["heats"][0]["entries"][0] == {
         "lane": 2,
         "entry_type": "relay",
@@ -150,6 +153,7 @@ def test_meet_program_exposes_only_active_publication_grouped_and_ordered(monkey
 
 def test_meet_program_count_is_null_when_a_published_event_is_unparseable(monkeypatch):
     row = {
+        "publication_id": 51,
         "session_number": 1,
         "session_name": "Jornada Unica",
         "event_number": 1,

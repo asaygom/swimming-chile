@@ -421,6 +421,7 @@ def get_meet_program(competition_id: int):
         if not sessions or sessions[-1]["_identity"] != session_identity:
             sessions.append({
                 "_identity": session_identity,
+                "publication_id": row["publication_id"],
                 "session_number": row["session_number"],
                 "session_name": row["session_name"],
                 "stage_number": row.get("stage_number", 1),
