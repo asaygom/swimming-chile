@@ -58,6 +58,24 @@ def test_public_live_heat_preserves_caller_board_hierarchy_and_projects_next_hea
     assert "Pista" in source
 
 
+def test_public_live_heat_is_a_viewport_locked_responsive_tv_board():
+    source = PAGE.read_text(encoding="utf-8")
+
+    assert 'className="h-dvh max-h-dvh overflow-hidden' in source
+    assert 'className="mx-auto flex h-full min-h-0' in source
+    assert "md:grid-cols-[minmax(0,1fr)_minmax(260px,0.48fr)]" in source
+    assert "min-h-[55dvh]" not in source
+    assert "min-h-[35dvh]" not in source
+    assert 'data-live-section="heat"' in source
+    assert 'data-live-section="event"' in source
+    assert 'data-live-section="tournament"' in source
+    assert 'data-live-entry="current"' in source
+    assert 'data-live-entry-club="inline"' in source
+    assert "[@media(max-height:700px)_and_(max-width:767px)]:grid-cols-3" in source
+    assert "[@media(max-height:700px)_and_(max-width:767px)]:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]" in source
+    assert "[@media(max-height:700px)_and_(max-width:767px)]:hidden" in source
+
+
 def test_next_heat_projection_can_cross_sessions_in_the_same_pool_partition():
     source = PAGE.read_text(encoding="utf-8")
 
