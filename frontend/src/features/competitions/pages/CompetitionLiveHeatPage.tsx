@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import type { MeetProgramSession } from '../../../lib/schemas/competition';
@@ -14,6 +14,43 @@ type ProgramHeat = {
   heatNumber: number;
   heatTotal: number | null;
   entries: MeetProgramSession['events'][number]['heats'][number]['entries'];
+};
+
+const AutoFitAnnouncementText: React.FC<{ message: string }> = ({ message }) => {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const text = textRef.current;
+    if (!frame || !text) return undefined;
+
+    let active = true;
+    const fit = () => {
+      if (!active || frame.clientWidth === 0 || frame.clientHeight === 0) return;
+      let lower = 1;
+      let upper = Math.min(112, frame.clientHeight);
+      while (upper - lower > 0.25) {
+        const candidate = (lower + upper) / 2;
+        text.style.fontSize = `${candidate}px`;
+        if (text.scrollHeight <= frame.clientHeight && text.scrollWidth <= frame.clientWidth) lower = candidate;
+        else upper = candidate;
+      }
+      text.style.fontSize = `${Math.floor(lower * 10) / 10}px`;
+    };
+
+    const observer = new ResizeObserver(fit);
+    observer.observe(frame);
+    fit();
+    void document.fonts.ready.then(() => { if (active) fit(); });
+    return () => { active = false; observer.disconnect(); };
+  }, [message]);
+
+  return (
+    <div ref={frameRef} className="my-4 flex min-h-0 flex-1 items-center justify-center overflow-hidden sm:my-6">
+      <p ref={textRef} className="max-h-full max-w-full whitespace-pre-wrap text-center font-black leading-[1.05] [overflow-wrap:anywhere]">{message}</p>
+    </div>
+  );
 };
 
 const partitionHeats = (sessions: MeetProgramSession[], state: NonNullable<Awaited<ReturnType<typeof competitionService.getLiveHeat>>['state']>) => {
@@ -74,9 +111,8 @@ export const CompetitionLiveHeatPage: React.FC = () => {
     return (
       <main data-live-layout="announcement-fullscreen" aria-live="polite" aria-atomic="true" className="grid h-dvh max-h-dvh overflow-hidden bg-brand-pool p-6 font-sans text-white sm:p-10">
         <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-col justify-between rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl sm:p-10">
-          <header className="flex items-center gap-3 border-b border-white/20 pb-5"><img src="/web-app-manifest-192x192.png" alt="" className="h-12 w-12 rounded-xl" /><div><p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">Comunicado oficial</p><h1 className="text-xl font-black sm:text-2xl">{competition.name}</h1></div></header>
-          <p className="my-6 overflow-y-auto text-center text-3xl font-black leading-tight sm:text-5xl lg:text-6xl">{announcement.message}</p>
-          <footer className="flex items-center justify-between gap-4 border-t border-white/20 pt-5 text-sm font-bold text-white/75"><span>SwimStats Chile</span>{announcementQuery.isError && <button type="button" className="underline" onClick={() => announcementQuery.refetch()}>Actualizar comunicado</button>}</footer>
+          <header className="flex items-center gap-3 border-b border-white/20 pb-5"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">Comunicado oficial</p><h1 className="text-xl font-black sm:text-2xl">{competition.name}</h1></div></header>
+          <AutoFitAnnouncementText message={announcement.message} />
         </div>
       </main>
     );
@@ -99,14 +135,21 @@ export const CompetitionLiveHeatPage: React.FC = () => {
   const competition = competitionQuery.data.competition;
   const entries = liveHeatQuery.data?.entries ?? [];
   const tickerAnnouncement = announcement?.display_mode === 'ticker' ? announcement : null;
+  const tickerText = tickerAnnouncement ? tickerAnnouncement.message.toUpperCase() : '';
+  const tickerRepeatCount = tickerAnnouncement
+    ? Math.max(5, Math.ceil(100 / Math.max(tickerText.length, 1)))
+    : 0;
+  const tickerItems = Array.from({ length: tickerRepeatCount }, () => tickerText);
+  const tickerTotalChars = tickerItems.join(' \u2022 ').length;
+  const tickerDuration = Math.max(15, tickerTotalChars * 0.225);
 
   return (
-    <main data-live-layout="caller-board" style={{ paddingBottom: tickerAnnouncement ? '4.5rem' : undefined }} className="h-dvh max-h-dvh overflow-hidden bg-slate-100 p-2 font-sans text-slate-800 sm:p-4">
+    <main data-live-layout="caller-board" data-live-has-ticker={tickerAnnouncement ? 'true' : undefined} className="h-dvh max-h-dvh overflow-hidden bg-slate-100 p-2 font-sans text-slate-800 sm:p-4">
       <div className="mx-auto flex h-full min-h-0 max-w-[1920px] flex-col gap-2 sm:gap-3 lg:flex-row lg:gap-5">
         <aside className="grid shrink-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2 sm:gap-3 [@media(max-height:700px)_and_(max-width:767px)]:grid-cols-3 lg:h-full lg:min-h-0 lg:w-[340px] lg:grid-cols-1 lg:grid-rows-[auto_auto_minmax(0,1fr)] xl:w-[380px]">
           <section data-live-section="heat" className="overflow-hidden rounded-2xl bg-brand-pool text-white sm:rounded-3xl">
             <div className="flex h-full flex-col justify-center px-4 py-3 sm:px-6 sm:py-4 lg:py-5">
-              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/80 [@media(max-height:700px)_and_(max-width:767px)]:hidden">Heat actual</p>
+              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/80 [@media(max-height:700px)_and_(max-width:767px)]:hidden">Serie actual</p>
               <h1 className="mt-1 text-3xl font-black italic leading-none tracking-tight sm:text-4xl lg:text-5xl">HEAT {state ? String(state.heat_number).padStart(2, '0') : '--'}</h1>
               {state?.heat_total && <p className="mt-1 font-bold text-white/80">de {state.heat_total} heats</p>}
             </div>
@@ -120,6 +163,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
             <div className="flex items-start gap-3">
               <div className="min-w-0">
                 <h2 className="mt-1 text-xl font-black leading-tight text-[#434343] [@media(max-height:700px)_and_(max-width:767px)]:truncate">{competition.name}</h2>
+                <span className="text-xs font-bold text-slate-400">Etapa {state?.stage_number ?? 'única'}</span>
                 <p className="mt-1 text-sm font-medium text-slate-500 [@media(max-height:700px)_and_(max-width:767px)]:hidden">{competition.location || 'Sede por confirmar'}</p>
               </div>
             </div>
@@ -149,10 +193,9 @@ export const CompetitionLiveHeatPage: React.FC = () => {
             <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white p-3 sm:rounded-3xl sm:p-4 2xl:p-5">
             <div className="flex items-center justify-between border-b border-slate-200 px-2 pb-3">
               <h2 className="text-sm font-black uppercase tracking-widest text-[#434343]">Nadadores llamados</h2>
-              <span className="text-xs font-bold text-slate-400">Etapa {state?.stage_number ?? '—'}</span>
             </div>
             {!state ? (
-              <div className="grid flex-1 place-items-center p-8 text-center font-semibold text-slate-400">La pantalla se actualizará cuando el voluntario inicie el llamador.</div>
+              <div className="grid flex-1 place-items-center p-8 text-center font-semibold text-slate-400">La pantalla se actualizará cuando el encargado inicie el llamador.</div>
             ) : entries.length === 0 ? (
               <div className="grid flex-1 place-items-center p-8 text-center font-semibold text-slate-400">Este heat no tiene carriles asignados.</div>
             ) : (
@@ -172,7 +215,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
 
             <aside className="flex min-h-0 flex-col overflow-hidden rounded-2xl bg-white p-3 sm:rounded-3xl sm:p-4 2xl:p-5">
             <div className="flex items-center justify-between border-b border-slate-200 px-2 pb-3">
-              <h2 className="text-xs font-black uppercase tracking-widest text-[#434343]"><span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-amber-500" />PRÓXIMO HEAT {nextHeat ? String(nextHeat.heatNumber).padStart(2, '0') : '—'}</h2>
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#434343]"><span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-amber-500" />PRÓXIMA SERIE {nextHeat ? String(nextHeat.heatNumber).padStart(2, '0') : '—'}</h2>
             </div>
             {nextHeat ? (
               <>
@@ -191,7 +234,24 @@ export const CompetitionLiveHeatPage: React.FC = () => {
           </div>
         </section>
       </div>
-      {tickerAnnouncement && <aside data-live-announcement="ticker" role="status" aria-live="polite" aria-atomic="true" className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center gap-4 bg-slate-950 px-5 text-white shadow-2xl sm:px-8"><span className="shrink-0 rounded bg-amber-400 px-2 py-1 text-xs font-black uppercase tracking-wider text-slate-950">Comunicado</span><p className="truncate text-lg font-bold" title={tickerAnnouncement.message}>{tickerAnnouncement.message}</p></aside>}
+      {tickerAnnouncement && (
+        <aside data-live-announcement="ticker" role="status" aria-live="polite" aria-atomic="true" aria-label={`Comunicado: ${tickerAnnouncement.message}`} className="fixed inset-x-0 bottom-0 z-50 flex h-9 items-center overflow-hidden border-t border-white/25 bg-[#139fba] text-white shadow-2xl motion-reduce:h-auto motion-reduce:min-h-11 motion-reduce:py-2 sm:h-10 md:h-11">
+          <div className="w-full overflow-hidden" aria-hidden="true">
+            <div className="live-announcement-ticker-track flex w-max shrink-0 items-center whitespace-nowrap" style={{ '--live-announcement-ticker-duration': `${tickerDuration}s` } as React.CSSProperties}>
+              {[0, 1].map((copyIndex) => (
+                <div key={copyIndex} data-live-ticker-copy className="live-announcement-ticker-copy flex shrink-0 items-center" aria-hidden={copyIndex === 1 ? 'true' : undefined}>
+                  {tickerItems.map((text, itemIndex) => (
+                    <span key={itemIndex} data-live-ticker-item className="flex shrink-0 items-center">
+                      <span className="live-announcement-ticker-message px-5 text-xs font-black uppercase tracking-widest drop-shadow-xs sm:text-sm md:text-base">{text}</span>
+                      <span className="live-announcement-ticker-separator text-xs font-bold text-white/60">&bull;</span>
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      )}
     </main>
   );
 };

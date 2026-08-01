@@ -6,6 +6,7 @@ ROUTER = ROOT / "frontend/src/app/router.tsx"
 SERVICE = ROOT / "frontend/src/features/competitions/api/competitionService.ts"
 SCHEMA = ROOT / "frontend/src/lib/schemas/competition.ts"
 PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveHeatPage.tsx"
+STYLES = ROOT / "frontend/src/index.css"
 CONTROL_PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveHeatControlPage.tsx"
 ADMIN_PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveAnnouncementAdminPage.tsx"
 AUTH_SCHEMA = ROOT / "frontend/src/lib/schemas/auth.ts"
@@ -236,15 +237,42 @@ def test_public_board_polls_announcements_independently_and_renders_both_modes()
     assert 'data-live-announcement="ticker"' in source
 
 
+def test_fullscreen_announcement_auto_fits_without_internal_scrolling():
+    source = PAGE.read_text(encoding="utf-8")
+    fullscreen = source.split('data-live-layout="announcement-fullscreen"', 1)[1].split(
+        "competitionQuery.isLoading", 1
+    )[0]
+
+    assert "useLayoutEffect" in source and "ResizeObserver" in source
+    assert "document.fonts.ready" in source
+    assert "scrollHeight <= frame.clientHeight" in source
+    assert "scrollWidth <= frame.clientWidth" in source
+    assert "overflow-y-auto" not in fullscreen
+    assert "lg:text-6xl" not in fullscreen
+    assert "[overflow-wrap:anywhere]" in source
+
+
 def test_ticker_is_accessible_fixed_and_reserves_board_space():
     source = PAGE.read_text(encoding="utf-8")
+    styles = STYLES.read_text(encoding="utf-8")
+    ticker = source.split('data-live-announcement="ticker"', 1)[1]
 
     assert 'role="status"' in source
     assert 'aria-live="polite"' in source
     assert "fixed inset-x-0 bottom-0" in source
-    assert "paddingBottom: tickerAnnouncement ? '4.5rem' : undefined" in source
+    assert "data-live-has-ticker={tickerAnnouncement ? 'true' : undefined}" in source
     assert "announcementQuery.refetch()" in source
     assert "const announcement = announcementQuery.isError ? null" in source
+    assert "tickerAnnouncement.message.toUpperCase()" in source
+    assert "Math.max(5, Math.ceil(100 / Math.max(tickerText.length, 1)))" in source
+    assert "Math.max(15, tickerTotalChars * 0.225)" in source
+    assert "[0, 1].map" in ticker and 'aria-hidden="true"' in ticker
+    assert "truncate" not in ticker and "text-overflow" not in styles
+    assert "@keyframes live-announcement-ticker" in styles
+    assert "transform: translateX(-50%)" in styles
+    assert "linear infinite" in styles
+    assert "@media (prefers-reduced-motion: reduce)" in styles
+    assert ".live-announcement-ticker-copy[aria-hidden='true']" in styles
 
 
 def test_announcement_admin_route_is_standalone_and_separate_from_operator_control():

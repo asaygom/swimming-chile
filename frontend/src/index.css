@@ -36,3 +36,56 @@
   --color-medal-silver: #64748B;
   --color-medal-bronze: #C2410C;
 }
+
+@keyframes live-announcement-ticker {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.live-announcement-ticker-track {
+  animation: live-announcement-ticker var(--live-announcement-ticker-duration) linear infinite;
+}
+
+[data-live-layout='caller-board'][data-live-has-ticker='true'] {
+  padding-bottom: 3.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-announcement-ticker-track {
+    width: 100%;
+    animation: none;
+    transform: none;
+  }
+
+  [data-live-layout='caller-board'][data-live-has-ticker='true'] {
+    padding-bottom: 6rem;
+  }
+
+  .live-announcement-ticker-copy {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .live-announcement-ticker-copy[aria-hidden='true'],
+  .live-announcement-ticker-copy [data-live-ticker-item]:not(:first-child),
+  .live-announcement-ticker-separator {
+    display: none;
+  }
+
+  .live-announcement-ticker-copy [data-live-ticker-item]:first-child {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .live-announcement-ticker-message {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+}
