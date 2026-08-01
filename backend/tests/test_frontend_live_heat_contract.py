@@ -7,6 +7,9 @@ SERVICE = ROOT / "frontend/src/features/competitions/api/competitionService.ts"
 SCHEMA = ROOT / "frontend/src/lib/schemas/competition.ts"
 PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveHeatPage.tsx"
 CONTROL_PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveHeatControlPage.tsx"
+ADMIN_PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveAnnouncementAdminPage.tsx"
+AUTH_SCHEMA = ROOT / "frontend/src/lib/schemas/auth.ts"
+FRONTEND_ENV = ROOT / "frontend/.env.example"
 
 
 def test_public_live_heat_route_uses_validated_read_only_api_contract():
@@ -203,3 +206,135 @@ def test_operator_control_uses_cookie_session_and_optimistic_concurrency():
     assert 'aria-live="polite"' in source
     assert "target.stage_number === liveState.stage_number" in source
     assert "target.pool_role === liveState.pool_role" in source
+
+
+def test_public_announcement_api_is_typed_validated_and_independent_from_live_heat():
+    service = SERVICE.read_text(encoding="utf-8")
+    schema = SCHEMA.read_text(encoding="utf-8")
+
+    assert "LiveAnnouncementSchema" in schema
+    assert "display_mode: z.enum(['fullscreen', 'ticker'])" in schema
+    assert "announcement: LiveAnnouncementSchema.nullable()" in schema
+    assert "async getActiveLiveAnnouncement(id: string)" in service
+    assert "/live-announcements/active`" in service
+    assert "LiveAnnouncementResponseSchema.parse" in service
+
+
+def test_public_board_polls_announcements_independently_and_renders_both_modes():
+    source = PAGE.read_text(encoding="utf-8")
+
+    assert "const LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS = 10_000" in source
+    assert "queryKey: ['competition-live-announcement', id]" in source
+    assert "competitionService.getActiveLiveAnnouncement(id!)" in source
+    assert "refetchInterval: LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS" in source
+    assert "announcement?.display_mode === 'fullscreen'" in source
+    assert 'data-live-layout="announcement-fullscreen"' in source
+    assert source.index("announcement?.display_mode === 'fullscreen'") < source.index(
+        "competitionQuery.isLoading || programQuery.isLoading || liveHeatQuery.isLoading"
+    )
+    assert "announcement?.display_mode === 'ticker'" in source
+    assert 'data-live-announcement="ticker"' in source
+
+
+def test_ticker_is_accessible_fixed_and_reserves_board_space():
+    source = PAGE.read_text(encoding="utf-8")
+
+    assert 'role="status"' in source
+    assert 'aria-live="polite"' in source
+    assert "fixed inset-x-0 bottom-0" in source
+    assert "paddingBottom: tickerAnnouncement ? '4.5rem' : undefined" in source
+    assert "announcementQuery.refetch()" in source
+    assert "const announcement = announcementQuery.isError ? null" in source
+
+
+def test_announcement_admin_route_is_standalone_and_separate_from_operator_control():
+    router = ROUTER.read_text(encoding="utf-8")
+
+    assert "path: '/competitions/:id/live/admin'" in router
+    assert "<CompetitionLiveAnnouncementAdminPage />" in router
+    assert router.index("path: '/competitions/:id/live/admin'") < router.index(
+        "element: <MainLayout />"
+    )
+    assert "path: '/competitions/:id/live/control'" in router
+
+
+def test_admin_login_exchanges_ephemeral_supabase_token_for_http_only_session():
+    service = SERVICE.read_text(encoding="utf-8")
+    auth_schema = AUTH_SCHEMA.read_text(encoding="utf-8")
+
+    assert "VITE_SUPABASE_URL" in service and "VITE_SUPABASE_ANON_KEY" in service
+    assert "/auth/v1/token?grant_type=password" in service
+    assert "SupabasePasswordResponseSchema.parse" in service
+    assert "Authorization: `Bearer ${ephemeral.accessToken}`" in service
+    assert "credentials: 'include'" in service
+    assert "ephemeral.accessToken = ''" in service
+    assert "localStorage" not in service and "sessionStorage" not in service
+    assert "AdminSessionResponseSchema" in auth_schema
+    env_example = FRONTEND_ENV.read_text(encoding="utf-8")
+    assert "VITE_SUPABASE_URL=" in env_example
+    assert "VITE_SUPABASE_ANON_KEY=" in env_example
+
+
+def test_admin_foundation_probes_access_handles_errors_and_logs_out():
+    service = SERVICE.read_text(encoding="utf-8")
+    source = ADMIN_PAGE.read_text(encoding="utf-8")
+
+    assert "getLiveAnnouncements" in service and "/live-announcements`" in service
+    assert "deleteLiveAnnouncementAdminSession" in service
+    assert "queryKey: ['competition-live-announcements-admin', id]" in source
+    assert 'type="email"' in source and 'type="password"' in source
+    assert "createLiveAnnouncementAdminSession(email, password)" in source
+    assert "setPassword('')" in source
+    assert "Cerrar sesión" in source
+    assert "Autenticación administrativa no configurada" in source
+    assert "No tienes permisos para administrar esta competencia" in source
+    assert "No pudimos conectar con la administración" in source
+    assert "createLiveHeatSession" not in source
+    assert "swimstats_live_operator" not in source
+    assert "localStorage" not in source and "sessionStorage" not in source
+
+
+def test_announcement_admin_service_mutations_are_typed_scoped_and_revisioned():
+    service = SERVICE.read_text(encoding="utf-8")
+    schema = SCHEMA.read_text(encoding="utf-8")
+
+    for method in [
+        "createLiveAnnouncement", "updateLiveAnnouncement",
+        "setLiveAnnouncementActivation", "deleteLiveAnnouncement",
+    ]:
+        assert f"async {method}" in service
+    assert "LiveAnnouncementResponseSchema.parse" in service
+    assert "LiveAnnouncementCreate" in schema and "expected_revision: 0" in schema
+    assert "LiveAnnouncementUpdate" in schema and "LiveAnnouncementActivation" in schema
+    assert "expected_revision" in service
+    assert "credentials: 'include'" in service
+    assert "encodeURIComponent(id)" in service
+
+
+def test_announcement_admin_page_provides_accessible_crud_and_status():
+    source = ADMIN_PAGE.read_text(encoding="utf-8")
+
+    assert 'htmlFor="announcement-message"' in source
+    assert 'htmlFor="announcement-mode"' in source
+    assert "createLiveAnnouncement(id!" in source
+    assert "updateLiveAnnouncement(id!" in source
+    assert "setLiveAnnouncementActivation(id!" in source
+    assert "deleteLiveAnnouncement(id!" in source
+    assert "announcement.revision" in source
+    assert "announcement.is_active" in source
+    assert "Pantalla completa" in source and "Cinta inferior" in source
+    assert "Activar" in source and "Desactivar" in source
+    assert "Editar" in source and "Eliminar" in source
+
+
+def test_announcement_admin_recovers_from_stale_mutations():
+    source = ADMIN_PAGE.read_text(encoding="utf-8")
+
+    assert "error instanceof ApiError && error.status === 409" in source
+    assert "await announcementsQuery.refetch()" in source
+    assert "Otro administrador actualizó los comunicados" in source
+    assert "expected_revision: announcement.revision" in source
+    assert "createLiveHeatSession" not in source
+    assert "swimstats_live_operator" not in source
+    assert "setMessage(successMessage);\n      void announcementsQuery.refetch();" in source
+    assert "draftMode === 'ticker' ? 240 : 1000" in source

@@ -25,6 +25,9 @@ MEET_PROGRAM_ESTIMATED_TIMES_SQL = (
 MEET_PROGRAM_SEGMENTS_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "014_meet_program_segments.sql"
 )
+LIVE_ANNOUNCEMENTS_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "016_live_announcements.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -261,3 +264,46 @@ def test_meet_program_segments_scope_publication_and_allow_lane_zero():
         "check (lane >= 0)",
     ]:
         assert fragment in migration_sql
+
+
+def test_live_announcement_schema_declares_competition_admin_foundation():
+    schema_sql = normalized_sql(SCHEMA_SQL)
+    migration_sql = normalized_sql(LIVE_ANNOUNCEMENTS_SQL)
+
+    for fragment in [
+        "create table auth.user_competition_role",
+        "role text not null check (role in ('competition_admin'))",
+        "unique (user_id, competition_id, role)",
+        "create table auth.admin_session",
+        "token_hash text not null unique",
+        "revoked_at timestamptz",
+    ]:
+        assert fragment.replace("create table ", "create table if not exists ") in migration_sql
+    assert "auth.user_account" not in schema_sql
+    assert "live_announcement" not in schema_sql
+
+
+def test_live_announcement_schema_keeps_tokens_hashed_and_sessions_revocable():
+    schema_sql = normalized_sql(SCHEMA_SQL)
+    migration_sql = normalized_sql(LIVE_ANNOUNCEMENTS_SQL)
+
+    assert "chk_admin_session_token_hash" in migration_sql
+    assert "token_hash ~ '^[0-9a-f]{64}$'" in migration_sql
+    assert "revoked_at is null or revoked_at >= created_at" in migration_sql
+    assert "token text" not in migration_sql
+    assert "ux_admin_session_one_per_user" in migration_sql
+
+
+def test_live_announcement_schema_is_audited_soft_deleted_and_independently_versioned():
+    schema_sql = normalized_sql(SCHEMA_SQL)
+    migration_sql = normalized_sql(LIVE_ANNOUNCEMENTS_SQL)
+
+    assert "create table" in migration_sql and "live_announcement" in migration_sql
+    assert "display_mode in ('fullscreen', 'ticker')" in migration_sql
+    assert "revision bigint not null default 1 check (revision > 0)" in migration_sql
+    for actor in ["created_by_user_id", "updated_by_user_id", "activated_by_user_id", "deleted_by_user_id"]:
+        assert actor in migration_sql
+    assert "deleted_at timestamptz" in migration_sql
+    assert "is_active and deleted_at is null" in migration_sql
+    assert "ux_live_announcement_one_active_per_competition" in migration_sql
+    assert "display_mode <> 'ticker' or length(trim(message)) <= 240" in migration_sql

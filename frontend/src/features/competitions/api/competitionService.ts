@@ -1,10 +1,17 @@
-import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
-import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveHeatResponse, LiveHeatUpdate, MeetProgramResponse } from '../../../lib/schemas/competition';
+import { AdminSessionResponseSchema, SupabasePasswordResponseSchema } from '../../../lib/schemas/auth';
+import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveAnnouncementResponseSchema, LiveAnnouncementsResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
+import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveAnnouncementActivation, LiveAnnouncementCreate, LiveAnnouncementResponse, LiveAnnouncementsResponse, LiveAnnouncementUpdate, LiveHeatResponse, LiveHeatUpdate, MeetProgramResponse } from '../../../lib/schemas/competition';
 import { ApiError } from '../../../lib/api/fetcher';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const competitionService = {
+  isLiveAnnouncementAdminAuthConfigured(): boolean {
+    return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  },
+
   async getCompetitions(
     query: string = '',
     year: string = 'all',
@@ -58,6 +65,88 @@ export const competitionService = {
 
     const data = await response.json();
     return LiveHeatResponseSchema.parse(data);
+  },
+
+  async getActiveLiveAnnouncement(id: string): Promise<LiveAnnouncementResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-announcements/active`);
+    if (!response.ok) throw new Error('Failed to fetch live announcement');
+
+    return LiveAnnouncementResponseSchema.parse(await response.json());
+  },
+
+  async createLiveAnnouncementAdminSession(email: string, password: string): Promise<void> {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Autenticación administrativa no configurada');
+    }
+    const providerResponse = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!providerResponse.ok) throw new ApiError(providerResponse.status, 'Credenciales administrativas inválidas');
+    const ephemeral = {
+      accessToken: SupabasePasswordResponseSchema.parse(await providerResponse.json()).access_token,
+    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/admin-session`, {
+        method: 'POST', credentials: 'include',
+        headers: { Authorization: `Bearer ${ephemeral.accessToken}` },
+      });
+      if (!response.ok) throw new ApiError(response.status, 'Cuenta administrativa no habilitada');
+      AdminSessionResponseSchema.parse(await response.json());
+    } finally {
+      ephemeral.accessToken = '';
+    }
+  },
+
+  async deleteLiveAnnouncementAdminSession(): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/auth/admin-session/logout`, {
+      method: 'POST', credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo cerrar la sesión');
+  },
+
+  async getLiveAnnouncements(id: string): Promise<LiveAnnouncementsResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-announcements`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo validar el acceso administrativo');
+    return LiveAnnouncementsResponseSchema.parse(await response.json());
+  },
+
+  async createLiveAnnouncement(id: string, body: LiveAnnouncementCreate): Promise<LiveAnnouncementResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-announcements`, {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo crear el comunicado');
+    return LiveAnnouncementResponseSchema.parse(await response.json());
+  },
+
+  async updateLiveAnnouncement(id: string, announcementId: number, body: LiveAnnouncementUpdate): Promise<LiveAnnouncementResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-announcements/${announcementId}`, {
+      method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo actualizar el comunicado');
+    return LiveAnnouncementResponseSchema.parse(await response.json());
+  },
+
+  async setLiveAnnouncementActivation(id: string, announcementId: number, body: LiveAnnouncementActivation): Promise<LiveAnnouncementResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-announcements/${announcementId}/activation`, {
+      method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo cambiar la publicación');
+    return LiveAnnouncementResponseSchema.parse(await response.json());
+  },
+
+  async deleteLiveAnnouncement(id: string, announcementId: number, expected_revision: number): Promise<LiveAnnouncementResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-announcements/${announcementId}?expected_revision=${expected_revision}`, {
+      method: 'DELETE', credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo eliminar el comunicado');
+    return LiveAnnouncementResponseSchema.parse(await response.json());
   },
 
   async createLiveHeatSession(id: string, code: string): Promise<void> {

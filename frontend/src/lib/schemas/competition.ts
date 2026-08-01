@@ -150,6 +150,46 @@ export const LiveHeatResponseSchema = z.object({
 
 export type LiveHeatResponse = z.infer<typeof LiveHeatResponseSchema>;
 
+export const LiveAnnouncementSchema = z.object({
+  id: z.number().int().positive(),
+  message: z.string().min(1).max(1000),
+  display_mode: z.enum(['fullscreen', 'ticker']),
+  is_active: z.boolean(),
+  revision: z.number().int().positive(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  activated_at: z.string().nullable(),
+});
+
+export const LiveAnnouncementResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  announcement: LiveAnnouncementSchema.nullable(),
+});
+
+export type LiveAnnouncementResponse = z.infer<typeof LiveAnnouncementResponseSchema>;
+
+export const LiveAnnouncementsResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  announcements: z.array(LiveAnnouncementSchema),
+});
+
+export type LiveAnnouncementsResponse = z.infer<typeof LiveAnnouncementsResponseSchema>;
+
+export type LiveAnnouncementCreate = {
+  message: string;
+  display_mode: 'fullscreen' | 'ticker';
+  expected_revision: 0;
+};
+
+export type LiveAnnouncementUpdate = Omit<LiveAnnouncementCreate, 'expected_revision'> & {
+  expected_revision: number;
+};
+
+export type LiveAnnouncementActivation = {
+  is_active: boolean;
+  expected_revision: number;
+};
+
 export const OperatorSessionResponseSchema = z.object({
   authenticated: z.literal(true),
   expires_in_seconds: z.number().int().positive(),

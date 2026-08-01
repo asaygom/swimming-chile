@@ -10,6 +10,7 @@ import { CompetitionsPage } from '../features/competitions/pages/CompetitionsPag
 import { CompetitionProfilePage } from '../features/competitions/pages/CompetitionProfilePage';
 import { CompetitionLiveHeatPage } from '../features/competitions/pages/CompetitionLiveHeatPage';
 import { CompetitionLiveHeatControlPage } from '../features/competitions/pages/CompetitionLiveHeatControlPage';
+import { CompetitionLiveAnnouncementAdminPage } from '../features/competitions/pages/CompetitionLiveAnnouncementAdminPage';
 import { RelaysPage } from '../features/relays/pages/RelaysPage';
 import { HomePage } from '../features/home/pages/HomePage';
 import { RankingsPage } from '../features/rankings/pages/RankingsPage';
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
   {
     path: '/competitions/:id/live/control',
     element: <CompetitionLiveHeatControlPage />,
+  },
+  {
+    path: '/competitions/:id/live/admin',
+    element: <CompetitionLiveAnnouncementAdminPage />,
   },
   {
     path: '/',
