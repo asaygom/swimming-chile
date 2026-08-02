@@ -12,6 +12,9 @@ RETURNING_FIELDS = """
     id, message, display_mode, is_active, revision,
     created_at, updated_at, activated_at
 """
+EVENT_TYPES = Literal[
+    "create", "update", "activate", "automatic_deactivate", "deactivate", "delete"
+]
 
 
 class AnnouncementContent(BaseModel):
@@ -63,6 +66,28 @@ def _require_revision(announcement, expected_revision: int) -> None:
         raise HTTPException(status_code=409, detail="Announcement revision conflict")
 
 
+def _record_event(
+    cur, competition_id: int, announcement, event_type: EVENT_TYPES,
+    actor_user_id: int, *, is_deleted: bool = False,
+) -> None:
+    cur.execute("""
+        INSERT INTO core.live_announcement_event (
+            competition_id, announcement_id, event_type, revision, message,
+            display_mode, is_active, is_deleted, actor_user_id
+        ) VALUES (
+            %(competition_id)s, %(announcement_id)s, %(event_type)s, %(revision)s,
+            %(message)s, %(display_mode)s, %(is_active)s, %(is_deleted)s,
+            %(actor_user_id)s
+        )
+    """, {
+        "competition_id": competition_id, "announcement_id": announcement["id"],
+        "event_type": event_type, "revision": announcement["revision"],
+        "message": announcement["message"], "display_mode": announcement["display_mode"],
+        "is_active": announcement["is_active"], "is_deleted": is_deleted,
+        "actor_user_id": actor_user_id,
+    })
+
+
 @router.get("/{competition_id}/live-announcements/active")
 def get_active_announcement(competition_id: int):
     with get_db_connection() as conn:
@@ -95,6 +120,26 @@ def list_announcements(
     return {"competition_id": competition_id, "announcements": announcements}
 
 
+@router.get("/{competition_id}/live-announcements/history")
+def list_announcement_history(
+    competition_id: int,
+    limit: int = Query(default=25, ge=1, le=100),
+    _admin_user_id: int = Depends(require_competition_admin),
+):
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, announcement_id, event_type, revision, message,
+                       display_mode, is_active, is_deleted, actor_user_id, occurred_at
+                FROM core.live_announcement_event
+                WHERE competition_id = %s
+                ORDER BY occurred_at DESC, id DESC
+                LIMIT %s
+            """, (competition_id, limit))
+            events = cur.fetchall()
+    return {"competition_id": competition_id, "events": events}
+
+
 @router.post("/{competition_id}/live-announcements", status_code=201)
 def create_announcement(
     competition_id: int,
@@ -111,6 +156,7 @@ def create_announcement(
                 RETURNING {RETURNING_FIELDS}
             """, (competition_id, body.message, body.display_mode, admin_user_id, admin_user_id))
             announcement = cur.fetchone()
+            _record_event(cur, competition_id, announcement, "create", admin_user_id)
             conn.commit()
     return {"competition_id": competition_id, "announcement": announcement}
 
@@ -142,6 +188,7 @@ def update_announcement(
             announcement = cur.fetchone()
             if not announcement:
                 raise HTTPException(status_code=409, detail="Announcement revision conflict")
+            _record_event(cur, competition_id, announcement, "update", admin_user_id)
             conn.commit()
     return {"competition_id": competition_id, "announcement": announcement}
 
@@ -171,7 +218,14 @@ def set_announcement_activation(
                         revision = revision + 1, updated_at = NOW(), updated_by_user_id = %s
                     WHERE competition_id = %s AND id <> %s
                       AND is_active IS TRUE AND deleted_at IS NULL
+                    RETURNING id, message, display_mode, is_active, revision,
+                              created_at, updated_at, activated_at
                 """, (admin_user_id, competition_id, announcement_id))
+                for deactivated in cur.fetchall():
+                    _record_event(
+                        cur, competition_id, deactivated,
+                        "automatic_deactivate", admin_user_id,
+                    )
             cur.execute(f"""
                 UPDATE core.live_announcement SET is_active = %(is_active)s,
                     revision = revision + 1, updated_at = NOW(),
@@ -185,6 +239,10 @@ def set_announcement_activation(
             announcement = cur.fetchone()
             if not announcement:
                 raise HTTPException(status_code=409, detail="Announcement revision conflict")
+            _record_event(
+                cur, competition_id, announcement,
+                "activate" if body.is_active else "deactivate", admin_user_id,
+            )
             conn.commit()
     return {"competition_id": competition_id, "announcement": announcement}
 
@@ -216,5 +274,9 @@ def delete_announcement(
             announcement = cur.fetchone()
             if not announcement:
                 raise HTTPException(status_code=409, detail="Announcement revision conflict")
+            _record_event(
+                cur, competition_id, announcement, "delete", admin_user_id,
+                is_deleted=True,
+            )
             conn.commit()
     return {"competition_id": competition_id, "announcement": announcement}

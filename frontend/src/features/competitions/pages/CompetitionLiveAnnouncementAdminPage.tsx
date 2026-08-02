@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../../lib/api/fetcher';
 import { competitionService } from '../api/competitionService';
 
+const eventLabels = {
+  create: 'Creado', update: 'Editado', activate: 'Activado',
+  automatic_deactivate: 'Desactivado autom\u00e1ticamente',
+  deactivate: 'Desactivado', delete: 'Eliminado',
+} as const;
 
 export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,16 +19,32 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
   const [draftMessage, setDraftMessage] = useState('');
   const [draftMode, setDraftMode] = useState<'fullscreen' | 'ticker'>('ticker');
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const announcementsQuery = useQuery({
     queryKey: ['competition-live-announcements-admin', id],
     queryFn: () => competitionService.getLiveAnnouncements(id!),
     enabled: Boolean(id),
     retry: false,
   });
+  const historyQuery = useQuery({
+    queryKey: ['competition-live-announcement-history-admin', id],
+    queryFn: () => competitionService.getLiveAnnouncementHistory(id!),
+    enabled: Boolean(id),
+    retry: false,
+  });
+  const brandingQuery = useQuery({
+    queryKey: ['competition-live-branding-admin', id],
+    queryFn: () => competitionService.getLiveBranding(id!),
+    enabled: Boolean(id), retry: false,
+  });
   const configured = competitionService.isLiveAnnouncementAdminAuthConfigured();
   const status = announcementsQuery.error instanceof ApiError
     ? announcementsQuery.error.status : null;
   const announcements = announcementsQuery.data?.announcements ?? [];
+  const branding = brandingQuery.data ?? { has_logo: false, revision: 0 };
+
+  useEffect(() => () => { if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl); }, [logoPreviewUrl]);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -33,6 +54,7 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
       await competitionService.createLiveAnnouncementAdminSession(email, password);
       setEmail('');
       void announcementsQuery.refetch();
+      void historyQuery.refetch();
     } catch (error) {
       if (error instanceof ApiError && [400, 401].includes(error.status)) {
         setMessage('Correo o contraseña incorrectos.');
@@ -70,13 +92,16 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
       await action();
       setMessage(successMessage);
       void announcementsQuery.refetch();
+      void historyQuery.refetch();
       return true;
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         await announcementsQuery.refetch();
+        await historyQuery.refetch();
         setMessage('Otro administrador actualizó los comunicados. Recargamos los datos; revisa e intenta nuevamente.');
       } else if (error instanceof ApiError && error.status === 401) {
         await announcementsQuery.refetch();
+        await historyQuery.refetch();
         setMessage('La sesión administrativa expiró. Ingresa nuevamente.');
       } else {
         setMessage('No pudimos guardar el cambio. Intenta nuevamente.');
@@ -132,6 +157,35 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
     if (removed && editingId === announcement.id) resetDraft();
   };
 
+  const chooseLogo = (file: File | undefined) => {
+    setMessage('');
+    if (!file) { setSelectedLogo(null); setLogoPreviewUrl(null); return; }
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      setSelectedLogo(null); setLogoPreviewUrl(null);
+      setMessage('El logo debe ser PNG, JPEG o WebP y pesar como máximo 2 MiB.');
+      return;
+    }
+    setSelectedLogo(file);
+    setLogoPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const mutateBranding = async (action: () => Promise<unknown>, success: string) => {
+    setBusy(true); setMessage('');
+    try {
+      await action();
+      await brandingQuery.refetch();
+      setSelectedLogo(null); setLogoPreviewUrl(null); setMessage(success);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        await brandingQuery.refetch();
+        setMessage('Otro administrador actualizó el logo. Recargamos los datos; revisa e intenta nuevamente.');
+      } else if (error instanceof ApiError && error.status === 401) {
+        await announcementsQuery.refetch();
+        setMessage('La sesión administrativa expiró. Ingresa nuevamente.');
+      } else setMessage('No pudimos guardar el logo. Intenta nuevamente.');
+    } finally { setBusy(false); }
+  };
+
   if (!configured) {
     return <main className="grid min-h-dvh place-items-center bg-slate-100 p-6 font-sans"><section className="max-w-lg rounded-3xl bg-white p-8 text-center shadow-xl"><h1 className="text-2xl font-black text-slate-800">Administración no disponible</h1><p className="mt-3 text-slate-600">Autenticación administrativa no configurada.</p></section></main>;
   }
@@ -155,7 +209,7 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
   return (
     <main className="min-h-dvh bg-slate-100 p-4 font-sans sm:p-8">
       <div className="mx-auto max-w-5xl space-y-5">
-        <header className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm"><div><p className="text-xs font-black uppercase tracking-widest text-brand-pool">Administración de comunicados</p><h1 className="text-xl font-black text-slate-800">Acceso autorizado</h1></div><button type="button" disabled={busy} onClick={logout} className="rounded-xl border border-slate-300 px-4 py-2 font-bold text-slate-700">Cerrar sesión</button></header>
+        <header className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm"><div><p className="text-xs font-black uppercase tracking-widest text-brand-pool">Administración en vivo</p><h1 className="text-xl font-black text-slate-800">Acceso autorizado</h1></div><button type="button" disabled={busy} onClick={logout} className="rounded-xl border border-slate-300 px-4 py-2 font-bold text-slate-700">Cerrar sesión</button></header>
         <form onSubmit={submitAnnouncement} className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="text-lg font-black text-slate-800">{editingId ? 'Editar comunicado' : 'Crear comunicado'}</h2>
           <label htmlFor="announcement-message" className="block text-sm font-bold text-slate-700">Mensaje</label>
@@ -167,6 +221,28 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
         </form>
         {message && <p role="status" aria-live="polite" className="rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm">{message}</p>}
         <section className="space-y-3" aria-labelledby="announcement-list-title"><h2 id="announcement-list-title" className="text-lg font-black text-slate-800">Comunicados ({announcements.length})</h2>{announcements.length === 0 ? <p className="rounded-2xl bg-white p-6 text-slate-500 shadow-sm">Aún no hay comunicados.</p> : announcements.map((announcement) => <article key={announcement.id} className="rounded-2xl bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2 py-1 text-xs font-black ${announcement.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{announcement.is_active ? 'Activo' : 'Inactivo'}</span><span className="text-xs font-bold text-slate-500">{announcement.display_mode === 'fullscreen' ? 'Pantalla completa' : 'Cinta inferior'} · Revisión {announcement.revision}</span></div><p className="mt-3 whitespace-pre-wrap font-semibold text-slate-800">{announcement.message}</p></div><div className="flex flex-wrap gap-2"><button type="button" disabled={busy} onClick={() => startEditing(announcement)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold">Editar</button><button type="button" disabled={busy} onClick={() => void toggleActivation(announcement)} className="rounded-lg bg-brand-pool px-3 py-2 text-sm font-bold text-white">{announcement.is_active ? 'Desactivar' : 'Activar'}</button><button type="button" disabled={busy} onClick={() => void removeAnnouncement(announcement)} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700">Eliminar</button></div></div></article>)}</section>
+        <section className="rounded-2xl bg-white p-5 shadow-sm" aria-labelledby="announcement-history-title">
+          <h2 id="announcement-history-title" className="text-lg font-black text-slate-800">Historial de comunicados</h2>
+          {historyQuery.isError ? <p className="mt-3 text-sm text-slate-500">No pudimos cargar el historial.</p> : <ol className="mt-3 max-h-72 space-y-2 overflow-y-auto">
+            {(historyQuery.data?.events ?? []).map((event) => <li key={event.id} className="rounded-xl bg-slate-50 p-3 text-sm"><div className="flex flex-wrap justify-between gap-2"><span className="font-black text-slate-700">{eventLabels[event.event_type]}</span><time className="text-xs text-slate-400" dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString('es-CL')}</time></div><p className="mt-1 line-clamp-2 text-slate-600">{event.message}</p><p className="mt-1 text-xs text-slate-400">Administrador #{event.actor_user_id} / Rev. {event.revision}</p></li>)}
+            {historyQuery.data?.events.length === 0 && <li className="py-2 text-sm text-slate-400">Sin movimientos registrados.</li>}
+          </ol>}
+        </section>
+        <section className="rounded-2xl bg-white p-6 shadow-sm" aria-labelledby="branding-title">
+          <h2 id="branding-title" className="text-lg font-black text-slate-800">Logo de la competencia</h2>
+          <p className="mt-1 text-sm text-slate-500">PNG, JPEG o WebP de hasta 2 MiB.</p>
+          <div className="mt-4 flex min-h-40 items-center justify-center rounded-xl bg-slate-50 p-4">
+            {logoPreviewUrl ? <img src={logoPreviewUrl} alt="Vista previa del nuevo logo" className="max-h-48 max-w-full object-contain" />
+              : branding.has_logo ? <img src={competitionService.getLiveBrandingLogoUrl(id!, branding.revision)} alt="Logo actual de la competencia" className="max-h-48 max-w-full object-contain" />
+                : <p className="text-sm font-semibold text-slate-400">Sin logo particular</p>}
+          </div>
+          <label htmlFor="competition-logo" className="mt-4 block text-sm font-bold text-slate-700">Seleccionar archivo</label>
+          <input id="competition-logo" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => chooseLogo(event.target.files?.[0])} className="mt-2 block w-full text-sm text-slate-600" />
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button type="button" disabled={busy || !selectedLogo} onClick={() => void mutateBranding(() => competitionService.uploadLiveBranding(id!, selectedLogo!, branding.revision), 'Logo actualizado.')} className="rounded-xl bg-brand-pool px-5 py-3 font-black text-white disabled:opacity-40">Subir logo</button>
+            {branding.has_logo && <button type="button" disabled={busy} onClick={() => void mutateBranding(() => competitionService.deleteLiveBranding(id!, branding.revision), 'Logo eliminado.')} className="rounded-xl border border-red-200 px-5 py-3 font-bold text-red-700">Eliminar logo</button>}
+          </div>
+        </section>
         <Link className="block text-center font-bold text-brand-pool hover:underline" to={`/competitions/${id}/live`}>Ver pantalla pública</Link>
       </div>
     </main>

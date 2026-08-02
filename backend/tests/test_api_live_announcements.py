@@ -49,6 +49,9 @@ ANNOUNCEMENT = {
     "is_active": True, "revision": 4, "created_at": "2026-08-01T10:00:00Z",
     "updated_at": "2026-08-01T10:05:00Z", "activated_at": "2026-08-01T10:05:00Z",
 }
+DEACTIVATED_ANNOUNCEMENT = {
+    **ANNOUNCEMENT, "id": 30, "is_active": False, "revision": 5,
+}
 
 
 def test_public_read_returns_only_active_non_deleted_announcement(monkeypatch):
@@ -101,6 +104,10 @@ def test_create_validates_input_and_records_admin_actor(monkeypatch):
     query, params = connection.cursor_instance.executed[0]
     assert query.startswith("INSERT INTO core.live_announcement")
     assert params == (7, "Notice", "fullscreen", 19, 19)
+    event_query, event_params = connection.cursor_instance.executed[-1]
+    assert event_query.startswith("INSERT INTO core.live_announcement_event")
+    assert event_params["event_type"] == "create"
+    assert event_params["actor_user_id"] == 19
     assert connection.committed is True
 
 
@@ -111,10 +118,14 @@ def test_update_is_isolated_audited_and_revision_guarded(monkeypatch):
     )
     result = live_announcements.update_announcement(7, 31, body, 19)
     assert result["announcement"] == ANNOUNCEMENT
-    query, params = connection.cursor_instance.executed[-1]
+    query, params = next(
+        item for item in connection.cursor_instance.executed
+        if item[0].startswith("UPDATE core.live_announcement")
+    )
     assert "revision = revision + 1" in query and "updated_by_user_id" in query
     assert "competition_id = %(competition_id)s" in query
     assert params["competition_id"] == 7 and params["user_id"] == 19
+    assert connection.cursor_instance.executed[-1][1]["event_type"] == "update"
 
     install_database(monkeypatch, [{"revision": 4}])
     with pytest.raises(HTTPException) as error:
@@ -122,8 +133,12 @@ def test_update_is_isolated_audited_and_revision_guarded(monkeypatch):
     assert error.value.status_code == 409
 
 
-def test_activation_serializes_competition_and_deactivates_only_its_prior_row(monkeypatch):
-    connection = install_database(monkeypatch, [{"id": 7}, {"revision": 2}, ANNOUNCEMENT])
+def test_activation_serializes_and_records_target_plus_automatic_deactivation(monkeypatch):
+    connection = install_database(
+        monkeypatch,
+        [{"id": 7}, {"revision": 2}, ANNOUNCEMENT],
+        [DEACTIVATED_ANNOUNCEMENT],
+    )
     body = live_announcements.AnnouncementActivation(is_active=True, expected_revision=2)
 
     result = live_announcements.set_announcement_activation(7, 31, body, 19)
@@ -131,21 +146,49 @@ def test_activation_serializes_competition_and_deactivates_only_its_prior_row(mo
     assert result["announcement"] == ANNOUNCEMENT
     lock_query = connection.cursor_instance.executed[0][0]
     deactivate_query, deactivate_params = connection.cursor_instance.executed[2]
-    activate_query, activate_params = connection.cursor_instance.executed[3]
+    activate_query, activate_params = next(
+        item for item in connection.cursor_instance.executed
+        if item[0].startswith("UPDATE core.live_announcement SET is_active = %(is_active)s")
+    )
     assert "core.competition" in lock_query and "FOR UPDATE" in lock_query
     assert "competition_id = %s" in deactivate_query and "id <> %s" in deactivate_query
     assert deactivate_params == (19, 7, 31)
+    assert "RETURNING" in deactivate_query
     assert "activated_by_user_id" in activate_query
     assert activate_params["expected_revision"] == 2
+    event_types = [
+        params["event_type"] for query, params in connection.cursor_instance.executed
+        if query.startswith("INSERT INTO core.live_announcement_event")
+    ]
+    assert event_types == ["automatic_deactivate", "activate"]
+
+
+def test_explicit_deactivation_records_distinct_event(monkeypatch):
+    inactive = {**ANNOUNCEMENT, "is_active": False, "revision": 5}
+    connection = install_database(monkeypatch, [{"id": 7}, {"revision": 4}, inactive])
+
+    live_announcements.set_announcement_activation(
+        7, 31, live_announcements.AnnouncementActivation(
+            is_active=False, expected_revision=4
+        ), 19,
+    )
+
+    assert connection.cursor_instance.executed[-1][1]["event_type"] == "deactivate"
 
 
 def test_delete_is_soft_audited_and_rejects_stale_revision(monkeypatch):
     connection = install_database(monkeypatch, [{"revision": 4}, ANNOUNCEMENT])
     result = live_announcements.delete_announcement(7, 31, 4, 19)
     assert result["announcement"] == ANNOUNCEMENT
-    query, params = connection.cursor_instance.executed[-1]
+    query, params = next(
+        item for item in connection.cursor_instance.executed
+        if item[0].startswith("UPDATE core.live_announcement")
+    )
     assert "deleted_at = NOW()" in query and "deleted_by_user_id" in query
     assert "is_active = FALSE" in query and params["user_id"] == 19
+    event_params = connection.cursor_instance.executed[-1][1]
+    assert event_params["event_type"] == "delete"
+    assert event_params["is_deleted"] is True
 
     install_database(monkeypatch, [{"revision": 5}])
     with pytest.raises(HTTPException) as error:
@@ -159,3 +202,22 @@ def test_admin_routes_use_competition_admin_not_operator_auth():
     assert "swimstats_live_operator" not in source
     assert "LiveHeat" not in source
     assert "include_router(live_announcements.router" in Path(main.__file__).read_text(encoding="utf-8")
+
+
+def test_admin_history_is_competition_scoped_bounded_and_newest_first(monkeypatch):
+    event = {
+        "id": 101, "announcement_id": 31, "event_type": "activate",
+        "revision": 4, "message": ANNOUNCEMENT["message"],
+        "display_mode": "ticker", "is_active": True, "is_deleted": False,
+        "actor_user_id": 19, "occurred_at": "2026-08-01T10:05:00Z",
+    }
+    connection = install_database(monkeypatch, all_rows=[event])
+
+    result = live_announcements.list_announcement_history(7, 25, 19)
+
+    assert result == {"competition_id": 7, "events": [event]}
+    query, params = connection.cursor_instance.executed[0]
+    assert "FROM core.live_announcement_event" in query
+    assert "competition_id = %s" in query
+    assert "ORDER BY occurred_at DESC, id DESC" in query
+    assert params == (7, 25)
