@@ -6,7 +6,10 @@ import { competitionService } from '../api/competitionService';
 
 const LIVE_HEAT_POLL_INTERVAL_MS = 2_500;
 const LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS = 2_500;
-const LIVE_BRANDING_POLL_INTERVAL_MS = 2_500;
+// El logo se define antes de la competencia y no cambia durante el evento, a
+// diferencia del heat y los comunicados. Se consulta lento para no triplicar el
+// trafico del board por un dato practicamente estatico.
+const LIVE_BRANDING_POLL_INTERVAL_MS = 60_000;
 
 type ProgramHeat = {
   sessionNumber: number;

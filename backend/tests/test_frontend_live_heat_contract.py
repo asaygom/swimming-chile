@@ -445,7 +445,9 @@ def test_live_branding_service_is_typed_revisioned_and_never_persists_images_loc
 def test_public_board_polls_branding_and_replaces_only_tournament_content():
     source = PAGE.read_text(encoding="utf-8")
 
-    assert "const LIVE_BRANDING_POLL_INTERVAL_MS = 2_500" in source
+    # El logo no cambia durante la competencia: se consulta mucho mas lento que
+    # el heat y los comunicados, que si cambian en vivo.
+    assert "const LIVE_BRANDING_POLL_INTERVAL_MS = 60_000" in source
     assert "queryKey: ['competition-live-branding', id]" in source
     assert "refetchInterval: LIVE_BRANDING_POLL_INTERVAL_MS" in source
     assert "getLiveBrandingLogoUrl(id!, branding.revision)" in source

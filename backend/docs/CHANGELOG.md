@@ -29,10 +29,10 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   referencian `auth.user_account` y quedan únicamente en migraciones, porque
   `schema.sql` debe seguir siendo ejecutable sin los schemas creados desde la
   migración 007.
-- El board público pasa de 10 s a 2,5 s de polling para heat, comunicados y
-  branding, priorizando latencia percibida en pantalla por sobre volumen de
-  requests. Queda pendiente evaluar un intervalo mayor para branding, que cambia
-  con muy baja frecuencia.
+- El board público pasa de 10 s a 2,5 s de polling para heat y comunicados,
+  priorizando latencia percibida en pantalla por sobre volumen de requests. El
+  logo se consulta cada 60 s: se define antes del evento y no cambia durante la
+  competencia, así que no justifica el mismo ritmo que los datos en vivo.
 
 ## 2026-08-01 - Fundación administrativa de comunicados en vivo
 
