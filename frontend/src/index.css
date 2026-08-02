@@ -8,6 +8,12 @@
   --color-brand-cyan: #00D8F5;
   --color-brand-turquoise: #21F2E7;
   --color-brand-pool: #0096FF;
+  /* Identidad visual del modulo del llamador (board publico, control de
+     voluntario y panel de comunicados). Es temporal: aplica a la III Copa
+     Nunoa Master del 2026-08-08, y despues el modulo vuelve a la identidad del
+     sitio. Como todo el modulo consume este token y no el literal, revertir es
+     cambiar esta linea a #0096FF; no hay que tocar las paginas. */
+  --color-brand-live: #139fba;
   --color-brand-white: #F4F8FF;
   --color-brand-muted: #B8C7DA;
   --color-brand-subtle: #7F94AE;

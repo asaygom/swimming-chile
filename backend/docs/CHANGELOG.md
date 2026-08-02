@@ -29,6 +29,19 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   referencian `auth.user_account` y quedan únicamente en migraciones, porque
   `schema.sql` debe seguir siendo ejecutable sin los schemas creados desde la
   migración 007.
+- El módulo del llamador (board público, control de voluntario y panel de
+  comunicados) gana identidad propia con el token `--color-brand-live`
+  (`#139fba`), separado de `--color-brand-pool` (`#0096FF`) que sigue usando el
+  resto del sitio. Reemplaza además el literal `#139fba` que estaba suelto en la
+  cinta de comunicados.
+- La separación es temporal y deliberada: aplica a la III Copa Ñuñoa Master del
+  2026-08-08, y después el módulo vuelve a la identidad del sitio. Ninguna
+  página usa el color literal, así que revertir es cambiar el valor del token en
+  `frontend/src/index.css`, sin tocar componentes.
+- La marca sale de la tarjeta del torneo y pasa a ser un pie propio al final del
+  board, visible solo bajo `lg`: en la pantalla de piscina el enlace no se usa y
+  ese alto lo necesitan los nadadores llamados. El logo se acota en mobile,
+  donde la fila es de alto automático y un logo vertical desplazaba la lista.
 - El board público pasa de 10 s a 2,5 s de polling para heat y comunicados,
   priorizando latencia percibida en pantalla por sobre volumen de requests. El
   logo se consulta cada 60 s: se define antes del evento y no cambia durante la

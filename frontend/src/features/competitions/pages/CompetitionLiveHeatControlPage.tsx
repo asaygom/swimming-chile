@@ -184,16 +184,16 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
     return (
       <main data-live-layout="heat-controller" className="grid min-h-dvh place-items-center bg-slate-100 p-4 font-sans">
         <section className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl">
-          <div className="bg-brand-pool p-7 text-white">
+          <div className="bg-brand-live p-7 text-white">
             <div className="flex items-center gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-white/80">{competitionQuery.data?.competition.name}</p><h1 className="text-2xl font-black">Controlador de heats</h1></div></div>
           </div>
           <form onSubmit={authenticate} className="space-y-4 p-7">
             <p className="text-sm text-slate-500">Ingresa el código temporal asignado a esta competencia.</p>
             <label className="block text-sm font-bold text-slate-700" htmlFor="operator-code">Código temporal</label>
-            <input id="operator-code" type="password" autoComplete="one-time-code" required value={code} onChange={(event) => setCode(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-800 focus:ring-2 focus:ring-brand-pool" />
+            <input id="operator-code" type="password" autoComplete="one-time-code" required value={code} onChange={(event) => setCode(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-800 focus:ring-2 focus:ring-brand-live" />
             {authError && <p role="alert" className="text-sm font-semibold text-danger">{authError}</p>}
-            <button disabled={authenticating} className="w-full rounded-xl bg-brand-pool px-4 py-3 font-black text-white disabled:opacity-50" type="submit">{authenticating ? 'Validando…' : 'Ingresar al control'}</button>
-            <Link className="block text-center text-sm font-bold text-brand-pool hover:underline" to={`/competitions/${id}/live`}>Ver pantalla pública</Link>
+            <button disabled={authenticating} className="w-full rounded-xl bg-brand-live px-4 py-3 font-black text-white disabled:opacity-50" type="submit">{authenticating ? 'Validando…' : 'Ingresar al control'}</button>
+            <Link className="block text-center text-sm font-bold text-brand-live hover:underline" to={`/competitions/${id}/live`}>Ver pantalla pública</Link>
           </form>
         </section>
       </main>
@@ -207,8 +207,8 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
     <main data-live-layout="heat-controller" className="min-h-dvh bg-slate-100 font-sans text-slate-800">
       <div className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-3 p-3 sm:gap-5 sm:p-6">
         <header className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="min-w-0"><p className="text-xs font-black uppercase tracking-widest text-brand-pool">Controlador de heats</p><h1 className="truncate text-lg font-black">{competitionQuery.data?.competition.name}</h1></div>
-          <nav className="flex shrink-0 items-center gap-3 text-xs font-bold"><Link className="text-brand-pool" to={`/competitions/${id}/live`}>Pantalla pública</Link><button type="button" disabled={saving} onClick={() => { void logout(); }} className="text-slate-600 disabled:opacity-40">Cerrar sesión</button></nav>
+          <div className="min-w-0"><p className="text-xs font-black uppercase tracking-widest text-brand-live">Controlador de heats</p><h1 className="truncate text-lg font-black">{competitionQuery.data?.competition.name}</h1></div>
+          <nav className="flex shrink-0 items-center gap-3 text-xs font-bold"><Link className="text-brand-live" to={`/competitions/${id}/live`}>Pantalla pública</Link><button type="button" disabled={saving} onClick={() => { void logout(); }} className="text-slate-600 disabled:opacity-40">Cerrar sesión</button></nav>
         </header>
 
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -226,7 +226,7 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="flex min-h-48 flex-1 flex-col justify-between rounded-2xl bg-brand-pool p-5 text-white shadow-md sm:p-7">
+        <section className="flex min-h-48 flex-1 flex-col justify-between rounded-2xl bg-brand-live p-5 text-white shadow-md sm:p-7">
           <div className="flex items-center justify-between gap-3"><span className="rounded-lg bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-widest">Evento #{selected.event_number}</span><span className="flex items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-400/20 px-3 py-1 text-xs font-black uppercase"><span className="h-2 w-2 rounded-full bg-emerald-300" />Heat llamado</span></div>
           <div><p className="mb-2 font-semibold text-cyan-100">{selected.event_name}</p><div className="flex items-baseline justify-between gap-4"><h2 className="text-5xl font-black italic tracking-tight sm:text-6xl">HEAT {String(selected.heat_number).padStart(2, '0')}</h2><span className="text-xl font-bold text-cyan-100">de {selected.heat_total ?? eventHeats.length}</span></div><p className="mt-3 text-xs font-bold text-cyan-100">Etapa {selected.stage_number} · Piscina {selected.pool_role}</p></div>
         </section>
@@ -250,7 +250,7 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
         </section>
         <div className="grid gap-3 sm:grid-cols-2">
           <button type="button" disabled={saving || !liveState || selectedIndex <= 0} onClick={() => { void update(heats[selectedIndex - 1]); }} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-xl font-black disabled:opacity-40">← Anterior</button>
-          <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => { void update(heats[selectedIndex + 1]); }} className="rounded-2xl bg-brand-pool px-5 py-4 text-xl font-black text-white disabled:opacity-40">Siguiente →</button>
+          <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => { void update(heats[selectedIndex + 1]); }} className="rounded-2xl bg-brand-live px-5 py-4 text-xl font-black text-white disabled:opacity-40">Siguiente →</button>
         </div>
       </div>
     </main>

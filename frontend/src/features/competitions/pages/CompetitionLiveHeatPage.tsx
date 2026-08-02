@@ -120,7 +120,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
   if (competitionQuery.data && announcement?.display_mode === 'fullscreen') {
     const competition = competitionQuery.data.competition;
     return (
-      <main data-live-layout="announcement-fullscreen" aria-live="polite" aria-atomic="true" className="grid h-dvh max-h-dvh overflow-hidden bg-brand-pool p-6 font-sans text-white sm:p-10">
+      <main data-live-layout="announcement-fullscreen" aria-live="polite" aria-atomic="true" className="grid h-dvh max-h-dvh overflow-hidden bg-brand-live p-6 font-sans text-white sm:p-10">
         <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-col justify-between rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl sm:p-10">
           <header className="flex items-center gap-3 border-b border-white/20 pb-5"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">Comunicado oficial</p><h1 className="text-xl font-black sm:text-2xl">{competition.name}</h1></div></header>
           <AutoFitAnnouncementText message={announcement.message} />
@@ -138,7 +138,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
   if ((programQuery.isError || liveHeatQuery.isError) && (!programQuery.data || !liveHeatQuery.data)) {
     return (
       <main className="grid min-h-dvh place-items-center bg-slate-100 p-6 text-center font-sans text-slate-700">
-        <div><p className="font-bold">No pudimos cargar el estado del llamador.</p><button type="button" onClick={() => { programQuery.refetch(); liveHeatQuery.refetch(); }} className="mt-4 rounded-xl bg-brand-pool px-4 py-3 font-bold text-white">Reintentar</button></div>
+        <div><p className="font-bold">No pudimos cargar el estado del llamador.</p><button type="button" onClick={() => { programQuery.refetch(); liveHeatQuery.refetch(); }} className="mt-4 rounded-xl bg-brand-live px-4 py-3 font-bold text-white">Reintentar</button></div>
       </main>
     );
   }
@@ -160,7 +160,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
     <main data-live-layout="caller-board" data-live-has-ticker={tickerAnnouncement ? 'true' : undefined} className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-slate-100 p-2 font-sans text-slate-800 sm:p-4">
       <div className="mx-auto flex w-full min-h-0 flex-1 max-w-[1920px] flex-col gap-2 sm:gap-3 lg:flex-row lg:gap-5">
         <aside className="grid shrink-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2 sm:gap-3 [@media(max-height:700px)_and_(max-width:767px)]:grid-cols-3 lg:h-full lg:min-h-0 lg:w-[340px] lg:grid-cols-1 lg:grid-rows-[auto_auto_minmax(0,1fr)] xl:w-[380px]">
-          <section data-live-section="heat" className="overflow-hidden rounded-2xl bg-brand-pool text-white sm:rounded-3xl">
+          <section data-live-section="heat" className="overflow-hidden rounded-2xl bg-brand-live text-white sm:rounded-3xl">
             <div className="flex h-full flex-col justify-center px-4 py-3 sm:px-6 sm:py-4 lg:py-5">
               <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-white/80 [@media(max-height:700px)_and_(max-width:767px)]:hidden">Serie actual</p>
               <h1 className="mt-1 text-3xl font-black italic leading-none tracking-tight sm:text-4xl lg:text-5xl">HEAT {state ? String(state.heat_number).padStart(2, '0') : '--'}</h1>
@@ -168,7 +168,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
             </div>
           </section>
           <section data-live-section="event" className="flex min-w-0 flex-col justify-center overflow-hidden rounded-2xl bg-white px-4 py-3 text-slate-800 sm:rounded-3xl sm:px-6 sm:py-4 lg:py-5">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-brand-pool">Evento {state?.event_number ?? '—'}</p>
+            <p className="text-xs font-extrabold uppercase tracking-widest text-brand-live">Evento {state?.event_number ?? '—'}</p>
             <h2 className="mt-1 line-clamp-2 text-lg font-black leading-tight text-[#434343] sm:text-xl [@media(max-height:700px)_and_(max-width:767px)]:line-clamp-1 lg:mt-2 lg:text-2xl">{state?.event_name ?? 'Llamador aún no iniciado'}</h2>
           </section>
 
@@ -214,7 +214,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
                       <p className="truncate text-base font-black text-[#434343] sm:text-xl 2xl:text-3xl">{entry.display_name}</p>
                       <span data-live-entry-club="inline" className="max-w-28 shrink-0 truncate rounded-md bg-slate-200/70 px-2 py-0.5 text-[10px] font-bold text-slate-600 sm:max-w-36 sm:text-xs 2xl:text-sm">{entry.club_name || 'Club no informado'}</span>
                     </div>
-                    <div className="shrink-0 text-brand-pool"><span className="mr-2 text-xs font-semibold sm:text-sm">Pista</span><span className="text-2xl font-black sm:text-3xl 2xl:text-4xl">{entry.lane}</span></div>
+                    <div className="shrink-0 text-brand-live"><span className="mr-2 text-xs font-semibold sm:text-sm">Pista</span><span className="text-2xl font-black sm:text-3xl 2xl:text-4xl">{entry.lane}</span></div>
                   </li>
                 ))}
               </ul>
@@ -227,7 +227,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
             </div>
             {nextHeat ? (
               <>
-                <p className="px-2 pt-3 text-xs font-bold text-brand-pool">Evento {nextHeat.eventNumber} · {nextHeat.eventName}</p>
+                <p className="px-2 pt-3 text-xs font-bold text-brand-live">Evento {nextHeat.eventNumber} · {nextHeat.eventName}</p>
                 <ul className="flex min-h-0 flex-1 flex-col justify-evenly gap-1 overflow-y-auto py-1 sm:py-2">
                   {nextHeat.entries.map((entry) => (
                     <li key={`${entry.lane}-${entry.display_name}`} className="flex min-h-8 flex-1 items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-1 sm:py-1.5 2xl:py-2">
@@ -256,10 +256,10 @@ export const CompetitionLiveHeatPage: React.FC = () => {
             SwimStats.cl
           </span>
         </div>
-        <Link to={`/competitions/${id}?tab=series`} className="text-xs font-bold text-brand-pool hover:underline">Ver sembrado</Link>
+        <Link to={`/competitions/${id}?tab=series`} className="text-xs font-bold text-brand-live hover:underline">Ver sembrado</Link>
       </footer>
       {tickerAnnouncement && (
-        <aside data-live-announcement="ticker" role="status" aria-live="polite" aria-atomic="true" aria-label={`Comunicado: ${tickerAnnouncement.message}`} className="fixed inset-x-0 bottom-0 z-50 flex h-9 items-center overflow-hidden border-t border-white/25 bg-[#139fba] text-white shadow-2xl motion-reduce:h-auto motion-reduce:min-h-11 motion-reduce:py-2 sm:h-10 md:h-11">
+        <aside data-live-announcement="ticker" role="status" aria-live="polite" aria-atomic="true" aria-label={`Comunicado: ${tickerAnnouncement.message}`} className="fixed inset-x-0 bottom-0 z-50 flex h-9 items-center overflow-hidden border-t border-white/25 bg-brand-live text-white shadow-2xl motion-reduce:h-auto motion-reduce:min-h-11 motion-reduce:py-2 sm:h-10 md:h-11">
           <div className="w-full overflow-hidden" aria-hidden="true">
             <div className="live-announcement-ticker-track flex w-max shrink-0 items-center whitespace-nowrap" style={{ '--live-announcement-ticker-duration': `${tickerDuration}s` } as React.CSSProperties}>
               {[0, 1].map((copyIndex) => (
