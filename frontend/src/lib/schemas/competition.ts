@@ -150,6 +150,35 @@ export const LiveHeatResponseSchema = z.object({
 
 export type LiveHeatResponse = z.infer<typeof LiveHeatResponseSchema>;
 
+export const LiveHeatMovementSchema = z.object({
+  id: z.number().int().positive(),
+  previous_publication_id: z.number().int().positive().nullable(),
+  previous_stage_number: z.number().int().positive().nullable(),
+  previous_pool_role: z.enum(['main', 'competition', 'training']).nullable(),
+  previous_session_number: z.number().int().positive().nullable(),
+  previous_event_number: z.number().int().positive().nullable(),
+  previous_heat_number: z.number().int().positive().nullable(),
+  previous_status: z.enum(['not_started', 'active', 'paused', 'finished']).nullable(),
+  previous_revision: z.number().int().positive().nullable(),
+  resulting_publication_id: z.number().int().positive(),
+  resulting_stage_number: z.number().int().positive(),
+  resulting_pool_role: z.enum(['main', 'competition', 'training']),
+  resulting_session_number: z.number().int().positive(),
+  resulting_event_number: z.number().int().positive(),
+  resulting_heat_number: z.number().int().positive(),
+  resulting_status: z.enum(['not_started', 'active', 'paused', 'finished']),
+  resulting_revision: z.number().int().positive(),
+  occurred_at: z.string(),
+  is_current_session: z.boolean(),
+});
+
+export const LiveHeatHistoryResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  movements: z.array(LiveHeatMovementSchema),
+});
+
+export type LiveHeatHistoryResponse = z.infer<typeof LiveHeatHistoryResponseSchema>;
+
 export const LiveAnnouncementSchema = z.object({
   id: z.number().int().positive(),
   message: z.string().min(1).max(1000),
@@ -174,6 +203,39 @@ export const LiveAnnouncementsResponseSchema = z.object({
 });
 
 export type LiveAnnouncementsResponse = z.infer<typeof LiveAnnouncementsResponseSchema>;
+
+export const LiveAnnouncementEventSchema = z.object({
+  id: z.number().int().positive(),
+  announcement_id: z.number().int().positive(),
+  event_type: z.enum([
+    'create', 'update', 'activate', 'automatic_deactivate', 'deactivate', 'delete',
+  ]),
+  revision: z.number().int().positive(),
+  message: z.string().min(1).max(1000),
+  display_mode: z.enum(['fullscreen', 'ticker']),
+  is_active: z.boolean(),
+  is_deleted: z.boolean(),
+  actor_user_id: z.number().int().positive(),
+  occurred_at: z.string(),
+});
+
+export const LiveAnnouncementHistoryResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  events: z.array(LiveAnnouncementEventSchema),
+});
+
+export type LiveAnnouncementHistoryResponse = z.infer<typeof LiveAnnouncementHistoryResponseSchema>;
+
+export const LiveBrandingResponseSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  has_logo: z.boolean(),
+  revision: z.number().int().nonnegative(),
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+  mime_type: z.enum(['image/png', 'image/jpeg', 'image/webp']).nullable(),
+});
+
+export type LiveBrandingResponse = z.infer<typeof LiveBrandingResponseSchema>;
 
 export type LiveAnnouncementCreate = {
   message: string;

@@ -31,7 +31,7 @@ def test_public_live_heat_page_covers_operational_read_states_accessibly():
     source = PAGE.read_text(encoding="utf-8")
 
     assert "refetchInterval: LIVE_HEAT_POLL_INTERVAL_MS" in source
-    assert "const LIVE_HEAT_POLL_INTERVAL_MS = 10_000" in source
+    assert "const LIVE_HEAT_POLL_INTERVAL_MS = 2_500" in source
     assert 'aria-live="polite"' in source
     assert "Llamador aún no iniciado" in source
     assert "Pista" in source
@@ -57,7 +57,7 @@ def test_public_live_heat_preserves_caller_board_hierarchy_and_projects_next_hea
     assert 'data-live-layout="caller-board"' in source
     assert "getMeetProgram" in source
     assert "nextHeat" in source
-    assert "PRÓXIMO HEAT" in source
+    assert "PRÓXIMA SERIE" in source
     assert "HEAT" in source
     assert "Pista" in source
 
@@ -155,6 +155,33 @@ def test_operator_control_serializes_updates_and_auto_publishes_once():
     )
 
 
+def test_operator_control_polls_and_adopts_remote_revision_outside_local_publish():
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    assert "const LIVE_CONTROL_POLL_INTERVAL_MS = 2_500" in source
+    assert "refetchInterval: LIVE_CONTROL_POLL_INTERVAL_MS" in source
+    assert "const stateVersionKey" in source
+    assert "const observedStateVersionRef = useRef('')" in source
+    assert "const locallyPublishedStateVersionRef = useRef('')" in source
+    assert "saving || updateInFlightRef.current" in source
+    assert "locallyPublishedStateVersionRef.current = stateVersionKey(updated.state)" in source
+    assert "observedStateVersionRef.current === version" in source
+    assert "setSelectedKey('')" in source
+    assert "Otro voluntario" in source
+
+
+def test_operator_control_exposes_explicit_cookie_logout():
+    service = SERVICE.read_text(encoding="utf-8")
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    assert "async deleteLiveHeatSession(id: string)" in service
+    assert "/live-heat/session/logout`" in service
+    assert "method: 'POST', credentials: 'include'" in service
+    assert "await competitionService.deleteLiveHeatSession(id!)" in source
+    assert "setAuthenticated(false)" in source
+    assert "Cerrar sesión" in source
+
+
 def test_operator_update_response_schema_matches_put_contract_without_get_derivations():
     schema = SCHEMA.read_text(encoding="utf-8")
     update_schema = schema.split("export const LiveHeatUpdateStateSchema", 1)[1].split(
@@ -164,6 +191,23 @@ def test_operator_update_response_schema_matches_put_contract_without_get_deriva
     assert "event_name" not in update_schema
     assert "heat_total" not in update_schema
     assert "state: LiveHeatUpdateStateSchema" in update_schema
+
+
+def test_operator_control_reads_typed_private_recent_movement_history():
+    schema = SCHEMA.read_text(encoding="utf-8")
+    service = SERVICE.read_text(encoding="utf-8")
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    assert "LiveHeatMovementSchema" in schema
+    assert "LiveHeatHistoryResponseSchema" in schema
+    assert "async getLiveHeatHistory(id: string, limit: number = 8)" in service
+    assert "/live-heat/history?limit=${limit}`" in service
+    assert "credentials: 'include'" in service
+    assert "queryKey: ['competition-live-heat-history', id]" in source
+    assert source.count("refetchInterval: LIVE_CONTROL_POLL_INTERVAL_MS") >= 2
+    assert "Movimientos recientes" in source
+    assert "movement.is_current_session ? 'Esta sesi\\u00f3n' : 'Otra sesi\\u00f3n'" in source
+    assert "movement.previous_event_number" in source
 
 
 def test_live_heat_spanish_copy_is_valid_utf8_without_mojibake():
@@ -224,7 +268,7 @@ def test_public_announcement_api_is_typed_validated_and_independent_from_live_he
 def test_public_board_polls_announcements_independently_and_renders_both_modes():
     source = PAGE.read_text(encoding="utf-8")
 
-    assert "const LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS = 10_000" in source
+    assert "const LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS = 2_500" in source
     assert "queryKey: ['competition-live-announcement', id]" in source
     assert "competitionService.getActiveLiveAnnouncement(id!)" in source
     assert "refetchInterval: LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS" in source
@@ -339,6 +383,24 @@ def test_announcement_admin_service_mutations_are_typed_scoped_and_revisioned():
     assert "encodeURIComponent(id)" in service
 
 
+def test_announcement_history_is_typed_admin_only_and_refreshed_after_mutations():
+    schema = SCHEMA.read_text(encoding="utf-8")
+    service = SERVICE.read_text(encoding="utf-8")
+    source = ADMIN_PAGE.read_text(encoding="utf-8")
+    public_source = PAGE.read_text(encoding="utf-8")
+
+    assert "LiveAnnouncementEventSchema" in schema
+    assert "LiveAnnouncementHistoryResponseSchema" in schema
+    assert "async getLiveAnnouncementHistory(id: string, limit: number = 20)" in service
+    assert "/live-announcements/history?limit=${limit}`" in service
+    assert "credentials: 'include'" in service
+    assert "queryKey: ['competition-live-announcement-history-admin', id]" in source
+    assert source.count("historyQuery.refetch()") >= 3
+    assert "Historial de comunicados" in source
+    assert "event.actor_user_id" in source
+    assert "getLiveAnnouncementHistory" not in public_source
+
+
 def test_announcement_admin_page_provides_accessible_crud_and_status():
     source = ADMIN_PAGE.read_text(encoding="utf-8")
 
@@ -366,3 +428,42 @@ def test_announcement_admin_recovers_from_stale_mutations():
     assert "swimstats_live_operator" not in source
     assert "setMessage(successMessage);\n      void announcementsQuery.refetch();" in source
     assert "draftMode === 'ticker' ? 240 : 1000" in source
+
+
+def test_live_branding_service_is_typed_revisioned_and_never_persists_images_locally():
+    schema = SCHEMA.read_text(encoding="utf-8")
+    service = SERVICE.read_text(encoding="utf-8")
+
+    assert "LiveBrandingResponseSchema" in schema and "has_logo: z.boolean()" in schema
+    assert "async getLiveBranding(id: string)" in service
+    assert "async uploadLiveBranding(id: string, file: File, expectedRevision: number)" in service
+    assert "async deleteLiveBranding(id: string, expectedRevision: number)" in service
+    assert "body: file" in service and "expected_revision=${expectedRevision}" in service
+    assert "localStorage" not in service and "data:" not in service
+
+
+def test_public_board_polls_branding_and_replaces_only_tournament_content():
+    source = PAGE.read_text(encoding="utf-8")
+
+    assert "const LIVE_BRANDING_POLL_INTERVAL_MS = 2_500" in source
+    assert "queryKey: ['competition-live-branding', id]" in source
+    assert "refetchInterval: LIVE_BRANDING_POLL_INTERVAL_MS" in source
+    assert "getLiveBrandingLogoUrl(id!, branding.revision)" in source
+    assert "logoFailedRevision !== branding.revision" in source
+    assert 'alt={`Logo de ${competition.name}`}' in source
+    tournament = source.split('data-live-section="tournament"', 1)[1].split('</header>', 1)[0]
+    assert 'className="max-h-full max-w-full object-contain"' in tournament
+    assert "SwimStats.cl" in tournament and "Ver sembrado" in tournament
+
+
+def test_admin_page_validates_previews_and_recovers_live_branding_mutations():
+    source = ADMIN_PAGE.read_text(encoding="utf-8")
+
+    assert 'accept="image/png,image/jpeg,image/webp"' in source
+    assert "file.size > 2 * 1024 * 1024" in source
+    assert "URL.createObjectURL" in source and "URL.revokeObjectURL" in source
+    assert "uploadLiveBranding(id!, selectedLogo!, branding.revision)" in source
+    assert "deleteLiveBranding(id!, branding.revision)" in source
+    assert "await brandingQuery.refetch()" in source
+    assert "Otro administrador actualizó el logo" in source
+    assert "localStorage" not in source and "FileReader" not in source

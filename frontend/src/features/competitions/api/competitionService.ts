@@ -1,6 +1,6 @@
 import { AdminSessionResponseSchema, SupabasePasswordResponseSchema } from '../../../lib/schemas/auth';
-import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveAnnouncementResponseSchema, LiveAnnouncementsResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
-import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveAnnouncementActivation, LiveAnnouncementCreate, LiveAnnouncementResponse, LiveAnnouncementsResponse, LiveAnnouncementUpdate, LiveHeatResponse, LiveHeatUpdate, MeetProgramResponse } from '../../../lib/schemas/competition';
+import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveAnnouncementHistoryResponseSchema, LiveAnnouncementResponseSchema, LiveAnnouncementsResponseSchema, LiveBrandingResponseSchema, LiveHeatHistoryResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
+import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveAnnouncementActivation, LiveAnnouncementCreate, LiveAnnouncementHistoryResponse, LiveAnnouncementResponse, LiveAnnouncementsResponse, LiveAnnouncementUpdate, LiveBrandingResponse, LiveHeatHistoryResponse, LiveHeatResponse, LiveHeatUpdate, MeetProgramResponse } from '../../../lib/schemas/competition';
 import { ApiError } from '../../../lib/api/fetcher';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -67,11 +67,45 @@ export const competitionService = {
     return LiveHeatResponseSchema.parse(data);
   },
 
+  async getLiveHeatHistory(id: string, limit: number = 8): Promise<LiveHeatHistoryResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-heat/history?limit=${limit}`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'Live heat history request failed');
+    return LiveHeatHistoryResponseSchema.parse(await response.json());
+  },
+
   async getActiveLiveAnnouncement(id: string): Promise<LiveAnnouncementResponse> {
     const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-announcements/active`);
     if (!response.ok) throw new Error('Failed to fetch live announcement');
 
     return LiveAnnouncementResponseSchema.parse(await response.json());
+  },
+
+  async getLiveBranding(id: string): Promise<LiveBrandingResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-branding`);
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo cargar el logo de la competencia');
+    return LiveBrandingResponseSchema.parse(await response.json());
+  },
+
+  getLiveBrandingLogoUrl(id: string, revision: number): string {
+    return `${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-branding/logo?revision=${revision}`;
+  },
+
+  async uploadLiveBranding(id: string, file: File, expectedRevision: number): Promise<LiveBrandingResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-branding?expected_revision=${expectedRevision}`, {
+      method: 'PUT', credentials: 'include', headers: { 'Content-Type': file.type }, body: file,
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo guardar el logo');
+    return LiveBrandingResponseSchema.parse(await response.json());
+  },
+
+  async deleteLiveBranding(id: string, expectedRevision: number): Promise<LiveBrandingResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-branding?expected_revision=${expectedRevision}`, {
+      method: 'DELETE', credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo eliminar el logo');
+    return LiveBrandingResponseSchema.parse(await response.json());
   },
 
   async createLiveAnnouncementAdminSession(email: string, password: string): Promise<void> {
@@ -112,6 +146,14 @@ export const competitionService = {
     });
     if (!response.ok) throw new ApiError(response.status, 'No se pudo validar el acceso administrativo');
     return LiveAnnouncementsResponseSchema.parse(await response.json());
+  },
+
+  async getLiveAnnouncementHistory(id: string, limit: number = 20): Promise<LiveAnnouncementHistoryResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/live-announcements/history?limit=${limit}`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'Announcement history request failed');
+    return LiveAnnouncementHistoryResponseSchema.parse(await response.json());
   },
 
   async createLiveAnnouncement(id: string, body: LiveAnnouncementCreate): Promise<LiveAnnouncementResponse> {
@@ -158,6 +200,13 @@ export const competitionService = {
     });
     if (!response.ok) throw new ApiError(response.status, 'No se pudo iniciar la sesión');
     OperatorSessionResponseSchema.parse(await response.json());
+  },
+
+  async deleteLiveHeatSession(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/competitions/${id}/live-heat/session/logout`, {
+      method: 'POST', credentials: 'include',
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo cerrar la sesi\u00f3n');
   },
 
   async updateLiveHeat(id: string, update: LiveHeatUpdate) {

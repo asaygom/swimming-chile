@@ -1,11 +1,12 @@
-import React, { useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import type { MeetProgramSession } from '../../../lib/schemas/competition';
 import { competitionService } from '../api/competitionService';
 
-const LIVE_HEAT_POLL_INTERVAL_MS = 10_000;
-const LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS = 10_000;
+const LIVE_HEAT_POLL_INTERVAL_MS = 2_500;
+const LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS = 2_500;
+const LIVE_BRANDING_POLL_INTERVAL_MS = 2_500;
 
 type ProgramHeat = {
   sessionNumber: number;
@@ -71,6 +72,7 @@ const partitionHeats = (sessions: MeetProgramSession[], state: NonNullable<Await
 
 export const CompetitionLiveHeatPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [logoFailedRevision, setLogoFailedRevision] = useState<number | null>(null);
   const competitionQuery = useQuery({
     queryKey: ['competition', id],
     queryFn: () => competitionService.getCompetitionDetail(id!),
@@ -92,6 +94,12 @@ export const CompetitionLiveHeatPage: React.FC = () => {
     queryFn: () => competitionService.getActiveLiveAnnouncement(id!),
     enabled: Boolean(id),
     refetchInterval: LIVE_ANNOUNCEMENT_POLL_INTERVAL_MS,
+  });
+  const brandingQuery = useQuery({
+    queryKey: ['competition-live-branding', id],
+    queryFn: () => competitionService.getLiveBranding(id!),
+    enabled: Boolean(id),
+    refetchInterval: LIVE_BRANDING_POLL_INTERVAL_MS,
   });
 
   const state = liveHeatQuery.data?.state;
@@ -133,6 +141,8 @@ export const CompetitionLiveHeatPage: React.FC = () => {
   }
 
   const competition = competitionQuery.data.competition;
+  const branding = brandingQuery.isError ? null : brandingQuery.data;
+  const showLogo = branding?.has_logo && logoFailedRevision !== branding.revision;
   const entries = liveHeatQuery.data?.entries ?? [];
   const tickerAnnouncement = announcement?.display_mode === 'ticker' ? announcement : null;
   const tickerText = tickerAnnouncement ? tickerAnnouncement.message.toUpperCase() : '';
@@ -160,12 +170,17 @@ export const CompetitionLiveHeatPage: React.FC = () => {
           </section>
 
           <header data-live-section="tournament" className="col-span-2 flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl bg-white p-3 sm:rounded-3xl sm:p-4 [@media(max-height:700px)_and_(max-width:767px)]:col-span-1 lg:col-span-1 lg:p-6">
-            <div className="flex items-start gap-3">
-              <div className="min-w-0">
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              {showLogo ? <img
+                src={competitionService.getLiveBrandingLogoUrl(id!, branding.revision)}
+                alt={`Logo de ${competition.name}`}
+                onError={() => setLogoFailedRevision(branding.revision)}
+                className="max-h-full max-w-full object-contain"
+              /> : <div className="min-w-0 self-start">
                 <h2 className="mt-1 text-xl font-black leading-tight text-[#434343] [@media(max-height:700px)_and_(max-width:767px)]:truncate">{competition.name}</h2>
                 <span className="text-xs font-bold text-slate-400">Etapa {state?.stage_number ?? 'única'}</span>
                 <p className="mt-1 text-sm font-medium text-slate-500 [@media(max-height:700px)_and_(max-width:767px)]:hidden">{competition.location || 'Sede por confirmar'}</p>
-              </div>
+              </div>}
             </div>
             <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-100 pt-2 text-xs font-bold [@media(max-height:700px)_and_(max-width:767px)]:hidden lg:mt-6 lg:pt-4">
               <div className="flex items-center gap-2">

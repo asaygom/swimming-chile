@@ -28,6 +28,15 @@ MEET_PROGRAM_SEGMENTS_SQL = (
 LIVE_ANNOUNCEMENTS_SQL = (
     BACKEND_DIR / "sql" / "migrations" / "016_live_announcements.sql"
 )
+LIVE_HEAT_HISTORY_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "017_live_heat_movement_history.sql"
+)
+LIVE_ANNOUNCEMENT_HISTORY_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "018_live_announcement_event_history.sql"
+)
+LIVE_BRANDING_SQL = (
+    BACKEND_DIR / "sql" / "migrations" / "019_competition_live_branding.sql"
+)
 
 
 def normalized_sql(path: Path) -> str:
@@ -307,3 +316,66 @@ def test_live_announcement_schema_is_audited_soft_deleted_and_independently_vers
     assert "is_active and deleted_at is null" in migration_sql
     assert "ux_live_announcement_one_active_per_competition" in migration_sql
     assert "display_mode <> 'ticker' or length(trim(message)) <= 240" in migration_sql
+
+
+def test_live_heat_history_is_append_only_scoped_and_fingerprint_audited():
+    sql = normalized_sql(LIVE_HEAT_HISTORY_SQL)
+    schema_sql = normalized_sql(SCHEMA_SQL)
+
+    for fragment in [
+        "create table if not exists core.live_heat_movement",
+        "competition_id bigint not null references core.competition(id)",
+        "resulting_publication_id bigint not null references core.meet_program_publication(id)",
+        "previous_publication_id bigint references core.meet_program_publication(id)",
+        "operator_session_fingerprint text not null",
+        "resulting_revision bigint not null check (resulting_revision > 0)",
+        "occurred_at timestamptz not null default now()",
+        "idx_live_heat_movement_competition_occurred",
+    ]:
+        assert fragment in sql
+    assert "cookie" not in sql and "secret" not in sql
+    assert "create table live_heat_movement" in schema_sql
+    assert "idx_live_heat_movement_competition_occurred" in schema_sql
+
+
+def test_live_announcement_history_is_migration_only_and_actor_audited():
+    sql = normalized_sql(LIVE_ANNOUNCEMENT_HISTORY_SQL)
+    schema_sql = normalized_sql(SCHEMA_SQL)
+
+    for fragment in [
+        "create table if not exists core.live_announcement_event",
+        "competition_id bigint not null references core.competition(id)",
+        "announcement_id bigint not null references core.live_announcement(id)",
+        "actor_user_id bigint not null references auth.user_account(id)",
+        "event_type text not null check",
+        "'automatic_deactivate'",
+        "message text not null",
+        "display_mode text not null",
+        "is_active boolean not null",
+        "is_deleted boolean not null",
+        "occurred_at timestamptz not null default now()",
+        "idx_live_announcement_event_competition_occurred",
+    ]:
+        assert fragment in sql
+    assert "live_announcement_event" not in schema_sql
+
+
+def test_live_branding_is_migration_only_revisioned_and_audited():
+    sql = normalized_sql(LIVE_BRANDING_SQL)
+    schema_sql = normalized_sql(SCHEMA_SQL)
+
+    for fragment in [
+        "create table if not exists core.competition_live_branding",
+        "competition_id bigint primary key references core.competition(id)",
+        "logo_bytes bytea",
+        "mime_type text",
+        "width integer",
+        "height integer",
+        "sha256 text",
+        "revision bigint not null default 1 check (revision > 0)",
+        "updated_by_user_id bigint not null references auth.user_account(id)",
+        "deleted_by_user_id bigint references auth.user_account(id)",
+        "deleted_at timestamptz",
+    ]:
+        assert fragment in sql
+    assert "competition_live_branding" not in schema_sql
