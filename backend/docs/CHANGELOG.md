@@ -2,6 +2,32 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-08-02 - Publicación de sembrado desde la app
+
+- Se agrega el módulo de publicación de sembrado por la app, para no depender
+  del terminal el día del evento: `POST /api/competitions/{id}/meet-program/preview`
+  valida y `.../publish` publica, aceptando PDF o CSV por el mismo contrato.
+- La autorización usa el rol `platform_admin` de `auth.user_role`, global y no
+  por competencia, que ya existía desde la migración 007 con un CHECK que lo
+  obliga a `club_id IS NULL`. No se necesitó migración: solo la dependencia
+  `require_platform_admin` y otorgar el rol.
+- La app no reimplementa ninguna compuerta. Parsea con el mismo módulo que la
+  CLI y publica con `publish_validated_program`, que ya exige identidad canónica
+  de evento, checksum, `parser_version` y coincidencia de nombre y fechas con la
+  competencia. Así app y terminal no pueden divergir en reglas de validación.
+- El flujo es de dos pasos a propósito: `preview` no abre conexión a la base y
+  `publish` rechaza con `422` cualquier artefacto que no quede `validated`,
+  devolviendo el resumen completo. Se conserva el momento de revisión humana
+  sobre el que está construido el pipeline, en vez de publicar de una.
+- Los artefactos se escriben en un directorio temporal que se descarta, porque
+  el filesystem del deploy es efímero. El resumen, los eventos detectados y una
+  muestra de las líneas sin parsear viajan en la respuesta, que es donde el
+  administrador los necesita.
+- El nombre real del archivo subido viaja como `source_name` y reemplaza a
+  `pdf_name`/`pdf_path`, que aterrizan en `source_document.document_name` y
+  `storage_path`. Sin eso la base guardaría el nombre del temporal y una ruta
+  inexistente. Ninguno de los dos entra en el hash de identidad del artefacto.
+
 ## 2026-08-02 - Programa de competencia desde export CSV de Meet Manager
 
 - `run_meet_program.py` sube a parser `0.5.0` y acepta `--csv`, el export del

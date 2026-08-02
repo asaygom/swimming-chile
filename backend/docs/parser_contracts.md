@@ -183,6 +183,18 @@ vinculos con `core.athlete` o `core.club`.
   `--competition-id`. La publicacion es atomica e idempotente por competencia +
   checksum + version del parser; una revision reemplaza solo el segmento con la
   misma competencia + etapa + piscina, sin borrar versiones anteriores.
+- El sembrado tambien se publica desde la app, sin terminal:
+  `POST /api/competitions/{id}/meet-program/preview` valida y
+  `.../publish` publica. Ambos exigen rol `platform_admin` (global, no por
+  competencia), aceptan PDF o CSV con `source_format`, y estan acotados a 16 MiB.
+  No reimplementan compuertas: parsean con este mismo modulo y publican con
+  `publish_validated_program`, de modo que app y terminal no pueden divergir.
+  El flujo es de dos pasos deliberadamente: `preview` no abre conexion a la base
+  y `publish` rechaza con `422` cualquier artefacto que no quede `validated`,
+  devolviendo el resumen completo para revision.
+  Los artefactos van a un directorio temporal que se descarta, porque el
+  filesystem del deploy es efimero; el resumen y una muestra de las lineas sin
+  parsear viajan en la respuesta.
 - Antes de cualquier escritura, nombre y rango de fechas del PDF deben coincidir
   con la competencia seleccionada. La comparacion de nombre ignora tildes,
   mayusculas, edicion/ano y tipos genericos (`copa`, `torneo`, `campeonato`),

@@ -226,6 +226,45 @@ export const LiveAnnouncementHistoryResponseSchema = z.object({
 
 export type LiveAnnouncementHistoryResponse = z.infer<typeof LiveAnnouncementHistoryResponseSchema>;
 
+export const MeetProgramPreviewSchema = z.object({
+  competition_id: z.union([z.string(), z.number()]),
+  state: z.enum(['validated', 'requires_review']),
+  counts: z.object({
+    entries: z.number().int().nonnegative(),
+    debug_unparsed_lines: z.number().int().nonnegative(),
+  }),
+  issues: z.array(z.object({
+    severity: z.string(),
+    issue_key: z.string(),
+    message: z.string(),
+    count: z.number().int().nonnegative(),
+  })),
+  source: z.object({
+    source_kind: z.string().nullable(),
+    pdf_name: z.string().nullable(),
+    pdf_sha256: z.string().nullable(),
+    parser_version: z.string().nullable(),
+    source_competition_name: z.string().nullable(),
+    source_competition_start_date: z.string().nullable(),
+    source_competition_end_date: z.string().nullable(),
+    stage_number: z.number().int().positive().nullable(),
+    pool_role: z.string().nullable(),
+    scheduled_date: z.string().nullable(),
+  }),
+  events: z.array(z.tuple([z.number().int(), z.string()])),
+  unparsed_sample: z.array(z.object({
+    page_number: z.number().int(),
+    column_number: z.number().int(),
+    line_number: z.number().int(),
+    raw_line: z.string(),
+    reason: z.string(),
+  })),
+  publication_id: z.number().int().positive().optional(),
+  publication_created: z.boolean().optional(),
+});
+
+export type MeetProgramPreview = z.infer<typeof MeetProgramPreviewSchema>;
+
 export const LiveBrandingResponseSchema = z.object({
   competition_id: z.union([z.string(), z.number()]),
   has_logo: z.boolean(),

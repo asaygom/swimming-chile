@@ -114,25 +114,50 @@ def revoke_admin_session(raw_token: str | None) -> None:
             conn.commit()
 
 
+def _active_session_user(cur, admin_session: str | None) -> int:
+    if not admin_session:
+        raise HTTPException(status_code=401, detail="Administrative session required")
+    token_hash = hashlib.sha256(admin_session.encode()).hexdigest()
+    cur.execute("""
+        SELECT u.id AS user_id
+        FROM auth.admin_session s
+        JOIN auth.user_account u ON u.id = s.user_id
+        WHERE s.token_hash = %s AND s.revoked_at IS NULL
+          AND s.expires_at > NOW() AND u.status = 'active'
+    """, (token_hash,))
+    account = cur.fetchone()
+    if not account:
+        raise HTTPException(status_code=401, detail="Invalid administrative session")
+    return account["user_id"]
+
+
+def require_platform_admin(
+    admin_session: str | None = Cookie(default=None, alias=ADMIN_COOKIE_NAME),
+) -> int:
+    """Rol global, no por competencia: habilita publicar sembrado en cualquiera.
+
+    `auth.user_role` ya restringe `platform_admin` a `club_id IS NULL` por CHECK,
+    pero se exige aqui igual para no depender de la integridad del dato.
+    """
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            user_id = _active_session_user(cur, admin_session)
+            cur.execute("""
+                SELECT 1 AS allowed FROM auth.user_role
+                WHERE user_id = %s AND role = 'platform_admin' AND club_id IS NULL
+            """, (user_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=403, detail="Platform administration denied")
+    return user_id
+
+
 def require_competition_admin(
     competition_id: int,
     admin_session: str | None = Cookie(default=None, alias=ADMIN_COOKIE_NAME),
 ) -> int:
-    if not admin_session:
-        raise HTTPException(status_code=401, detail="Administrative session required")
-    token_hash = hashlib.sha256(admin_session.encode()).hexdigest()
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("""
-                SELECT u.id AS user_id
-                FROM auth.admin_session s
-                JOIN auth.user_account u ON u.id = s.user_id
-                WHERE s.token_hash = %s AND s.revoked_at IS NULL
-                  AND s.expires_at > NOW() AND u.status = 'active'
-            """, (token_hash,))
-            account = cur.fetchone()
-            if not account:
-                raise HTTPException(status_code=401, detail="Invalid administrative session")
+            account = {"user_id": _active_session_user(cur, admin_session)}
             cur.execute("""
                 SELECT 1 AS allowed FROM auth.user_competition_role
                 WHERE user_id = %s AND competition_id = %s

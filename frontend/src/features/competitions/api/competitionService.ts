@@ -1,6 +1,6 @@
 import { AdminSessionResponseSchema, SupabasePasswordResponseSchema } from '../../../lib/schemas/auth';
-import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveAnnouncementHistoryResponseSchema, LiveAnnouncementResponseSchema, LiveAnnouncementsResponseSchema, LiveBrandingResponseSchema, LiveHeatHistoryResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
-import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveAnnouncementActivation, LiveAnnouncementCreate, LiveAnnouncementHistoryResponse, LiveAnnouncementResponse, LiveAnnouncementsResponse, LiveAnnouncementUpdate, LiveBrandingResponse, LiveHeatHistoryResponse, LiveHeatResponse, LiveHeatUpdate, MeetProgramResponse } from '../../../lib/schemas/competition';
+import { CompetitionDetailResponseSchema, CompetitionFilterOptionsSchema, CompetitionStatsSchema, CompetitionsResponseSchema, LiveAnnouncementHistoryResponseSchema, LiveAnnouncementResponseSchema, LiveAnnouncementsResponseSchema, LiveBrandingResponseSchema, LiveHeatHistoryResponseSchema, LiveHeatResponseSchema, LiveHeatUpdateResponseSchema, MeetProgramPreviewSchema, MeetProgramResponseSchema, OperatorSessionResponseSchema } from '../../../lib/schemas/competition';
+import type { CompetitionDetailResponse, CompetitionFilterOptions, CompetitionStats, CompetitionsResponse, LiveAnnouncementActivation, LiveAnnouncementCreate, LiveAnnouncementHistoryResponse, LiveAnnouncementResponse, LiveAnnouncementsResponse, LiveAnnouncementUpdate, LiveBrandingResponse, LiveHeatHistoryResponse, LiveHeatResponse, LiveHeatUpdate, MeetProgramPreview, MeetProgramResponse } from '../../../lib/schemas/competition';
 import { ApiError } from '../../../lib/api/fetcher';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -80,6 +80,32 @@ export const competitionService = {
     if (!response.ok) throw new Error('Failed to fetch live announcement');
 
     return LiveAnnouncementResponseSchema.parse(await response.json());
+  },
+
+  async uploadMeetProgram(
+    id: string,
+    file: File,
+    sourceFormat: 'pdf' | 'csv',
+    action: 'preview' | 'publish',
+    scheduledDate?: string,
+  ): Promise<MeetProgramPreview> {
+    const params = new URLSearchParams({ source_format: sourceFormat, source_name: file.name });
+    if (scheduledDate) params.set('scheduled_date', scheduledDate);
+    const response = await fetch(
+      `${API_BASE_URL}/api/competitions/${encodeURIComponent(id)}/meet-program/${action}?${params}`,
+      { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/octet-stream' }, body: file },
+    );
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      // 422 al publicar devuelve el resumen completo como detail: se conserva
+      // para poder mostrar los issues en vez de un mensaje generico.
+      const detail = data?.detail;
+      if (response.status === 422 && detail && typeof detail === 'object') {
+        return MeetProgramPreviewSchema.parse(detail);
+      }
+      throw new ApiError(response.status, typeof detail === 'string' ? detail : 'No se pudo procesar el sembrado');
+    }
+    return MeetProgramPreviewSchema.parse(data);
   },
 
   async getLiveBranding(id: string): Promise<LiveBrandingResponse> {
