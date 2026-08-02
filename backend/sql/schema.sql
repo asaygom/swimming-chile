@@ -4,6 +4,12 @@
 -- Schema: core
 -- Estado actual: incluye resultados individuales, relevos
 -- y tablas staging para cargas desde Excel/CSV/PDF parser.
+--
+-- Alcance: este archivo declara solo objetos de `core` que no
+-- dependen de otros schemas. Las tablas que referencian `auth`,
+-- `identity` o `club_ops` (creados desde la migracion 007) viven
+-- unicamente en sql/migrations/, para que este script siga siendo
+-- ejecutable por si solo. No agregarlas aqui.
 -- =====================================================
 
 SET search_path TO core, public;

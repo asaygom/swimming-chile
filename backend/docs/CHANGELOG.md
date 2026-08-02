@@ -2,6 +2,38 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-08-02 - Auditoría del módulo en vivo y branding por competencia
+
+- Se agregan tres migraciones de trazabilidad para el llamador público:
+  `backend/sql/migrations/017_live_heat_movement_history.sql`,
+  `018_live_announcement_event_history.sql` y
+  `019_competition_live_branding.sql`.
+- `core.live_heat_movement` registra cada publicación del llamador con su
+  estado previo y resultante. El operador se identifica por el SHA-256 de su
+  `session_id`, nunca por el token de sesión, para poder distinguir quién movió
+  el heat sin persistir credenciales.
+- `core.live_announcement_event` registra el ciclo de vida de cada comunicado
+  junto al actor administrativo (`auth.user_account`). La desactivación
+  implícita que ocurre al activar otro comunicado se guarda como
+  `automatic_deactivate`, distinta de una desactivación humana explícita.
+- `core.competition_live_branding` guarda un logo por competencia. El borrado es
+  lógico: la fila se conserva con `deleted_at` y `deleted_by_user_id` mientras el
+  binario se libera, manteniendo la traza sin retener la imagen.
+- La API no confía en el `Content-Type` declarado. Pillow (nueva dependencia en
+  `backend/requirements.txt`) verifica el formato real, rechaza imágenes
+  animadas y bombas de descompresión, y re-codifica la imagen para descartar
+  metadata antes de persistirla. El logo se sirve con `ETag` por SHA-256.
+- Las escrituras de las tres áreas usan `expected_revision` como compuerta de
+  concurrencia optimista, igual que `core.live_heat_state`.
+- `sql/schema.sql` incorpora solo `core.live_heat_movement`. Las otras dos tablas
+  referencian `auth.user_account` y quedan únicamente en migraciones, porque
+  `schema.sql` debe seguir siendo ejecutable sin los schemas creados desde la
+  migración 007.
+- El board público pasa de 10 s a 2,5 s de polling para heat, comunicados y
+  branding, priorizando latencia percibida en pantalla por sobre volumen de
+  requests. Queda pendiente evaluar un intervalo mayor para branding, que cambia
+  con muy baja frecuencia.
+
 ## 2026-07-27 - Metadata local implícita por scope curado
 
 - Se agrega la migración
