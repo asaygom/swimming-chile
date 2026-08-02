@@ -131,7 +131,9 @@ Los fixtures versionados deben ser pequenos y representativos. No se versionan P
 HY-TEK FCHMN/FECHIDA con texto y dos o tres columnas mediante coordenadas, y nunca crea
 vinculos con `core.athlete` o `core.club`.
 
-- `--pdf` requiere `--out-dir`; `--input-dir` revalida artefactos existentes.
+- `--pdf` y `--csv` requieren `--out-dir`; `--input-dir` revalida artefactos
+  existentes. Los tres caminos producen los mismos artefactos y pasan por las
+  mismas compuertas.
 - Las salidas son `metadata.json`, `meet_program_entries.csv`,
   `debug_unparsed_lines.csv` y `validation_summary.json`.
 - `NT`, tiempos con coma decimal, individuales y relevos son validos. Los
@@ -155,6 +157,28 @@ vinculos con `core.athlete` o `core.club`.
   `training`) y `scheduled_date`. Jornada unica usa etapa `1` y rol `main`.
   En competencias de varios dias, `--scheduled-date YYYY-MM-DD` es obligatorio
   al generar los artefactos y debe caer dentro del rango del encabezado.
+- Desde parser `0.5.0`, `--csv` acepta el export CSV del reporte "Programa de
+  Competencias" de HY-TEK Meet Manager, ademas del PDF. Reglas propias de ese
+  formato:
+  - No es una tabla: cada fila repite el encabezado completo del reporte y lleva
+    una sola inscripcion. El ancho depende de a cuantas columnas se imprima el
+    reporte, por lo que las posiciones no son fijas y el bloque de datos se
+    ancla a la etiqueta `Carril` que precede a cada inscripcion.
+  - Se decodifica como `utf-8-sig` o `cp1252`. Meet Manager exporta en cp1252 y
+    leerlo como UTF-8 corrompe `n` con virgulilla y vocales acentuadas.
+  - La hora de inicio viene corrida una fila: la primera fila de cada serie trae
+    su hora y las siguientes traen la de la serie siguiente. Se toma la primera
+    aparicion de cada evento + serie y se ignoran las posteriores.
+  - La edad trae el genero pegado (`M24`, `W64`). Se persiste solo la edad,
+    porque `meet_program_entry` no modela genero. En relevos el valor es la edad
+    sumada del equipo (`X240`) y no se persiste como edad de nadador.
+  - En relevos las celdas corren: el nombre es el club y el equipo es la letra
+    del relevo. `display_name` queda como `CLUB letra` y `team_name` como club.
+  - Los rotulos de evento vienen en espanol (`Mixto 100 CL Metro Estilo Libre`).
+    El reconocedor de identidad canonica acepta esas variantes ademas de las
+    inglesas; el nombre se conserva tal como viene, sin traducir.
+  - Las filas sin etiqueta `Carril`, sin serie reconocible o sin carril numerico
+    van a `debug_unparsed_lines.csv`, nunca se descartan en silencio.
 - `--publish` exige artefactos `validated`, `parser_version` no vacio y
   `--competition-id`. La publicacion es atomica e idempotente por competencia +
   checksum + version del parser; una revision reemplaza solo el segmento con la

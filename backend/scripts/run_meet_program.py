@@ -7,6 +7,7 @@ import argparse
 import csv
 from dataclasses import asdict, dataclass, field
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -27,7 +28,7 @@ from natacion_chile.domain.extracted_text import clean_extracted_text
 from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
-PARSER_VERSION = "0.4.0"
+PARSER_VERSION = "0.5.0"
 ENTRY_COLUMNS = [
     "session_number",
     "session_name",
@@ -696,6 +697,173 @@ def parse_pdf(pdf_path: Path) -> ParsedMeetProgram:
     return parsed
 
 
+# --- Export CSV de HY-TEK Meet Manager -------------------------------------
+# El reporte "Programa de Competencias" tambien se exporta como CSV. Es el mismo
+# reporte, no una tabla: cada fila repite el encabezado completo y lleva una sola
+# inscripcion en un bloque de celdas. El ancho depende de a cuantas columnas se
+# imprima el reporte (2, 3, ...), asi que las posiciones NO son fijas y se anclan
+# a la etiqueta "Carril", que precede al bloque de datos en toda fila.
+CSV_ENCODINGS = ("utf-8-sig", "cp1252")
+CSV_LANE_LABEL = "carril"
+CSV_RELAY_LABEL = "relevo"
+CSV_LABEL_WIDTH = 5
+CSV_RELAY_MEMBER_SLOTS = 4
+CSV_HEAT_RE = re.compile(r"^Serie\s+(?P<heat>\d+)\b", re.IGNORECASE)
+CSV_HEAT_TOTAL_RE = re.compile(r"\bof\s+(?P<total>\d+)\b", re.IGNORECASE)
+CSV_HEAT_TIME_RE = re.compile(
+    r"Inicia a las\s+(?P<time>\d{1,2}:[0-5]\d\s*[AP]M)", re.IGNORECASE
+)
+# Edad viene con el genero pegado: "M24", "W64". En relevos es la edad sumada del
+# equipo ("X240"), que no es la edad de un nadador y por eso no se persiste.
+CSV_AGE_RE = re.compile(r"^(?P<gender>[MWX])(?P<age>\d+)$", re.IGNORECASE)
+
+
+def _decode_csv(path: Path) -> str:
+    raw = path.read_bytes()
+    for encoding in CSV_ENCODINGS:
+        try:
+            return raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    raise MeetProgramError(f"Unsupported CSV encoding: {path}")
+
+
+def _csv_anchor(row: list[str]) -> int | None:
+    for index, cell in enumerate(row):
+        if clean_text(cell).casefold() == CSV_LANE_LABEL:
+            return index
+    return None
+
+
+def _csv_cell(row: list[str], index: int) -> str:
+    return clean_text(row[index]) if 0 <= index < len(row) else ""
+
+
+def _csv_relay_members(row: list[str], anchor: int) -> list[str]:
+    first = anchor + CSV_LABEL_WIDTH + 7
+    members = [
+        _csv_cell(row, first + offset) for offset in range(CSV_RELAY_MEMBER_SLOTS)
+    ]
+    return [member for member in members if member]
+
+
+def parse_meet_manager_csv(csv_path: Path) -> ParsedMeetProgram:
+    if not csv_path.exists() or not csv_path.is_file():
+        raise MeetProgramError(f"CSV not found: {csv_path}")
+    rows = list(csv.reader(io.StringIO(_decode_csv(csv_path))))
+    entries: list[MeetProgramEntry] = []
+    unparsed: list[DebugLine] = []
+    header_lines: list[SourceLine] = []
+    header_seen: set[str] = set()
+    word_count = 0
+    # La hora de inicio esta corrida una fila: la primera fila de cada serie trae
+    # su hora real y las siguientes traen la de la serie que viene. Se toma la
+    # primera aparicion de cada (evento, serie) y se ignoran las posteriores.
+    seen_heats: set[tuple[int, int]] = set()
+
+    for line_number, row in enumerate(rows, start=1):
+        word_count += sum(len(clean_text(cell).split()) for cell in row)
+        anchor = _csv_anchor(row)
+        if anchor is None:
+            unparsed.append(DebugLine(1, 1, line_number, ";".join(row)[:500], "missing_lane_label"))
+            continue
+        # Solo el encabezado de competencia trae fechas. El titulo del reporte
+        # ("Programa de Competencias - ...") tambien parsea como nombre, y sin
+        # este filtro los dos compiten y disparan un falso conflicto.
+        for cell in row[:anchor]:
+            text = clean_text(cell)
+            if not text or text in header_seen:
+                continue
+            header_seen.add(text)
+            if parse_competition_header(clean_extracted_text(text) or text)[1]:
+                header_lines.append(SourceLine(1, 1, line_number, text))
+
+        event_cell = next(
+            (clean_text(cell) for cell in row[:anchor] if EVENT_RE.match(clean_text(cell))),
+            "",
+        )
+        event_match = EVENT_RE.match(event_cell)
+        heat_cell = _csv_cell(row, anchor + CSV_LABEL_WIDTH)
+        heat_match = CSV_HEAT_RE.match(heat_cell)
+        lane_cell = _csv_cell(row, anchor + CSV_LABEL_WIDTH + 1)
+        if not event_match or not heat_match or not lane_cell.isdigit():
+            unparsed.append(
+                DebugLine(1, 1, line_number, ";".join(row)[:500], "incomplete_entry_row")
+            )
+            continue
+
+        event_number = int(event_match.group("number"))
+        heat_number = int(heat_match.group("heat"))
+        total_match = CSV_HEAT_TOTAL_RE.search(heat_cell)
+        time_match = CSV_HEAT_TIME_RE.search(heat_cell)
+        is_relay = (
+            _csv_cell(row, anchor + 3).casefold() == CSV_RELAY_LABEL
+            or bool(_csv_relay_members(row, anchor))
+        )
+        name = _csv_cell(row, anchor + CSV_LABEL_WIDTH + 2)
+        age_match = CSV_AGE_RE.match(_csv_cell(row, anchor + CSV_LABEL_WIDTH + 3))
+        team = _csv_cell(row, anchor + CSV_LABEL_WIDTH + 4)
+        seed_text = _csv_cell(row, anchor + CSV_LABEL_WIDTH + 5) or None
+        # En relevos las celdas corren: el nombre es el club y el "equipo" es la
+        # letra del relevo (A, B, ...). Se muestran juntos como en el programa.
+        display_name = f"{name} {team}".strip() if is_relay and team else name
+        heat_key = (event_number, heat_number)
+        estimated = (
+            normalize_estimated_start_time(time_match.group("time"))
+            if time_match and heat_key not in seen_heats
+            else None
+        )
+        seen_heats.add(heat_key)
+
+        entries.append(
+            MeetProgramEntry(
+                session_number=1,
+                session_name="Jornada Unica",
+                event_number=event_number,
+                event_name=clean_text(event_match.group("name")),
+                heat_number=heat_number,
+                heat_total=int(total_match.group("total")) if total_match else None,
+                lane=int(lane_cell),
+                display_name=display_name,
+                age=None if is_relay or not age_match else int(age_match.group("age")),
+                team_name=(name if is_relay else team) or None,
+                seed_time_text=seed_text,
+                seed_time_ms=seed_time_ms(seed_text),
+                entry_type="relay" if is_relay else "individual",
+                relay_members=_csv_relay_members(row, anchor) if is_relay else [],
+                page_number=1,
+                column_number=1,
+                line_number=line_number,
+                estimated_start_time=estimated,
+            )
+        )
+
+    session_name = entries[0].session_name if entries else "Jornada Unica"
+    stage_number, pool_role = infer_program_segment(session_name)
+    header_metadata = extract_competition_header_metadata(header_lines)
+    start_date = header_metadata.get("source_competition_start_date")
+    end_date = header_metadata.get("source_competition_end_date")
+    return ParsedMeetProgram(
+        entries=entries,
+        unparsed=unparsed,
+        metadata={
+            # `pdf_*` conserva su nombre porque es la identidad ya ligada de los
+            # artefactos existentes; `source_kind` distingue el formato real.
+            "source_kind": "meet_manager_csv",
+            "pdf_name": csv_path.name,
+            "pdf_path": str(csv_path.resolve()),
+            "pdf_sha256": sha256_file(csv_path),
+            "parser_version": PARSER_VERSION,
+            "text_word_count": word_count,
+            "page_count": 1,
+            "stage_number": stage_number,
+            "pool_role": pool_role,
+            "scheduled_date": start_date if start_date == end_date else None,
+            **header_metadata,
+        },
+    )
+
+
 def _header_metadata_issues(metadata: dict[str, Any]) -> list[ValidationIssue]:
     if metadata.get("source_competition_header_conflict") is True:
         return [
@@ -1339,8 +1507,9 @@ def parse_args() -> argparse.Namespace:
     )
     inputs = parser.add_mutually_exclusive_group(required=True)
     inputs.add_argument("--pdf", help="Text-based Meet Program PDF to parse.")
+    inputs.add_argument("--csv", help="HY-TEK Meet Manager program CSV export to parse.")
     inputs.add_argument("--input-dir", help="Existing meet-program artifact directory.")
-    parser.add_argument("--out-dir", help="Artifact directory required with --pdf.")
+    parser.add_argument("--out-dir", help="Artifact directory required with --pdf or --csv.")
     parser.add_argument("--competition-id", type=int)
     parser.add_argument("--source-url")
     parser.add_argument("--stage-number", type=int)
@@ -1358,8 +1527,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--password")
     parser.add_argument("--schema", default="core")
     args = parser.parse_args()
-    if args.pdf and not args.out_dir:
-        parser.error("--out-dir is required with --pdf")
+    if (args.pdf or args.csv) and not args.out_dir:
+        parser.error("--out-dir is required with --pdf or --csv")
     if args.publish and not args.competition_id:
         parser.error("--competition-id is required with --publish")
     if args.publish and (not args.user or not args.password):
@@ -1370,9 +1539,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     try:
-        if args.pdf:
+        if args.pdf or args.csv:
             input_dir = Path(args.out_dir)
-            parsed = parse_pdf(Path(args.pdf))
+            parsed = (
+                parse_meet_manager_csv(Path(args.csv)) if args.csv
+                else parse_pdf(Path(args.pdf))
+            )
             if args.competition_id:
                 parsed.metadata["competition_id"] = args.competition_id
             if args.source_url:

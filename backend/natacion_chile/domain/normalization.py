@@ -179,14 +179,22 @@ def parse_hytek_event_identity(value: Any) -> tuple[int, str] | None:
         r"(?:(?:PM\s+)?(?:\d+\s*(?:-|a)\s*\d+(?:\s+a(?:ñ|�|n)?os)?|"
         r"\d+(?:\s+a(?:ñ|�|n)?os)?\s+y\s+m[aá]s)|Pre[- ]?Master)"
     )
+    # El export CSV de Meet Manager rotula en espanol: "Mixto 100 CL Metro Estilo
+    # Libre". Se aceptan esas variantes ademas de las inglesas; el genero, el
+    # curso ("CL/CC Metro") y el "Estilo (de)" intercalado son lo unico que
+    # cambia, porque normalize_stroke ya resuelve los estilos en espanol.
     match = re.fullmatch(
-        rf"(?:Women|Men|Mixed)(?:\s+{category})?\s+"
+        rf"(?:Women|Men|Mixed|Mixto|Mixta|Femenino|Damas|Masculino|Varones)"
+        rf"(?:\s+{category})?\s+"
         r"(?:(?P<legs>\d+)\s*x\s*(?P<leg_distance>\d+)|(?P<distance>\d+))"
-        r"\s+(?:SC|LC)\s+Meters?\s+"
+        r"\s+(?:SC|LC|CC|CL)\s+Met(?:ers?|ros?)\s+"
         r"(?P<stroke>medley relay|freestyle relay|free relay|"
-        r"individual medley|relevo combinado|relevo libre|backstroke|"
-        r"breaststroke|butterfly|freestyle|back|breast|fly|free|"
-        r"espalda|pecho|mariposa|libre|im|ci)"
+        r"individual medley|relevo combinado|relevo libre|"
+        r"combinado relevo|libre relevo|"
+        r"(?:estilo\s+(?:de\s+)?)?"
+        r"(?:backstroke|breaststroke|butterfly|freestyle|back|breast|fly|free|"
+        r"espalda|pecho|mariposa|libre)|"
+        r"combinado|im|ci)"
         rf"(?:\s+{stroke_category})?",
         event_name,
         re.IGNORECASE,

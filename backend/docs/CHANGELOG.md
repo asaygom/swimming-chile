@@ -2,6 +2,32 @@
 
 Este documento condensa los hitos y auditorías relevantes durante el desarrollo y carga de datos históricos (Fase 4 y Fase 5). La evidencia detallada original fue consolidada para mantener la documentación operativa limpia.
 
+## 2026-08-02 - Programa de competencia desde export CSV de Meet Manager
+
+- `run_meet_program.py` sube a parser `0.5.0` y acepta `--csv`, el export del
+  reporte "Programa de Competencias" de HY-TEK Meet Manager, además del PDF.
+  Ambos caminos producen los mismos artefactos y pasan por las mismas
+  compuertas de validación y publicación; no se agregó un flujo paralelo.
+- El export no es una tabla: cada fila repite el encabezado completo del reporte
+  y lleva una sola inscripción. El ancho depende de a cuántas columnas se
+  imprima el reporte, así que el bloque de datos se ancla a la etiqueta `Carril`
+  en vez de a posiciones fijas. Un export a distinto número de columnas se sigue
+  leyendo sin cambios.
+- Meet Manager exporta en cp1252. Se decodifica como `utf-8-sig` o `cp1252`,
+  porque leerlo como UTF-8 corrompe la eñe y las vocales acentuadas.
+- La hora de inicio viene corrida una fila en el origen: la primera fila de cada
+  serie trae su hora real y las siguientes traen la de la serie siguiente. Se
+  toma la primera aparición de cada evento + serie. El criterio queda comentado
+  en el código por tratarse de una heurística sobre un export ajeno.
+- `parse_hytek_event_identity` acepta los rótulos en español del export
+  (`Mixto`, `CL/CC Metro`, `Estilo de Espalda`, `Combinado Relevo`). El cambio
+  es aditivo: solo reconoce cadenas que antes devolvían `None`, y el nombre del
+  evento se conserva sin traducir, según la regla de que el programa preserva
+  los valores de despliegue del origen.
+- En relevos las celdas corren respecto de las pruebas individuales: el nombre
+  es el club y el equipo es la letra del relevo. La edad `X240` es la suma del
+  equipo y no se persiste como edad de nadador.
+
 ## 2026-08-02 - Auditoría del módulo en vivo y branding por competencia
 
 - Se agregan tres migraciones de trazabilidad para el llamador público:

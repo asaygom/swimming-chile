@@ -1,4 +1,5 @@
 import csv
+import io
 import json
 from pathlib import Path
 import sys
@@ -988,3 +989,181 @@ def test_publish_header_mismatch_occurs_before_any_database_write():
         statement.startswith(("insert ", "update "))
         for statement, _params in connection.statements
     )
+
+
+def _meet_manager_row(
+    *, event, heat_cell, lane, name, age, team, seed, pad=3, relay_members=None
+):
+    """Fila del export CSV de Meet Manager: encabezado repetido + una inscripcion.
+
+    `pad` desplaza el bloque de datos para representar exports impresos a
+    distinta cantidad de columnas.
+    """
+    is_relay = relay_members is not None
+    row = [
+        "Natatorio Chileno",
+        "HY-TEK's MEET MANAGER 7.0 - 9:51 AM  29-07-2026  P\u00e1gina 1",
+        "III COPA \u00d1U\u00d1OA MASTER 2026 - 08-08-2026",
+        "",
+        "",
+        "Programa de Competencias - COPA NUNOA MASTER 2026",
+        event,
+    ]
+    row += [""] * pad
+    row += [
+        "Carril",
+        "Equipo" if is_relay else "Nombre",
+        "Edad",
+        "Relevo" if is_relay else "Equipo",
+        "Tiempo para Sembrado",
+    ]
+    row += [heat_cell, str(lane), name, age, team, seed, ""]
+    row += relay_members or []
+    return row
+
+
+def _write_meet_manager_csv(path, rows, encoding="cp1252"):
+    buffer = io.StringIO()
+    csv.writer(buffer, lineterminator="\n").writerows(rows)
+    path.write_bytes(buffer.getvalue().encode(encoding))
+    return path
+
+
+def test_meet_manager_csv_anchors_on_lane_label_not_fixed_columns(tmp_path):
+    """El ancho del export depende de a cuantas columnas se imprima el reporte."""
+    rows = [
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   1 of 13   Finales   Inicia a las  09:30 AM",
+            lane=2, name="Zambrano, Juan", age="M24", team="NEURO", seed="NT",
+            pad=3,
+        ),
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   1 of 13   Finales   Inicia a las  09:35 AM",
+            lane=3, name="Lopez, Amparo", age="W64", team="MPROV", seed="3:45,00",
+            pad=57,
+        ),
+    ]
+    parsed = meet_program.parse_meet_manager_csv(
+        _write_meet_manager_csv(tmp_path / "programa.csv", rows)
+    )
+
+    assert [entry.lane for entry in parsed.entries] == [2, 3]
+    assert [entry.display_name for entry in parsed.entries] == [
+        "Zambrano, Juan",
+        "Lopez, Amparo",
+    ]
+    assert [entry.age for entry in parsed.entries] == [24, 64]
+    assert [entry.team_name for entry in parsed.entries] == ["NEURO", "MPROV"]
+    assert parsed.entries[0].seed_time_ms is None
+    assert parsed.entries[1].seed_time_ms == 225000
+    assert parsed.entries[0].heat_total == 13
+    assert not parsed.unparsed
+
+
+def test_meet_manager_csv_decodes_cp1252_and_reads_competition_header(tmp_path):
+    rows = [
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   1 of 2   Finales   Inicia a las  09:30 AM",
+            lane=4, name="Mu\u00f1oz, Valeria", age="W43", team="LQBLO", seed="4:00,00",
+        )
+    ]
+    parsed = meet_program.parse_meet_manager_csv(
+        _write_meet_manager_csv(tmp_path / "programa.csv", rows)
+    )
+
+    assert parsed.entries[0].display_name == "Mu\u00f1oz, Valeria"
+    assert parsed.metadata["source_kind"] == "meet_manager_csv"
+    assert parsed.metadata["source_competition_name"] == "III COPA \u00d1U\u00d1OA MASTER 2026"
+    assert parsed.metadata["scheduled_date"] == "2026-08-08"
+    # El titulo del reporte tambien parsea como nombre; solo el que trae fecha cuenta.
+    assert "source_competition_header_conflict" not in parsed.metadata
+
+
+def test_meet_manager_csv_takes_start_time_from_first_row_of_each_heat(tmp_path):
+    """El export corre la hora: la primera fila trae la suya, el resto la siguiente."""
+    rows = [
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   1 of 2   Finales   Inicia a las  09:30 AM",
+            lane=2, name="Uno, Nadador", age="M24", team="NEURO", seed="NT",
+        ),
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   1 of 2   Finales   Inicia a las  09:35 AM",
+            lane=3, name="Dos, Nadador", age="M25", team="NEURO", seed="NT",
+        ),
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   2 of 2   Finales   Inicia a las  09:35 AM",
+            lane=2, name="Tres, Nadador", age="M26", team="NEURO", seed="NT",
+        ),
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   2  (#1 Mixto 100 CL Metro Estilo Libre)",
+            lane=3, name="Cuatro, Nadador", age="M27", team="NEURO", seed="NT",
+        ),
+    ]
+    parsed = meet_program.parse_meet_manager_csv(
+        _write_meet_manager_csv(tmp_path / "programa.csv", rows)
+    )
+
+    assert [entry.estimated_start_time for entry in parsed.entries] == [
+        "09:30", None, "09:35", None,
+    ]
+    # El encabezado de continuacion no trae total y no debe inventarlo.
+    assert [entry.heat_number for entry in parsed.entries] == [1, 1, 2, 2]
+    assert parsed.entries[3].heat_total is None
+
+
+def test_meet_manager_csv_maps_relay_team_letter_and_members(tmp_path):
+    rows = [
+        _meet_manager_row(
+            event="#7 Mixto 400 CL Metro Combinado Relevo",
+            heat_cell="Serie   1 of 2   Finales   Inicia a las  11:22 AM",
+            lane=2, name="SDEPO", age="X240", team="E", seed="NT",
+            relay_members=[
+                "Mora, Ivonne W53",
+                "Von Marttens, Nelly W64",
+                "Barraza, Mario M71",
+                "Gallardo, Egmont M70",
+            ],
+        )
+    ]
+    entry = meet_program.parse_meet_manager_csv(
+        _write_meet_manager_csv(tmp_path / "programa.csv", rows)
+    ).entries[0]
+
+    assert entry.entry_type == "relay"
+    assert entry.display_name == "SDEPO E"
+    assert entry.team_name == "SDEPO"
+    # X240 es la edad sumada del equipo, no la de un nadador.
+    assert entry.age is None
+    assert entry.relay_members == [
+        "Mora, Ivonne W53",
+        "Von Marttens, Nelly W64",
+        "Barraza, Mario M71",
+        "Gallardo, Egmont M70",
+    ]
+
+
+def test_meet_manager_csv_sends_unusable_rows_to_debug_instead_of_dropping(tmp_path):
+    rows = [
+        ["Natatorio Chileno", "sin bloque de datos", "", ""],
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="sin serie reconocible",
+            lane=2, name="Uno, Nadador", age="M24", team="NEURO", seed="NT",
+        ),
+    ]
+    parsed = meet_program.parse_meet_manager_csv(
+        _write_meet_manager_csv(tmp_path / "programa.csv", rows)
+    )
+
+    assert not parsed.entries
+    assert [line.reason for line in parsed.unparsed] == [
+        "missing_lane_label",
+        "incomplete_entry_row",
+    ]

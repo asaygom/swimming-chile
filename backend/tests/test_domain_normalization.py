@@ -120,3 +120,37 @@ def test_normalize_swim_time_text_and_milliseconds():
 def test_time_statuses_do_not_get_milliseconds():
     assert normalize_swim_time_text("DNS") == "DNS"
     assert derive_result_time_ms("DNS") is None
+
+
+def test_hytek_event_identity_accepts_meet_manager_spanish_labels():
+    """El export CSV de Meet Manager rotula en espanol; misma identidad canonica."""
+    assert parse_hytek_event_identity(
+        "Mixto 100 CL Metro Estilo Libre"
+    ) == (100, "freestyle")
+    assert parse_hytek_event_identity(
+        "Mixto 50 CL Metro Estilo de Espalda"
+    ) == (50, "backstroke")
+    assert parse_hytek_event_identity(
+        "Mixto 50 CC Metro Estilo de Pecho"
+    ) == (50, "breaststroke")
+    assert parse_hytek_event_identity(
+        "Mixto 100 CL Metro Estilo de Mariposa"
+    ) == (100, "butterfly")
+    assert parse_hytek_event_identity("Mixto 200 CL Metro CI") == (
+        200,
+        "individual_medley",
+    )
+    assert parse_hytek_event_identity(
+        "Mixto 400 CL Metro Combinado Relevo"
+    ) == (400, "medley_relay")
+    assert parse_hytek_event_identity(
+        "Femenino 50 CL Metro Estilo Libre"
+    ) == (50, "freestyle")
+
+
+def test_hytek_event_identity_keeps_rejecting_non_event_text():
+    """La apertura al espanol no debe volver permisivo al reconocedor."""
+    assert parse_hytek_event_identity("Programa de Competencias - Copa 2026") is None
+    assert parse_hytek_event_identity("Mixto 100 CL Metro") is None
+    assert parse_hytek_event_identity("Mixto CL Metro Estilo Libre") is None
+    assert parse_hytek_event_identity("100 CL Metro Estilo Libre") is None
