@@ -157,8 +157,8 @@ export const CompetitionLiveHeatPage: React.FC = () => {
   const tickerDuration = Math.max(15, tickerTotalChars * 0.225);
 
   return (
-    <main data-live-layout="caller-board" data-live-has-ticker={tickerAnnouncement ? 'true' : undefined} className="h-dvh max-h-dvh overflow-hidden bg-slate-100 p-2 font-sans text-slate-800 sm:p-4">
-      <div className="mx-auto flex h-full min-h-0 max-w-[1920px] flex-col gap-2 sm:gap-3 lg:flex-row lg:gap-5">
+    <main data-live-layout="caller-board" data-live-has-ticker={tickerAnnouncement ? 'true' : undefined} className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-slate-100 p-2 font-sans text-slate-800 sm:p-4">
+      <div className="mx-auto flex w-full min-h-0 flex-1 max-w-[1920px] flex-col gap-2 sm:gap-3 lg:flex-row lg:gap-5">
         <aside className="grid shrink-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2 sm:gap-3 [@media(max-height:700px)_and_(max-width:767px)]:grid-cols-3 lg:h-full lg:min-h-0 lg:w-[340px] lg:grid-cols-1 lg:grid-rows-[auto_auto_minmax(0,1fr)] xl:w-[380px]">
           <section data-live-section="heat" className="overflow-hidden rounded-2xl bg-brand-pool text-white sm:rounded-3xl">
             <div className="flex h-full flex-col justify-center px-4 py-3 sm:px-6 sm:py-4 lg:py-5">
@@ -172,31 +172,21 @@ export const CompetitionLiveHeatPage: React.FC = () => {
             <h2 className="mt-1 line-clamp-2 text-lg font-black leading-tight text-[#434343] sm:text-xl [@media(max-height:700px)_and_(max-width:767px)]:line-clamp-1 lg:mt-2 lg:text-2xl">{state?.event_name ?? 'Llamador aún no iniciado'}</h2>
           </section>
 
-          <header data-live-section="tournament" className="col-span-2 flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl bg-white p-3 sm:rounded-3xl sm:p-4 [@media(max-height:700px)_and_(max-width:767px)]:col-span-1 lg:col-span-1 lg:p-6">
+          <header data-live-section="tournament" className="col-span-2 flex min-h-0 flex-col justify-center overflow-hidden rounded-2xl bg-white p-3 sm:rounded-3xl sm:p-4 [@media(max-height:700px)_and_(max-width:767px)]:col-span-1 lg:col-span-1 lg:p-6">
             <div className="flex min-h-0 flex-1 items-center justify-center">
+              {/* En mobile la fila del logo es de alto automatico, asi que un
+                  logo vertical se come la pantalla y desplaza a los nadadores.
+                  Se acota por alto explicito y solo en lg se deja crecer. */}
               {showLogo ? <img
                 src={competitionService.getLiveBrandingLogoUrl(id!, branding.revision)}
                 alt={`Logo de ${competition.name}`}
                 onError={() => setLogoFailedRevision(branding.revision)}
-                className="max-h-full max-w-full object-contain"
+                className="max-h-24 max-w-full object-contain sm:max-h-32 lg:max-h-full"
               /> : <div className="min-w-0 self-start">
                 <h2 className="mt-1 text-xl font-black leading-tight text-[#434343] [@media(max-height:700px)_and_(max-width:767px)]:truncate">{competition.name}</h2>
                 <span className="text-xs font-bold text-slate-400">Etapa {state?.stage_number ?? 'única'}</span>
                 <p className="mt-1 text-sm font-medium text-slate-500 [@media(max-height:700px)_and_(max-width:767px)]:hidden">{competition.location || 'Sede por confirmar'}</p>
               </div>}
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-100 pt-2 text-xs font-bold [@media(max-height:700px)_and_(max-width:767px)]:hidden lg:mt-6 lg:pt-4">
-              <div className="flex items-center gap-2">
-              <img
-                src="/web-app-manifest-192x192.png"
-                alt="SwimStats Chile"
-                className="h-8 w-8"
-              />
-              <span className="bg-clip-text text-xl font-bold tracking-tight">
-                SwimStats.cl
-              </span>
-            </div>
-              <Link to={`/competitions/${id}?tab=series`} className="text-brand-pool hover:underline">Ver sembrado</Link>
             </div>
           </header>
         </aside>
@@ -252,6 +242,22 @@ export const CompetitionLiveHeatPage: React.FC = () => {
           </div>
         </section>
       </div>
+      {/* Pie de marca solo en mobile: en la pantalla de piscina el board es una
+          TV sin interaccion, y el enlace ocupa alto que necesitan los nadadores.
+          Queda en el flujo, por lo que el padding del ticker lo mantiene visible. */}
+      <footer data-live-section="board-footer" className="mt-2 flex shrink-0 items-center justify-between gap-3 rounded-2xl bg-white px-4 py-2 sm:mt-3 sm:rounded-3xl lg:hidden">
+        <div className="flex items-center gap-2">
+          <img
+            src="/web-app-manifest-192x192.png"
+            alt="SwimStats Chile"
+            className="h-7 w-7"
+          />
+          <span className="text-lg font-bold tracking-tight">
+            SwimStats.cl
+          </span>
+        </div>
+        <Link to={`/competitions/${id}?tab=series`} className="text-xs font-bold text-brand-pool hover:underline">Ver sembrado</Link>
+      </footer>
       {tickerAnnouncement && (
         <aside data-live-announcement="ticker" role="status" aria-live="polite" aria-atomic="true" aria-label={`Comunicado: ${tickerAnnouncement.message}`} className="fixed inset-x-0 bottom-0 z-50 flex h-9 items-center overflow-hidden border-t border-white/25 bg-[#139fba] text-white shadow-2xl motion-reduce:h-auto motion-reduce:min-h-11 motion-reduce:py-2 sm:h-10 md:h-11">
           <div className="w-full overflow-hidden" aria-hidden="true">

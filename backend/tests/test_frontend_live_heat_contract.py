@@ -65,8 +65,8 @@ def test_public_live_heat_preserves_caller_board_hierarchy_and_projects_next_hea
 def test_public_live_heat_is_a_viewport_locked_responsive_tv_board():
     source = PAGE.read_text(encoding="utf-8")
 
-    assert 'className="h-dvh max-h-dvh overflow-hidden' in source
-    assert 'className="mx-auto flex h-full min-h-0' in source
+    assert 'className="flex h-dvh max-h-dvh flex-col overflow-hidden' in source
+    assert 'className="mx-auto flex w-full min-h-0 flex-1' in source
     assert "md:grid-cols-[minmax(0,1fr)_minmax(260px,0.48fr)]" in source
     assert "min-h-[55dvh]" not in source
     assert "min-h-[35dvh]" not in source
@@ -454,8 +454,14 @@ def test_public_board_polls_branding_and_replaces_only_tournament_content():
     assert "logoFailedRevision !== branding.revision" in source
     assert 'alt={`Logo de ${competition.name}`}' in source
     tournament = source.split('data-live-section="tournament"', 1)[1].split('</header>', 1)[0]
-    assert 'className="max-h-full max-w-full object-contain"' in tournament
-    assert "SwimStats.cl" in tournament and "Ver sembrado" in tournament
+    # El logo se acota en mobile para no desplazar a los nadadores llamados.
+    assert 'className="max-h-24 max-w-full object-contain sm:max-h-32 lg:max-h-full"' in tournament
+    # La marca dejo de vivir dentro de la tarjeta del torneo: es un pie propio,
+    # al final del board y solo en mobile.
+    assert "SwimStats.cl" not in tournament and "Ver sembrado" not in tournament
+    footer = source.split('data-live-section="board-footer"', 1)[1].split('</footer>', 1)[0]
+    assert "SwimStats.cl" in footer and "Ver sembrado" in footer
+    assert "lg:hidden" in footer and "shrink-0" in footer
 
 
 def test_admin_page_validates_previews_and_recovers_live_branding_mutations():
