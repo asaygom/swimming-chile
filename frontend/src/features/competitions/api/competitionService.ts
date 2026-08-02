@@ -134,6 +134,56 @@ export const competitionService = {
     return LiveBrandingResponseSchema.parse(await response.json());
   },
 
+  adminPasswordRecoveryRedirectUrl(): string {
+    return `${window.location.origin}/admin/password`;
+  },
+
+  async requestAdminPasswordRecovery(email: string): Promise<void> {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Autenticación administrativa no configurada');
+    }
+    const redirectTo = encodeURIComponent(this.adminPasswordRecoveryRedirectUrl());
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${redirectTo}`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo enviar el correo de recuperación');
+  },
+
+  /** Las plantillas nuevas de Supabase entregan `token_hash` en vez del token
+   *  en el fragmento. Se canjea aqui por un access_token de un solo uso. */
+  async verifyAdminRecoveryToken(tokenHash: string): Promise<string> {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Autenticación administrativa no configurada');
+    }
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'recovery', token_hash: tokenHash }),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'El enlace expiró o ya fue usado');
+    return SupabasePasswordResponseSchema.parse(await response.json()).access_token;
+  },
+
+  async setAdminPassword(accessToken: string, password: string): Promise<void> {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Autenticación administrativa no configurada');
+    }
+    // El token de recuperacion es efimero y de un solo uso: se envia y no se
+    // guarda en ninguna parte, igual que la clave del login administrativo.
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password }),
+    });
+    if (!response.ok) throw new ApiError(response.status, 'No se pudo actualizar la contraseña');
+  },
+
   async createLiveAnnouncementAdminSession(email: string, password: string): Promise<void> {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       throw new Error('Autenticación administrativa no configurada');

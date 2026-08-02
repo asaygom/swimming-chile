@@ -340,3 +340,74 @@ def test_admin_page_validates_format_and_size_before_uploading():
     assert "accept=\".pdf,.csv\"" in page
     assert "MAX_PROGRAM_BYTES = 16 * 1024 * 1024" in page
     assert "endsWith('.pdf')" in page and "endsWith('.csv')" in page
+
+
+PASSWORD_PAGE = FRONTEND_DIR / "features/competitions/pages/AdminPasswordPage.tsx"
+
+
+def test_password_recovery_route_is_standalone_and_not_competition_scoped():
+    router = ROUTER.read_text(encoding="utf-8")
+    route = "path: '/admin/password'"
+
+    assert route in router
+    assert router.index(route) < router.index("element: <MainLayout />")
+    assert ":id" not in route
+
+
+def test_recovery_service_uses_supabase_and_never_stores_the_token():
+    service = SERVICE.read_text(encoding="utf-8")
+    recovery = service.split("adminPasswordRecoveryRedirectUrl", 1)[1].split(
+        "async createLiveAnnouncementAdminSession", 1
+    )[0]
+
+    assert "/auth/v1/recover" in recovery
+    assert "/auth/v1/user" in recovery
+    assert "redirect_to=" in recovery
+    assert "Authorization: `Bearer ${accessToken}`" in recovery
+    # El token y la clave son efimeros: no pueden quedar en el navegador.
+    assert "localStorage" not in recovery and "sessionStorage" not in recovery
+    assert "document.cookie" not in recovery
+
+
+def test_password_page_clears_the_recovery_token_from_the_address_bar():
+    page = PASSWORD_PAGE.read_text(encoding="utf-8")
+
+    assert "window.history.replaceState" in page
+    assert "type') === 'recovery'" in page
+    # Leer es inicializacion pura; borrar el fragmento es el efecto.
+    assert "useState(readRecoveryArrival)" in page
+    assert "localStorage" not in page and "sessionStorage" not in page
+
+
+def test_password_page_enforces_length_and_confirmation_before_sending():
+    page = PASSWORD_PAGE.read_text(encoding="utf-8")
+
+    assert "MIN_PASSWORD_LENGTH = 12" in page
+    assert "password !== confirmation" in page
+    assert "password.length < MIN_PASSWORD_LENGTH" in page
+    assert 'autoComplete="new-password"' in page
+    # La respuesta no debe revelar si el correo existe.
+    assert "Si la cuenta existe" in page
+
+
+def test_meet_program_admin_page_can_authenticate_on_its_own():
+    """Antes dependia de haber iniciado sesion en la pagina de comunicados."""
+    page = ADMIN_PAGE.read_text(encoding="utf-8")
+
+    assert "createLiveAnnouncementAdminSession(email, password)" in page
+    assert "if (!authenticated)" in page
+    assert 'to="/admin/password"' in page
+    # La clave se limpia pase lo que pase, no solo en el camino feliz.
+    assert "finally {\n      setPassword('');" in page
+
+
+def test_password_page_reads_every_supabase_arrival_shape():
+    """Fragmento, token_hash y errores: sin esto un enlace fallido caia mudo."""
+    page = PASSWORD_PAGE.read_text(encoding="utf-8")
+
+    assert "window.location.hash" in page and "window.location.search" in page
+    assert "token_hash" in page and "access_token" in page
+    assert "error_description" in page
+    # El formato PKCE no se puede completar aqui y debe decirlo, no fallar mudo.
+    assert "PKCE" in page
+    assert "verifyAdminRecoveryToken" in page

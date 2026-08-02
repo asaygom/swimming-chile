@@ -21,12 +21,38 @@ export const CompetitionMeetProgramAdminPage: React.FC = () => {
   const [preview, setPreview] = useState<MeetProgramPreview | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const configured = competitionService.isLiveAnnouncementAdminAuthConfigured();
 
   const competitionQuery = useQuery({
     queryKey: ['competition', id],
     queryFn: () => competitionService.getCompetitionDetail(id!),
     enabled: Boolean(id),
   });
+
+  const login = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setBusy(true);
+    setMessage('');
+    try {
+      await competitionService.createLiveAnnouncementAdminSession(email, password);
+      setEmail('');
+      setAuthenticated(true);
+    } catch (error) {
+      if (error instanceof ApiError && [400, 401].includes(error.status)) {
+        setMessage('Correo o contraseña incorrectos.');
+      } else if (error instanceof ApiError && error.status === 403) {
+        setMessage('Tu cuenta no tiene rol de administrador global.');
+      } else {
+        setMessage('No pudimos validar la sesión. Intenta nuevamente.');
+      }
+    } finally {
+      setPassword('');
+      setBusy(false);
+    }
+  };
 
   const chooseFile = (selected: File | undefined) => {
     setMessage('');
@@ -81,6 +107,51 @@ export const CompetitionMeetProgramAdminPage: React.FC = () => {
 
   const validated = preview?.state === 'validated';
   const published = Boolean(preview?.publication_id);
+
+  if (!configured) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-slate-100 p-6 font-sans">
+        <section className="max-w-lg rounded-3xl bg-white p-8 text-center shadow-xl">
+          <h1 className="text-2xl font-black text-slate-800">Administración no disponible</h1>
+          <p className="mt-3 text-slate-600">Autenticación administrativa no configurada.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-slate-100 p-4 font-sans">
+        <section className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl">
+          <header className="bg-brand-live p-7 text-white">
+            <p className="text-xs font-black uppercase tracking-widest text-white/80">Administración global</p>
+            <h1 className="text-2xl font-black">Publicar sembrado</h1>
+          </header>
+          <form onSubmit={login} className="space-y-4 p-7">
+            <label className="block text-sm font-bold text-slate-700" htmlFor="program-admin-email">Correo</label>
+            <input
+              id="program-admin-email" type="email" autoComplete="username" required value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            />
+            <label className="block text-sm font-bold text-slate-700" htmlFor="program-admin-password">Contraseña</label>
+            <input
+              id="program-admin-password" type="password" autoComplete="current-password" required value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            />
+            {message && <p role="alert" aria-live="polite" className="text-sm font-semibold text-danger">{message}</p>}
+            <button type="submit" disabled={busy} className="w-full rounded-xl bg-brand-live px-4 py-3 font-black text-white disabled:opacity-50">
+              {busy ? 'Validando…' : 'Ingresar'}
+            </button>
+            <p className="text-center text-sm">
+              <Link className="font-bold text-brand-live" to="/admin/password">¿Sin contraseña o la olvidaste?</Link>
+            </p>
+          </form>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-dvh bg-slate-100 p-4 font-sans sm:p-8">
