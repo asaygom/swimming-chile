@@ -7,7 +7,7 @@ import time
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, Cookie, HTTPException, Request, Response
+from fastapi import APIRouter, Cookie, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from ..database import get_db_connection
@@ -21,6 +21,14 @@ CODE_FAILURE_WINDOW_SECONDS = 15 * 60
 _MAX_ATTEMPT_KEYS = 10_000
 _attempts: dict[tuple[int, str], list[float]] = {}
 _attempts_lock = threading.Lock()
+
+
+def _cookie_path(competition_id: int) -> str:
+    return f"/api/competitions/{competition_id}/live-heat"
+
+
+def _cookie_secure() -> bool:
+    return os.getenv("LIVE_HEAT_COOKIE_SECURE", "true").lower() != "false"
 
 
 class OperatorCode(BaseModel):
@@ -55,6 +63,10 @@ def _create_session_token(competition_id: int) -> tuple[str, str]:
     payload = f"{competition_id}:{int(time.time()) + SESSION_TTL_SECONDS}:{session_id}"
     signature = hmac.new(secret, payload.encode(), hashlib.sha256).hexdigest()
     return f"{payload}:{signature}", session_id
+
+
+def _session_fingerprint(session_id: str) -> str:
+    return hashlib.sha256(session_id.encode("utf-8")).hexdigest()
 
 
 def _require_session(competition_id: int, token: str | None) -> str:
@@ -156,11 +168,22 @@ def create_operator_session(
         token,
         max_age=SESSION_TTL_SECONDS,
         httponly=True,
-        secure=os.getenv("LIVE_HEAT_COOKIE_SECURE", "true").lower() != "false",
+        secure=_cookie_secure(),
         samesite="lax",
-        path=f"/api/competitions/{competition_id}/live-heat",
+        path=_cookie_path(competition_id),
     )
     return {"authenticated": True, "expires_in_seconds": SESSION_TTL_SECONDS}
+
+
+@router.post("/{competition_id}/live-heat/session/logout", status_code=204)
+def delete_operator_session(competition_id: int, response: Response) -> None:
+    response.delete_cookie(
+        COOKIE_NAME,
+        httponly=True,
+        secure=_cookie_secure(),
+        samesite="lax",
+        path=_cookie_path(competition_id),
+    )
 
 
 @router.get("/{competition_id}/live-heat")
@@ -204,6 +227,34 @@ def get_live_heat(competition_id: int):
     return {"competition_id": competition_id, "state": state, "entries": entries}
 
 
+@router.get("/{competition_id}/live-heat/history")
+def list_live_heat_history(
+    competition_id: int,
+    limit: int = Query(default=20, ge=1, le=100),
+    operator_session: str | None = Cookie(default=None, alias=COOKIE_NAME),
+):
+    session_id = _require_session(competition_id, operator_session)
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, previous_publication_id, previous_stage_number,
+                       previous_pool_role, previous_session_number,
+                       previous_event_number, previous_heat_number, previous_status,
+                       previous_revision, resulting_publication_id,
+                       resulting_stage_number, resulting_pool_role,
+                       resulting_session_number, resulting_event_number,
+                       resulting_heat_number, resulting_status, resulting_revision,
+                       occurred_at,
+                       operator_session_fingerprint = %s AS is_current_session
+                FROM core.live_heat_movement
+                WHERE competition_id = %s
+                ORDER BY occurred_at DESC, id DESC
+                LIMIT %s
+            """, (_session_fingerprint(session_id), competition_id, limit))
+            movements = cur.fetchall()
+    return {"competition_id": competition_id, "movements": movements}
+
+
 @router.put("/{competition_id}/live-heat")
 def update_live_heat(
     competition_id: int,
@@ -234,7 +285,9 @@ def update_live_heat(
             if not cur.fetchone():
                 raise HTTPException(status_code=422, detail="Heat not found in publication")
             cur.execute("""
-                SELECT s.publication_id, s.revision, p.status AS publication_status
+                SELECT s.publication_id, s.stage_number, s.pool_role,
+                       s.session_number, s.event_number, s.heat_number, s.status,
+                       s.revision, p.status AS publication_status
                 FROM core.live_heat_state s
                 JOIN core.meet_program_publication p ON p.id = s.publication_id
                 WHERE s.competition_id = %(competition_id)s
@@ -287,5 +340,35 @@ def update_live_heat(
             state = cur.fetchone()
             if not state:
                 raise HTTPException(status_code=409, detail="Live heat revision conflict")
+            history_values = {
+                "competition_id": competition_id,
+                "operator_session_fingerprint": _session_fingerprint(session_id),
+                **{f"previous_{field}": existing.get(field) if existing else None for field in (
+                    "publication_id", "stage_number", "pool_role", "session_number",
+                    "event_number", "heat_number", "status", "revision",
+                )},
+                **{f"resulting_{field}": state.get(field, getattr(update, field)) for field in (
+                    "publication_id", "stage_number", "pool_role", "session_number",
+                    "event_number", "heat_number", "status",
+                )},
+                "resulting_revision": state["revision"],
+            }
+            cur.execute("""
+                INSERT INTO core.live_heat_movement (
+                    competition_id, previous_publication_id, previous_stage_number,
+                    previous_pool_role, previous_session_number, previous_event_number,
+                    previous_heat_number, previous_status, previous_revision,
+                    resulting_publication_id, resulting_stage_number, resulting_pool_role,
+                    resulting_session_number, resulting_event_number, resulting_heat_number,
+                    resulting_status, resulting_revision, operator_session_fingerprint
+                ) VALUES (
+                    %(competition_id)s, %(previous_publication_id)s, %(previous_stage_number)s,
+                    %(previous_pool_role)s, %(previous_session_number)s, %(previous_event_number)s,
+                    %(previous_heat_number)s, %(previous_status)s, %(previous_revision)s,
+                    %(resulting_publication_id)s, %(resulting_stage_number)s, %(resulting_pool_role)s,
+                    %(resulting_session_number)s, %(resulting_event_number)s, %(resulting_heat_number)s,
+                    %(resulting_status)s, %(resulting_revision)s, %(operator_session_fingerprint)s
+                )
+            """, history_values)
             conn.commit()
     return {"competition_id": competition_id, "state": state}

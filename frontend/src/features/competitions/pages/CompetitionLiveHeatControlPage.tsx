@@ -10,8 +10,11 @@ type HeatOption = Omit<LiveHeatUpdate, 'status' | 'expected_revision'> & {
   heat_total: number | null;
 };
 
+const LIVE_CONTROL_POLL_INTERVAL_MS = 2_500;
+
 const heatKey = (heat: HeatOption) => [heat.publication_id, heat.stage_number, heat.pool_role, heat.session_number, heat.event_number, heat.heat_number].join(':');
 const eventKey = (heat: HeatOption) => [heat.publication_id, heat.stage_number, heat.pool_role, heat.session_number, heat.event_number].join(':');
+const stateVersionKey = (state: { publication_id: number; stage_number: number; pool_role: string; revision: number }) => [state.publication_id, state.stage_number, state.pool_role, state.revision].join(':');
 
 const flattenHeats = (sessions: MeetProgramSession[]): HeatOption[] => sessions.flatMap((session) =>
   session.events.flatMap((event) => event.heats.map((heat) => ({
@@ -38,10 +41,23 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
   const [autoPublishFailed, setAutoPublishFailed] = useState(false);
   const updateInFlightRef = useRef(false);
   const autoPublishedHeatKeyRef = useRef('');
+  const observedStateVersionRef = useRef('');
+  const locallyPublishedStateVersionRef = useRef('');
 
   const competitionQuery = useQuery({ queryKey: ['competition', id], queryFn: () => competitionService.getCompetitionDetail(id!), enabled: Boolean(id) && authenticated });
   const programQuery = useQuery({ queryKey: ['competition-meet-program', id], queryFn: () => competitionService.getMeetProgram(id!), enabled: Boolean(id) && authenticated });
-  const liveQuery = useQuery({ queryKey: ['competition-live-heat', id], queryFn: () => competitionService.getLiveHeat(id!), enabled: Boolean(id) && authenticated });
+  const liveQuery = useQuery({
+    queryKey: ['competition-live-heat', id],
+    queryFn: () => competitionService.getLiveHeat(id!),
+    enabled: Boolean(id) && authenticated,
+    refetchInterval: LIVE_CONTROL_POLL_INTERVAL_MS,
+  });
+  const historyQuery = useQuery({
+    queryKey: ['competition-live-heat-history', id],
+    queryFn: () => competitionService.getLiveHeatHistory(id!),
+    enabled: Boolean(id) && authenticated,
+    refetchInterval: LIVE_CONTROL_POLL_INTERVAL_MS,
+  });
 
   const heats = useMemo(() => flattenHeats(programQuery.data?.sessions ?? []), [programQuery.data]);
   const liveState = liveQuery.data?.state;
@@ -91,7 +107,7 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
       && target.pool_role === liveState.pool_role
       ? liveState.revision : 0;
     try {
-      await competitionService.updateLiveHeat(id!, {
+      const updated = await competitionService.updateLiveHeat(id!, {
         publication_id: target.publication_id,
         stage_number: target.stage_number,
         pool_role: target.pool_role,
@@ -101,6 +117,7 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
         status: 'active',
         expected_revision: expectedRevision,
       });
+      locallyPublishedStateVersionRef.current = stateVersionKey(updated.state);
       setSelectedKey(heatKey(target));
       setMessage('Llamador actualizado correctamente.');
     } catch (error) {
@@ -117,12 +134,43 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
     } finally {
       try {
         await liveQuery.refetch();
+        await historyQuery.refetch();
       } finally {
         updateInFlightRef.current = false;
         setSaving(false);
       }
     }
-  }, [id, liveQuery, liveState]);
+  }, [historyQuery, id, liveQuery, liveState]);
+
+  useEffect(() => {
+    if (!authenticated || !liveState || saving || updateInFlightRef.current) return;
+    const version = stateVersionKey(liveState);
+    if (!observedStateVersionRef.current) {
+      observedStateVersionRef.current = version;
+      return;
+    }
+    if (observedStateVersionRef.current === version) return;
+    observedStateVersionRef.current = version;
+    setSelectedKey('');
+    if (locallyPublishedStateVersionRef.current === version) {
+      locallyPublishedStateVersionRef.current = '';
+      return;
+    }
+    setMessage('Otro voluntario actualiz\u00f3 el llamador. Mostramos el estado vigente.');
+  }, [authenticated, liveState, saving]);
+
+  const logout = async () => {
+    setMessage('');
+    try {
+      await competitionService.deleteLiveHeatSession(id!);
+      observedStateVersionRef.current = '';
+      locallyPublishedStateVersionRef.current = '';
+      setSelectedKey('');
+      setAuthenticated(false);
+    } catch {
+      setMessage('No pudimos cerrar la sesi\u00f3n. Intenta nuevamente.');
+    }
+  };
 
   useEffect(() => {
     if (!authenticated || liveQuery.isLoading || liveQuery.isError || liveState || !heats.length || autoPublishFailed) return;
@@ -137,7 +185,7 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
       <main data-live-layout="heat-controller" className="grid min-h-dvh place-items-center bg-slate-100 p-4 font-sans">
         <section className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl">
           <div className="bg-brand-pool p-7 text-white">
-            <div className="flex items-center gap-3"><img src="/web-app-manifest-192x192.png" alt="" className="h-12 w-12 rounded-xl" /><div><p className="text-xs font-black uppercase tracking-widest text-white/80">SwimStats Chile</p><h1 className="text-2xl font-black">Controlador de heats</h1></div></div>
+            <div className="flex items-center gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-white/80">{competitionQuery.data?.competition.name}</p><h1 className="text-2xl font-black">Controlador de heats</h1></div></div>
           </div>
           <form onSubmit={authenticate} className="space-y-4 p-7">
             <p className="text-sm text-slate-500">Ingresa el código temporal asignado a esta competencia.</p>
@@ -160,7 +208,7 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
       <div className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-3 p-3 sm:gap-5 sm:p-6">
         <header className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="min-w-0"><p className="text-xs font-black uppercase tracking-widest text-brand-pool">Controlador de heats</p><h1 className="truncate text-lg font-black">{competitionQuery.data?.competition.name}</h1></div>
-          <nav className="flex shrink-0 gap-3 text-xs font-bold"><Link className="text-brand-pool" to={`/competitions/${id}/live`}>Pantalla pública</Link></nav>
+          <nav className="flex shrink-0 items-center gap-3 text-xs font-bold"><Link className="text-brand-pool" to={`/competitions/${id}/live`}>Pantalla pública</Link><button type="button" disabled={saving} onClick={() => { void logout(); }} className="text-slate-600 disabled:opacity-40">Cerrar sesión</button></nav>
         </header>
 
         <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -185,6 +233,21 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
 
         <div aria-live="polite" className="min-h-5 text-center text-sm font-semibold text-slate-600">{message}</div>
         {autoPublishFailed && !liveState && <button type="button" disabled={saving} onClick={() => { autoPublishedHeatKeyRef.current = heatKey(heats[0]); void update(heats[0]); }} className="rounded-xl bg-slate-800 px-4 py-3 font-black text-white disabled:opacity-40">Reintentar</button>}
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="movement-history-title">
+          <h2 id="movement-history-title" className="text-xs font-black uppercase tracking-wider text-slate-500">Movimientos recientes</h2>
+          {historyQuery.isError ? <p className="mt-2 text-sm text-slate-500">No pudimos actualizar el historial.</p> : (
+            <ol className="mt-2 max-h-32 space-y-1 overflow-y-auto text-sm">
+              {(historyQuery.data?.movements ?? []).map((movement) => (
+                <li key={movement.id} className="flex flex-wrap items-center justify-between gap-x-3 rounded-lg bg-slate-50 px-3 py-2">
+                  <span className="font-bold text-slate-700">{movement.is_current_session ? 'Esta sesi\u00f3n' : 'Otra sesi\u00f3n'}</span>
+                  <span className="text-slate-600">{movement.previous_event_number ? `E${movement.previous_event_number} / H${movement.previous_heat_number} -> ` : 'Inicio -> '}E{movement.resulting_event_number} / H{movement.resulting_heat_number}</span>
+                  <time className="text-xs text-slate-400" dateTime={movement.occurred_at}>{new Date(movement.occurred_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</time>
+                </li>
+              ))}
+              {historyQuery.data?.movements.length === 0 && <li className="py-2 text-slate-400">{'A\u00fan no hay movimientos.'}</li>}
+            </ol>
+          )}
+        </section>
         <div className="grid gap-3 sm:grid-cols-2">
           <button type="button" disabled={saving || !liveState || selectedIndex <= 0} onClick={() => { void update(heats[selectedIndex - 1]); }} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-xl font-black disabled:opacity-40">← Anterior</button>
           <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => { void update(heats[selectedIndex + 1]); }} className="rounded-2xl bg-brand-pool px-5 py-4 text-xl font-black text-white disabled:opacity-40">Siguiente →</button>

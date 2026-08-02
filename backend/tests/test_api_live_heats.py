@@ -64,6 +64,7 @@ def configure_auth(monkeypatch):
         hashlib.sha256(b"pilot-code").hexdigest(),
     )
     monkeypatch.setenv("LIVE_HEAT_SESSION_SECRET", "test-secret-with-enough-entropy")
+    monkeypatch.setenv("LIVE_HEAT_COOKIE_SECURE", "true")
 
 
 def request_from(address="203.0.113.8", forwarded_for=None):
@@ -86,6 +87,27 @@ def test_operator_code_is_exchanged_for_scoped_http_only_cookie(monkeypatch):
     assert "SameSite=lax" in cookie
     assert "Secure" in cookie
     assert "pilot-code" not in cookie
+
+
+def test_operator_logout_clears_the_scoped_cookie_with_matching_security(monkeypatch):
+    configure_auth(monkeypatch)
+    response = Response()
+
+    live_heats.delete_operator_session(7, response)
+
+    cookie = response.headers["set-cookie"]
+    assert cookie.startswith(f"{live_heats.COOKIE_NAME}=\"")
+    assert "Max-Age=0" in cookie
+    assert "HttpOnly" in cookie
+    assert "SameSite=lax" in cookie
+    assert "Secure" in cookie
+    assert "Path=/api/competitions/7/live-heat" in cookie
+    route = next(
+        route for route in live_heats.router.routes
+        if route.path == "/{competition_id}/live-heat/session/logout"
+    )
+    assert route.methods == {"POST"}
+    assert route.status_code == 204
 
 
 def test_operator_session_rejects_wrong_code(monkeypatch):
@@ -169,11 +191,21 @@ def test_update_requires_matching_revision_and_published_heat(monkeypatch):
 
     assert result == {"competition_id": 7, "state": updated}
     assert connection.committed is True
-    update_query, update_params = cursor.executed[-1]
+    update_query, update_params = next(
+        item for item in cursor.executed
+        if item[0].startswith("UPDATE core.live_heat_state")
+    )
     assert update_query.startswith("UPDATE core.live_heat_state")
     assert "revision = revision + 1" in update_query
     assert "revision = %(current_revision)s" in update_query
     assert update_params["updated_by_session"] == session_id
+    history_query, history_params = cursor.executed[-1]
+    assert history_query.startswith("INSERT INTO core.live_heat_movement")
+    assert history_params["operator_session_fingerprint"] == hashlib.sha256(
+        session_id.encode("utf-8")
+    ).hexdigest()
+    assert history_params["previous_revision"] == 5
+    assert history_params["resulting_revision"] == 6
 
 
 @pytest.mark.parametrize("existing", [{"revision": 3}, None])
@@ -223,8 +255,15 @@ def test_initial_update_uses_insert_only_for_revision_zero(monkeypatch):
     )
 
     assert result["state"] == created
-    assert cursor.executed[-1][0].startswith("INSERT INTO core.live_heat_state")
-    assert "ON CONFLICT DO NOTHING" in cursor.executed[-1][0]
+    state_insert = next(
+        query for query, _params in cursor.executed
+        if query.startswith("INSERT INTO core.live_heat_state")
+    )
+    assert "ON CONFLICT DO NOTHING" in state_insert
+    history_query, history_params = cursor.executed[-1]
+    assert history_query.startswith("INSERT INTO core.live_heat_movement")
+    assert history_params["previous_publication_id"] is None
+    assert history_params["previous_revision"] is None
     assert connection.committed is True
 
 
@@ -252,8 +291,12 @@ def test_revision_zero_adopts_replacement_after_publication_rollover(monkeypatch
     )
 
     assert result["state"] == adopted
-    assert cursor.executed[-1][0].startswith("UPDATE core.live_heat_state")
-    assert "revision = revision + 1" in cursor.executed[-1][0]
+    state_update = next(
+        query for query, _params in cursor.executed
+        if query.startswith("UPDATE core.live_heat_state")
+    )
+    assert "revision = revision + 1" in state_update
+    assert cursor.executed[-1][1]["previous_publication_id"] == 51
     assert "FOR SHARE" in cursor.executed[0][0]
     assert connection.committed is True
 
@@ -291,3 +334,26 @@ def test_forwarded_address_is_used_only_for_trusted_proxy(monkeypatch):
     forwarded = "198.51.100.4, 10.0.0.5"
     assert live_heats._client_address(request_from("10.0.0.9", forwarded)) == "198.51.100.4"
     assert live_heats._client_address(request_from("192.0.2.9", forwarded)) == "192.0.2.9"
+
+
+def test_operator_history_is_scoped_bounded_newest_first_and_marks_self(monkeypatch):
+    configure_auth(monkeypatch)
+    token, session_id = live_heats._create_session_token(7)
+    movement = {
+        "id": 91, "previous_event_number": 3, "previous_heat_number": 1,
+        "resulting_event_number": 3, "resulting_heat_number": 2,
+        "resulting_status": "active", "resulting_revision": 6,
+        "occurred_at": "2026-08-01T16:00:00Z", "is_current_session": True,
+    }
+    cursor, _connection = install_database(monkeypatch, [], [movement])
+
+    result = live_heats.list_live_heat_history(7, 12, token)
+
+    assert result == {"competition_id": 7, "movements": [movement]}
+    query, params = cursor.executed[0]
+    assert "FROM core.live_heat_movement" in query
+    assert "competition_id = %s" in query
+    assert "ORDER BY occurred_at DESC, id DESC" in query
+    assert params == (
+        hashlib.sha256(session_id.encode("utf-8")).hexdigest(), 7, 12
+    )
