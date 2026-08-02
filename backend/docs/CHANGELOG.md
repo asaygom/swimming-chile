@@ -34,6 +34,54 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   requests. Queda pendiente evaluar un intervalo mayor para branding, que cambia
   con muy baja frecuencia.
 
+## 2026-08-01 - Fundación administrativa de comunicados en vivo
+
+- Se agrega `backend/sql/migrations/016_live_announcements.sql`, que amplía el
+  schema `auth` con `user_competition_role` y `admin_session`, y crea
+  `core.live_announcement`.
+- El rol administrativo es por competencia, no global: `user_competition_role`
+  autoriza `competition_admin` sobre una competencia específica, de modo que un
+  administrador no hereda acceso a las demás.
+- `admin_session` guarda solo el SHA-256 del token y admite una sesión vigente
+  por usuario. La sesión se emite en cookie `HttpOnly` tras verificar un token
+  OIDC contra emisor, audiencia y expiración.
+- `core.live_announcement` usa borrado lógico y admite un solo comunicado activo
+  por competencia mediante índice único parcial. Los comunicados en cinta
+  inferior se limitan a 240 caracteres para que sean legibles en pantalla.
+
+## 2026-07-31 - Programa segmentado y llamador en vivo
+
+- `013_meet_program_estimated_times.sql` agrega `estimated_start_time` a
+  `meet_program_entry`, validado como `HH:MM`. Es el horario estimado que
+  imprime el programa, no un horario oficial.
+- `014_meet_program_segments.sql` agrega `stage_number`, `pool_role` y
+  `scheduled_date` a `meet_program_publication`. El índice de publicación única
+  pasa de ser por competencia a ser por segmento
+  (`competition_id + stage_number + pool_role`), porque las competencias FECHIDA
+  reparten un mismo torneo en varias etapas y piscinas simultáneas.
+- La misma migración relaja `lane > 0` a `lane >= 0`, ya que esos programas
+  incluyen entradas sin andarivel asignado.
+- `015_live_heat_state.sql` crea `core.live_heat_state`, el estado vigente del
+  llamador con una fila por segmento. Incorpora `revision` como compuerta de
+  concurrencia optimista: el operador debe haber observado el estado que
+  reemplaza, para que dos voluntarios con la pantalla abierta no se pisen.
+
+## 2026-07-30 - Módulo público de programa de competencia
+
+- Se agrega `011_meet_program_publications.sql` con
+  `core.meet_program_publication` y `core.meet_program_entry`, que exponen los
+  heats sembrados de una competencia antes de que existan resultados.
+- Las entradas del programa preservan los valores de despliegue del PDF y no se
+  enlazan con `core.athlete`. Un programa se publica antes de la competencia, y
+  resolver identidad ahí obligaría a curar con menos evidencia que en el flujo
+  de resultados.
+- La publicación tiene estados `pending`, `published` y `superseded`, con
+  trazabilidad completa hacia `source_document`, checksum y versión de parser.
+- `012_meet_program_parser_revision.sql` incorpora `parser_version` a la
+  unicidad. Corregir el parser republica el mismo PDF en vez de mutar el
+  programa vigente, y la publicación anterior queda `superseded`. El reemplazo
+  del constraint anterior es idempotente y no depende de su nombre generado.
+
 ## 2026-07-27 - Metadata local implícita por scope curado
 
 - Se agrega la migración

@@ -21,6 +21,10 @@ Actualmente el proyecto soporta:
 - puntos oficiales cuando existen en el PDF (`points`)
 - puntaje esperado calculado por posicion (`expected_points`) para auditoria
 - carga end-to-end a PostgreSQL para individuales y relevos
+- programa publico de competencia (heats sembrados) versionado por PDF y parser
+- llamador en vivo de heats con control de operador y auditoria de movimientos
+- comunicados en vivo administrados por competencia, con historial por actor
+- logo por competencia para la pantalla publica del llamador
 
 El pipeline carga:
 
@@ -30,6 +34,10 @@ El pipeline carga:
 - `result`
 - `relay_result`
 - `relay_result_member`
+
+El modulo de programa y llamador en vivo tiene ingesta propia y no pasa por las
+tablas `stg_*`. Publica las entradas del programa tal como aparecen en el PDF y
+no resuelve identidad contra `core.athlete`.
 
 ## 3. Principios de modelado
 
@@ -96,6 +104,25 @@ Tablas agregadas:
 - `club_ops.membership`
 - `auth.user_account`
 - `auth.user_role`
+
+Las migraciones `011` a `019` agregan el modulo de programa de competencia y
+llamador en vivo:
+
+- `core.meet_program_publication` y `core.meet_program_entry` (011, con
+  republicacion por version de parser en 012, horario estimado en 013 y
+  segmentacion por etapa/piscina en 014)
+- `core.live_heat_state` (015)
+- `core.live_announcement`, `auth.user_competition_role` y `auth.admin_session`
+  (016)
+- `core.live_heat_movement` (017)
+- `core.live_announcement_event` (018)
+- `core.competition_live_branding` (019)
+
+`backend/sql/schema.sql` declara solo objetos de `core` que no dependen de otros
+schemas, para seguir siendo ejecutable por si solo. Por eso incluye
+`meet_program_publication`, `meet_program_entry`, `live_heat_state` y
+`live_heat_movement`, pero no las tablas que referencian `auth.user_account`:
+esas viven unicamente en `sql/migrations/`.
 
 ## 5. Tablas staging
 
@@ -488,6 +515,148 @@ Campos principales:
 - `created_at`
 - `updated_at`
 
+### 7.11 `meet_program_publication`
+
+Registra cada publicacion del programa de una competencia. Una competencia puede
+tener varias publicaciones vigentes si esta segmentada por etapa y piscina, pero
+solo una `published` por combinacion `competition_id + stage_number + pool_role`.
+
+Campos principales:
+
+- `id`
+- `competition_id`
+- `source_document_id`
+- `source_checksum_sha256`
+- `source_url`
+- `parser_version`
+- `status` (`pending`, `published`, `superseded`)
+- `stage_number`
+- `pool_role` (`main`, `competition`, `training`)
+- `scheduled_date`
+- `metadata`
+- `created_at`
+- `published_at`
+- `superseded_at`
+
+La unicidad es `competition_id + source_checksum_sha256 + parser_version`, de modo
+que el mismo PDF puede republicarse cuando se corrige el parser.
+
+### 7.12 `meet_program_entry`
+
+Registra una linea sembrada del programa: un andarivel dentro de un heat. Preserva
+los valores de despliegue tal como vienen del PDF y no enlaza identidad core.
+
+Campos principales:
+
+- `id`
+- `publication_id`
+- `session_number`, `session_name`
+- `event_number`, `event_name`
+- `heat_number`, `heat_total`
+- `lane`
+- `display_name`
+- `age`
+- `team_name`
+- `seed_time_text`, `seed_time_ms`
+- `estimated_start_time` (`HH:MM`)
+- `entry_type` (`individual`, `relay`)
+- `relay_members`
+- `page_number`, `column_number`, `line_number`
+- `created_at`
+
+`lane` admite `0` para entradas sin andarivel asignado en el documento fuente.
+
+### 7.13 `live_heat_state`
+
+Registra el heat que se esta llamando en pantalla. Es estado vigente, no historia:
+hay una fila por `competition_id + stage_number + pool_role`.
+
+Campos principales:
+
+- `id`
+- `competition_id`
+- `publication_id`
+- `stage_number`, `pool_role`
+- `session_number`, `event_number`, `heat_number`
+- `status` (`not_started`, `active`, `paused`, `finished`)
+- `revision`
+- `updated_at`
+- `updated_by_session`
+
+`revision` es la compuerta de concurrencia optimista: el operador envia el valor
+que observo y la escritura se rechaza con conflicto si ya avanzo.
+
+### 7.14 `live_heat_movement`
+
+Registra la historia append-only de los movimientos del llamador, con estado previo
+y resultante en la misma fila.
+
+Campos principales:
+
+- `id`
+- `competition_id`
+- `previous_*` (`publication_id`, `stage_number`, `pool_role`, `session_number`,
+  `event_number`, `heat_number`, `status`, `revision`), nulos en el primer
+  movimiento
+- `resulting_*` (mismos campos, obligatorios)
+- `operator_session_fingerprint`
+- `occurred_at`
+
+El operador se identifica por el SHA-256 de su `session_id`. El token de sesion
+nunca se persiste.
+
+### 7.15 `live_announcement` y `live_announcement_event`
+
+`core.live_announcement` guarda los comunicados de una competencia con borrado
+logico y una sola fila activa por competencia. `core.live_announcement_event`
+guarda su historia append-only.
+
+Campos principales de `live_announcement`:
+
+- `id`
+- `competition_id`
+- `message`
+- `display_mode` (`fullscreen`, `ticker`)
+- `is_active`
+- `revision`
+- `created_by_user_id`, `updated_by_user_id`, `activated_by_user_id`,
+  `deleted_by_user_id`
+- `created_at`, `updated_at`, `activated_at`, `deleted_at`
+
+Campos principales de `live_announcement_event`:
+
+- `id`
+- `competition_id`, `announcement_id`
+- `event_type` (`create`, `update`, `activate`, `automatic_deactivate`,
+  `deactivate`, `delete`)
+- `revision`
+- `message`, `display_mode`, `is_active`, `is_deleted`
+- `actor_user_id`
+- `occurred_at`
+
+`automatic_deactivate` distingue la desactivacion implicita que ocurre al activar
+otro comunicado de una desactivacion humana explicita.
+
+### 7.16 `competition_live_branding`
+
+Guarda un logo por competencia para la pantalla publica del llamador. El borrado es
+logico: la fila se conserva con `deleted_at` y `deleted_by_user_id` mientras el
+binario se libera.
+
+Campos principales:
+
+- `competition_id` (clave primaria)
+- `logo_bytes`
+- `mime_type` (`image/png`, `image/jpeg`, `image/webp`)
+- `width`, `height`
+- `sha256`
+- `revision`
+- `updated_at`, `updated_by_user_id`
+- `deleted_at`, `deleted_by_user_id`
+
+Un CHECK obliga a que la fila este completa cuando hay logo y completamente vacia
+cuando esta borrada. `sha256` es el ETag que sirve la API.
+
 ## 8. CSVs generados por el parser PDF
 
 `backend/scripts/parse_results_pdf.py` genera:
@@ -772,6 +941,30 @@ auth.user_account -> identity.person -> core.athlete_person_link -> core.athlete
 El vinculo `person -> athlete` es deliberadamente separado para permitir que
 los datos civiles de club se carguen antes de resolver, con revision humana, que
 atleta deportivo corresponde a cada persona.
+
+### 11.8 Programa publicado y llamador en vivo
+
+El programa de competencia y el llamador operan sobre datos de despliegue, no sobre
+identidad curada. Las decisiones que los sostienen:
+
+- `meet_program_entry` preserva los valores del PDF y no enlaza `core.athlete`. Un
+  programa se publica antes de que exista resultado, por lo que resolver identidad
+  ahi obligaria a curar con menos evidencia que en el flujo de resultados.
+- La publicacion es versionada por `parser_version`. Corregir el parser republica
+  el mismo PDF en vez de mutar el programa vigente, y la publicacion anterior queda
+  `superseded`.
+- El estado vigente y su historia estan separados: `live_heat_state` responde "que
+  se esta llamando" y `live_heat_movement` responde "quien lo movio y desde donde".
+  Mezclarlos obligaria a leer historia completa para pintar la pantalla.
+- Toda escritura del modulo usa `revision` como concurrencia optimista. Varios
+  voluntarios pueden tener la pantalla abierta; el ultimo en escribir no gana por
+  defecto, debe haber observado el estado que esta reemplazando.
+- La auditoria de operador guarda el SHA-256 de la sesion, no el token. Permite
+  distinguir actores sin convertir la tabla de historia en un almacen de
+  credenciales.
+- Los comunicados y el logo referencian `auth.user_account` porque son acciones
+  administrativas autenticadas, a diferencia del llamador, que usa un codigo
+  temporal por competencia.
 
 ## 12. Propuestas de proximos cambios
 
