@@ -94,6 +94,7 @@ def test_oidc_jwt_is_cryptographically_verified_with_issuer_audience_and_expiry(
 
 
 def test_exchange_maps_active_account_and_persists_only_session_hash(monkeypatch):
+    monkeypatch.setenv("ADMIN_COOKIE_SECURE", "true")
     monkeypatch.setattr(
         admin_auth,
         "verify_oidc_token",
