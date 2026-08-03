@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
+import { PasswordField } from '../../../components/ui/PasswordField';
 import type { MeetProgramPreview } from '../../../lib/schemas/competition';
 import { ApiError } from '../../../lib/api/fetcher';
 import { competitionService } from '../api/competitionService';
@@ -134,11 +135,9 @@ export const CompetitionMeetProgramAdminPage: React.FC = () => {
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-xl border border-slate-300 px-4 py-3"
             />
-            <label className="block text-sm font-bold text-slate-700" htmlFor="program-admin-password">Contraseña</label>
-            <input
-              id="program-admin-password" type="password" autoComplete="current-password" required value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            <PasswordField
+              id="program-admin-password" label="Contraseña" autoComplete="current-password" required
+              value={password} onChange={setPassword}
             />
             {message && <p role="alert" aria-live="polite" className="text-sm font-semibold text-danger">{message}</p>}
             <button type="submit" disabled={busy} className="w-full rounded-xl bg-brand-live px-4 py-3 font-black text-white disabled:opacity-50">

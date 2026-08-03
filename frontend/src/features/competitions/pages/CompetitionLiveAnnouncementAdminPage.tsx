@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
+import { PasswordField } from '../../../components/ui/PasswordField';
 import { ApiError } from '../../../lib/api/fetcher';
 import { competitionService } from '../api/competitionService';
 
@@ -203,7 +204,7 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
   }
 
   if (announcementsQuery.isError) {
-    return <main className="grid min-h-dvh place-items-center bg-slate-100 p-4 font-sans"><section className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl"><header className="bg-brand-live p-7 text-white"><h1 className="text-2xl font-black">Administrar comunicados</h1></header><form onSubmit={login} className="space-y-4 p-7"><label className="block text-sm font-bold text-slate-700" htmlFor="admin-email">Correo</label><input id="admin-email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3" /><label className="block text-sm font-bold text-slate-700" htmlFor="admin-password">Contraseña</label><input id="admin-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3" />{message && <p role="alert" className="text-sm font-semibold text-danger">{message}</p>}<button type="submit" disabled={busy} className="w-full rounded-xl bg-brand-live px-4 py-3 font-black text-white disabled:opacity-50">{busy ? 'Validando…' : 'Ingresar'}</button></form></section></main>;
+    return <main className="grid min-h-dvh place-items-center bg-slate-100 p-4 font-sans"><section className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl"><header className="bg-brand-live p-7 text-white"><h1 className="text-2xl font-black">Administrar comunicados</h1></header><form onSubmit={login} className="space-y-4 p-7"><label className="block text-sm font-bold text-slate-700" htmlFor="admin-email">Correo</label><input id="admin-email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3" /><PasswordField id="admin-password" label="Contraseña" autoComplete="current-password" required value={password} onChange={setPassword} />{message && <p role="alert" className="text-sm font-semibold text-danger">{message}</p>}<button type="submit" disabled={busy} className="w-full rounded-xl bg-brand-live px-4 py-3 font-black text-white disabled:opacity-50">{busy ? 'Validando…' : 'Ingresar'}</button></form></section></main>;
   }
 
   return (

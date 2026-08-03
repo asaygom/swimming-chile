@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { PasswordField } from '../../../components/ui/PasswordField';
 import { ApiError } from '../../../lib/api/fetcher';
 import { competitionService } from '../api/competitionService';
 
@@ -142,19 +143,13 @@ export const AdminPasswordPage: React.FC = () => {
             <p className="text-sm text-slate-500">
               Elige una contraseña para poder ingresar sin depender del enlace por correo.
             </p>
-            <label className="block text-sm font-bold text-slate-700" htmlFor="new-password">Nueva contraseña</label>
-            <input
-              id="new-password" type="password" autoComplete="new-password" required
-              minLength={MIN_PASSWORD_LENGTH} value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            <PasswordField
+              id="new-password" label="Nueva contraseña" autoComplete="new-password" required
+              minLength={MIN_PASSWORD_LENGTH} value={password} onChange={setPassword}
             />
-            <label className="block text-sm font-bold text-slate-700" htmlFor="confirm-password">Repetir contraseña</label>
-            <input
-              id="confirm-password" type="password" autoComplete="new-password" required
-              minLength={MIN_PASSWORD_LENGTH} value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            <PasswordField
+              id="confirm-password" label="Repetir contraseña" autoComplete="new-password" required
+              minLength={MIN_PASSWORD_LENGTH} value={confirmation} onChange={setConfirmation}
             />
             <p className="text-xs text-slate-400">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>
             {visibleMessage && <p role="alert" aria-live="polite" className="text-sm font-semibold text-slate-700">{visibleMessage}</p>}

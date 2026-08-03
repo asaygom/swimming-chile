@@ -11,6 +11,13 @@ CONTROL_PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveH
 ADMIN_PAGE = ROOT / "frontend/src/features/competitions/pages/CompetitionLiveAnnouncementAdminPage.tsx"
 AUTH_SCHEMA = ROOT / "frontend/src/lib/schemas/auth.ts"
 FRONTEND_ENV = ROOT / "frontend/.env.example"
+PASSWORD_FIELD = ROOT / "frontend/src/components/ui/PasswordField.tsx"
+PROGRAM_ADMIN_PAGE = (
+    ROOT / "frontend/src/features/competitions/pages/CompetitionMeetProgramAdminPage.tsx"
+)
+ADMIN_PASSWORD_PAGE = (
+    ROOT / "frontend/src/features/competitions/pages/AdminPasswordPage.tsx"
+)
 
 
 def test_public_live_heat_route_uses_validated_read_only_api_contract():
@@ -246,7 +253,9 @@ def test_operator_control_uses_cookie_session_and_optimistic_concurrency():
     assert "localStorage" not in source
     assert "sessionStorage" not in source
     assert "URLSearchParams" not in source
-    assert 'type="password"' in source
+    # El codigo del voluntario se enmascara via el campo compartido, que ademas
+    # permite descubrirlo para evitar errores de tipeo a ciegas.
+    assert "PasswordField" in source and 'id="operator-code"' in source
     assert "Aplicar selecci" not in source
     assert 'aria-live="polite"' in source
     assert "target.stage_number === liveState.stage_number" in source
@@ -354,7 +363,7 @@ def test_admin_foundation_probes_access_handles_errors_and_logs_out():
     assert "getLiveAnnouncements" in service and "/live-announcements`" in service
     assert "deleteLiveAnnouncementAdminSession" in service
     assert "queryKey: ['competition-live-announcements-admin', id]" in source
-    assert 'type="email"' in source and 'type="password"' in source
+    assert 'type="email"' in source and "PasswordField" in source
     assert "createLiveAnnouncementAdminSession(email, password)" in source
     assert "setPassword('')" in source
     assert "Cerrar sesión" in source
@@ -475,3 +484,33 @@ def test_admin_page_validates_previews_and_recovers_live_branding_mutations():
     assert "await brandingQuery.refetch()" in source
     assert "Otro administrador actualizó el logo" in source
     assert "localStorage" not in source and "FileReader" not in source
+
+
+def test_shared_secret_field_masks_by_default_and_offers_reveal():
+    source = PASSWORD_FIELD.read_text(encoding="utf-8")
+
+    # Nace enmascarado: descubrirlo es una accion explicita de la persona.
+    assert "useState(false)" in source
+    assert "revealed ? 'text' : 'password'" in source
+    # Dentro de un formulario, un boton sin type explicito lo envia al hacer clic.
+    assert 'type="button"' in source
+    assert "aria-controls={id}" in source
+    assert "Ocultar" in source and "Mostrar" in source
+    # El secreto no se persiste ni se registra en ninguna parte.
+    assert "localStorage" not in source and "sessionStorage" not in source
+    assert "console." not in source
+
+
+def test_every_secret_entry_point_uses_the_shared_reveal_field():
+    entry_points = (
+        CONTROL_PAGE,        # codigo temporal del voluntario
+        ADMIN_PAGE,          # login de comunicados
+        PROGRAM_ADMIN_PAGE,  # login de publicacion de sembrado
+        ADMIN_PASSWORD_PAGE, # definicion de contraseña
+    )
+
+    for page in entry_points:
+        source = page.read_text(encoding="utf-8")
+        assert "PasswordField" in source, page.name
+        # Ningun campo secreto queda fuera del componente compartido.
+        assert 'type="password"' not in source, page.name

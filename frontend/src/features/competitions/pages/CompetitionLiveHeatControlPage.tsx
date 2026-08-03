@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
+import { PasswordField } from '../../../components/ui/PasswordField';
 import { ApiError } from '../../../lib/api/fetcher';
 import type { LiveHeatUpdate, MeetProgramSession } from '../../../lib/schemas/competition';
 import { competitionService } from '../api/competitionService';
@@ -189,8 +190,11 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
           </div>
           <form onSubmit={authenticate} className="space-y-4 p-7">
             <p className="text-sm text-slate-500">Ingresa el código temporal asignado a esta competencia.</p>
-            <label className="block text-sm font-bold text-slate-700" htmlFor="operator-code">Código temporal</label>
-            <input id="operator-code" type="password" autoComplete="one-time-code" required value={code} onChange={(event) => setCode(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-800 focus:ring-2 focus:ring-brand-live" />
+            <PasswordField
+              id="operator-code" label="Código temporal" autoComplete="one-time-code" required
+              value={code} onChange={setCode}
+              inputClassName="bg-slate-50 text-slate-800 focus:ring-2 focus:ring-brand-live"
+            />
             {authError && <p role="alert" className="text-sm font-semibold text-danger">{authError}</p>}
             <button disabled={authenticating} className="w-full rounded-xl bg-brand-live px-4 py-3 font-black text-white disabled:opacity-50" type="submit">{authenticating ? 'Validando…' : 'Ingresar al control'}</button>
             <Link className="block text-center text-sm font-bold text-brand-live hover:underline" to={`/competitions/${id}/live`}>Ver pantalla pública</Link>
