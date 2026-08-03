@@ -256,7 +256,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
       </div>
       {/* Pie de marca solo en mobile: en la pantalla de piscina el board es una
           TV sin interaccion, y el enlace ocupa alto que necesitan los nadadores.
-          Queda en el flujo, por lo que el padding del ticker lo mantiene visible. */}
+          Queda en el flujo, por lo que el padding del ticker lo mantiene visible. 
       <footer data-live-section="board-footer" className="mt-2 flex shrink-0 items-center justify-between gap-3 rounded-2xl bg-white px-4 py-2 sm:mt-3 sm:rounded-3xl lg:hidden">
         <div className="flex items-center gap-2">
           <img
@@ -269,7 +269,7 @@ export const CompetitionLiveHeatPage: React.FC = () => {
           </span>
         </div>
         <Link to={`/competitions/${id}?tab=series`} className="text-xs font-bold text-brand-live hover:underline">Ver sembrado</Link>
-      </footer>
+      </footer>*/}
       {tickerAnnouncement && (
         <aside data-live-announcement="ticker" role="status" aria-live="polite" aria-atomic="true" aria-label={`Comunicado: ${tickerAnnouncement.message}`} className="fixed inset-x-0 bottom-0 z-50 flex h-9 items-center overflow-hidden border-t border-white/25 bg-brand-live text-white shadow-2xl motion-reduce:h-auto motion-reduce:min-h-11 motion-reduce:py-2 sm:h-10 md:h-11">
           <div className="w-full overflow-hidden" aria-hidden="true">
