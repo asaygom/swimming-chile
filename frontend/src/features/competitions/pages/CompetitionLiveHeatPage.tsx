@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import { /*Link,*/ useParams } from 'react-router-dom';
 import type { MeetProgramSession } from '../../../lib/schemas/competition';
 import { competitionService } from '../api/competitionService';
 
