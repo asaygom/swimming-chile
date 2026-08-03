@@ -21,8 +21,10 @@ def get_connection_string():
 
 
 @contextmanager
-def get_db_connection():
-    conn = psycopg.connect(get_connection_string(), row_factory=dict_row)
+def get_db_connection(row_factory=dict_row):
+    """Los routers usan filas como diccionario. `row_factory` existe para el
+    publicador de sembrado, que se comparte con la CLI y lee por posicion."""
+    conn = psycopg.connect(get_connection_string(), row_factory=row_factory)
     try:
         yield conn
     finally:

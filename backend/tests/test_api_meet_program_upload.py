@@ -193,7 +193,7 @@ def test_publish_delegates_gates_to_the_shared_publisher(monkeypatch):
     captured = {}
 
     @contextmanager
-    def fake_connection():
+    def fake_connection(**_kwargs):
         yield "connection"
 
     def fake_publish(connection, entries, metadata, **kwargs):
@@ -225,7 +225,7 @@ def test_publish_delegates_gates_to_the_shared_publisher(monkeypatch):
 
 def test_publish_surfaces_publisher_rejections_without_leaking_internals(monkeypatch):
     @contextmanager
-    def fake_connection():
+    def fake_connection(**_kwargs):
         yield "connection"
 
     def fake_publish(*_args, **_kwargs):
@@ -411,3 +411,76 @@ def test_password_page_reads_every_supabase_arrival_shape():
     # El formato PKCE no se puede completar aqui y debe decirlo, no fallar mudo.
     assert "PKCE" in page
     assert "verifyAdminRecoveryToken" in page
+
+
+class TupleCursor:
+    """Imita el cursor de psycopg sin row_factory: filas como tupla."""
+
+    def __init__(self, rows):
+        self.rows = iter(rows)
+        self.executed = []
+        self.batches = []
+
+    def __enter__(self): return self
+    def __exit__(self, *_args): return False
+    def execute(self, query, params=None): self.executed.append((" ".join(query.split()), params))
+    def executemany(self, query, seq): self.batches.append((" ".join(query.split()), list(seq)))
+    def fetchone(self): return next(self.rows)
+
+
+class TupleConnection:
+    def __init__(self, rows):
+        self.cursor_instance = TupleCursor(rows)
+        self.committed = False
+
+    @contextmanager
+    def transaction(self):
+        yield self
+        self.committed = True
+
+    def cursor(self): return self.cursor_instance
+
+
+def test_publish_runs_the_real_publisher_against_positional_rows(monkeypatch):
+    """Regresion: el publicador se comparte con la CLI y lee filas por posicion.
+
+    Con el dict_row por defecto de los routers, `competition[1]` levanta
+    KeyError y la publicacion responde 500 en produccion.
+    """
+    import datetime
+
+    requested = {}
+    connection = TupleConnection([
+        (9, 3, "III Copa Ñuñoa Master", datetime.date(2026, 8, 8), datetime.date(2026, 8, 8)),
+        None,        # no existe publicacion previa con ese checksum + parser
+        (7,),        # source_document RETURNING id
+        (42,),       # meet_program_publication RETURNING id
+    ])
+
+    @contextmanager
+    def fake_connection(**kwargs):
+        requested.update(kwargs)
+        yield connection
+
+    monkeypatch.setattr(meet_programs, "get_db_connection", fake_connection)
+
+    payload = asyncio.run(
+        meet_programs.publish_meet_program(
+            9, raw_request(meet_manager_csv()), source_format="csv",
+            source_name="sembrado triple.csv", source_url=None,
+            stage_number=None, pool_role=None, scheduled_date=None,
+            _admin_user_id=4,
+        )
+    )
+
+    assert payload["publication_id"] == 42
+    assert payload["publication_created"] is True
+    assert connection.committed is True
+    # La conexion debe pedirse con filas posicionales, no con el dict_row default.
+    assert requested.get("row_factory") is not None
+    assert requested["row_factory"].__name__ == "tuple_row"
+    # Las inscripciones entran antes de mover el puntero publico.
+    assert len(connection.cursor_instance.batches[0][1]) == 2
+    statements = [query for query, _params in connection.cursor_instance.executed]
+    assert any("SET status = 'superseded'" in query for query in statements)
+    assert any("SET status = 'published'" in query for query in statements)

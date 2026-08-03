@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from psycopg.rows import tuple_row
 
 from ..auth import require_platform_admin
 from ..database import get_db_connection
@@ -153,7 +154,10 @@ async def publish_meet_program(
     payload = {"competition_id": competition_id, **_preview_payload(parsed, summary)}
     if summary.state != "validated":
         raise HTTPException(status_code=422, detail=payload)
-    with get_db_connection() as conn:
+    # publish_validated_program se comparte con la CLI, que conecta sin
+    # row_factory y lee las filas por posicion. Con el dict_row por defecto de
+    # los routers, `competition[1]` levanta KeyError y la publicacion cae en 500.
+    with get_db_connection(row_factory=tuple_row) as conn:
         try:
             publication_id, created = meet_program.publish_validated_program(
                 conn,
