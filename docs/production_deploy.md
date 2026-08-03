@@ -34,9 +34,15 @@ certificados TLS de ambos subdominios estén emitidos antes de probar nada.
 Aplicar todo lo posterior a la 014, en orden. Ninguna es destructiva: solo
 agregan tablas.
 
+Desde una máquina fuera de Railway hay que usar la **URL pública** de la base.
+La `DATABASE_URL` que consume la API apunta al host interno
+(`*.railway.internal`), que solo resuelve dentro de la red privada de Railway:
+con esa cadena el `psql` local falla por DNS, no por permisos.
+
 ```bash
+export MIGRATION_URL='<DATABASE_PUBLIC_URL de Railway>'
 for f in $(ls backend/sql/migrations/ | sort | sed -n '/^015_/,$p'); do
-  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "backend/sql/migrations/$f"
+  psql "$MIGRATION_URL" -v ON_ERROR_STOP=1 -f "backend/sql/migrations/$f"
 done
 ```
 
@@ -57,6 +63,14 @@ Deben aparecer las siete.
 
 Las variables están en los `.env.example`. Lo que no se deduce de ahí:
 
+- Van en el servicio que **ejecuta la API**, no en el de la base: PostgreSQL es
+  un servicio gestionado y no lee la configuración de la aplicación.
+- `DATABASE_URL` conviene declararla como referencia al servicio de base
+  (`${{Postgres.DATABASE_URL}}`) y no como valor pegado, para que sobreviva a
+  una rotación de credenciales.
+- Si `DATABASE_URL` está definida, las variables `DB_HOST`, `DB_PORT`,
+  `DB_NAME`, `DB_USER` y `DB_PASSWORD` no se leen nunca. Declararlas solo deja
+  un secreto sin uso dando vueltas.
 - `ALLOWED_ORIGINS` debe ser el origen público del frontend, con `https`, e
   incluir `www` si el sitio también responde ahí.
 - `LIVE_HEAT_OPERATOR_COMPETITION_ID` es el id de la competencia **en
