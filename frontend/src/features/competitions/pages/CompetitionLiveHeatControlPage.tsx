@@ -208,39 +208,49 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
   if (competitionQuery.isError || programQuery.isError || liveQuery.isError || !selected) return <main className="grid min-h-dvh place-items-center bg-slate-100 p-6 text-center">No pudimos cargar el programa y el estado del llamador.</main>;
 
   return (
-    <main data-live-layout="heat-controller" className="min-h-dvh bg-slate-100 font-sans text-slate-800">
-      <div className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-3 p-3 sm:gap-5 sm:p-6">
-        <header className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="min-w-0"><p className="text-xs font-black uppercase tracking-widest text-brand-live">Controlador de heats</p><h1 className="truncate text-lg font-black">{competitionQuery.data?.competition.name}</h1></div>
+    // El controlador se bloquea al viewport: el voluntario opera de pie y con
+    // prisa, asi que los botones de avance no pueden quedar detras de un scroll.
+    <main data-live-layout="heat-controller" className="flex h-dvh flex-col overflow-hidden bg-slate-100 font-sans text-slate-800">
+      <div className="mx-auto flex h-full w-full min-h-0 max-w-4xl flex-col gap-3 p-3 [@media(max-height:500px)]:gap-2 [@media(max-height:500px)]:p-2 sm:gap-5 sm:p-6">
+        <header className="flex shrink-0 items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm [@media(max-height:500px)]:p-2">
+          <div className="min-w-0"><p className="text-xs font-black uppercase tracking-widest text-brand-live [@media(max-height:500px)]:hidden">Controlador de heats</p><h1 className="truncate text-lg font-black [@media(max-height:500px)]:text-sm">{competitionQuery.data?.competition.name}</h1></div>
           <nav className="flex shrink-0 items-center gap-3 text-xs font-bold"><Link className="text-brand-live" to={`/competitions/${id}/live`}>Pantalla pública</Link><button type="button" disabled={saving} onClick={() => { void logout(); }} className="text-slate-600 disabled:opacity-40">Cerrar sesión</button></nav>
         </header>
 
-        <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        {/* En horizontal la altura es el recurso escaso: los dos selectores se
+            reparten en columnas para no empujar al heat y a los botones. */}
+        <section className="grid shrink-0 gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm [@media(max-height:500px)]:grid-cols-2 [@media(max-height:500px)]:gap-3 [@media(max-height:500px)]:p-3 sm:p-5">
           <div>
             <label htmlFor="event-selector" className="mb-1 block text-xs font-black uppercase tracking-wider text-slate-500">Selección de evento</label>
             <select id="event-selector" value={eventKey(selected)} disabled={saving} onChange={(event) => { const first = heats.find((heat) => eventKey(heat) === event.target.value); if (first) void update(first); }} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold disabled:opacity-50">
               {events.map((event) => <option key={eventKey(event)} value={eventKey(event)}>Evento #{event.event_number} — {event.event_name}</option>)}
             </select>
           </div>
-          <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
+          <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4 [@media(max-height:500px)]:flex-col [@media(max-height:500px)]:items-stretch [@media(max-height:500px)]:gap-1 [@media(max-height:500px)]:border-t-0 [@media(max-height:500px)]:pt-0">
             <label htmlFor="heat-selector" className="text-xs font-black uppercase tracking-wider text-slate-500">Ir al heat</label>
-            <select id="heat-selector" value={heatKey(selected)} disabled={saving} onChange={(event) => { const target = heats.find((heat) => heatKey(heat) === event.target.value); if (target) void update(target); }} className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 font-bold disabled:opacity-50">
+            <select id="heat-selector" value={heatKey(selected)} disabled={saving} onChange={(event) => { const target = heats.find((heat) => heatKey(heat) === event.target.value); if (target) void update(target); }} className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 font-bold disabled:opacity-50 [@media(max-height:500px)]:w-full">
               {eventHeats.map((heat) => <option key={heatKey(heat)} value={heatKey(heat)}>Heat {heat.heat_number} de {heat.heat_total ?? eventHeats.length}</option>)}
             </select>
           </div>
         </section>
 
-        <section className="flex min-h-48 flex-1 flex-col justify-between rounded-2xl bg-brand-live p-5 text-white shadow-md sm:p-7">
+        {/* Region flexible: aqui vive todo lo que puede crecer. Si excede el
+            alto disponible scrollea solo esta zona, de modo que los botones de
+            avance nunca se desplazan fuera de la pantalla. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto sm:gap-5">
+        <section className="flex min-h-40 flex-1 flex-col justify-between overflow-hidden rounded-2xl bg-brand-live p-5 text-white shadow-md [@media(max-height:500px)]:min-h-24 [@media(max-height:500px)]:p-3 sm:min-h-48 sm:p-7">
           <div className="flex items-center justify-between gap-3"><span className="rounded-lg bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-widest">Evento #{selected.event_number}</span><span className="flex items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-400/20 px-3 py-1 text-xs font-black uppercase"><span className="h-2 w-2 rounded-full bg-emerald-300" />Heat llamado</span></div>
-          <div><p className="mb-2 font-semibold text-cyan-100">{selected.event_name}</p><div className="flex items-baseline justify-between gap-4"><h2 className="text-5xl font-black italic tracking-tight sm:text-6xl">HEAT {String(selected.heat_number).padStart(2, '0')}</h2><span className="text-xl font-bold text-cyan-100">de {selected.heat_total ?? eventHeats.length}</span></div><p className="mt-3 text-xs font-bold text-cyan-100">Etapa {selected.stage_number} · Piscina {selected.pool_role}</p></div>
+          <div><p className="mb-2 font-semibold text-cyan-100">{selected.event_name}</p><div className="flex items-baseline justify-between gap-4"><h2 className="text-5xl font-black italic tracking-tight [@media(max-height:500px)]:text-3xl sm:text-6xl">HEAT {String(selected.heat_number).padStart(2, '0')}</h2><span className="text-xl font-bold text-cyan-100">de {selected.heat_total ?? eventHeats.length}</span></div><p className="mt-3 text-xs font-bold text-cyan-100">Etapa {selected.stage_number} · Piscina {selected.pool_role}</p></div>
         </section>
 
-        <div aria-live="polite" className="min-h-5 text-center text-sm font-semibold text-slate-600">{message}</div>
-        {autoPublishFailed && !liveState && <button type="button" disabled={saving} onClick={() => { autoPublishedHeatKeyRef.current = heatKey(heats[0]); void update(heats[0]); }} className="rounded-xl bg-slate-800 px-4 py-3 font-black text-white disabled:opacity-40">Reintentar</button>}
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="movement-history-title">
-          <h2 id="movement-history-title" className="text-xs font-black uppercase tracking-wider text-slate-500">Movimientos recientes</h2>
+        <div aria-live="polite" className="min-h-5 shrink-0 text-center text-sm font-semibold text-slate-600">{message}</div>
+        {autoPublishFailed && !liveState && <button type="button" disabled={saving} onClick={() => { autoPublishedHeatKeyRef.current = heatKey(heats[0]); void update(heats[0]); }} className="shrink-0 rounded-xl bg-slate-800 px-4 py-3 font-black text-white disabled:opacity-40">Reintentar</button>}
+        {/* El historial crece durante la jornada, asi que nace colapsado: es
+            material de consulta, no la accion principal del voluntario. */}
+        <details className="shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <summary className="text-xs font-black uppercase tracking-wider text-slate-500">Movimientos recientes</summary>
           {historyQuery.isError ? <p className="mt-2 text-sm text-slate-500">No pudimos actualizar el historial.</p> : (
-            <ol className="mt-2 max-h-32 space-y-1 overflow-y-auto text-sm">
+            <ol className="mt-2 space-y-1 text-sm">
               {(historyQuery.data?.movements ?? []).map((movement) => (
                 <li key={movement.id} className="flex flex-wrap items-center justify-between gap-x-3 rounded-lg bg-slate-50 px-3 py-2">
                   <span className="font-bold text-slate-700">{movement.is_current_session ? 'Esta sesi\u00f3n' : 'Otra sesi\u00f3n'}</span>
@@ -251,10 +261,11 @@ export const CompetitionLiveHeatControlPage: React.FC = () => {
               {historyQuery.data?.movements.length === 0 && <li className="py-2 text-slate-400">{'A\u00fan no hay movimientos.'}</li>}
             </ol>
           )}
-        </section>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button type="button" disabled={saving || !liveState || selectedIndex <= 0} onClick={() => { void update(heats[selectedIndex - 1]); }} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-xl font-black disabled:opacity-40">← Anterior</button>
-          <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => { void update(heats[selectedIndex + 1]); }} className="rounded-2xl bg-brand-live px-5 py-4 text-xl font-black text-white disabled:opacity-40">Siguiente →</button>
+        </details>
+        </div>
+        <div className="grid shrink-0 grid-cols-2 gap-3">
+          <button type="button" disabled={saving || !liveState || selectedIndex <= 0} onClick={() => { void update(heats[selectedIndex - 1]); }} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-xl font-black disabled:opacity-40 [@media(max-height:500px)]:py-2 [@media(max-height:500px)]:text-base">← Anterior</button>
+          <button type="button" disabled={saving || !liveState || selectedIndex >= heats.length - 1} onClick={() => { void update(heats[selectedIndex + 1]); }} className="rounded-2xl bg-brand-live px-5 py-4 text-xl font-black text-white disabled:opacity-40 [@media(max-height:500px)]:py-2 [@media(max-height:500px)]:text-base">Siguiente →</button>
         </div>
       </div>
     </main>

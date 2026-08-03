@@ -514,3 +514,34 @@ def test_every_secret_entry_point_uses_the_shared_reveal_field():
         assert "PasswordField" in source, page.name
         # Ningun campo secreto queda fuera del componente compartido.
         assert 'type="password"' not in source, page.name
+
+
+def test_operator_control_pins_navigation_within_the_viewport():
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    # El controlador se bloquea al viewport en vez de crecer con el contenido.
+    assert 'className="flex h-dvh flex-col overflow-hidden' in source
+    assert "mx-auto flex h-full w-full min-h-0 max-w-4xl" in source
+    # Solo la region intermedia scrollea; el avance de heat queda anclado abajo.
+    assert 'className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto sm:gap-5"' in source
+    assert 'className="grid shrink-0 grid-cols-2 gap-3"' in source
+    # El historial crece durante la jornada: nace colapsado y sin scroll anidado.
+    assert "<details" in source and "<summary" in source
+    assert "max-h-32" not in source
+    assert "open" not in source.split("<details", 1)[1].split(">", 1)[0]
+
+
+def test_operator_control_survives_landscape_on_a_phone():
+    source = CONTROL_PAGE.read_text(encoding="utf-8")
+
+    # Al girar el telefono la altura cae a ~360px y el alto fijo del encabezado
+    # y los selectores desplazaba fuera de pantalla al heat y a los botones.
+    short = "[@media(max-height:500px)]"
+    # Los dos selectores se reparten en columnas en vez de apilarse.
+    assert f"{short}:grid-cols-2" in source
+    # El heat conserva un piso propio, mas bajo, en vez de colapsar a cero.
+    assert f"{short}:min-h-24" in source
+    # Encabezado, tarjeta y botones se compactan para devolver alto util.
+    assert f"{short}:p-2" in source
+    assert f"{short}:text-3xl" in source
+    assert source.count(f"{short}:py-2") >= 2
