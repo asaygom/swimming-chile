@@ -43,6 +43,61 @@
   --color-medal-bronze: #C2410C;
 }
 
+/* Affordance de controles.
+   Tailwind v4 dejo de dar `cursor: pointer` a <button> en su preflight, asi que
+   los botones del sitio se leian como texto plano frente a los enlaces, que si
+   lo conservan. Se restituye aqui, en la capa base, para no repetir utilidades
+   en ~75 botones repartidos en 16 archivos. */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary,
+  label:has(> input[type='file']) {
+    cursor: pointer;
+  }
+
+  /* El hover comun usa `filter` y no color de fondo a proposito: asi convive con
+     los `hover:bg-*` que ya traen algunos botones en vez de competir con ellos.
+     Al vivir en la capa base, cualquier utilidad de Tailwind lo sobrescribe. */
+  button:not(:disabled) {
+    transition: filter 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  }
+
+  button:not(:disabled):hover {
+    filter: brightness(0.93);
+  }
+
+  button:not(:disabled):active {
+    filter: brightness(0.88);
+  }
+
+  /* El <input type="file"> nativo no trae boton estilizable via clases, por lo
+     que la carga de logo y de sembrado se veia como texto suelto. */
+  input[type='file']::file-selector-button {
+    margin-right: 0.75rem;
+    cursor: pointer;
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
+    background-color: var(--color-surface);
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+
+  input[type='file']::file-selector-button:hover {
+    border-color: var(--color-content-subtle);
+    background-color: var(--color-canvas);
+  }
+
+  input[type='file']:disabled::file-selector-button {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
 @keyframes live-announcement-ticker {
   from {
     transform: translateX(0);

@@ -54,6 +54,22 @@ Este documento condensa los hitos y auditorías relevantes durante el desarrollo
   es el club y el equipo es la letra del relevo. La edad `X240` es la suma del
   equipo y no se persiste como edad de nadador.
 
+## 2026-08-02 - Affordance de controles en todo el sitio
+
+- Los botones del sitio no se distinguían de texto plano. La causa es el
+  preflight de Tailwind v4, que dejó de aplicar `cursor: pointer` a `<button>`;
+  los enlaces sí lo conservan, de ahí que el problema pasara desapercibido. Se
+  restituye en `@layer base` de `frontend/src/index.css`.
+- Se corrige en la capa base y no con utilidades porque el sitio tiene ~75
+  botones repartidos en 16 archivos, y solo 8 de ellos tenían `hover:` propio.
+- El hover común usa `filter: brightness()` en vez de color de fondo, para
+  convivir con los `hover:bg-*` que ya existen en vez de competir con ellos. Al
+  vivir en la capa base, cualquier utilidad de Tailwind lo sobrescribe.
+- Los `input[type="file"]` de logo y de sembrado eran el peor caso: el botón que
+  dibuja el navegador no es alcanzable por clases, así que se veían como texto
+  suelto. Se estilan por `::file-selector-button`, incluido su estado
+  deshabilitado.
+
 ## 2026-08-02 - Auditoría del módulo en vivo y branding por competencia
 
 - Se agregan tres migraciones de trazabilidad para el llamador público:
