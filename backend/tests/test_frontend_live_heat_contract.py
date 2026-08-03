@@ -545,3 +545,28 @@ def test_operator_control_survives_landscape_on_a_phone():
     assert f"{short}:p-2" in source
     assert f"{short}:text-3xl" in source
     assert source.count(f"{short}:py-2") >= 2
+
+
+def test_fullscreen_announcement_has_no_frame_around_the_message():
+    source = PAGE.read_text(encoding="utf-8")
+    fullscreen = source.split('data-live-layout="announcement-fullscreen"', 1)[1].split(
+        "competitionQuery.isLoading", 1
+    )[0]
+
+    # Pantalla completa de verdad: sin tarjeta, sin borde, sin sombra y sin tope
+    # de ancho que deje al comunicado flotando en el centro.
+    assert "rounded-3xl" not in fullscreen
+    assert "bg-white/10" not in fullscreen
+    assert "shadow-2xl" not in fullscreen
+    assert "max-w-6xl" not in fullscreen
+    # El contenedor exterior no aporta margen propio.
+    assert "overflow-hidden bg-brand-live font-sans text-white" in fullscreen
+    # El texto se acota por el alto del marco y no por un tope arbitrario, que
+    # lo frenaba antes de llenar la pantalla en un televisor.
+    assert "let upper = frame.clientHeight;" in source
+    assert "Math.min(112" not in source
+    # La marca del torneo va al extremo derecho de la misma barra superior. Sin
+    # texto alternativo: el nombre de la competencia ya esta en el encabezado.
+    assert "justify-between" in fullscreen
+    assert '<img src="/nunoa-master-2026-white.png" alt=""' in fullscreen
+    assert (ROOT / "frontend/public/nunoa-master-2026-white.png").exists()

@@ -33,7 +33,10 @@ const AutoFitAnnouncementText: React.FC<{ message: string }> = ({ message }) => 
     const fit = () => {
       if (!active || frame.clientWidth === 0 || frame.clientHeight === 0) return;
       let lower = 1;
-      let upper = Math.min(112, frame.clientHeight);
+      // Sin tope arbitrario: el limite es el alto del marco, porque una linea no
+      // puede ser mas alta que el. El tope anterior de 112px frenaba al texto
+      // antes de llenar la pantalla en un televisor.
+      let upper = frame.clientHeight;
       while (upper - lower > 0.25) {
         const candidate = (lower + upper) / 2;
         text.style.fontSize = `${candidate}px`;
@@ -120,9 +123,18 @@ export const CompetitionLiveHeatPage: React.FC = () => {
   if (competitionQuery.data && announcement?.display_mode === 'fullscreen') {
     const competition = competitionQuery.data.competition;
     return (
-      <main data-live-layout="announcement-fullscreen" aria-live="polite" aria-atomic="true" className="grid h-dvh max-h-dvh overflow-hidden bg-brand-live p-6 font-sans text-white sm:p-10">
-        <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-col justify-between rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl sm:p-10">
-          <header className="flex items-center gap-3 border-b border-white/20 pb-5"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">Comunicado oficial</p><h1 className="text-xl font-black sm:text-2xl">{competition.name}</h1></div></header>
+      // Sin tarjeta ni ancho maximo: el comunicado ocupa la pantalla completa.
+      // Solo queda el respiro minimo del borde, porque el texto pegado al canto
+      // se pierde en televisores con overscan.
+      <main data-live-layout="announcement-fullscreen" aria-live="polite" aria-atomic="true" className="grid h-dvh max-h-dvh overflow-hidden bg-brand-live font-sans text-white">
+        <div className="flex min-h-0 w-full flex-col justify-between p-4 sm:p-6">
+          <header className="flex items-center justify-between gap-3 border-b border-white/20 pb-4">
+            <div><p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">Comunicado oficial</p><h1 className="text-xl font-black sm:text-2xl">{competition.name}</h1></div>
+            {/* Marca del torneo en version blanca, la unica legible sobre el
+                fondo de la marca. Va sin texto alternativo porque el nombre de
+                la competencia ya esta en el encabezado y se leeria dos veces. */}
+            <img src="/nunoa-master-2026-white.png" alt="" className="h-12 w-auto shrink-0 object-contain sm:h-16" />
+          </header>
           <AutoFitAnnouncementText message={announcement.message} />
         </div>
       </main>
