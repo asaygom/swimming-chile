@@ -66,6 +66,7 @@ Planned:
 - [Backend documentation](backend/README.md)
 - [Frontend documentation](frontend/README.md)
 - [Implementation roadmap](docs/plans/implementation_plan.md)
+- [Production deployment runbook](docs/production_deploy.md)
 
 ## Local quality checks
 
