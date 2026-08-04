@@ -45,74 +45,95 @@ def list_clubs(
             use_membership_schema = has_membership_schema(cur)
             local_club_filter = "COALESCE(c.is_local, FALSE) = TRUE" if has_club_local_flag(cur) else "TRUE"
 
+            # Los conteos de plantel se agregan una sola vez en CTEs en lugar de
+            # resolverse con subconsultas correlacionadas por club. Importa porque
+            # `core.athlete_current_club` es una vista con UNION ALL y window
+            # function: correlacionada, se re-ejecutaba entera una vez por club.
             if use_membership_schema:
+                roster_ctes = """
+                    WITH membership_counts AS (
+                        SELECT m.club_id,
+                               COUNT(*) AS any_members,
+                               COUNT(*) FILTER (WHERE m.status = 'active') AS active_members
+                        FROM club_ops.membership m
+                        GROUP BY m.club_id
+                    ),
+                    current_club_counts AS (
+                        SELECT acc.club_id, COUNT(*) AS current_members
+                        FROM core.athlete_current_club acc
+                        GROUP BY acc.club_id
+                    )
+                """
+                roster_joins = """
+                    LEFT JOIN membership_counts mc ON mc.club_id = c.id
+                    LEFT JOIN current_club_counts cc ON cc.club_id = c.id
+                """
+                # Si el club tiene alguna membresia (de cualquier estado) manda el
+                # conteo de activas, aunque sea cero; si no, cae al club actual.
                 roster_count_sql = """
-                    SELECT CASE
-                        WHEN EXISTS (SELECT 1 FROM club_ops.membership mx WHERE mx.club_id = c.id)
-                        THEN (
-                            SELECT COUNT(*)
-                            FROM club_ops.membership m
-                            WHERE m.club_id = c.id
-                              AND m.status = 'active'
-                        )
-                        ELSE (
-                            SELECT COUNT(*)
-                            FROM core.athlete_current_club acc
-                            WHERE acc.club_id = c.id
-                        )
+                    CASE
+                        WHEN COALESCE(mc.any_members, 0) > 0 THEN COALESCE(mc.active_members, 0)
+                        ELSE COALESCE(cc.current_members, 0)
                     END
                 """
-                roster_exists_sql = """
-                    SELECT 1
-                    WHERE EXISTS (
-                        SELECT 1
-                        FROM club_ops.membership m
-                        WHERE m.club_id = c.id
-                          AND m.status = 'active'
-                    )
-                    OR EXISTS (
-                        SELECT 1
+                # El filtro de inclusion NO es la misma condicion que el conteo:
+                # basta con membresia activa o con club actual observado.
+                roster_exists_sql = "(COALESCE(mc.active_members, 0) > 0 OR COALESCE(cc.current_members, 0) > 0)"
+            else:
+                roster_ctes = """
+                    WITH current_club_counts AS (
+                        SELECT acc.club_id, COUNT(*) AS current_members
                         FROM core.athlete_current_club acc
-                        WHERE acc.club_id = c.id
+                        GROUP BY acc.club_id
                     )
                 """
-            else:
-                roster_count_sql = "SELECT count(*) FROM core.athlete_current_club acc WHERE acc.club_id = c.id"
-                roster_exists_sql = "SELECT 1 FROM core.athlete_current_club acc WHERE acc.club_id = c.id"
+                roster_joins = "LEFT JOIN current_club_counts cc ON cc.club_id = c.id"
+                roster_count_sql = "COALESCE(cc.current_members, 0)"
+                roster_exists_sql = "COALESCE(cc.current_members, 0) > 0"
 
-            query = f"""
-                SELECT c.id, c.name, c.city, c.region, c.region as country, c.association_name,
-                       ({roster_count_sql}) as total_athletes
-                FROM core.club c
-                WHERE {local_club_filter}
-                  AND EXISTS ({roster_exists_sql})
-            """
-            count_query = f"""
-                SELECT COUNT(*) as total
-                FROM core.club c
-                WHERE {local_club_filter}
-                  AND EXISTS ({roster_exists_sql})
-            """
+            search_filter = ""
             params = []
-            
+
             if search:
                 tokens = search_tokens(search)
                 if tokens:
                     search_clause, search_params = build_token_search_clause(
                         ["c.name", "COALESCE(c.city, '')", "COALESCE(c.region, '')"], tokens
                     )
-                    query += f" AND {search_clause}"
-                    count_query += f" AND {search_clause}"
+                    search_filter = f" AND {search_clause}"
                     params.extend(search_params)
-                
+
+            eligible_clubs = f"""
+                {roster_ctes},
+                eligible_club AS (
+                    SELECT c.id, c.name, c.city, c.region, c.association_name,
+                           {roster_count_sql} AS total_athletes
+                    FROM core.club c
+                    {roster_joins}
+                    WHERE {local_club_filter}
+                      AND {roster_exists_sql}
+                      {search_filter}
+                )
+            """
+
+            count_query = eligible_clubs + " SELECT COUNT(*) as total FROM eligible_club"
+
             if sort == "name":
-                query += " ORDER BY c.name ASC LIMIT %s OFFSET %s"
+                order_by = " ORDER BY name ASC"
             else:
-                query += " ORDER BY total_athletes DESC, c.name ASC LIMIT %s OFFSET %s"
-            
+                order_by = " ORDER BY total_athletes DESC, name ASC"
+
+            query = eligible_clubs + f"""
+                SELECT id, name, city, region, region as country, association_name,
+                       total_athletes
+                FROM eligible_club
+                {order_by}
+                LIMIT %s OFFSET %s
+            """
+
             cur.execute(count_query, params)
             total_results = cur.fetchone()['total']
-            
+
             params.extend([page_size, offset])
             cur.execute(query, params)
             clubs = cur.fetchall()
