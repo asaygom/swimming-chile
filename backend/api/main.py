@@ -1,6 +1,7 @@
 import os
+import secrets
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -8,6 +9,15 @@ from .database import is_database_ready
 from .routers import admin_auth, athletes, clubs, competitions, live_announcements, live_branding, live_heats, meet_programs, rankings, relays, stats
 
 app = FastAPI(title="SwimStats Chile API", version="0.1.0")
+
+# El borde (Cloudflare) inyecta este header; el origen rechaza lo que no pase por ahi.
+EDGE_AUTH_HEADER = "x-edge-auth"
+# Sondas de plataforma y monitoreo externo: nunca atraviesan el borde.
+EDGE_AUTH_EXEMPT_PATHS = ("/api/health", "/api/ready")
+
+
+def get_edge_shared_secret() -> str:
+    return os.getenv("EDGE_SHARED_SECRET", "").strip()
 
 
 def get_allowed_origins() -> list[str]:
@@ -26,6 +36,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def require_edge_secret(request: Request, call_next):
+    """Sin `EDGE_SHARED_SECRET` definido el filtro queda inerte, para no romper
+    el entorno local ni un despliegue donde todavia no se configuro el header."""
+    secret = get_edge_shared_secret()
+    path = request.url.path
+    if (
+        secret
+        and path.startswith("/api/")
+        and not path.startswith(EDGE_AUTH_EXEMPT_PATHS)
+    ):
+        provided = request.headers.get(EDGE_AUTH_HEADER, "")
+        # En bytes: `compare_digest` con str exige ASCII y reventaria con un
+        # secreto que traiga acentos.
+        if not secrets.compare_digest(provided.encode("utf-8"), secret.encode("utf-8")):
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Direct origin access is not allowed"},
+            )
+    return await call_next(request)
+
 
 app.include_router(athletes.router, prefix="/api/athletes", tags=["athletes"])
 app.include_router(clubs.router, prefix="/api/clubs", tags=["clubs"])
