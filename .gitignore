@@ -28,6 +28,7 @@ backend/data/staging/meet_program_nunoa_2026/
 backend/data/staging/csv/*
 !backend/data/staging/csv/.gitkeep
 backend/data/staging/sql/*
+backend/data/staging/
 outputs
 
 .atl/

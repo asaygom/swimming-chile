@@ -33,7 +33,7 @@ def test_rankings_api_uses_valid_individual_best_time_per_athlete():
     assert "from searched" in source
     assert "extract(year from current_date)::integer - a.birth_year" in source
     assert "as event_age_group" in source
-    assert "join core.result r" in source
+    assert "from core.result r" in source
     assert "join core.event e on e.id = r.event_id" in source
     assert "join core.competition comp on comp.id = e.competition_id" in source
     assert "left join core.club club on club.id = r.club_id" in source
@@ -59,8 +59,43 @@ def test_ranking_filter_options_only_use_local_athletes():
     source = normalized_source(RANKINGS_ROUTER)
 
     assert "def get_ranking_filter_options():" in source
-    assert "local_athlete_filter = get_local_athlete_filter(cur)" in source
-    assert source.count("{local_athlete_filter}") >= 6
+    assert "local_athlete_cte, local_athlete_join = get_local_athlete_scope(cur)" in source
+    assert "{local_athlete_cte}" in source
+    assert "{local_athlete_join}" in source
+
+
+def test_local_athlete_scope_is_shared_by_rankings_and_filter_options():
+    """Ambos endpoints tienen que acotar por club local con el mismo criterio."""
+    source = normalized_source(RANKINGS_ROUTER)
+
+    assert source.count("local_athlete_cte, local_athlete_join = get_local_athlete_scope(cur)") == 2
+    assert source.count("{local_athlete_join}") == 2
+
+
+def test_local_athlete_scope_resolves_as_a_set_not_per_row():
+    """`core.athlete_current_club` es una vista con union y window function:
+    correlacionada se re-ejecutaba una vez por fila de resultados."""
+    source = normalized_source(RANKINGS_ROUTER)
+
+    assert "local_athletes as (" in source
+    assert "join local_athletes la on la.athlete_id = a.id" in source
+    assert "where acc.athlete_id = a.id" not in source
+    assert "where apl.athlete_id = a.id" not in source
+
+
+def test_local_athlete_scope_stays_inert_without_the_local_club_flag():
+    source = normalized_source(RANKINGS_ROUTER)
+
+    assert "if not has_club_local_flag(cur): return \"\", \"\"" in source
+
+
+def test_ranking_filter_options_resolve_every_list_in_a_single_pass():
+    source = normalized_source(RANKINGS_ROUTER)
+    options_source = source.split("def get_ranking_filter_options():", maxsplit=1)[1]
+
+    assert options_source.count("cur.execute(") == 1
+    assert "eligible as (" in options_source
+    assert "json_agg" in options_source
 
 
 def test_rankings_filter_category_by_current_athlete_age_not_event_age_group():
@@ -82,8 +117,11 @@ def test_ranking_filter_options_keep_distance_and_stroke_related():
     source = normalized_source(RANKINGS_ROUTER)
 
     assert "select distinct e.distance_m, e.stroke" in source
-    assert "event_options = cur.fetchall()" in source
-    assert "select distinct e.stroke" in source
+    assert 'event_options = options["event_options"]' in source
+    assert "select distinct stroke from eligible" in source
+    # `distances` incluye relevos; `strokes` y `event_options` los excluyen.
+    assert source.count("stroke not like '%_relay'") == 2
+    assert "select distinct distance_m from eligible where distance_m is not null" in source
     assert '"strokes": strokes' in RANKINGS_ROUTER.read_text(encoding="utf-8")
     assert '"event_options": event_options' in RANKINGS_ROUTER.read_text(encoding="utf-8")
     assert "def get_ranking_filter_options():" in source

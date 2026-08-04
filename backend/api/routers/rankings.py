@@ -31,36 +31,43 @@ def has_club_local_flag(cur) -> bool:
     return bool(cur.fetchone()["available"])
 
 
-def get_local_athlete_filter(cur) -> str:
+def get_local_athlete_scope(cur) -> tuple[str, str]:
+    """Devuelve `(cte, join)` para acotar la consulta a atletas de clubes locales.
+
+    Se resuelve como conjunto en un CTE y no con `EXISTS` correlacionados: la
+    rama de club actual lee `core.athlete_current_club`, que es una vista con
+    UNION ALL y window function, y correlacionada se re-ejecutaba entera una
+    vez por cada fila de resultados.
+
+    Con `cte` vacio la consulta no filtra por club local, igual que antes.
+    """
     if not has_club_local_flag(cur):
-        return ""
+        return "", ""
 
-    current_club_filter = """
-        EXISTS (
-            SELECT 1
-            FROM core.athlete_current_club acc
-            JOIN core.club current_club ON current_club.id = acc.club_id
-            WHERE acc.athlete_id = a.id
-              AND COALESCE(current_club.is_local, FALSE) = TRUE
-        )
+    current_club_members = """
+        SELECT acc.athlete_id
+        FROM core.athlete_current_club acc
+        JOIN core.club current_club ON current_club.id = acc.club_id
+        WHERE COALESCE(current_club.is_local, FALSE) = TRUE
     """
+
     if not has_membership_schema(cur):
-        return f" AND {current_club_filter}"
+        local_members = current_club_members
+    else:
+        local_members = f"""
+            SELECT apl.athlete_id
+            FROM club_ops.membership m
+            JOIN core.athlete_person_link apl ON apl.person_id = m.person_id
+            JOIN core.club membership_club ON membership_club.id = m.club_id
+            WHERE m.status = 'active'
+              AND COALESCE(membership_club.is_local, FALSE) = TRUE
 
-    return f"""
-        AND (
-            EXISTS (
-                SELECT 1
-                FROM club_ops.membership m
-                JOIN core.athlete_person_link apl ON apl.person_id = m.person_id
-                JOIN core.club membership_club ON membership_club.id = m.club_id
-                WHERE apl.athlete_id = a.id
-                  AND m.status = 'active'
-                  AND COALESCE(membership_club.is_local, FALSE) = TRUE
-            )
-            OR {current_club_filter}
-        )
-    """
+            UNION
+
+            {current_club_members}
+        """
+
+    return f"local_athletes AS ({local_members}),", "JOIN local_athletes la ON la.athlete_id = a.id"
 
 
 CURRENT_CATEGORY_SQL = """
@@ -99,7 +106,7 @@ def list_rankings(
 ):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            local_athlete_filter = get_local_athlete_filter(cur)
+            local_athlete_cte, local_athlete_join = get_local_athlete_scope(cur)
             filters = [
                 "r.status = 'valid'",
                 "r.result_time_ms IS NOT NULL",
@@ -137,12 +144,13 @@ def list_rankings(
                 params[key] = f"%{token}%"
             ranked_where_clause = f"WHERE {' AND '.join(ranked_filters)}" if ranked_filters else ""
 
-            where_clause = " AND ".join(filters) + local_athlete_filter
+            where_clause = " AND ".join(filters)
             offset = (page - 1) * page_size
             params.update({"page_size": page_size, "offset": offset})
 
             base_cte = f"""
-                WITH filtered AS (
+                WITH {local_athlete_cte}
+                filtered AS (
                     SELECT
                         r.id,
                         r.athlete_id,
@@ -171,6 +179,7 @@ def list_rankings(
                     JOIN core.event e ON e.id = r.event_id
                     JOIN core.competition comp ON comp.id = e.competition_id
                     LEFT JOIN core.club club ON club.id = r.club_id
+                    {local_athlete_join}
                     WHERE {where_clause}
                 ),
                 best_by_athlete AS (
@@ -239,95 +248,89 @@ def list_rankings(
 def get_ranking_filter_options():
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            local_athlete_filter = get_local_athlete_filter(cur)
+            local_athlete_cte, local_athlete_join = get_local_athlete_scope(cur)
 
+            # Las seis listas salen de un unico recorrido. Antes era una consulta
+            # por lista y cada una repetia el join completo result-event-athlete.
             cur.execute(f"""
-                SELECT DISTINCT e.distance_m, e.stroke
-                FROM core.event e
-                JOIN core.result r ON r.event_id = e.id
-                JOIN core.athlete a ON a.id = r.athlete_id
-                WHERE e.distance_m IS NOT NULL
-                  AND e.stroke IS NOT NULL
-                  AND e.stroke NOT LIKE '%_relay'
-                  AND r.status = 'valid'
-                  AND r.result_time_ms IS NOT NULL
-                  {local_athlete_filter}
-                ORDER BY e.distance_m ASC, e.stroke ASC
-            """)
-            event_options = cur.fetchall()
-
-            cur.execute(f"""
-                SELECT DISTINCT e.distance_m
-                FROM core.event e
-                JOIN core.result r ON r.event_id = e.id
-                JOIN core.athlete a ON a.id = r.athlete_id
-                WHERE e.distance_m IS NOT NULL
-                  AND r.status = 'valid'
-                  AND r.result_time_ms IS NOT NULL
-                  {local_athlete_filter}
-                ORDER BY e.distance_m ASC
-            """)
-            distances = [row["distance_m"] for row in cur.fetchall()]
-
-            cur.execute(f"""
-                SELECT DISTINCT e.stroke
-                FROM core.event e
-                JOIN core.result r ON r.event_id = e.id
-                JOIN core.athlete a ON a.id = r.athlete_id
-                WHERE e.stroke IS NOT NULL
-                  AND e.stroke NOT LIKE '%_relay'
-                  AND r.status = 'valid'
-                  AND r.result_time_ms IS NOT NULL
-                  {local_athlete_filter}
-                ORDER BY e.stroke ASC
-            """)
-            strokes = [row["stroke"] for row in cur.fetchall()]
-
-            cur.execute(f"""
-                WITH current_categories AS (
+                WITH {local_athlete_cte}
+                eligible AS (
                     SELECT DISTINCT
-                        {CURRENT_CATEGORY_SQL} AS age_group,
-                        {CURRENT_CATEGORY_MIN_AGE_SQL} AS category_min_age
+                        e.distance_m, e.stroke,
+                        a.birth_year,
+                        comp.start_date,
+                        comp.competition_scope
                     FROM core.result r
                     JOIN core.athlete a ON a.id = r.athlete_id
-                    WHERE a.birth_year IS NOT NULL
-                      AND r.status = 'valid'
+                    JOIN core.event e ON e.id = r.event_id
+                    JOIN core.competition comp ON comp.id = e.competition_id
+                    {local_athlete_join}
+                    WHERE r.status = 'valid'
                       AND r.result_time_ms IS NOT NULL
-                      {local_athlete_filter}
                 )
-                SELECT age_group
-                FROM current_categories
-                ORDER BY category_min_age ASC, age_group ASC
+                SELECT
+                    (
+                        SELECT COALESCE(json_agg(
+                                   json_build_object('distance_m', distance_m, 'stroke', stroke)
+                                   ORDER BY distance_m ASC, stroke ASC), '[]'::json)
+                        FROM (
+                            SELECT DISTINCT distance_m, stroke
+                            FROM eligible
+                            WHERE distance_m IS NOT NULL
+                              AND stroke IS NOT NULL
+                              AND stroke NOT LIKE '%_relay'
+                        ) s
+                    ) AS event_options,
+                    (
+                        SELECT COALESCE(json_agg(distance_m ORDER BY distance_m ASC), '[]'::json)
+                        FROM (
+                            SELECT DISTINCT distance_m FROM eligible WHERE distance_m IS NOT NULL
+                        ) s
+                    ) AS distances,
+                    (
+                        SELECT COALESCE(json_agg(stroke ORDER BY stroke ASC), '[]'::json)
+                        FROM (
+                            SELECT DISTINCT stroke
+                            FROM eligible
+                            WHERE stroke IS NOT NULL
+                              AND stroke NOT LIKE '%_relay'
+                        ) s
+                    ) AS strokes,
+                    (
+                        SELECT COALESCE(json_agg(age_group
+                                   ORDER BY category_min_age ASC, age_group ASC), '[]'::json)
+                        FROM (
+                            SELECT DISTINCT
+                                {CURRENT_CATEGORY_SQL} AS age_group,
+                                {CURRENT_CATEGORY_MIN_AGE_SQL} AS category_min_age
+                            FROM eligible a
+                            WHERE a.birth_year IS NOT NULL
+                        ) s
+                    ) AS age_groups,
+                    (
+                        SELECT COALESCE(json_agg(year ORDER BY year DESC), '[]'::json)
+                        FROM (
+                            SELECT DISTINCT EXTRACT(YEAR FROM start_date)::INTEGER AS year
+                            FROM eligible WHERE start_date IS NOT NULL
+                        ) s
+                    ) AS years,
+                    (
+                        SELECT COALESCE(json_agg(competition_scope
+                                   ORDER BY competition_scope ASC), '[]'::json)
+                        FROM (
+                            SELECT DISTINCT competition_scope
+                            FROM eligible WHERE competition_scope IS NOT NULL
+                        ) s
+                    ) AS scopes
             """)
-            age_groups = [row["age_group"] for row in cur.fetchall()]
+            options = cur.fetchone()
 
-            cur.execute(f"""
-                SELECT DISTINCT EXTRACT(YEAR FROM comp.start_date)::INTEGER AS year
-                FROM core.competition comp
-                JOIN core.event e ON e.competition_id = comp.id
-                JOIN core.result r ON r.event_id = e.id
-                JOIN core.athlete a ON a.id = r.athlete_id
-                WHERE comp.start_date IS NOT NULL
-                  AND r.status = 'valid'
-                  AND r.result_time_ms IS NOT NULL
-                  {local_athlete_filter}
-                ORDER BY year DESC
-            """)
-            years = [row["year"] for row in cur.fetchall()]
-
-            cur.execute(f"""
-                SELECT DISTINCT comp.competition_scope
-                FROM core.competition comp
-                JOIN core.event e ON e.competition_id = comp.id
-                JOIN core.result r ON r.event_id = e.id
-                JOIN core.athlete a ON a.id = r.athlete_id
-                WHERE comp.competition_scope IS NOT NULL
-                  AND r.status = 'valid'
-                  AND r.result_time_ms IS NOT NULL
-                  {local_athlete_filter}
-                ORDER BY comp.competition_scope ASC
-            """)
-            scopes = [row["competition_scope"] for row in cur.fetchall()]
+            event_options = options["event_options"]
+            distances = options["distances"]
+            strokes = options["strokes"]
+            age_groups = options["age_groups"]
+            years = options["years"]
+            scopes = options["scopes"]
 
             return {
                 "distances": distances,
