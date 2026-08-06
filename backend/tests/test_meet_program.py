@@ -1167,3 +1167,96 @@ def test_meet_manager_csv_sends_unusable_rows_to_debug_instead_of_dropping(tmp_p
         "missing_lane_label",
         "incomplete_entry_row",
     ]
+
+
+def _spanish_program_lines():
+    """Programa HY-TEK rotulado en espanol, como los emite FCHMN."""
+    texts = [
+        "#1 Mixto 100 CL Metro Estilo Libre",
+        "Carril Nombre EdadT Eieqmuippoo para Sembrado",
+        "Serie 1 of 38 Finales Inicia a las 09:30 AM",
+        "2 Zambrano, Juan M24 NEURO NT",
+        "3 Miranda, Iris W43 LQBLO 4:00,00",
+        "Serie 2 of 38 Finales Inicia a las 09:33 AM",
+        "0 Bravo, Esteban M35 MUCH NT",
+    ]
+    return [meet_program.SourceLine(1, 1, index, text)
+            for index, text in enumerate(texts, start=1)]
+
+
+def test_parse_accepts_spanish_heat_labels_from_fchmn_programs():
+    """Sin "Serie" no se establece contexto y toda inscripcion cae sin parsear."""
+    parsed = meet_program.parse_source_lines(_spanish_program_lines())
+
+    assert not parsed.unparsed
+    assert [entry.lane for entry in parsed.entries] == [2, 3, 0]
+    first = parsed.entries[0]
+    assert first.event_number == 1
+    assert first.event_name == "Mixto 100 CL Metro Estilo Libre"
+    assert (first.heat_number, first.heat_total) == (1, 38)
+    assert first.estimated_start_time == "09:30"
+    assert (first.display_name, first.age, first.team_name) == ("Zambrano, Juan", 24, "NEURO")
+    assert parsed.entries[1].seed_time_ms == 240000
+    assert parsed.entries[2].heat_number == 2
+
+
+def test_spanish_column_header_is_skipped_without_touching_surnames():
+    """El encabezado llega con las celdas entrelazadas; "Carriles," no lo es."""
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "#7 Mixto 400 CL Metro Combinado Relevo"),
+        meet_program.SourceLine(1, 1, 2, "Carril Equipo TRieelmevpoo para Sembrado"),
+        meet_program.SourceLine(1, 1, 3, "Serie 1 of 6 Finales Inicia a las 02:34 PM"),
+        meet_program.SourceLine(1, 1, 4, "1 SDEPO X240 E NT"),
+        meet_program.SourceLine(1, 1, 5, "Carriles, Matias M31 Munizaga, Javiera W30"),
+    ]
+
+    parsed = meet_program.parse_source_lines(lines)
+
+    assert not parsed.unparsed
+    entry = parsed.entries[0]
+    assert entry.entry_type == "relay"
+    assert entry.team_name == "SDEPO"
+    # X240 es la edad sumada del equipo, no la de un nadador.
+    assert entry.age is None
+    assert entry.relay_members == ["Carriles, Matias", "Munizaga, Javiera"]
+
+
+def test_spanish_continuation_header_keeps_event_context():
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "#2 Mixto 50 CL Metro Estilo de Espalda"),
+        meet_program.SourceLine(1, 1, 2, "Serie 3 (#2 Mixto 50 CL Metro Estilo de Espalda)"),
+        meet_program.SourceLine(1, 1, 3, "4 Lopez, Amparo W64 MPROV 3:45,00"),
+    ]
+
+    parsed = meet_program.parse_source_lines(lines)
+
+    assert not parsed.unparsed
+    assert parsed.entries[0].event_number == 2
+    assert parsed.entries[0].heat_number == 3
+
+
+def test_column_count_and_body_split_anchor_on_both_languages():
+    spanish_three = [
+        {"text": "Serie", "x0": 18.0},
+        {"text": "Serie", "x0": 212.4},
+        {"text": "Serie", "x0": 406.8},
+    ]
+    spanish_two = [
+        {"text": "Serie", "x0": 18.0},
+        {"text": "Serie", "x0": 309.6},
+    ]
+
+    assert meet_program.detect_page_column_count(spanish_three) == 3
+    assert meet_program.detect_page_column_count(spanish_two) == 2
+    # El corte entre encabezado de pagina y cuerpo usa el mismo vocabulario. Sin
+    # "serie", los encabezados que HY-TEK repite arriba de cada columna quedan en
+    # la banda de ancho completo, se fusionan y las inscripciones de la segunda
+    # columna heredan la serie de la primera.
+    source = (SCRIPTS_DIR / "run_meet_program.py").read_text(encoding="utf-8")
+    assert '{"heat", "event", "serie"}' in source
+
+
+def test_relay_events_are_detected_by_spanish_label():
+    assert meet_program._event_parts("Mixto 400 CL Metro Combinado Relevo")[1] == "relay"
+    assert meet_program._event_parts("Mixed 200 LC Meter Medley Relay")[1] == "relay"
+    assert meet_program._event_parts("Mixto 100 CL Metro Estilo Libre")[1] == "individual"

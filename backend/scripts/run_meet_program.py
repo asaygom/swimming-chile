@@ -54,14 +54,18 @@ EVENT_RE = re.compile(
     r"^(?:#|Event\s+)(?P<number>\d+)\s+(?P<name>.+?)\s*$",
     re.IGNORECASE,
 )
+# Meet Manager rotula en el idioma del torneo: los programas FCHMN salen en
+# espanol ("Serie 1 of 38 Finales Inicia a las 09:30 AM"). Sin estas variantes no
+# se establece contexto de serie y toda inscripcion cae como linea no parseada.
 CONTINUATION_RE = re.compile(
-    r"^Heat\s+(?P<heat>\d+)\s+\(#(?P<number>\d+)\s+(?P<name>.+?)\)?\s*$",
+    r"^(?:Heat|Serie)\s+(?P<heat>\d+)\s+\(#(?P<number>\d+)\s+(?P<name>.+?)\)?\s*$",
     re.IGNORECASE,
 )
 HEAT_RE = re.compile(
-    r"(?:^|.*\))Heat\s+(?P<number>\d+)"
-    r"(?:\s+of\s+(?P<total>\d+))?\s+Finals\b"
-    r"(?:\s+Starts\s+at\s+(?P<estimated_time>(?:0?[1-9]|1[0-2]):[0-5]\d\s*[AP]M))?",
+    r"(?:^|.*\))(?:Heat|Serie)\s+(?P<number>\d+)"
+    r"(?:\s+of\s+(?P<total>\d+))?\s+(?:Finals|Finales)\b"
+    r"(?:\s+(?:Starts\s+at|Inicia\s+a\s+las)"
+    r"\s+(?P<estimated_time>(?:0?[1-9]|1[0-2]):[0-5]\d\s*[AP]M))?",
     re.IGNORECASE,
 )
 SESSION_RE = re.compile(r"^Meet Program\s*-\s*(?P<name>.+?)\s*$", re.IGNORECASE)
@@ -81,6 +85,10 @@ SKIP_PATTERNS = [
     re.compile(r"^HY-TEK'?s MEET$", re.IGNORECASE),
     re.compile(r"^MANAGER\b.*\bPage\s+\d+$", re.IGNORECASE),
     re.compile(r"^Lane\s+(?:Name Age Team|Team Relay)\s+Seed Time$", re.IGNORECASE),
+    # El encabezado de columnas en espanol llega con las celdas entrelazadas
+    # ("Carril Nombre EdadT Eieqmuippoo para Sembrado"), asi que solo se ancla
+    # el prefijo. "Carriles," como apellido no matchea por el espacio exigido.
+    re.compile(r"^Carril\s+(?:Nombre|Equipo)\b", re.IGNORECASE),
     re.compile(r"^.+\s+-\s+\d{1,2}-\d{1,2}-\d{4}$"),
 ]
 GENDER_MEMBER_RE = re.compile(
@@ -256,11 +264,19 @@ def _group_band_words(words: list[dict[str, Any]], tolerance: float = 2.0) -> li
 def detect_page_column_count(
     words: list[dict[str, Any]], page_width: float = 612.0
 ) -> int:
-    """Detect HY-TEK's two- or three-column page from repeated heat anchors."""
+    """Detect HY-TEK's two- or three-column page from repeated heat anchors.
+
+    Acepta el rotulo en ingles y en espanol: sin "serie" un programa en espanol
+    no encuentra anclas y cae al valor por defecto de tres columnas, que acierta
+    solo por casualidad cuando el documento efectivamente tiene tres.
+    """
 
     anchors: list[float] = []
     for word in sorted(
-        (item for item in words if str(item.get("text", "")).casefold() == "heat"),
+        (
+            item for item in words
+            if str(item.get("text", "")).casefold() in {"heat", "serie"}
+        ),
         key=lambda item: float(item["x0"]),
     ):
         x0 = float(word["x0"])
@@ -284,10 +300,15 @@ def extract_source_lines(pdf_path: Path) -> tuple[list[SourceLine], int]:
             words = page.extract_words(x_tolerance=2, y_tolerance=3, keep_blank_chars=False)
             word_count += len(words)
             width = float(page.width)
+            # El corte entre encabezado de pagina y cuerpo se ancla a la primera
+            # palabra de contenido. "Serie" es la variante en espanol: sin ella,
+            # los encabezados que HY-TEK repite arriba de cada columna quedan en
+            # la banda de ancho completo, se fusionan entre columnas y las
+            # inscripciones siguientes heredan la serie de la columna anterior.
             body_tops = [
                 float(word["top"])
                 for word in words
-                if str(word["text"]).casefold() in {"heat", "event"}
+                if str(word["text"]).casefold() in {"heat", "event", "serie"}
                 or str(word["text"]).startswith("#")
             ]
             body_top = min(body_tops, default=float("inf"))
@@ -327,20 +348,32 @@ def extract_competition_header_metadata(
             header = (name, start_date, end_date)
             if header not in headers:
                 headers.append(header)
-    selected = headers[0] if headers else (None, None, None)
+    # Solo el encabezado de competencia trae fechas. El titulo del reporte
+    # ("Programa de Competencias - ...") tambien parsea como nombre, y sin esta
+    # preferencia los dos compiten y disparan un conflicto falso.
+    dated = [header for header in headers if header[1]]
+    candidates = dated or headers
+    selected = candidates[0] if candidates else (None, None, None)
     metadata: dict[str, Any] = {
         "source_competition_name": selected[0],
         "source_competition_start_date": selected[1],
         "source_competition_end_date": selected[2],
     }
-    if len(headers) > 1:
+    if len(candidates) > 1:
         metadata["source_competition_header_conflict"] = True
     return metadata
 
 
 def _event_parts(name: str) -> tuple[str, str]:
     cleaned = clean_text(name).rstrip(")")
-    entry_type = "relay" if re.search(r"\bRelay\b", cleaned, re.IGNORECASE) else "individual"
+    # "Relevo" es el rotulo en espanol. Sin el, el evento de postas se procesa
+    # como individual: la edad sumada del equipo (X240) se guarda como edad de
+    # nadador y los integrantes no se capturan.
+    entry_type = (
+        "relay"
+        if re.search(r"\b(?:Relay|Relevo)\b", cleaned, re.IGNORECASE)
+        else "individual"
+    )
     return cleaned, entry_type
 
 
@@ -767,16 +800,12 @@ def parse_meet_manager_csv(csv_path: Path) -> ParsedMeetProgram:
         if anchor is None:
             unparsed.append(DebugLine(1, 1, line_number, ";".join(row)[:500], "missing_lane_label"))
             continue
-        # Solo el encabezado de competencia trae fechas. El titulo del reporte
-        # ("Programa de Competencias - ...") tambien parsea como nombre, y sin
-        # este filtro los dos compiten y disparan un falso conflicto.
         for cell in row[:anchor]:
             text = clean_text(cell)
             if not text or text in header_seen:
                 continue
             header_seen.add(text)
-            if parse_competition_header(clean_extracted_text(text) or text)[1]:
-                header_lines.append(SourceLine(1, 1, line_number, text))
+            header_lines.append(SourceLine(1, 1, line_number, text))
 
         event_cell = next(
             (clean_text(cell) for cell in row[:anchor] if EVENT_RE.match(clean_text(cell))),

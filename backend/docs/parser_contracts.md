@@ -157,6 +157,16 @@ vinculos con `core.athlete` o `core.club`.
   `training`) y `scheduled_date`. Jornada unica usa etapa `1` y rol `main`.
   En competencias de varios dias, `--scheduled-date YYYY-MM-DD` es obligatorio
   al generar los artefactos y debe caer dentro del rango del encabezado.
+- Desde parser `0.5.0`, los programas rotulados en espanol se leen igual que los
+  ingleses: `Serie` ademas de `Heat`, `Finales` ademas de `Finals`, `Inicia a
+  las` ademas de `Starts at`, `Relevo` ademas de `Relay`, y el encabezado de
+  columnas `Carril Nombre|Equipo`. El rotulo tambien ancla la deteccion de
+  columnas y el corte entre encabezado de pagina y cuerpo: sin el, los
+  encabezados que HY-TEK repite arriba de cada columna se fusionan y las
+  inscripciones heredan la serie de la columna anterior.
+- El encabezado de competencia se elige entre los que traen fechas. El titulo
+  del reporte tambien parsea como nombre, y sin esa preferencia compite con el
+  encabezado real y dispara un conflicto falso.
 - Desde parser `0.5.0`, `--csv` acepta el export CSV del reporte "Programa de
   Competencias" de HY-TEK Meet Manager, ademas del PDF. Reglas propias de ese
   formato:
