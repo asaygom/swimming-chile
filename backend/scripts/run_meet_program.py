@@ -25,6 +25,7 @@ from natacion_chile.domain.competition_header import (
     parse_competition_header,
 )
 from natacion_chile.domain.extracted_text import clean_extracted_text
+from natacion_chile.domain.person_name import clean_athlete_name
 from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
@@ -493,7 +494,7 @@ def _parse_individual_entry(
             display_name, age, team_name = repaired
     if not display_name:
         return None
-    display_name = clean_extracted_text(display_name) or ""
+    display_name = clean_athlete_name(display_name) or ""
     team_name = clean_extracted_text(team_name)
     seed = tokens[-1]
     return MeetProgramEntry(
@@ -535,7 +536,7 @@ def _parse_relay_entry(
     display_name = " ".join(tokens[1:-1]).strip()
     if not display_name:
         return None
-    display_name = clean_extracted_text(display_name) or ""
+    display_name = clean_athlete_name(display_name) or ""
     team_name = clean_extracted_text(tokens[1])
     seed = tokens[-1]
     return MeetProgramEntry(
@@ -563,7 +564,7 @@ def _parse_relay_entry(
 def parse_relay_member_names(text: str) -> list[str]:
     for pattern in (GENDER_MEMBER_RE, AGE_MEMBER_RE):
         names = [
-            clean_extracted_text(match.group("name")) or ""
+            clean_athlete_name(match.group("name")) or ""
             for match in pattern.finditer(text)
         ]
         if len(names) == 2 and all("," in name for name in names):
@@ -585,7 +586,7 @@ def parse_source_lines(lines: Iterable[SourceLine]) -> ParsedMeetProgram:
         if match:
             session_by_page.setdefault(
                 source_line.page_number,
-                clean_extracted_text(match.group("name")) or "",
+                clean_athlete_name(match.group("name")) or "",
             )
     ordered_session_names = list(dict.fromkeys(session_by_page.values()))
     if ordered_session_names:

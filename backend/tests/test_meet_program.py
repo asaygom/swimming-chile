@@ -1260,3 +1260,24 @@ def test_relay_events_are_detected_by_spanish_label():
     assert meet_program._event_parts("Mixto 400 CL Metro Combinado Relevo")[1] == "relay"
     assert meet_program._event_parts("Mixed 200 LC Meter Medley Relay")[1] == "relay"
     assert meet_program._event_parts("Mixto 100 CL Metro Estilo Libre")[1] == "individual"
+
+
+def test_program_parser_uses_the_shared_curated_name_cleanup():
+    """Resultados y programa comparten la curaduria: no deben divergir."""
+    from natacion_chile.domain.person_name import clean_athlete_name
+
+    source = (SCRIPTS_DIR / "run_meet_program.py").read_text(encoding="utf-8")
+    assert "from natacion_chile.domain.person_name import clean_athlete_name" in source
+    # Nadadores e integrantes de relevo pasan por la curaduria, no solo por la
+    # limpieza generica de artefactos de extraccion.
+    assert source.count("clean_athlete_name(") >= 4
+
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "#1 Mixto 100 CL Metro Estilo Libre"),
+        meet_program.SourceLine(1, 1, 2, "Serie 1 of 2 Finales Inicia a las 09:30 AM"),
+        meet_program.SourceLine(1, 1, 3, "2 Beltraán, Pedro M24 NEURO NT"),
+    ]
+    entry = meet_program.parse_source_lines(lines).entries[0]
+
+    assert entry.display_name == "Beltrán, Pedro"
+    assert entry.display_name == clean_athlete_name("Beltraán, Pedro")

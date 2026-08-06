@@ -154,3 +154,50 @@ def test_hytek_event_identity_keeps_rejecting_non_event_text():
     assert parse_hytek_event_identity("Mixto 100 CL Metro") is None
     assert parse_hytek_event_identity("Mixto CL Metro Estilo Libre") is None
     assert parse_hytek_event_identity("100 CL Metro Estilo Libre") is None
+
+
+def test_curated_names_cover_the_program_pdf_variants():
+    """El acento agudo llega como glifo suelto; la correccion es por token."""
+    from natacion_chile.domain.person_name import clean_athlete_name
+
+    for artifact, expected in [
+        ("Beltraán, Pedro", "Beltrán, Pedro"),
+        ("Bastias, Bernabeá", "Bastias, Bernabé"),
+        ("Maríán, Diego", "Marín, Diego"),
+        ("Martorell, Reneá", "Martorell, René"),
+        ("Pasaríán Pollanco, Claudia", "Pasarín Pollanco, Claudia"),
+        ("Domíánguez, Jose", "Domínguez, José"),
+        ("Cabello Tilleríá, Andreás", "Cabello Tillería, Andrés"),
+    ]:
+        assert clean_athlete_name(artifact) == expected
+
+
+def test_curated_names_leave_correct_spanish_untouched():
+    """La correccion es curada justamente porque no hay regla general:
+    "Matías" y "Martínez" comparten patron con respuestas opuestas."""
+    from natacion_chile.domain.person_name import clean_athlete_name
+
+    for name in ["Sebastián Rojas", "Muñoz, Valeria", "Briceño, Carlos"]:
+        assert clean_athlete_name(name) == name
+    assert clean_athlete_name("Bascuñáán, Matíás") == "Bascuñán, Matías"
+    assert clean_athlete_name("Martíánez, Anais") == "Martínez, Anais"
+
+
+def test_curated_additions_do_not_capture_legitimate_neighbours():
+    """El diccionario canonico se consulta de forma difusa.
+
+    Apellidos cortos como "Marin" o "Rene" ahi capturan vecinos legitimos
+    ("Mariño", "Reaño"), por eso las formas con artefacto van como token_fixes
+    anclados y exactos.
+    """
+    from natacion_chile.domain.person_name import (
+        CANONICAL_ATHLETE_NAME_TOKENS,
+        clean_athlete_name,
+    )
+
+    for token in ("Marin", "Rene", "Beltran", "Bernabe", "Dominguez", "Pasarin"):
+        assert token not in CANONICAL_ATHLETE_NAME_TOKENS
+
+    assert clean_athlete_name("Mariño, Luis") == "Mariño, Luis"
+    assert clean_athlete_name("Alva Reaño, Julio") == "Alva Reaño, Julio"
+    assert clean_athlete_name("Marín, Diego") == "Marín, Diego"
