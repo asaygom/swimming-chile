@@ -33,7 +33,7 @@ from natacion_chile.domain.normalization import parse_hytek_event_identity
 # unicidad de publicacion es competencia + checksum + parser_version. Cualquier
 # cambio que altere la salida del parser debe subirla, o el mismo archivo se
 # rechaza como "ya publicado" y la correccion nunca llega a la base.
-PARSER_VERSION = "0.5.1"
+PARSER_VERSION = "0.5.3"
 ENTRY_COLUMNS = [
     "session_number",
     "session_name",
@@ -432,10 +432,25 @@ def _parse_fechida_overlap(tokens: list[str]) -> tuple[str, int, str] | None:
         and (first_lowercase is None or first_uppercase < first_lowercase)
         else None
     )
+    # La celda de edad se imprime como "W67", y al entrelazarse su marca de
+    # genero queda suelta entre las letras del nombre. Pertenece a la edad, no
+    # al codigo de equipo: sin descartarla PEMAS se guardaba como WPEMAS y el
+    # club perdia esas inscripciones. Es la primera mayuscula candidata a equipo
+    # antes del primer digito de la edad; el resto del codigo va despues.
+    gender_index = next(
+        (
+            index
+            for index in range(digit_indexes[0] - 1, -1, -1)
+            if overlap[index].isupper() and index != first_uppercase_is_name
+        ),
+        None,
+    )
+    if gender_index is not None and overlap[gender_index].upper() not in {"M", "W", "X"}:
+        gender_index = None
     name_characters: list[str] = []
     team_characters: list[str] = []
     for index, character in enumerate(overlap):
-        if index in age_indexes:
+        if index in age_indexes or index == gender_index:
             continue
         if character.islower() or index == first_uppercase_is_name:
             name_characters.append(character)
@@ -540,7 +555,11 @@ def _parse_relay_entry(
     display_name = " ".join(tokens[1:-1]).strip()
     if not display_name:
         return None
-    display_name = clean_athlete_name(display_name) or ""
+    # "SDEPO X240 E" rotula equipo, edad sumada y letra de posta: no es nombre
+    # de persona. clean_athlete_name lo trataria como tal y ademas de pegar la
+    # letra al codigo de edad ("X240E"), consultaria el diccionario canonico de
+    # apellidos de forma difusa sobre rotulos que no lo son.
+    display_name = clean_extracted_text(display_name) or ""
     team_name = clean_extracted_text(tokens[1])
     seed = tokens[-1]
     return MeetProgramEntry(
@@ -754,6 +773,7 @@ CSV_HEAT_TIME_RE = re.compile(
 # Edad viene con el genero pegado: "M24", "W64". En relevos es la edad sumada del
 # equipo ("X240"), que no es la edad de un nadador y por eso no se persiste.
 CSV_AGE_RE = re.compile(r"^(?P<gender>[MWX])(?P<age>\d+)$", re.IGNORECASE)
+CSV_MEMBER_AGE_RE = re.compile(r"\s+[MWX]\d{1,3}\s*$", re.IGNORECASE)
 
 
 def _decode_csv(path: Path) -> str:
@@ -782,7 +802,14 @@ def _csv_relay_members(row: list[str], anchor: int) -> list[str]:
     members = [
         _csv_cell(row, first + offset) for offset in range(CSV_RELAY_MEMBER_SLOTS)
     ]
-    return [member for member in members if member]
+    # El export pega genero y edad al integrante ("Mora, Ivonne W53"). Se
+    # descartan para que el campo signifique lo mismo que en la ruta PDF, y el
+    # nombre pasa por la misma curaduria compartida con resultados.
+    return [
+        clean_athlete_name(CSV_MEMBER_AGE_RE.sub("", member)) or ""
+        for member in members
+        if member
+    ]
 
 
 def parse_meet_manager_csv(csv_path: Path) -> ParsedMeetProgram:
@@ -840,7 +867,10 @@ def parse_meet_manager_csv(csv_path: Path) -> ParsedMeetProgram:
         seed_text = _csv_cell(row, anchor + CSV_LABEL_WIDTH + 5) or None
         # En relevos las celdas corren: el nombre es el club y el "equipo" es la
         # letra del relevo (A, B, ...). Se muestran juntos como en el programa.
-        display_name = f"{name} {team}".strip() if is_relay and team else name
+        display_name = (
+            clean_extracted_text(f"{name} {team}") if is_relay and team
+            else clean_athlete_name(name)
+        ) or ""
         heat_key = (event_number, heat_number)
         estimated = (
             normalize_estimated_start_time(time_match.group("time"))

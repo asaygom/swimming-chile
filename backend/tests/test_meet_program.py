@@ -206,6 +206,29 @@ def test_parse_fechida_repairs_name_age_and_team_column_overlap():
     ]
 
 
+def test_parse_overlap_keeps_gender_mark_out_of_the_team_code():
+    lines = [
+        meet_program.SourceLine(1, 1, 1, "#1 Mixto 100 CL Metro Estilo Libre"),
+        meet_program.SourceLine(1, 1, 2, "Serie 16 of 38 Finales"),
+        meet_program.SourceLine(
+            1, 1, 3, "9 Pinto Galleguillos, Rosario SWole6d7adPEMAS 1:40,00"
+        ),
+        meet_program.SourceLine(1, 1, 4, "2 Pineda, Miguel Leo n3a0rdoOSW23 NT"),
+    ]
+
+    result = meet_program.parse_source_lines(lines)
+
+    assert result.unparsed == []
+    assert [
+        (entry.display_name, entry.age, entry.team_name) for entry in result.entries
+    ] == [
+        ("Pinto Galleguillos, Rosario Soledad", 67, "PEMAS"),
+        # El codigo de equipo puede contener M/W/X: solo se descarta la marca
+        # que precede a los digitos de la edad.
+        ("Pineda, Miguel Leonardo", 30, "OSW23"),
+    ]
+
+
 def test_infer_program_segment_defaults_and_fechida_pool_roles():
     assert meet_program.infer_program_segment("Jornada Unica") == (1, "main")
     assert meet_program.infer_program_segment(
@@ -1141,11 +1164,13 @@ def test_meet_manager_csv_maps_relay_team_letter_and_members(tmp_path):
     assert entry.team_name == "SDEPO"
     # X240 es la edad sumada del equipo, no la de un nadador.
     assert entry.age is None
+    # Genero y edad pegados al integrante se descartan para que el campo
+    # signifique lo mismo que en la ruta PDF.
     assert entry.relay_members == [
-        "Mora, Ivonne W53",
-        "Von Marttens, Nelly W64",
-        "Barraza, Mario M71",
-        "Gallardo, Egmont M70",
+        "Mora, Ivonne",
+        "Von Marttens, Nelly",
+        "Barraza, Mario",
+        "Gallardo, Egmont",
     ]
 
 
@@ -1216,6 +1241,8 @@ def test_spanish_column_header_is_skipped_without_touching_surnames():
     entry = parsed.entries[0]
     assert entry.entry_type == "relay"
     assert entry.team_name == "SDEPO"
+    # El rotulo de la posta se conserva tal cual: no es nombre de persona.
+    assert entry.display_name == "SDEPO X240 E"
     # X240 es la edad sumada del equipo, no la de un nadador.
     assert entry.age is None
     assert entry.relay_members == ["Carriles, Matias", "Munizaga, Javiera"]
@@ -1268,9 +1295,6 @@ def test_program_parser_uses_the_shared_curated_name_cleanup():
 
     source = (SCRIPTS_DIR / "run_meet_program.py").read_text(encoding="utf-8")
     assert "from natacion_chile.domain.person_name import clean_athlete_name" in source
-    # Nadadores e integrantes de relevo pasan por la curaduria, no solo por la
-    # limpieza generica de artefactos de extraccion.
-    assert source.count("clean_athlete_name(") >= 4
 
     lines = [
         meet_program.SourceLine(1, 1, 1, "#1 Mixto 100 CL Metro Estilo Libre"),
@@ -1281,3 +1305,54 @@ def test_program_parser_uses_the_shared_curated_name_cleanup():
 
     assert entry.display_name == "Beltrán, Pedro"
     assert entry.display_name == clean_athlete_name("Beltraán, Pedro")
+
+    # Los integrantes de relevo pasan por la misma curaduria; el rotulo del
+    # equipo no, porque no es nombre de persona.
+    relay_lines = [
+        meet_program.SourceLine(1, 1, 1, "#7 Mixto 400 CL Metro Combinado Relevo"),
+        meet_program.SourceLine(1, 1, 2, "Serie 1 of 6 Finales"),
+        meet_program.SourceLine(1, 1, 3, "1 NEURO X240 E NT"),
+        meet_program.SourceLine(1, 1, 4, "Beltraán, Pedro M31 Munizaga, Javiera W30"),
+    ]
+    relay = meet_program.parse_source_lines(relay_lines).entries[0]
+
+    assert relay.relay_members == ["Beltrán, Pedro", "Munizaga, Javiera"]
+    assert relay.display_name == "NEURO X240 E"
+
+
+def test_meet_manager_csv_applies_the_same_curated_cleanup_as_the_pdf(tmp_path):
+    """Ambos formatos alimentan la misma tabla: el mismo nadador no puede
+    quedar escrito distinto segun el origen."""
+    rows = [
+        _meet_manager_row(
+            event="#1 Mixto 100 CL Metro Estilo Libre",
+            heat_cell="Serie   1 of 1   Finales   Inicia a las  09:30 AM",
+            lane=2, name="Nuñez, Jose", age="M24", team="NEURO", seed="NT",
+        ),
+        _meet_manager_row(
+            event="#7 Mixto 400 CL Metro Combinado Relevo",
+            heat_cell="Serie   1 of 1   Finales   Inicia a las  11:22 AM",
+            lane=3, name="SDEPO", age="X240", team="E", seed="NT",
+            relay_members=[
+                "Mora, Ivonne W53",
+                "Von Marttens, Nelly W64",
+                "Beltraán, Pedro M31",
+                "Gallardo, Egmont M70",
+            ],
+        ),
+    ]
+    parsed = meet_program.parse_meet_manager_csv(
+        _write_meet_manager_csv(tmp_path / "programa.csv", rows)
+    )
+    individual, relay = parsed.entries
+
+    assert individual.display_name == "Núñez, José"
+    # El rotulo de la posta no es nombre de persona y se conserva tal cual.
+    assert relay.display_name == "SDEPO E"
+    # Genero y edad pegados al integrante se descartan, igual que en la ruta PDF.
+    assert relay.relay_members == [
+        "Mora, Ivonne",
+        "Von Marttens, Nelly",
+        "Beltrán, Pedro",
+        "Gallardo, Egmont",
+    ]
