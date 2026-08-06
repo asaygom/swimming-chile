@@ -29,7 +29,11 @@ from natacion_chile.domain.person_name import clean_athlete_name
 from natacion_chile.domain.normalization import parse_hytek_event_identity
 
 
-PARSER_VERSION = "0.5.0"
+# Subir esta version es lo que habilita republicar un PDF ya cargado: la
+# unicidad de publicacion es competencia + checksum + parser_version. Cualquier
+# cambio que altere la salida del parser debe subirla, o el mismo archivo se
+# rechaza como "ya publicado" y la correccion nunca llega a la base.
+PARSER_VERSION = "0.5.1"
 ENTRY_COLUMNS = [
     "session_number",
     "session_name",
