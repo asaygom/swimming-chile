@@ -250,7 +250,9 @@ def test_default_club_alias_csv_contains_audited_fchmn_mappings():
     assert pipeline.resolve_club_alias("ÑUÑOA", aliases) == "Ñuñoa Master"
     assert pipeline.resolve_club_alias("Venimos por la Natacioén", aliases) == "Venimos por la Natacion"
     assert pipeline.resolve_club_alias("Master San Bernanrdo", aliases) == "Master San Bernardo"
-    assert pipeline.resolve_club_alias("Toninas Swm Team", aliases) == "Toninas Swim Team"
+    # "Toninas Swim Team" dejo de ser un club: se fusiono en Club Toninas Pto
+    # Montt, asi que el typo encadena hasta el canonico vigente.
+    assert pipeline.resolve_club_alias("Toninas Swm Team", aliases) == "Club Toninas Pto Montt"
     assert pipeline.resolve_club_alias("Camayo Copiapo", aliases) == "Camaygo Copiapo"
     assert pipeline.resolve_club_alias("Condictrios Team", aliases) == "Condrictios Team"
     assert pipeline.resolve_club_alias("Salmon Swim", aliases) == "Salmón Swim"
