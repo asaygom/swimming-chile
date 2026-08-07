@@ -348,7 +348,7 @@ Orinoco Swim Team,Orinoco Swim,alias detectado entre competencias 2026
 Orinocoswim23,Orinoco Swim,sufijo numerico y espacio omitido detectados en auditoria historica 2022-2026
 Club Pato Cornejo,Pato Cornejo,alias detectado en auditoria historica de PDFs
 Pato Cornejo,Pato Cornejo,canonical
-Pdro Aguirre Cerda,Pedro Aguirre Cerda,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=3; cross=3
+Pdro Aguirre Cerda,Ayun Koiko Pedro Aguirre Cerda,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=3; cross=3
 Club Peñalolen Master,Peñalolen Master,grupo fuerte penalolen aplicado desde auditoria 2022-2026
 Master Peñalolen,Peñalolen Master,alias detectado en PDFs historicos
 PEMAS,Peñalolen Master,codigo de equipo detectado en layout abreviado HY-TEK
@@ -406,12 +406,11 @@ Club las Toninas de Aysen,Toninas de Aysen,grupo fuerte toninas aysen aplicado d
 Club Toninas De Aysen,Toninas de Aysen,alias detectado en PDFs historicos
 Toninas Aysen,Toninas de Aysen,alias detectado en PDFs historicos
 Toninas de Aysen,Toninas de Aysen,canonical
-Toninas,Toninas Swim Team,alias detectado en auditoria historica de PDFs
-Toninas Swim Team,Toninas Swim Team,canonical
 Toninas Swm Team,Toninas Swim Team,typo detectado en auditoria historica 2022-2026
+Toninas Swim Team,Club Toninas Pto Montt,canonical
 Triton Master,Triton Master Temuco,athlete-year cross-competition candidate; canonical_more_descriptive_or_tie; shared=11; cross=1
-Club Tritones,Tritones,grupo fuerte tritones aplicado desde auditoria 2022-2026
-Tritones,Tritones,grupo fuerte tritones aplicado desde auditoria 2022-2026
+Club Tritones,Tritones de Valdivia,grupo fuerte tritones aplicado desde auditoria 2022-2026
+Tritones,Tritones de Valdivia,grupo fuerte tritones aplicado desde auditoria 2022-2026
 UC Maule,Universidad Catolica Del Maule,abreviatura confirmada por atleta compartido 2022
 UCM,Universidad Catolica Del Maule,codigo HY-TEK confirmado por atleta compartido 2022; no corresponde a UC ni U. de Chile
 UCMAU,Universidad Catolica Del Maule,codigo HY-TEK confirmado por atleta compartido 2022 con UC Maule/Universidad Catolica del Maule
@@ -465,7 +464,6 @@ LO Prado,Natacion Lo Prado,suda_postload_review_20260617
 Los Lagos,Natacion Los Lagos,suda_postload_review_20260617
 Mantarrayas,Master Mantarrayas Arica,suda_postload_review_20260617
 Mendoza DE Regatas,Club Mendoza de Regatas,suda_postload_review_20260617
-Olimpia,OLIMP,suda_postload_review_20260617
 Orcos,Club Waterpolo Orcos Chile,suda_postload_review_20260617
 Polaris,Club Polaris Puerto Varas,suda_postload_review_20260617
 Vita Valdivia,Cub Vita Valdivia,suda_postload_review_20260617
@@ -488,7 +486,7 @@ Clmakos,Club de Natacion Makos,suda_post_sql_review_v4_20260618
 Cnaraucania,Club Natacion Araucania,suda_post_sql_review_v4_20260618
 Estisrael,Estadio Israelita,suda_post_sql_review_v4_20260618
 Univ.Catolica,Club Deportivo UC,suda_post_sql_review_v4_20260618
-Koiko,Koiko Pedro Aguirre Cerda,suda_post_sql_review_v4_20260618
+Koiko,Ayun Koiko Pedro Aguirre Cerda,suda_post_sql_review_v4_20260618
 Cantalca,Club Amateur Natacion Talca,suda_post_sql_review_v4_20260618
 Blue San Fernando,Club Blue San Fernando,alias detectado en resultados X Torneo Master San Bernardo 2026
 Escuela de Sub Of del Ejercito,Escuela de Suboficiales del Ejercito,alias detectado en resultados X Torneo Master San Bernardo 2026
@@ -518,14 +516,14 @@ Natacion Efecto MACHALI,Efecto Machali,alias FECHIDA master revisado 2024-2025
 Nuoto Master Stadio Italiano,Stadio Italiano,alias FECHIDA master revisado 2024-2025
 Oceano Rengo,Oceano DE Rengo,alias FECHIDA master revisado 2024-2025
 Universidad Catolica del Maul,Universidad Catolica Del Maule,alias FECHIDA master revisado 2024-2025
-Ayun Koiko DE Pedro Aguirre CE,Pedro Aguirre Cerda,alias FECHIDA master corregido post-load 2024-2025
-Ayun Koiko Pedro Aguirre Cerda,Pedro Aguirre Cerda,alias FECHIDA master corregido post-load 2024-2025
+Ayun Koiko DE Pedro Aguirre CE,Ayun Koiko Pedro Aguirre Cerda,alias FECHIDA master corregido post-load 2024-2025
+Ayun Koiko Pedro Aguirre Cerda,Ayun Koiko Pedro Aguirre Cerda,alias FECHIDA master corregido post-load 2024-2025
 Club Deportivo Fullmar Chile,Fullmar Viña del Mar,alias FECHIDA master corregido post-load 2024-2025
 Club Deportivo Fullmar Vina,Fullmar Viña del Mar,alias FECHIDA master corregido post-load 2024-2025
 Nautilius Chile,Nautilus Viña Del Mar,"Sudamericanos preload review 20260709: typo/truncated Chile club, shared athlete evidence; Universidad Cató intentionally not aliased because it is truncated/ambiguous."
 Prclub Dep Natacion Araucania,Club Natacion Araucania,alias detectado en auditoria FECHIDA invierno 2026
-Ayun Koiko DE Pedro Aguirre,Pedro Aguirre Cerda,alias detectado en auditoria FECHIDA invierno 2026
-Prayun Koiko DE Pedro Aguirre,Pedro Aguirre Cerda,alias detectado en auditoria FECHIDA invierno 2026
+Ayun Koiko DE Pedro Aguirre,Ayun Koiko Pedro Aguirre Cerda,alias detectado en auditoria FECHIDA invierno 2026
+Prayun Koiko DE Pedro Aguirre,Ayun Koiko Pedro Aguirre Cerda,alias detectado en auditoria FECHIDA invierno 2026
 Academia Antofagasta Swiming,Academia Antofagasta Swimming,alias detectado en auditoria FECHIDA invierno 2026
 PreAcademia Antofagasta Swimmi,Academia Antofagasta Swimming,alias detectado en auditoria FECHIDA invierno 2026
 Club Deportivo Atr Valdicia,Club Atr Valdivia,alias detectado en auditoria FECHIDA invierno 2026
@@ -538,6 +536,135 @@ Club Natacion Nomades Los R,Club Nomades Los Rios,alias detectado en auditoria F
 Natacion Master Recoleta P,Natacion Master Recoleta,alias detectado en auditoria FECHIDA invierno 2026
 Paquamaster Chillan,Aquamaster Chillan,alias detectado en auditoria FECHIDA invierno 2026
 Rolf Nathan( Africa ),Africa Natacion,alias detectado en auditoria FECHIDA invierno 2026
+100SW,Cien por Ciento Swim,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+100% Swim,Cien por Ciento Swim,variante de nombre publicado en PDF de participacion master FCHMN 2026
+ACUAT,Acuaticos,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+ACORD,Acuático Cordillera,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+SALVA,Agrupacion Salvavidas Valdivia,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+Agrupación de Salvavidas de Valdivia,Agrupacion Salvavidas Valdivia,variante de nombre publicado en PDF de participacion master FCHMN 2024
+AMARU,Amarus,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+ANTSW,Academia Antofagasta Swimming,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+Antofagasta Swimming Club,Academia Antofagasta Swimming,variante de nombre publicado en PDF de participacion master FCHMN 2023 2024 2025
+AQNOR,Aqua Norte,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+AQCHI,Aquamaster Chillan,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025 2026
+AQMÑU,Aquamaster Ñuble,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+AquaNorte,Aqua Norte,variante de nombre publicado en PDF de participacion master FCHMN 2025
+AQUAP,Aquapro Club,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+AQUAT,Aquateam,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+AUTOC,Autoclub de Antofagasta,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+AKPAC,Ayun Koiko Pedro Aguirre Cerda,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+Ayun Koiko PAC,Ayun Koiko Pedro Aguirre Cerda,variante de nombre publicado en PDF de participacion master FCHMN 2024
+CALST,Calambre Swim Team,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+Calmbre Swim Team,Calambre Swim Team,variante de nombre publicado en PDF de participacion master FCHMN 2024
+CAMAY,Camaygo Copiapo,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025 2026
+CARAB,Carabineros de Chile,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+CHUNG,Chungungo Swim Team,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024
+CDALE,Club Aleman Valparaiso,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+Club Aleman de Valparaiso,Club Aleman Valparaiso,variante de nombre publicado en PDF de participacion master FCHMN 2024
+ATRVA,Club Atr Valdivia,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025 2026
+BLUSF,Club Blue San Fernando,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+CHICU,Club Chicureo,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024
+CONST,Club de Natacion Constitucion,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+JUPIT,Jupiter Rancagua,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+Club de Natación Júpiter,Jupiter Rancagua,variante de nombre publicado en PDF de participacion master FCHMN 2026
+CDOTI,Club Deportes Otila,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+Club Deportivo Master Magallanes,Master Magallanes,variante de nombre publicado en PDF de participacion master FCHMN 2022 2023 2024
+MAYOR,Club Deportivo Mayor,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+CDREC,Club Deportivo Recreativo,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+CDUSS,Club Deportivo Universidad San Sebastian,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+CDWOR,Workout,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+Club Deportivo Workout Villa Alemana,Workout,variante de nombre publicado en PDF de participacion master FCHMN 2025 2026
+CLH2O,Club H2o,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025 2026
+ARAUC,Club Natacion Araucania,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+AUSTR,Club Natacion Austral,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+NOMAD,Club Nomades Los Rios,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+OCEAN,Oceano DE Rengo,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+Club Oceano Rengo,Oceano DE Rengo,variante de nombre publicado en PDF de participacion master FCHMN 2025
+COLCH,Club Olimpo Chillan,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+Club Patagonia de Coyhaique,Patagonia Kumen Coyhaique,variante de nombre publicado en PDF de participacion master FCHMN 2022
+PACOR,Pato Cornejo,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+Club Patricio Cornejo,Pato Cornejo,variante de nombre publicado en PDF de participacion master FCHMN 2026
+POLAR,Club Polaris Puerto Varas,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+CPSOL,Club Portal Del Sol,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+TONIN,Club Toninas Pto Montt,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+UNLIM,Unlimit Chile,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+Club Unlimit,Unlimit Chile,variante de nombre publicado en PDF de participacion master FCHMN 2024
+Eagle Chile,EAGLE,variante de nombre publicado en PDF de participacion master FCHMN 2022
+EMACH,Efecto Machali,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+PERUG,Efecto Peruga,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024
+ENESW,Energy Swim,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+ESOFE,Escuela de Suboficiales del Ejercito,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+Estadio Español de Las Condes,Estadio Español,variante de nombre publicado en PDF de participacion master FCHMN 2022 2023 2024 2025 2026
+FOCAS,Focas de Antofagasta,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+FONOS,Fonosub,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024
+GREEN,Green Club,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+Green Club Talca,Green Club,variante de nombre publicado en PDF de participacion master FCHMN 2023 2024 2025
+IRONS,Iron Swim Master,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2024 2025 2026
+KOIPE,Koi Peñalolen,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+CKOYA,Koy Aike,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+MANTA,Master Mantarrayas Arica,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025 2026
+Mantarrayas de Arica,Master Mantarrayas Arica,variante de nombre publicado en PDF de participacion master FCHMN 2023 2024 2025 2026
+NIELO,Master del Ñielol,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025 2026
+IQUIQ,Master Iquique,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+MANQU,Master Manquehue,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+UCHMA,Master Universidad de Chile,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025 2026
+MVITA,Master Vitacura,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+MVIÑA,Master Viña,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+ÑUBLE,Master Ñuble,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+MAULE,Maule Sport,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+CMCOQ,Mayor Coquimbo,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2024 2025
+MEPUD,Medusas de Pudahuel,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+MOLIN,CD Molino DE Villa Alemana-NI,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+Molino de Villa Alemana,CD Molino DE Villa Alemana-NI,variante de nombre publicado en PDF de participacion master FCHMN 2025
+NEBOS,Rama Natacion El Bosque,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+Natación El Bosque,Rama Natacion El Bosque,variante de nombre publicado en PDF de participacion master FCHMN 2024 2025 2026
+HUECH,Natacion Huechuraba,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+INDEP,Natacion Independencia,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+LAUTA,Natacion Lautaro,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+BAGUA,Natacion Master Bagual,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+NEPTU,Neptuno,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+NEURO,Natacion Neurodivergente,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+Neurodivergentes,Natacion Neurodivergente,variante de nombre publicado en PDF de participacion master FCHMN 2025 2026
+NiceSport,Club Nice Sport,variante de nombre publicado en PDF de participacion master FCHMN 2022
+NUMAN,Numancia,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024
+ONLYS,Only Swim,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+ORCAS,Orcas de Iquique,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+ORISW,Orinoco Swim,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025 2026
+Pedro Aguirre Cerda,Ayun Koiko Pedro Aguirre Cerda,variante de nombre publicado en PDF de participacion master FCHMN 2023
+PIRAN,CD Piranhas,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+Piranhas,CD Piranhas,variante de nombre publicado en PDF de participacion master FCHMN 2025
+PDICH,Escuela PDI,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+Policia de Investigaciones de Chile,Escuela PDI,variante de nombre publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+PTOVA,Puerto Varas,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2025
+PURAV,Pura Vida Pichilemu,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+Salmon Swim Team,Salmón Swim,variante de nombre publicado en PDF de participacion master FCHMN 2022 2023 2024
+SGSHA,Sve Hamburgo,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+SGS Hamburg,Sve Hamburgo,variante de nombre publicado en PDF de participacion master FCHMN 2024
+STADE,Stade Francais,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+POSEI,Swim Poseidon,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024
+TPCAV,Team Pili Caviedes,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+TONAY,Toninas de Aysen,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+Traypin Atenas Talca,Traypin,variante de nombre publicado en PDF de participacion master FCHMN 2023
+TRITO,Triton Master Temuco,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+Tritones de Valdivia,Tritones de Valdivia,variante de nombre publicado en PDF de participacion master FCHMN 2022
+Tritones del Rufino,Triton Master Temuco,variante de nombre publicado en PDF de participacion master FCHMN 2022
+Tritón de Temuco,Triton Master Temuco,variante de nombre publicado en PDF de participacion master FCHMN 2023
+UFRON,Club Natacion Ufro,codigo de equipo publicado en PDF de participacion master FCHMN 2022 2025
+UFRO Natación,Club Natacion Ufro,variante de nombre publicado en PDF de participacion master FCHMN 2022 2025
+UNABE,Universidad Nacional Andres Bello,codigo de equipo publicado en PDF de participacion master FCHMN 2025
+Universidad Andres Bello,Universidad Nacional Andres Bello,variante de nombre publicado en PDF de participacion master FCHMN 2025
+UC Maule (Talca),Universidad Catolica Del Maule,variante de nombre publicado en PDF de participacion master FCHMN 2022 2023
+Universidad de Concepción (Chillán),Universidad de Concepcion,variante de nombre publicado en PDF de participacion master FCHMN 2022 2023 2024 2025
+Universidad de La Frontera UFRO,Club Natacion Ufro,variante de nombre publicado en PDF de participacion master FCHMN 2024
+UGAMI,Universidad Gabriela Mistral,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+VENAT,Venimos por la Natacion,codigo de equipo publicado en PDF de participacion master FCHMN 2023 2024 2025
+VERMO,Vergara Monardes,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+VILUS,Vilu Swim,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
+Viña Master,Master Viña,variante de nombre publicado en PDF de participacion master FCHMN 2022
+WARRI,Warrior´s Lungs,codigo de equipo publicado en PDF de participacion master FCHMN 2026
+WEIGC,Weider Gym Club,codigo de equipo publicado en PDF de participacion master FCHMN 2024
+WEYEL,Weyelfe Master,codigo de equipo publicado en PDF de participacion master FCHMN 2024 2025
+YOUTO,Youtopia,codigo de equipo publicado en PDF de participacion master FCHMN 2025 2026
 
 Club Petroleros,Club Petroleros Ypf,suda_postload_review_20260617
 Cpypf,Club Petroleros Ypf,suda_post_sql_review_v4_20260618
