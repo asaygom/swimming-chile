@@ -234,7 +234,7 @@ export const CompetitionLiveAnnouncementAdminPage: React.FC = () => {
           <p className="mt-1 text-sm text-slate-500">PNG, JPEG o WebP de hasta 2 MiB.</p>
           <div className="mt-4 flex min-h-40 items-center justify-center rounded-xl bg-slate-50 p-4">
             {logoPreviewUrl ? <img src={logoPreviewUrl} alt="Vista previa del nuevo logo" className="max-h-48 max-w-full object-contain" />
-              : branding.has_logo ? <img src={competitionService.getLiveBrandingLogoUrl(id!, branding.revision)} alt="Logo actual de la competencia" className="max-h-48 max-w-full object-contain" />
+              : branding.has_logo ? <img src={competitionService.getLiveBrandingLogoUrl(id!, branding.revision)} alt="Logo actual de la competencia" crossOrigin="anonymous" className="max-h-48 max-w-full object-contain" />
                 : <p className="text-sm font-semibold text-slate-400">Sin logo particular</p>}
           </div>
           <label htmlFor="competition-logo" className="mt-4 block text-sm font-bold text-slate-700">Seleccionar archivo</label>

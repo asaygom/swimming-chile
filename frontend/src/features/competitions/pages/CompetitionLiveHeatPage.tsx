@@ -192,6 +192,10 @@ export const CompetitionLiveHeatPage: React.FC = () => {
               {showLogo ? <img
                 src={competitionService.getLiveBrandingLogoUrl(id!, branding.revision)}
                 alt={`Logo de ${competition.name}`}
+                // Un <img> normal no envia header `Origin`, y el WAF de la API
+                // rechaza con 403 todo /api/ que no lo traiga. En modo CORS el
+                // navegador si lo manda y la respuesta ya expone el Allow-Origin.
+                crossOrigin="anonymous"
                 onError={() => setLogoFailedRevision(branding.revision)}
                 className="max-h-24 max-w-full object-contain sm:max-h-32 lg:max-h-full"
               /> : <div className="min-w-0 self-start">

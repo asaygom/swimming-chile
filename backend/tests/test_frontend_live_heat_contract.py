@@ -570,3 +570,14 @@ def test_fullscreen_announcement_has_no_frame_around_the_message():
     assert "justify-between" in fullscreen
     assert '<img src="/nunoa-master-2026-white.png" alt=""' in fullscreen
     assert (ROOT / "frontend/public/nunoa-master-2026-white.png").exists()
+
+
+def test_branding_logo_is_requested_in_cors_mode_to_pass_the_edge():
+    # Un <img> corriente no envia header `Origin`, y la regla de borde de la API
+    # rechaza con 403 todo /api/ que no lo traiga. Sin `crossOrigin` el logo
+    # queda invisible en produccion aunque este cargado.
+    for page in (PAGE, ADMIN_PAGE):
+        source = page.read_text(encoding="utf-8")
+        logo_tags = source.count("getLiveBrandingLogoUrl(id!, branding.revision)")
+        assert logo_tags >= 1, page.name
+        assert source.count('crossOrigin="anonymous"') >= logo_tags, page.name
